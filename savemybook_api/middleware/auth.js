@@ -5,7 +5,6 @@ const sessions = require('../services/sessions');
 const deny = (res, status, message, code) =>
   res.status(status).json({ success: false, ...(code && { code }), message });
 
-// HTTP 與 WebSocket 共用：回傳 { user, decoded }，或 { problem: [status, message, code] }。
 const authenticate = async (token) => {
   if (!token) return { problem: [401, '請先登入'] };
 

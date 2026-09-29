@@ -43,7 +43,7 @@ router.post('/', registerLimiter, async (req, res) => {
   const plain = req.body.password;
   const name = text(req.body.nickname, { label: '暱稱', max: 50 });
 
-  if (!email || !plain || !name) throw badRequest('缺少必要欄位：email、password 或 nickname');
+  if (!email || !plain || !name) throw badRequest('請填寫電子郵件、密碼與暱稱');
   if (!EMAIL_RE.test(email)) throw badRequest('電子郵件格式不正確');
   password.assertPolicy(plain);
   nickname(name);
@@ -55,7 +55,7 @@ router.post('/', registerLimiter, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   const userId = id(req.params.id, '使用者編號');
   if (req.user.userId !== userId && req.user.role !== 'admin') {
-    throw forbidden('存取被拒，您無權限修改他人的資料');
+    throw forbidden('無權限修改此使用者的資料');
   }
 
   const updated = await users.updateProfile(userId, profileData(req.body));

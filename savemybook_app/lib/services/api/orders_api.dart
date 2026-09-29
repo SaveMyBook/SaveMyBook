@@ -12,30 +12,38 @@ extension OrdersApi on ApiService {
     return Order.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
-  Future<String?> checkout(List<int> cartIds) async {
-    final res = await _send('POST', '/orders/checkout', body: {'cart_ids': cartIds});
-    if (res == null) return S.pleaseSignFirst;
-    if (res['success'] != true) {
-      return res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
-    }
-    unawaited(fetchCartBookIds());
-    return null;
+  Future<Order?> fetchOrderDetailByNo(String orderNo) async {
+    final res = await _send('GET', '/orders/by-no/${Uri.encodeComponent(orderNo)}');
+    if (res == null || res['success'] != true || res['data'] is! Map) return null;
+    return Order.fromJson(Map<String, dynamic>.from(res['data']));
   }
 
-  Future<String?> buyNow(int bookId) async {
-    final res = await _send('POST', '/orders/buy-now', body: {'book_id': bookId});
-    if (res == null) return S.pleaseSignFirst;
+  Future<({String? error, bool readyForPickup})> checkout(List<int> cartIds) =>
+      _placeOrder('/orders/checkout', {'cart_ids': cartIds});
+
+  Future<({String? error, bool readyForPickup})> buyNow(int bookId) =>
+      _placeOrder('/orders/buy-now', {'book_id': bookId});
+
+  Future<({String? error, bool readyForPickup})> _placeOrder(String path, Map<String, Object?> body) async {
+    final res = await _send('POST', path, body: body);
+    if (res == null) return (error: S.pleaseSignFirst, readyForPickup: false);
     if (res['success'] != true) {
-      return res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
+      final error = res['code'] == 'VERIFICATION_CANCELLED' ? '' : (res['message'] as String? ?? S.checkoutFailed);
+      return (error: error, readyForPickup: false);
     }
     unawaited(fetchCartBookIds());
-    return null;
+    final data = res['data'];
+    final orders = data is List ? data : [data];
+    final ready = orders.isNotEmpty && orders.every((o) => o is Map && o['status'] == 'deposited');
+    return (error: null, readyForPickup: ready);
   }
 
   Future<String?> cancelOrder(int orderId, {String? reason}) async {
     final res = await _send('PATCH', '/orders/$orderId/cancel', body: {'reason': reason});
     if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotCancelOrder);
+    if (res['success'] == true) return null;
+    if (res['code'] == 'ORDER_IN_CABINET_SESSION') return S.orderBeingHandledLockerPleaseTry;
+    return res['message'] as String? ?? S.couldNotCancelOrder;
   }
 
   Future<String?> updateOrderStatus(int orderId, String status) async {
@@ -62,13 +70,15 @@ extension OrdersApi on ApiService {
     return urls.map((e) => e.toString()).toList();
   }
 
-  Future<String?> submitDispute({required int orderId, required String reason, List<String>? evidenceUrls}) async {
+  Future<String?> submitDispute({required String orderNo, required String reason, List<String>? evidenceUrls}) async {
     final res = await _send('POST', '/disputes', body: {
-      'order_id': orderId,
+      'order_no': orderNo,
       'reason': reason,
       'evidence_urls': evidenceUrls,
     });
     if (res == null) return S.pleaseSignFirst;
-    return res['success'] == true ? null : (res['message'] as String? ?? S.couldNotSubmitDispute);
+    if (res['success'] == true) return null;
+    if (res['code'] == 'ORDER_IN_CABINET_SESSION') return S.orderBeingHandledLockerPleaseTry;
+    return res['message'] as String? ?? S.couldNotSubmitDispute;
   }
 }

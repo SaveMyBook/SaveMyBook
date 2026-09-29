@@ -223,7 +223,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 已重設，請把臨時密碼交給使用者 }
+                  message: { type: string, example: 已重設，請將臨時密碼提供給使用者 }
                   data:
                     type: object
                     properties:
@@ -233,7 +233,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 不能重設自己的密碼，請用「更改密碼」 }
+              example: { success: false, message: 無法重設自己的密碼，請使用「更改密碼」 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403':
           description: |
@@ -246,7 +246,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 目標是管理員:
-                  value: { success: false, message: 不能重設其他管理員的密碼 }
+                  value: { success: false, message: 無法重設其他管理員的密碼 }
                 需要驗證:
                   value:
                     success: false
@@ -254,17 +254,17 @@ paths:
                     message: 請以登入密碼或通行密鑰驗證身分以執行此後台操作
                     verification: { scope: admin, methods: [password, passkey] }
         '404':
-          description: 找不到這位會員。
+          description: 找不到此會員。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這位會員 }
+              example: { success: false, message: 找不到此會員 }
         '409':
           description: 帳號已匿名化（刪除），無法重設。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 這個帳號已刪除 }
+              example: { success: false, message: 此帳號已刪除 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/members/{id}/level:
@@ -336,7 +336,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這個等級 }
+              example: { success: false, message: 找不到此等級 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/members/{id}/permissions:
@@ -393,7 +393,7 @@ paths:
                 對象非管理員:
                   value: { success: false, message: 只有管理員帳號才需要設定細部權限 }
                 未帶入欄位:
-                  value: { success: false, message: 沒有要更新的權限 }
+                  value: { success: false, message: 沒有需要更新的權限 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '404': { $ref: '#/components/responses/NotFound' }

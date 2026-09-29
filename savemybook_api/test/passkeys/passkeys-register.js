@@ -35,7 +35,10 @@ module.exports = {
       assert.strictEqual(res.status, 201);
       assert.strictEqual(res.body.message, '已新增通行密鑰');
       const [item] = res.body.data;
-      assert.deepStrictEqual(Object.keys(item).sort(), ['authenticator', 'backed_up', 'created_at', 'device_label', 'last_used_at', 'passkey_id']);
+      assert.deepStrictEqual(Object.keys(item).sort(), [
+        'authenticator', 'backed_up', 'created_at', 'credential_id', 'device_label', 'last_used_at', 'passkey_id'
+      ]);
+      assert.strictEqual(item.credential_id, authenticator.id, 'App 刪除後以此通知系統移除裝置上的通行密鑰');
       assert.strictEqual(item.authenticator, null, '無法辨識的驗證器不猜測名稱');
       assert.ok(/^PK[0-9A-Z]{7}$/.test(item.passkey_id));
       assert.strictEqual(item.device_label, 'iPhone 17 Pro');
@@ -149,20 +152,39 @@ module.exports = {
       assert.strictEqual((await rename(ctx.token, { device_label: 'A' }, String(prisma.rows('user_passkeys')[0].passkey_id))).status, 404);
     }],
 
-    ['來源或 RP ID 不符、未經使用者驗證的 attestation 一律拒絕', async () => {
+    ['來源或 RP ID 不符、未經使用者驗證的 attestation 一律拒絕，並在日誌記錄原因', async () => {
       const ctx = h.signedIn();
       const cases = [
-        { origin: 'https://evil.example' },
-        { rpId: 'evil.example' },
-        { userVerified: false }
+        [{ origin: 'https://evil.example' }, 'PASSKEY_ORIGIN_NOT_ALLOWED', '來源不在 PASSKEY_ORIGINS'],
+        [{ rpId: 'evil.example' }, 'PASSKEY_VERIFICATION_FAILED', 'RP ID'],
+        [{ userVerified: false }, 'PASSKEY_VERIFICATION_FAILED', 'User verification']
       ];
-      for (const override of cases) {
+      for (const [override, code, reason] of cases) {
         const attestation = new h.Authenticator().create(await optionsFor(ctx), override);
-        const res = await request('POST', '/api/users/me/passkeys', { token: ctx.token, headers: h.sensitive(ctx), body: { attestation } });
+        let res;
+        const warnings = await h.captureWarnings(async () => {
+          res = await request('POST', '/api/users/me/passkeys', { token: ctx.token, headers: h.sensitive(ctx), body: { attestation } });
+        });
         assert.strictEqual(res.status, 400, JSON.stringify(override));
-        assert.strictEqual(res.body.code, 'PASSKEY_VERIFICATION_FAILED');
+        assert.strictEqual(res.body.code, code, JSON.stringify(override));
+        assert.strictEqual(warnings.length, 1, JSON.stringify(override));
+        assert.ok(warnings[0].includes('purpose=register') && warnings[0].includes(reason), warnings[0]);
       }
       assert.strictEqual(prisma.rows('user_passkeys').length, 0);
+    }],
+
+    ['Android 簽署金鑰未列入 PASSKEY_ORIGINS 時回 PASSKEY_ORIGIN_NOT_ALLOWED，日誌帶出實際的 apk-key-hash', async () => {
+      const ctx = h.signedIn();
+      const unknownApp = 'android:apk-key-hash:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+      const attestation = new h.Authenticator({ origin: unknownApp }).create(await optionsFor(ctx));
+      let res;
+      const warnings = await h.captureWarnings(async () => {
+        res = await request('POST', '/api/users/me/passkeys', { token: ctx.token, headers: h.sensitive(ctx), body: { attestation } });
+      });
+      assert.strictEqual(res.status, 400);
+      assert.strictEqual(res.body.code, 'PASSKEY_ORIGIN_NOT_ALLOWED');
+      assert.strictEqual(res.body.message, '此裝置目前無法使用通行密鑰，請改用其他方式');
+      assert.ok(warnings.some((w) => w.includes(`origin=${unknownApp}`) && w.includes(`user_id=${ctx.user.user_id}`)), warnings.join('\n'));
     }],
 
     ['Android 的 apk-key-hash 來源可以註冊', async () => {
@@ -268,6 +290,95 @@ module.exports = {
       const res = await request('POST', '/api/users/me/passkeys/options', { token: ctx.token });
       assert.strictEqual(res.status, 400);
       assert.strictEqual(res.body.code, 'PASSKEY_LIMIT');
+    }],
+
+    ['iOS 註冊的通行密鑰不帶 transports，之後的 options 仍對每組憑證輸出 transports 陣列', async () => {
+      const ctx = h.signedIn();
+      const ios = new h.Authenticator({ aaguid: 'fbfc3007-154e-4ecc-8c0b-6e020557d7bd' });
+      const created = await request('POST', '/api/users/me/passkeys', {
+        token: ctx.token, headers: h.sensitive(ctx), body: { attestation: ios.create(await optionsFor(ctx), { transports: [] }) }
+      });
+      assert.strictEqual(created.status, 201, created.text);
+      assert.strictEqual(prisma.rows('user_passkeys')[0].transports, null);
+
+      // App 的 passkeys 套件以 (json['transports'] as List) 解析，缺少此鍵會在叫出系統視窗前就拋出例外。
+      const register = await optionsFor(ctx);
+      const verify = (await request('POST', '/api/security/verify/passkey/options', { token: ctx.token, body: { scope: 'sensitive' } })).body.data.options;
+      const login = (await request('POST', '/api/auth/passkeys/login/options', { body: { email: ctx.user.email } })).body.data.options;
+      for (const [name, list] of [['excludeCredentials', register.excludeCredentials], ['verify allowCredentials', verify.allowCredentials], ['login allowCredentials', login.allowCredentials]]) {
+        assert.strictEqual(list.length, 1, name);
+        assert.ok(Array.isArray(list[0].transports), `${name}：${JSON.stringify(list[0])}`);
+        assert.deepStrictEqual(list[0].transports, [], name);
+      }
+    }],
+
+    ['改名不佔用新增的額度；取得 options 後送出註冊不受限流，系統已建立的憑證不會被 429 擋下', async () => {
+      const ctx = h.signedIn();
+      await h.registerPasskey(ctx, { label: 'iPhone' });
+      const code = publicId.encode('passkey', prisma.rows('user_passkeys')[0].passkey_id);
+      for (let i = 0; i < 25; i += 1) {
+        const res = await request('PATCH', `/api/users/me/passkeys/${code}`, { token: ctx.token, body: { device_label: `名稱 ${i}` } });
+        assert.strictEqual(res.status, 200, `第 ${i + 1} 次改名：${res.text}`);
+      }
+
+      let options;
+      for (let i = 0; i < 19; i += 1) {
+        const res = await request('POST', '/api/users/me/passkeys/options', { token: ctx.token });
+        assert.strictEqual(res.status, 200, `第 ${i + 2} 次 options：${res.text}`);
+        options = res.body.data.options;
+      }
+      const created = await request('POST', '/api/users/me/passkeys', {
+        token: ctx.token, headers: h.sensitive(ctx), body: { attestation: new h.Authenticator().create(options) }
+      });
+      assert.strictEqual(created.status, 201, created.text);
+    }],
+
+    ['併發刪除最後兩組通行密鑰時只有一個請求成功，沒有密碼的帳號不會失去所有登入方式', async () => {
+      const ctx = h.signedIn({ passwordSet: 0 });
+      await h.registerPasskey(ctx, { label: 'iPhone' });
+      await h.registerPasskey(ctx, { label: 'iPad' });
+      const codes = prisma.rows('user_passkeys').map((r) => publicId.encode('passkey', r.passkey_id));
+
+      const results = await h.withRowLocks(() => Promise.all(codes.map((code) =>
+        request('DELETE', `/api/users/me/passkeys/${code}`, { token: ctx.token, headers: h.sensitive(ctx) }))));
+      assert.deepStrictEqual(results.map((r) => r.status).sort(), [200, 400], results.map((r) => r.text).join('\n'));
+      assert.strictEqual(results.find((r) => r.status === 400).body.code, 'LAST_SIGN_IN_METHOD');
+      assert.strictEqual(prisma.rows('user_passkeys').length, 1);
+    }],
+
+    ['同時解除唯一的社群綁定與刪除唯一的通行密鑰時只有一個請求成功', async () => {
+      const ctx = h.signedIn({ passwordSet: 0 });
+      prisma.rows('user_identities').push({
+        identity_id: 1, user_id: ctx.user.user_id, provider: 'google', subject: 'g-1', created_at: new Date()
+      });
+      await h.registerPasskey(ctx);
+      const code = publicId.encode('passkey', prisma.rows('user_passkeys')[0].passkey_id);
+
+      const results = await h.withRowLocks(() => Promise.all([
+        request('DELETE', '/api/auth/link/google', { token: ctx.token, headers: h.sensitive(ctx) }),
+        request('DELETE', `/api/users/me/passkeys/${code}`, { token: ctx.token, headers: h.sensitive(ctx) })
+      ]));
+      assert.deepStrictEqual(results.map((r) => r.status).sort(), [200, 400], results.map((r) => r.text).join('\n'));
+      assert.strictEqual(results.find((r) => r.status === 400).body.code, 'LAST_SIGN_IN_METHOD');
+      assert.strictEqual(prisma.rows('user_passkeys').length + prisma.rows('user_identities').length, 1);
+    }],
+
+    ['併發新增時仍不超過 10 組上限', async () => {
+      const ctx = h.signedIn();
+      for (let i = 0; i < 9; i += 1) {
+        prisma.rows('user_passkeys').push({
+          passkey_id: i + 1, user_id: ctx.user.user_id, credential_id: `cred-${i}`, public_key: 'x', sign_count: 0,
+          transports: null, backed_up: 0, device_label: null, created_at: new Date(), last_used_at: null
+        });
+      }
+      const attestations = [];
+      for (let i = 0; i < 2; i += 1) attestations.push(new h.Authenticator().create(await optionsFor(ctx)));
+
+      const results = await h.withRowLocks(() => Promise.all(attestations.map((attestation) =>
+        request('POST', '/api/users/me/passkeys', { token: ctx.token, headers: h.sensitive(ctx), body: { attestation } }))));
+      assert.deepStrictEqual(results.map((r) => r.status).sort(), [201, 400], results.map((r) => r.text).join('\n'));
+      assert.strictEqual(results.find((r) => r.status === 400).body.code, 'PASSKEY_LIMIT');
+      assert.strictEqual(prisma.rows('user_passkeys').length, 10);
     }],
 
     ['資料匯出包含通行密鑰但不含憑證編號；帳號匿名化會刪除通行密鑰與挑戰值', async () => {

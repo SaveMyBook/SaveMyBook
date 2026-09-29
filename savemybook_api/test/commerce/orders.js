@@ -1,10 +1,9 @@
 const assert = require('assert');
 const {
   request, addUser, addAdmin, addBook, addCabinet, addCartItem, addOrder, addPaidOrder, addReservation,
-  tokenFor, verifyHeaders, bookOf, orderOf, balanceOf, transactionsOf, notificationsOf, logs, prisma
+  tokenFor, verifyHeaders, bookOf, orderOf, balanceOf, transactionsOf, notificationsOf, logs, prisma, confirmManual
 } = require('./harness');
 
-// 買家、賣家與一本上架中的書：多數訂單測試的共同起點。
 const scene = ({ balance = 500, price = 100, cabinet = null } = {}) => {
   const buyer = addUser({ nickname: '買家', balance });
   const seller = addUser({ nickname: '賣家', balance: 0 });
@@ -119,7 +118,7 @@ const tests = [
     assert.strictEqual(Number(walletCounter(buyer.user_id, 'total_expense')), 120);
 
     const notice = notificationsOf(seller.user_id)[0];
-    assert.strictEqual(notice.title, '您的書已售出');
+    assert.strictEqual(notice.title, '書籍已售出');
     assert.strictEqual(notice.content, `訂單 ${order.order_no} 已成立，請於七天內至書櫃存書。`);
   }],
 
@@ -171,7 +170,7 @@ const tests = [
 
     const bad = await request('GET', '/api/orders?tab=unknown', { token: buyerToken });
     assert.strictEqual(bad.status, 400);
-    assert.strictEqual(bad.body.message, '不支援的 tab：unknown');
+    assert.strictEqual(bad.body.message, '請求內容不正確');
   }],
 
   ['訂單詳情僅限買賣雙方與管理員', async () => {
@@ -186,7 +185,7 @@ const tests = [
 
     const denied = await request('GET', `/api/orders/${order.order_id}`, { token: tokenFor(stranger) });
     assert.strictEqual(denied.status, 403);
-    assert.strictEqual(denied.body.message, '存取被拒');
+    assert.strictEqual(denied.body.message, '無權限執行此操作');
 
     const byAdmin = await request('GET', `/api/orders/${order.order_id}`, { token: tokenFor(admin) });
     assert.strictEqual(byAdmin.status, 200);
@@ -194,6 +193,33 @@ const tests = [
     const missing = await request('GET', '/api/orders/9999', { token: buyerToken });
     assert.strictEqual(missing.status, 404);
     assert.strictEqual(missing.body.message, '找不到該訂單');
+  }],
+
+  ['以訂單編號查詢詳情：限買賣雙方與管理員，非當事人與不存在一律回 404', async () => {
+    const { buyer, seller, book, buyerToken, sellerToken } = scene();
+    const stranger = addUser();
+    const order = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, order_no: 'SMB20260928120000123456' });
+    const legacy = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, order_no: 'SMB20250101120000123' });
+
+    const mine = await request('GET', '/api/orders/by-no/smb20260928120000123456', { token: buyerToken });
+    assert.strictEqual(mine.status, 200);
+    assert.strictEqual(mine.body.data.order_id, order.order_id);
+    assert.ok(!('pickup_code' in mine.body.data));
+    assert.strictEqual((await request('GET', '/api/orders/by-no/SMB20260928120000123456', { token: sellerToken })).status, 200);
+    assert.strictEqual((await request('GET', '/api/orders/by-no/SMB20250101120000123', { token: buyerToken })).body.data.order_id, legacy.order_id);
+    assert.strictEqual((await request('GET', '/api/orders/by-no/SMB20260928120000123456', { token: tokenFor(addAdmin()) })).status, 200);
+
+    const denied = await request('GET', '/api/orders/by-no/SMB20260928120000123456', { token: tokenFor(stranger) });
+    const missing = await request('GET', '/api/orders/by-no/SMB20260928120000999999', { token: buyerToken });
+    for (const res of [denied, missing]) {
+      assert.strictEqual(res.status, 404);
+      assert.strictEqual(res.body.message, '找不到該訂單');
+    }
+    for (const bad of ['123', 'SMB123', 'SMB202609281200001234567']) {
+      const res = await request('GET', `/api/orders/by-no/${bad}`, { token: buyerToken });
+      assert.strictEqual(res.status, 400, bad);
+      assert.strictEqual(res.body.message, '訂單編號格式不正確');
+    }
   }],
 
   ['只有賣家可以標記存書，並通知買家至書櫃掃描 QR Code 取書', async () => {
@@ -208,15 +234,19 @@ const tests = [
     assert.strictEqual(denied.body.message, '僅賣家可執行此操作');
 
     const res = await setStatus(sellerToken, order.order_id, 'deposited');
-    assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.body.data.status, 'deposited');
+    assert.strictEqual(res.status, 202, res.text);
+    assert.strictEqual(res.body.data.status, 'pending_deposit');
+    assert.strictEqual(res.body.data.manual_report.status, 'pending');
+    assert.strictEqual(notificationsOf(buyer.user_id).length, 0, '客服確認前不通知買家');
+    assert.strictEqual((await confirmManual(res)).status, 200);
+    assert.strictEqual(orderOf(order.order_id).status, 'deposited');
     assert.ok(orderOf(order.order_id).deposited_at instanceof Date);
 
     const notice = notificationsOf(buyer.user_id)[0];
     assert.strictEqual(notice.title, '書籍已存入書櫃');
     assert.strictEqual(
       notice.content,
-      `訂單 ${order.order_no} 的書籍已存入「中正書櫃」書櫃，請前往書櫃掃描機台上的 QR Code 取書。`
+      `訂單 ${order.order_no} 的書籍已存入「中正書櫃」書櫃，請於營業時間內至書櫃以 App 掃描 QR Code 取書。`
     );
 
     const again = await setStatus(sellerToken, order.order_id, 'deposited');
@@ -318,7 +348,7 @@ const tests = [
     assert.strictEqual(Number(refund.amount), 100);
 
     const buyerNotice = notificationsOf(buyer.user_id).find((n) => n.title === '訂單已退款');
-    assert.strictEqual(buyerNotice.content, `訂單 ${order.order_no} 已取消，100 代幣已退回您的帳戶。`);
+    assert.strictEqual(buyerNotice.content, `訂單 ${order.order_no} 已取消，100 代幣已退回您的錢包。`);
     const sellerNotice = notificationsOf(seller.user_id).find((n) => n.title === '訂單已取消');
     assert.strictEqual(sellerNotice.content, `訂單 ${order.order_no} 已取消。原因：不想買了`);
   }],
@@ -380,7 +410,6 @@ const tests = [
     await setStatus(buyerToken, order.order_id, 'picked_up');
     await setStatus(buyerToken, order.order_id, 'completed');
 
-    // 已撥款後再改回進行中，不應再撥一次款。
     const back = await request('PATCH', `/api/admin/orders/${order.order_id}`, {
       token: tokenFor(admin), body: { status: 'refunding' }
     });
@@ -407,7 +436,7 @@ const tests = [
 
     const forward = await request('PATCH', `/api/admin/orders/${done.order_id}`, { token, body: { status: 'deposited' } });
     assert.strictEqual(forward.status, 400);
-    assert.strictEqual(forward.body.message, '已完成的訂單只能改為「退款處理中」或「已退款」');
+    assert.strictEqual(forward.body.message, '已完成的訂單僅能改為「審核中」或「已退款」');
 
     const restore = await request('PATCH', `/api/admin/orders/${cancelled.order_id}`, { token, body: { status: 'deposited' } });
     assert.strictEqual(restore.status, 400);
@@ -450,7 +479,6 @@ const tests = [
     assert.strictEqual(detail.status, 200);
     assert.strictEqual(detail.body.data.order_no, open.order_no);
     assert.strictEqual(detail.body.data.wallet_transactions.length, 1);
-    // 帳務紀錄對外只給加密編號。
     assert.match(detail.body.data.wallet_transactions[0].txn_no, /^TX[0-9A-Z]{7}$/);
   }],
 
@@ -497,7 +525,6 @@ const tests = [
   }]
 ];
 
-// 錢包統計欄位（累計收入／支出）與餘額分開驗證。
 function walletCounter(userId, field) {
   const wallet = prisma.rows('wallets').find((w) => w.user_id === userId);
   return wallet?.[field] ?? 0;

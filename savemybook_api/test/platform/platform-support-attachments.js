@@ -7,7 +7,6 @@ const { prisma } = h;
 const account = h.api('services/account');
 const { UPLOAD_ROOT } = h.api('lib/upload');
 
-// 迷你 SQL 直譯器不支援 JOIN，依工單擁有者與上傳者自行篩選。
 prisma.onSql(/FROM support_ticket_attachments a LEFT JOIN support_ticket_messages m/, (sql, [uploaderId, ownerId]) => {
   const owners = new Map(prisma.rows('support_tickets').map((t) => [t.ticket_id, t.user_id]));
   const ticketOf = new Map(prisma.rows('support_ticket_messages').map((m) => [m.message_id, m.ticket_id]));

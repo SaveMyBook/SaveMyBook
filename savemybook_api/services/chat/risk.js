@@ -34,7 +34,7 @@ const SPACED_RULES = {
 const RULES = {
   contact: [
     /(加|私|密)(我|你|妳)?(的)?賴|賴(id|帳號)/,
-    /(小老鼠|\(at\)|\[at\])/,
+    /小老鼠/,
     /(gmail|yahoo|hotmail|outlook|icloud)(com|\.com)/
   ],
   payment: [
@@ -67,15 +67,14 @@ const RULES = {
 
 const SHORTENER = /(bit\.ly|reurl\.cc|tinyurl\.com|lihi\d?\.(cc|com|me)|ppt\.cc|pse\.is|goo\.gl|is\.gd|cutt\.ly|rb\.gy|shorturl\.at|t\.co\/)/;
 const IP_LINK = /(https?:\/\/)?\d{1,3}(\.\d{1,3}){3}(:\d+)?\//;
-const RISKY_TLD = /[a-z0-9-]+\.(xyz|top|cc|vip|click|icu|buzz|rest|cfd|sbs|monster|live)(\/|\b)/;
+const RISKY_TLD = /(?<![a-z0-9-])[a-z0-9-]+\.(xyz|top|cc|vip|click|icu|buzz|rest|cfd|sbs|monster|live)(\/|\b)/;
 
 const NUMERALS = { 零: 0, 〇: 0, '○': 0, 一: 1, 壹: 1, 二: 2, 貳: 2, 兩: 2, 三: 3, 參: 3, 四: 4, 肆: 4, 五: 5, 伍: 5, 六: 6, 陸: 6, 七: 7, 柒: 7, 八: 8, 捌: 8, 九: 9, 玖: 9 };
 
 const normalize = (text) => String(text ?? '').normalize('NFKC').toLowerCase();
 
-const PUNCTUATION = /[\u200b-\u200d\ufeff._\-~*|·•、,，。:：;；'"「」『』()（）[\]【】<>《》/\\!！?？#＃]/g;
+const PUNCTUATION = /[\u200b-\u200d\ufeff\u2010-\u2015\u2212._\-+=~*|·•、,，。:：;；'"「」『』()（）[\]【】<>《》/\\!！?？#＃]/g;
 
-// 拆字、插入空白或標點是最常見的規避手法，比對前先全部去除。
 const compact = (text) => normalize(text).replace(PUNCTUATION, '').replace(/\s/g, '');
 
 const spaced = (text) => normalize(text).replace(PUNCTUATION, ' ').replace(/\s+/g, ' ')
@@ -83,41 +82,91 @@ const spaced = (text) => normalize(text).replace(PUNCTUATION, ' ').replace(/\s+/
 
 const digitsOf = (text) => compact(text).replace(/[零〇○一壹二貳兩三參四肆五伍六陸七柒八捌九玖]/g, (ch) => String(NUMERALS[ch]));
 
-const ownHost = () => {
+const hostOf = (url) => {
   try {
-    return env.publicWebUrl ? new URL(env.publicWebUrl).hostname.toLowerCase() : null;
+    return url ? new URL(url).hostname.toLowerCase() : null;
   } catch {
     return null;
   }
 };
 
+// 網站在主網域（PASSKEY_RP_ID），API 在子網域（PUBLIC_WEB_URL），兩者與其子網域都算本站。
+const officialDomains = () => [...new Set([String(env.passkeyRpId ?? '').trim().toLowerCase(), hostOf(env.publicWebUrl)].filter(Boolean))];
+
+const isOfficialHost = (host) => {
+  const h = String(host ?? '').toLowerCase().replace(/\.$/, '');
+  return Boolean(h) && officialDomains().some((d) => h === d || h.endsWith(`.${d}`));
+};
+
 const suspiciousLink = (plain) => {
   if (SHORTENER.test(plain) || IP_LINK.test(plain) || /xn--/.test(plain)) return true;
-  const host = ownHost();
-  if (host) {
-    const hosts = [...plain.matchAll(/(?:https?:\/\/)?((?:[a-z0-9-]+\.)+[a-z]{2,})/g)].map((m) => m[1]);
-    if (hosts.some((h) => h.includes('savemybook') && h !== host && !h.endsWith(`.${host}`))) return true;
-  }
+  const hosts = [...plain.matchAll(/(?<![a-z0-9-])((?:[a-z0-9-]+\.)+[a-z]{2,})/g)].map((m) => m[1]);
+  if (hosts.some((h) => h.includes('savemybook') && !isOfficialHost(h))) return true;
   return RISKY_TLD.test(plain);
 };
 
-const detect = (text) => {
+const APP_NAMES = `${APPS}|賴`;
+const HANDLE_ID = '(@\\s*[a-z0-9][a-z0-9_.-]{2,}|(?=[\\d_.-]*[a-z])[a-z0-9][a-z0-9_.-]{2,})';
+const HANDLE_RULES = [
+  new RegExp(`(?<![a-z])(${APP_NAMES})[\\s\\u3400-\\u9fff]{0,6}?([:：]\\s*|(?=@))${HANDLE_ID}`),
+  new RegExp(`(?<![a-z])(${APP_NAMES})\\s*(id|帳號|號碼)\\s*(是|為)?\\s*${HANDLE_ID}`),
+  new RegExp(`(?<![a-z])(${APPS})(\\s+|\\s*[\\u3400-\\u9fff]{1,4}\\s*)(?=([\\d_.-]*[a-z]){2})(?=[a-z_.-]*\\d)[a-z0-9][a-z0-9_.-]{2,}`),
+  new RegExp(`(加|私|密)(我|你|妳)?(的)?賴\\s*${HANDLE_ID}`),
+  /(^|[^a-z])l\s*i\s*n\s*e\s*(id)?\s*[:：]\s*@?[a-z0-9_.-]{3,}/
+];
+
+const EMAIL = /(?<![a-z0-9._%+-])[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}/;
+
+const emailView = (plain) => plain
+  .replace(/\s*(?:[(\[]\s*at\s*[)\]]|小老鼠)\s*/g, '@')
+  .replace(/\s*[(\[]\s*dot\s*[)\]]\s*/g, '.')
+  .replace(/\s*@\s*/g, '@')
+  .replace(/@[a-z0-9-]+(?:\s*\.\s*[a-z0-9-]+)+/g, (m) => m.replace(/\s+/g, ''));
+
+const isIsbn10 = (digits) => digits.length === 10
+  && [...digits].reduce((sum, d, i) => sum + Number(d) * (10 - i), 0) % 11 === 0;
+
+// 市話：區碼 02–08 開頭共 9–10 碼；通過 ISBN-10 檢查碼的 10 碼數字視為書號（例如 0-596-00712-4）。
+const hasLandline = (digits) => [...digits.matchAll(/(?<![\dx])0[2-8]\d{7,8}(?![\dx])/g)].some(([m]) => !isIsbn10(m));
+
+const PAYMENT_IDS = [
+  /(帳戶|帳號|戶頭|卡號)(是|為)?\d{8,}/,
+  /(銀行代碼|郵局局號)(是|為)?\d{3}/,
+  /無卡存款/
+];
+
+const identifiers = (text) => {
+  const found = new Set();
+  const plain = normalize(text).replace(/[\u200b-\u200d\ufeff]/g, '');
+  const squeezed = compact(text);
+  const digits = digitsOf(text);
+  if (/(^|\D)(09\d{8}|8869\d{8})(\D|$)/.test(digits) || hasLandline(digits)) found.add('contact');
+  if (HANDLE_RULES.some((re) => re.test(plain))) found.add('contact');
+  if (EMAIL.test(emailView(plain))) found.add('contact');
+  if (PAYMENT_IDS.some((re) => re.test(squeezed))) found.add('payment');
+  if (suspiciousLink(plain)) found.add('link');
+  return found;
+};
+
+const KEYWORD_ONLY = new Set(['contact', 'payment']);
+
+// identifiersOnly：聯絡方式與付款只認實際的識別字串，供作者、書名常出現「IG 帳號」「存款帳戶」等字詞的上架審核使用。
+const detect = (text, { identifiersOnly = false } = {}) => {
   if (!text) return new Set();
   const plain = normalize(text);
   const squeezed = compact(text);
   const loose = spaced(text);
-  const found = new Set();
+  const found = identifiers(text);
   for (const [category, patterns] of Object.entries(RULES)) {
+    if (identifiersOnly && KEYWORD_ONLY.has(category)) continue;
     if (patterns.some((re) => re.test(squeezed))) found.add(category);
   }
-  for (const [category, patterns] of Object.entries(SPACED_RULES)) {
-    if (patterns.some((re) => re.test(loose))) found.add(category);
+  if (!identifiersOnly) {
+    for (const [category, patterns] of Object.entries(SPACED_RULES)) {
+      if (patterns.some((re) => re.test(loose))) found.add(category);
+    }
+    if (/[(\[]\s*at\s*[)\]]/.test(plain)) found.add('contact');
   }
-  const digits = digitsOf(text);
-  if (/(^|\D)(09\d{8}|\+?8869\d{8})(\D|$)/.test(digits)) found.add('contact');
-  if (/(^|[^a-z])l\s*i\s*n\s*e\s*(id)?\s*[:：]\s*[a-z0-9_.-]{3,}/.test(plain)) found.add('contact');
-  if (/[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}/.test(plain)) found.add('contact');
-  if (suspiciousLink(plain)) found.add('link');
   return found;
 };
 
@@ -220,7 +269,6 @@ const record = async ({ messageId, roomId, senderId, risk, replace = false }) =>
 
 const parseCategories = (value) => String(value ?? '').split(',').filter((c) => CATEGORIES.includes(c));
 
-// 對方傳的文字訊息才附上提醒；有紀錄者以傳送當下的評分為準（含帳號因素），其餘依內容即時判斷。
 const forMessages = async (messages, myId) => {
   const others = messages.filter((m) => m.sender_id !== myId && m.message_type === 'text');
   const result = new Map();
@@ -332,5 +380,5 @@ const openCount = async () => {
 
 module.exports = {
   CATEGORIES, CONFIRM_CATEGORIES, ALERT_STATUSES, ACTIONS, WEIGHTS,
-  detect, contentRisk, assess, confirmRequired, record, forMessages, bannerFor, adminList, handle, openCount
+  detect, officialDomains, isOfficialHost, contentRisk, assess, confirmRequired, record, forMessages, bannerFor, adminList, handle, openCount
 };

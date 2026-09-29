@@ -1,6 +1,15 @@
 part of '../api_service.dart';
 
 extension AdminSupportApi on ApiService {
+  /// 由 AI 客服轉接的工單預填常見問題；其他工單回傳錯誤訊息。
+  Future<(FaqDraft?, String?)> fetchFaqDraft(int ticketId) async {
+    final res = await _send('GET', '/admin/tickets/$ticketId/faq-draft');
+    if (res == null) return (null, S.pleaseSignFirst);
+    final data = res['data'];
+    if (res['success'] != true || data is! Map) return (null, res['message'] as String? ?? S.loadFailed);
+    return (FaqDraft.fromJson(Map<String, dynamic>.from(data)), null);
+  }
+
   Future<List<FaqItem>> fetchAdminFaqs() async {
     final res = await _send('GET', '/admin/faqs');
     return _mapList(res, FaqItem.fromJson);
@@ -13,6 +22,7 @@ extension AdminSupportApi on ApiService {
     required String answer,
     int sortOrder = 0,
     bool isVisible = true,
+    int? sourceTicketId,
   }) async {
     final body = {
       'category': category,
@@ -20,6 +30,7 @@ extension AdminSupportApi on ApiService {
       'answer': answer,
       'sort_order': sortOrder,
       'is_visible': isVisible,
+      if (faqId == null && sourceTicketId != null) 'source_ticket_id': sourceTicketId,
     };
     final res = faqId == null
         ? await _send('POST', '/admin/faqs', body: body)

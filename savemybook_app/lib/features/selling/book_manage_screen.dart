@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/book.dart';
+import '../../models/order.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
@@ -13,6 +14,8 @@ import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../widgets/swipe_action.dart';
 import '../books/book_detail_screen.dart';
+import '../cabinet/cabinet_entry.dart';
+import 'book_deposit_actions.dart';
 import 'edit_book_screen.dart';
 import 'sell_book_screen.dart';
 import '../../utils/motion.dart';
@@ -20,7 +23,9 @@ import '../../i18n/strings.dart';
 import '../../utils/app_labels.dart';
 
 class BookManageScreen extends StatefulWidget {
-  const BookManageScreen({super.key});
+  final String initialFilter;
+
+  const BookManageScreen({super.key, this.initialFilter = 'all'});
 
   @override
   State<BookManageScreen> createState() => _BookManageScreenState();
@@ -31,16 +36,21 @@ class _BookManageScreenState extends State<BookManageScreen> {
     (key: 'all', label: S.actionAll),
     for (final key in const ['on_sale', 'held', 'reserved', 'sold', 'removed'])
       (key: key, label: AppLabels.ownerBook(key)),
+    (key: _retrievalFilter, label: S.awaitingRetrieval),
   ];
+
+  static const _retrievalFilter = 'pending_retrieval';
 
   final ApiService _api = ApiService();
   final TextEditingController _searchController = TextEditingController();
   List<Book> _books = [];
   Map<int, String> _reportStatus = {};
+  Map<int, Order> _pendingOrders = {};
   final Map<int, String> _statusOverride = {};
   final Set<int> _busyIds = {};
   bool _isLoading = true;
-  String _filter = 'all';
+  bool _depositing = false;
+  late String _filter = widget.initialFilter;
   String _keyword = '';
 
   @override
@@ -56,17 +66,24 @@ class _BookManageScreenState extends State<BookManageScreen> {
   }
 
   Future<void> _load() async {
-    final results = await Future.wait([_api.fetchMyBooks(), _api.fetchReportStatusForMyBooks()]);
+    final results = await Future.wait([
+      _api.fetchMyBooks(),
+      _api.fetchReportStatusForMyBooks(),
+      _api.fetchOrders(role: 'seller', tab: 'pending_deposit'),
+    ]);
     if (!mounted) return;
     setState(() {
       _books = results[0] as List<Book>;
       _reportStatus = results[1] as Map<int, String>;
+      _pendingOrders = {
+        for (final order in results[2] as List<Order>)
+          for (final item in order.items) item.book.bookId: order,
+      };
       _statusOverride.removeWhere((id, _) => !_busyIds.contains(id));
       _isLoading = false;
     });
   }
 
-  // held（預約保留中）、reserved（訂單已成立）、sold（訂單已完成）都不能編輯或下架。
   String _statusOf(Book book) => _statusOverride[book.bookId] ?? book.ownerStatus;
 
   bool _violationLocked(Book book) =>
@@ -96,10 +113,15 @@ class _BookManageScreenState extends State<BookManageScreen> {
     return b.title.toLowerCase().contains(key) || b.author.toLowerCase().contains(key) || b.isbn.contains(key);
   }
 
-  List<Book> get _visible =>
-      _books.where((b) => (_filter == 'all' || _statusOf(b) == _filter) && _matchesKeyword(b)).toList();
+  bool _inFilter(Book b, String key) => switch (key) {
+    'all' => true,
+    _retrievalFilter => b.isDepositPaused || (b.deposit == null && b.canRetrieve),
+    _ => _statusOf(b) == key,
+  };
 
-  int _countOf(String key) => _books.where((b) => (key == 'all' || _statusOf(b) == key) && _matchesKeyword(b)).length;
+  List<Book> get _visible => _books.where((b) => _inFilter(b, _filter) && _matchesKeyword(b)).toList();
+
+  int _countOf(String key) => _books.where((b) => _inFilter(b, key) && _matchesKeyword(b)).length;
 
   Future<void> _openSell() async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => const SellBookScreen()));
@@ -111,16 +133,21 @@ class _BookManageScreenState extends State<BookManageScreen> {
     if (mounted) _load();
   }
 
+  Future<void> _openBook(Book book) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)));
+    if (mounted) _load();
+  }
+
   Future<void> _delist(Book book, {required bool askFirst}) async {
     if (_busyIds.contains(book.bookId)) return;
     final status = _statusOf(book);
-    final canUndo = status == 'on_sale' && !_violationLocked(book);
+    final canUndo = status == 'on_sale' && !_violationLocked(book) && !book.isDeposited && !book.canRetrieve;
     if (askFirst) {
       final confirmed = await showConfirmDialog(
         context,
         title: S.delist,
-        message: S.removedFromShopBuyersNoLonger(book.title),
-        confirmLabel: S.delist2,
+        message: delistMessage(book),
+        confirmLabel: S.delist,
         isDestructive: true,
       );
       if (!confirmed || !mounted) return;
@@ -178,6 +205,19 @@ class _BookManageScreenState extends State<BookManageScreen> {
       onAction: undo ? null : () => _delist(book, askFirst: false),
     );
     _load();
+  }
+
+  Future<void> _runDepositAction(Book book, Future<bool> Function(BuildContext, Book) action) async {
+    if (_busyIds.contains(book.bookId)) return;
+    await _runDeposit(() => action(context, book));
+  }
+
+  Future<void> _runDeposit(Future<bool> Function() action) async {
+    if (_depositing) return;
+    _depositing = true;
+    final sent = await action();
+    _depositing = false;
+    if (sent && mounted) _load();
   }
 
   @override
@@ -270,22 +310,24 @@ class _BookManageScreenState extends State<BookManageScreen> {
                 return RevealOnScroll(key: ValueKey(book.bookId), index: i - 1, child: _buildSwipeable(book, c));
               }
               final first = (i - 1) * columns;
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (var j = first; j < first + columns; j++) ...[
-                    if (j > first) const SizedBox(width: 12),
-                    Expanded(
-                      child: j < visible.length
-                          ? RevealOnScroll(
-                              key: ValueKey(visible[j].bookId),
-                              index: j,
-                              child: _buildSwipeable(visible[j], c),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
+              return IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var j = first; j < first + columns; j++) ...[
+                      if (j > first) const SizedBox(width: 12),
+                      Expanded(
+                        child: j < visible.length
+                            ? RevealOnScroll(
+                                key: ValueKey(visible[j].bookId),
+                                index: j,
+                                child: _buildSwipeable(visible[j], c, fill: true),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               );
             },
           );
@@ -294,13 +336,13 @@ class _BookManageScreenState extends State<BookManageScreen> {
     );
   }
 
-  Widget _buildSwipeable(Book book, AppColors c) {
+  Widget _buildSwipeable(Book book, AppColors c, {bool fill = false}) {
     final status = _statusOf(book);
     final busy = _busyIds.contains(book.bookId);
     final canEdit = status == 'on_sale' || status == 'removed';
 
     SwipeAction? statusAction;
-    if (!busy && status == 'removed' && !_violationLocked(book)) {
+    if (!busy && status == 'removed' && !_violationLocked(book) && !book.isDeposited && !book.canRetrieve) {
       statusAction = SwipeAction(
         icon: Icons.publish_rounded,
         label: S.relist,
@@ -313,10 +355,10 @@ class _BookManageScreenState extends State<BookManageScreen> {
     } else if (!busy && status == 'on_sale') {
       statusAction = SwipeAction(
         icon: Icons.visibility_off_rounded,
-        label: S.delist2,
+        label: S.delist,
         color: c.danger,
         onTrigger: () async {
-          _delist(book, askFirst: false);
+          _delist(book, askFirst: book.isDeposited || book.canRetrieve);
           return false;
         },
       );
@@ -336,7 +378,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
               },
             )
           : null,
-      child: Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildCard(book, c)),
+      child: Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildCard(book, c, fill: fill)),
     );
   }
 
@@ -424,18 +466,47 @@ class _BookManageScreenState extends State<BookManageScreen> {
     _ => c.textHint,
   };
 
-  Widget _buildCard(Book book, AppColors c) {
+  Widget _buildCard(Book book, AppColors c, {bool fill = false}) {
     final status = _statusOf(book);
     final isRemoved = status == 'removed';
     final isBusy = _busyIds.contains(book.bookId);
     final badge = _reportBadge(book, c);
-    final statusLabel = AppLabels.ownerBook(status);
+    final paused = book.isDepositPaused && isRemoved;
+    final statusLabel = paused ? S.salesPaused : AppLabels.ownerBook(status);
     final heldUntil = status == 'held' ? book.reservedUntil : null;
     final heldText = heldUntil == null ? '' : _formatDeadline(heldUntil);
+    final deposit = book.deposit;
+    final location = book.cabinetLocation;
+    final retrievable = book.canRetrieve;
+    final reportPending = book.hasPendingManualReport;
+    final canDeposit = !isRemoved && book.canRegisterDeposit;
+    final pendingOrder = status == 'reserved' ? _pendingOrders[book.bookId] : null;
+    final retrieveLabel = cabinetActionLabel(book.retrievalAccess, CabinetAction.retrieve);
+    final VoidCallback? onRetrieve = isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookRetrieval);
+    final storedLine = [
+      if (deposit != null) storedDaysText(deposit.daysStored) else if (location != null && location.cabinetName.isNotEmpty) location.cabinetName,
+      if (location != null && location.door.isNotEmpty) CabinetMessages.door(location.door) else if (deposit?.door case final door?) CabinetMessages.door(door),
+    ].join('・');
+    final cabinetLine = [
+      if (pendingOrder != null) ...[pendingOrder.cabinetAddress, pendingOrder.cabinetName],
+      book.cabinetAddress,
+      book.cabinetName,
+    ].firstWhere((line) => line.isNotEmpty, orElse: () => '');
+    final SmallActionButton? cabinetAction = canDeposit
+        ? SmallActionButton(
+            label: cabinetActionLabel(book.cabinetAccess, CabinetAction.preDeposit),
+            onTap: isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookDeposit),
+          )
+        : pendingOrder != null
+        ? SmallActionButton(
+            label: cabinetActionLabel(pendingOrder.cabinetAccess, CabinetAction.orderDeposit),
+            onTap: pendingOrder.hasPendingManualReport ? null : () => _runDeposit(() => confirmOrderDeposit(context, pendingOrder)),
+          )
+        : null;
 
     return AppCard(
       padding: const EdgeInsets.all(12),
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book))),
+      onTap: () => _openBook(book),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -480,9 +551,9 @@ class _BookManageScreenState extends State<BookManageScreen> {
                     SwitchIn(
                       duration: Motion.micro,
                       child: StatusBadge(
-                        key: ValueKey(status),
+                        key: ValueKey(paused ? 'paused' : status),
                         label: statusLabel,
-                        color: _statusColor(status, c),
+                        color: paused ? c.warning : _statusColor(status, c),
                         fontSize: 10,
                       ),
                     ),
@@ -545,19 +616,41 @@ class _BookManageScreenState extends State<BookManageScreen> {
                     ],
                   ],
                 ),
-                if (book.cabinetAddress.isNotEmpty) ...[
+                if (book.cabinetAddress.isNotEmpty || cabinetAction != null) ...[
                   const SizedBox(height: 4),
-                  InfoLine(icon: Icons.location_on_outlined, value: book.cabinetAddress, maxLines: 1, fontSize: 11),
+                  _lineWithAction(
+                    InfoLine(icon: Icons.location_on_outlined, value: cabinetLine, maxLines: 1, fontSize: 11),
+                    cabinetAction,
+                  ),
+                ],
+                if (deposit != null || retrievable) ...[
+                  const SizedBox(height: 4),
+                  _lineWithAction(
+                    InfoLine(icon: Icons.inventory_2_outlined, value: storedLine, maxLines: 1, fontSize: 11),
+                    isRemoved || !retrievable ? null : SmallActionButton(label: retrieveLabel, onTap: onRetrieve),
+                  ),
+                ],
+                if (reportPending || pendingOrder?.hasPendingManualReport == true) ...[
+                  const SizedBox(height: 4),
+                  InfoLine(icon: Icons.hourglass_top_rounded, value: S.manualReportAwaitingConfirmation, maxLines: 1, fontSize: 11),
                 ],
                 if (heldUntil != null) ...[
                   const SizedBox(height: 4),
                   InfoLine(icon: Icons.lock_clock_rounded, value: S.heldUntilP03(heldText), maxLines: 1, fontSize: 11),
                 ],
+                if (fill) const Spacer(),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
-                      child: isRemoved
+                      child: isRemoved && retrievable
+                          ? SmallActionButton(
+                              label: retrieveLabel,
+                              filled: true,
+                              isLoading: isBusy,
+                              onTap: reportPending ? null : () => _runDepositAction(book, confirmBookRetrieval),
+                            )
+                          : isRemoved
                           ? SmallActionButton(
                               label: S.relist,
                               filled: true,
@@ -565,7 +658,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                               onTap: _violationLocked(book) ? null : () => _relist(book),
                             )
                           : SmallActionButton(
-                              label: S.delist2,
+                              label: S.delist,
                               isLoading: isBusy,
                               onTap: status == 'on_sale' ? () => _delist(book, askFirst: true) : null,
                             ),
@@ -585,6 +678,25 @@ class _BookManageScreenState extends State<BookManageScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _lineWithAction(Widget line, SmallActionButton? action) {
+    if (action == null) return line;
+    // 卡片在寬螢幕的格狀排版中位於 IntrinsicHeight 內，不能改用 LayoutBuilder 判斷寬度。
+    if (SmallActionButton.widthOf(context, action.label) > 140) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [line, const SizedBox(height: 6), IntrinsicWidth(child: action)],
+      );
+    }
+    return Row(
+      children: [
+        Expanded(child: line),
+        const SizedBox(width: 8),
+        // SmallActionButton 內部置中對齊，只給上限時會撐滿；IntrinsicWidth 讓按鈕依文字寬度排版。
+        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 140), child: IntrinsicWidth(child: action)),
+      ],
     );
   }
 

@@ -4,7 +4,14 @@ const h = require('./harness');
 const consent = h.api('services/ai/consent');
 const support = h.api('services/ai/support');
 const bookChat = h.api('services/ai/book-chat');
+const embeddings = h.api('lib/ai/embeddings');
 const { prisma, request } = h;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const setPrivacyVersion = (version) => {
+  prisma.store.legal_documents = [{ doc_id: 2, doc_key: 'privacy', title: '隱私權政策', content: '內容', version, requires_consent: 1 }];
+};
 
 // 匯出用的訊息查詢是 JOIN，迷你直譯器不支援，改由測試依記憶體資料表回答。
 const answerJoins = () => {
@@ -35,16 +42,129 @@ module.exports = {
       assert.strictEqual(await consent.isGranted(1), true);
     }],
 
-    ['取消同意會一併刪掉該使用者的推薦快取', async () => {
+    ['撤回同意會刪除該使用者的 AI 客服對話、書籍顧問對話與推薦快取，不影響其他使用者', async () => {
+      const now = new Date();
       prisma.store.ai_recommendation_cache = [
-        { user_id: 1, payload: '{"items":[]}', created_at: new Date() },
-        { user_id: 2, payload: '{"items":[]}', created_at: new Date() }
+        { user_id: 1, payload: '{"items":[]}', created_at: now },
+        { user_id: 2, payload: '{"items":[]}', created_at: now }
+      ];
+      prisma.store.ai_support_sessions = [
+        { session_id: 1, user_id: 1, status: 'escalated', updated_at: now },
+        { session_id: 2, user_id: 2, status: 'open', updated_at: now }
+      ];
+      prisma.store.ai_chat_sessions = [
+        { session_id: 3, user_id: 1, status: 'open', updated_at: now },
+        { session_id: 4, user_id: 2, status: 'open', updated_at: now }
       ];
       await consent.setGranted(1, true);
       assert.strictEqual(prisma.rows('ai_recommendation_cache').length, 2);
+      assert.strictEqual(prisma.rows('ai_support_sessions').length, 2);
+
       await consent.setGranted(1, false);
       assert.deepStrictEqual(prisma.rows('ai_recommendation_cache').map((r) => r.user_id), [2]);
+      assert.deepStrictEqual(prisma.rows('ai_support_sessions').map((r) => r.user_id), [2]);
+      assert.deepStrictEqual(prisma.rows('ai_chat_sessions').map((r) => r.user_id), [2]);
       assert.strictEqual(Number(prisma.rows('ai_consents')[0].granted), 0);
+      assert.strictEqual(await consent.noticeVersionOf(1), 0);
+    }],
+
+    ['同意時記錄當時的隱私權政策版本；政策重大更新後原同意失效，重新同意後恢復', async () => {
+      const user = h.addUser();
+      const token = h.tokenFor(user);
+      h.setSettings({ enabled: true });
+      setPrivacyVersion(2);
+
+      const on = await request('PUT', '/api/ai/consent', { token, body: { granted: true, notice_version: consent.NOTICE_VERSION } });
+      assert.strictEqual(on.body.data.consented, true);
+      assert.strictEqual(on.body.data.consent_outdated, false);
+      assert.strictEqual(Number(prisma.rows('ai_consents')[0].policy_version), 2);
+      assert.strictEqual(Number(prisma.rows('ai_consents')[0].notice_version), consent.NOTICE_VERSION);
+      assert.strictEqual(await consent.noticeVersionOf(user.user_id), consent.NOTICE_VERSION);
+
+      prisma.store.legal_documents[0].version = 3;
+      const stale = await request('GET', '/api/ai/status', { token });
+      assert.strictEqual(stale.body.data.consented, false);
+      assert.strictEqual(stale.body.data.consent_outdated, true);
+      await assert.rejects(() => consent.assertGranted(user.user_id), (err) => err.code === 'AI_CONSENT_REQUIRED');
+      await assert.rejects(() => support.sendMessage(user.user_id, '你好'), (err) => err.code === 'AI_CONSENT_REQUIRED');
+      assert.strictEqual(h.calls.length, 0);
+
+      const again = await request('PUT', '/api/ai/consent', { token, body: { granted: true, notice_version: consent.NOTICE_VERSION } });
+      assert.strictEqual(again.body.data.consented, true);
+      assert.strictEqual(again.body.data.consent_outdated, false);
+      assert.strictEqual(Number(prisma.rows('ai_consents')[0].policy_version), 3);
+    }],
+
+    ['未記錄政策版本的舊同意一律須重新同意；撤回或未同意時不標示為待更新', async () => {
+      prisma.store.ai_consents = [
+        { user_id: 1, granted: 1, policy_version: 0, updated_at: new Date() },
+        { user_id: 2, granted: 0, policy_version: 0, updated_at: new Date() }
+      ];
+      assert.deepStrictEqual(await consent.stateOf(1), { granted: false, outdated: true });
+      assert.deepStrictEqual(await consent.stateOf(2), { granted: false, outdated: false });
+      assert.deepStrictEqual(await consent.stateOf(3), { granted: false, outdated: false });
+      assert.strictEqual(consent.POLICY_DOC, 'privacy');
+    }],
+
+    ['保存期限：以最後一則訊息的時間起算刪除超過 90 天的對話，不論是否已結束；最近才結束或轉接不會延長', async () => {
+      const now = new Date('2026-09-28T04:00:00Z');
+      const ago = (days) => new Date(now.getTime() - days * DAY_MS);
+      const purgeLike = (sessions, messages) => ([cutoff, cutoffAgain]) => {
+        const recent = new Set(prisma.rows(messages).filter((m) => m.created_at >= cutoffAgain).map((m) => Number(m.session_id)));
+        const keep = prisma.rows(sessions).filter((r) => !(r.created_at < cutoff && !recent.has(Number(r.session_id))));
+        const removed = prisma.rows(sessions).length - keep.length;
+        prisma.store[sessions] = keep;
+        return removed;
+      };
+      h.onSql(/DELETE FROM ai_support_sessions WHERE created_at < \? AND NOT EXISTS \(SELECT 1 FROM ai_support_messages m WHERE m\.session_id = ai_support_sessions\.session_id AND m\.created_at >= \?\)/,
+        purgeLike('ai_support_sessions', 'ai_support_messages'));
+      h.onSql(/DELETE FROM ai_chat_sessions WHERE created_at < \? AND NOT EXISTS \(SELECT 1 FROM ai_chat_messages m WHERE m\.session_id = ai_chat_sessions\.session_id AND m\.created_at >= \?\)/,
+        purgeLike('ai_chat_sessions', 'ai_chat_messages'));
+      prisma.store.ai_support_sessions = [
+        { session_id: 1, user_id: 1, status: 'closed', created_at: ago(95), updated_at: ago(1) },
+        { session_id: 2, user_id: 1, status: 'open', created_at: ago(130), updated_at: ago(120) },
+        { session_id: 3, user_id: 2, status: 'escalated', created_at: ago(100), updated_at: ago(2) },
+        { session_id: 6, user_id: 2, status: 'escalated', created_at: ago(95), updated_at: ago(3) }
+      ];
+      prisma.store.ai_support_messages = [
+        { message_id: 1, session_id: 1, role: 'user', content: 'q', created_at: ago(91) },
+        { message_id: 2, session_id: 2, role: 'user', content: 'q', created_at: ago(120) },
+        { message_id: 3, session_id: 3, role: 'user', content: 'q', created_at: ago(89) },
+        { message_id: 4, session_id: 6, role: 'user', content: 'q', created_at: ago(92) }
+      ];
+      prisma.store.ai_chat_sessions = [
+        { session_id: 4, user_id: 1, status: 'closed', created_at: ago(100), updated_at: ago(0.5) },
+        { session_id: 5, user_id: 1, status: 'open', created_at: ago(100), updated_at: ago(1) }
+      ];
+      prisma.store.ai_chat_messages = [
+        { message_id: 7, session_id: 4, role: 'user', content: 'q', created_at: ago(90.01) },
+        { message_id: 8, session_id: 5, role: 'user', content: 'q', created_at: ago(1) }
+      ];
+
+      assert.strictEqual(consent.CONVERSATION_RETENTION_DAYS, 90);
+      assert.deepStrictEqual(await consent.purgeExpired(now), { support: 3, book_chat: 1 });
+      assert.deepStrictEqual(prisma.rows('ai_support_sessions').map((r) => r.session_id), [3]);
+      assert.deepStrictEqual(prisma.rows('ai_chat_sessions').map((r) => r.session_id), [5]);
+    }],
+
+    ['功能狀態：AI 客服、書籍顧問或推薦可用時，資料接收者包含嵌入服務商', async () => {
+      const token = h.tokenFor(h.addUser());
+      embeddings.ORDER = ['gemini'];
+      h.setSettings({ enabled: true, features: { listing_assist: { enabled: false } } });
+      const on = await request('GET', '/api/ai/status', { token });
+      assert.strictEqual(on.body.data.embedding_provider, 'Google Gemini');
+      assert.deepStrictEqual(on.body.data.providers_in_use, ['DeepSeek', 'Google Gemini']);
+
+      h.setSettings({ enabled: true, features: { support: { enabled: false }, recommend: { enabled: false }, book_chat: { enabled: false } } });
+      const listingOnly = await request('GET', '/api/ai/status', { token });
+      assert.strictEqual(listingOnly.body.data.embedding_provider, null);
+      assert.deepStrictEqual(listingOnly.body.data.providers_in_use, ['Google Gemini']);
+
+      embeddings.ORDER = [];
+      h.setSettings({ enabled: true, features: { listing_assist: { enabled: false } } });
+      const noKey = await request('GET', '/api/ai/status', { token });
+      assert.strictEqual(noKey.body.data.embedding_provider, null);
+      assert.deepStrictEqual(noKey.body.data.providers_in_use, ['DeepSeek']);
     }],
 
     ['未同意時錯誤訊息說明要先同意資料處理', async () => {
@@ -56,12 +176,30 @@ module.exports = {
       );
     }],
 
+    ['同意狀態 API：同意時須附上目前的說明版本，舊版 App 顯示的舊說明無法完成同意；撤回不檢查版本', async () => {
+      const user = h.addUser();
+      const token = h.tokenFor(user);
+      h.setSettings({ enabled: true });
+      assert.strictEqual(consent.NOTICE_VERSION, 4);
+      for (const body of [{ granted: true }, { granted: true, notice_version: 3 }, { granted: true, notice_version: '4' }]) {
+        const res = await request('PUT', '/api/ai/consent', { token, body });
+        assert.strictEqual(res.status, 409, JSON.stringify(body));
+        assert.strictEqual(res.body.code, 'AI_CONSENT_NOTICE_OUTDATED');
+        assert.strictEqual(res.body.message, '請更新 App 後再同意 AI 資料處理');
+      }
+      assert.strictEqual(prisma.rows('ai_consents').length, 0);
+
+      const off = await request('PUT', '/api/ai/consent', { token, body: { granted: false } });
+      assert.strictEqual(off.status, 200);
+      assert.strictEqual(off.body.data.consented, false);
+    }],
+
     ['同意狀態 API：granted 必須是布林值', async () => {
       const user = h.addUser();
       const token = h.tokenFor(user);
       const res = await request('PUT', '/api/ai/consent', { token, body: { granted: 'yes' } });
       assert.strictEqual(res.status, 400);
-      assert.strictEqual(res.body.message, 'granted 必須是 true 或 false');
+      assert.strictEqual(res.body.message, '設定值不正確');
     }],
 
     ['同意狀態 API：更新後回傳最新的功能狀態', async () => {
@@ -69,7 +207,7 @@ module.exports = {
       const token = h.tokenFor(user);
       h.setSettings({ enabled: true });
 
-      const on = await request('PUT', '/api/ai/consent', { token, body: { granted: true } });
+      const on = await request('PUT', '/api/ai/consent', { token, body: { granted: true, notice_version: consent.NOTICE_VERSION } });
       assert.strictEqual(on.status, 200);
       assert.strictEqual(on.body.message, '已同意 AI 資料處理');
       assert.strictEqual(on.body.data.consented, true);
@@ -89,7 +227,7 @@ module.exports = {
       assert.strictEqual(res.status, 200);
       assert.deepStrictEqual(res.body.data, {
         support: false, listing_assist: false, recommend: false, book_chat: false, web_search: false,
-        providers_in_use: [], consented: false
+        providers_in_use: [], embedding_provider: null, consented: false, consent_outdated: false
       });
     }],
 
@@ -108,6 +246,8 @@ module.exports = {
 
       const data = await consent.exportUser(3);
       assert.strictEqual(data.consent.granted, true);
+      assert.strictEqual(data.consent.policy_version, 1);
+      assert.strictEqual(data.consent.notice_version, consent.NOTICE_VERSION);
       assert.strictEqual(data.support_sessions.length, 1);
       assert.deepStrictEqual(data.support_sessions[0].messages.map((m) => m.role), ['user', 'assistant']);
       assert.strictEqual(data.support_sessions[0].messages[0].content, '我要退款');
@@ -182,17 +322,27 @@ module.exports = {
       assert.strictEqual(second.suggest_handoff, true);
     }],
 
-    ['客服對話：模型輸出會被清掉 HTML 與控制字元；空白回覆視為格式錯誤', async () => {
+    ['客服對話：模型輸出會被清掉 HTML 與控制字元；空白回覆附上說明重試一次，仍為空白時記為格式錯誤且不計次數', async () => {
       enable(1);
-      h.queueJson({ reply: '<b>請</b>​稍候 。', suggest_handoff: false }, { reply: '   ', suggest_handoff: false });
+      h.queueJson({ reply: '<b>請</b>​稍候 。', suggest_handoff: false }, { reply: '   ', suggest_handoff: false }, { reply: '', suggest_handoff: false });
 
       const data = await support.sendMessage(1, '問題一');
       assert.strictEqual(data.reply.content, '請稍候。');
 
+      // 檢索不到任何說明時沒有可降級的內容，照舊回錯誤且不寫入對話。新對話才不會以前一題檢索。
+      await support.close(1);
       await assert.rejects(
-        () => support.sendMessage(1, '問題二'),
+        () => support.sendMessage(1, '？？？'),
         (err) => err.code === 'AI_PROVIDER_ERROR' && err.reason === 'INVALID_OUTPUT'
       );
+      assert.strictEqual(prisma.rows('ai_support_messages').length, 2);
+      const log = prisma.rows('ai_usage_logs').at(-1);
+      assert.strictEqual(log.status, 'error');
+      assert.strictEqual(log.error_code, 'INVALID_OUTPUT');
+      assert.strictEqual(log.error_detail, '回覆清理後為空');
+      assert.strictEqual(prisma.rows('ai_usage_logs').filter((r) => r.status === 'ok').length, 1);
+      assert.strictEqual(h.calls.length, 3);
+      assert.ok(h.calls[2].options.prompt.startsWith('？？？\n\n【格式修正】'), '重試時附上格式錯誤說明');
     }],
 
     ['客服對話：超過每日次數時不會呼叫模型', async () => {
@@ -240,7 +390,7 @@ module.exports = {
       const ticket = prisma.rows('support_tickets')[0];
       assert.strictEqual(Number(ticketId), Number(ticket.ticket_id));
       assert.strictEqual(ticket.subject, 'AI 客服轉接：款項沒有入帳');
-      assert.strictEqual(ticket.category, 'other');
+      assert.strictEqual(ticket.category, 'trade');
       assert.strictEqual(prisma.rows('ai_support_sessions')[0].status, 'escalated');
       assert.strictEqual(Number(prisma.rows('ai_support_sessions')[0].ticket_id), Number(ticketId));
     }],

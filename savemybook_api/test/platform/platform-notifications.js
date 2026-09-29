@@ -27,6 +27,9 @@ const EMITTED = [
   ['system', 'report', 'service'],
   ['system', 'admin_ticket', 'service'],
   ['system', 'book_review', 'service'],
+  ['system', 'cabinet_deposit', 'service'],
+  ['system', 'cabinet', 'service'],
+  ['order', 'book', 'trade'],
   ['promotion', 'book', 'promotion'],
   ['promotion', 'announcement', 'promotion'],
   ['system', 'announcement', 'promotion']
@@ -124,7 +127,6 @@ module.exports = {
       assert.strictEqual(first.body.data.length, 20);
       assert.strictEqual(first.body.unread_count, 5);
       assert.deepStrictEqual(first.body.pagination, { total: 25, page: 1, limit: 20, total_pages: 2 });
-      // 預設由新到舊。
       assert.strictEqual(first.body.data[0].title, '通知 24');
 
       const second = await request('GET', '/api/notifications?page=2', { token: h.tokenFor(user) });
@@ -243,7 +245,6 @@ module.exports = {
       addNotification(user.user_id, { related_type: 'announcement', is_read: true });
       prisma.sqlLog.length = 0;
       const res = await request('GET', '/api/notifications/unread-count', { token: h.tokenFor(user) });
-      // 聊天訊息只用於推播，不列入通知中心的未讀數。
       assert.deepStrictEqual(res.body.data, {
         unread_count: 2,
         by_category: { trade: 1, chat: 0, account: 0, service: 1, promotion: 0 }

@@ -1,4 +1,3 @@
-// WebAuthn 的低階工具：挑戰值、使用者代號、驗證器資料解析。簽章與 CBOR／COSE 驗證交給 @simplewebauthn/server。
 const crypto = require('crypto');
 const { isoBase64URL } = require('@simplewebauthn/server/helpers');
 const { env } = require('../config/env');

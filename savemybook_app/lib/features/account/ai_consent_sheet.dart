@@ -48,12 +48,13 @@ class AiConsentSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final showAll = !status.any;
     final rows = <(IconData, String, String)>[
-      if (showAll || status.support) (Icons.support_agent_rounded, S.aiSupport, S.messagesEnterStatusOrdersReservations),
-      if (showAll || status.listingAssist) (Icons.auto_awesome_rounded, S.listingAssist, S.isbnTitleConditionNotesPhotosSelect),
-      if (showAll || status.recommend) (Icons.menu_book_rounded, S.recommendations, S.bookDetailsFromFavoritesPurchaseHistory),
+      (Icons.support_agent_rounded, S.aiSupport, S.messagesConversationHistoryEnterPlusOwn),
+      (Icons.auto_stories_rounded, S.aiBookAdvisor, S.requestsConversationHistoryEnter),
+      (Icons.auto_awesome_rounded, S.listingAssist, S.isbnTitleConditionNotesPhotosSelect),
+      (Icons.menu_book_rounded, S.recommendations, S.bookDetailsFromSavedItemsPurchase),
     ];
+    final embedding = status.embeddingProvider;
 
     return SafeArea(
       child: Column(
@@ -86,6 +87,10 @@ class AiConsentSheet extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (status.consentOutdated) ...[
+                    const SizedBox(height: 12),
+                    _notice(c, S.aiDataProcessingNoticeBeenUpdated),
+                  ],
                   const SizedBox(height: 12),
                   Text(
                     S.whenUseAiFeaturesWeShare,
@@ -95,8 +100,14 @@ class AiConsentSheet extends StatelessWidget {
                   for (final (icon, label, detail) in rows) _dataRow(c, icon, label, detail),
                   _heading(c, S.recipients),
                   _body(c, aiProviderNames(status)),
+                  if (embedding != null) ...[
+                    const SizedBox(height: 6),
+                    _body(c, S.questionsRequestsBookDetailsAlsoConverted(embedding)),
+                  ],
                   _heading(c, S.purpose),
-                  _body(c, S.usedOnlyGenerateSupportRepliesPrepare),
+                  _body(c, S.usedOnlyGenerateSupportRepliesRecommend),
+                  _heading(c, S.retentionPeriod),
+                  _body(c, S.aiSupportBookAdvisorConversationsKept),
                   _heading(c, S.withdrawingConsent),
                   _body(c, S.canTurnOffAiDataProcessing),
                 ],
@@ -139,6 +150,22 @@ class AiConsentSheet extends StatelessWidget {
 
   Widget _body(AppColors c, String text) =>
       Text(text, style: TextStyle(fontSize: 14, height: 1.55, color: c.textPrimary));
+
+  Widget _notice(AppColors c, String text) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.update_rounded, size: 18, color: c.accent),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(text, style: TextStyle(fontSize: 13.5, height: 1.5, color: c.textPrimary)),
+            ),
+          ],
+        ),
+      );
 
   Widget _dataRow(AppColors c, IconData icon, String label, String detail) => Padding(
         padding: const EdgeInsets.only(bottom: 10),

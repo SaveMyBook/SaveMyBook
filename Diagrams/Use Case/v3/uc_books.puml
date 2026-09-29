@@ -24,7 +24,7 @@ rectangle "SaveMyBook - 書籍與商品管理" {
   usecase "下架／重新上架" as delist
   usecase "瀏覽與搜尋書籍" as browse
   usecase "查看書籍詳情" as detail
-  usecase "查看相似的書" as similar
+  usecase "查看相似書籍" as similar
   usecase "查看個人化推薦" as recommend
   usecase "收藏書籍" as fav
   usecase "檢舉書籍" as report

@@ -74,7 +74,7 @@ const setPin = async (userId, pin) => {
 
 const minutesLeft = (until) => Math.max(1, Math.ceil((new Date(until).getTime() - Date.now()) / 60000));
 
-const verifyPin = async (userId, pin) => {
+const usablePinRow = async (userId) => {
   const row = await securityRow(userId);
   if (!row?.payment_pin_hash) throw forbidden('尚未設定交易密碼', 'PAYMENT_PIN_NOT_SET');
   if (row.pin_locked_until && new Date(row.pin_locked_until) > new Date()) {
@@ -82,19 +82,34 @@ const verifyPin = async (userId, pin) => {
       locked_until: row.pin_locked_until
     });
   }
+  return row;
+};
 
-  if (typeof pin === 'string' && /^\d{6}$/.test(pin) && (await password.verify(pin, row.payment_pin_hash))) {
-    if (row.pin_failed_count > 0) {
-      await prisma.$executeRaw`UPDATE user_security SET pin_failed_count = 0, pin_locked_until = NULL WHERE user_id = ${userId}`;
-    }
-    return;
+const settlePinAttempt = async (userId, matched) => {
+  for (;;) {
+    const row = await usablePinRow(userId);
+    const seen = Number(row.pin_failed_count);
+    if (matched && seen === 0) return { failed: 0, until: null };
+
+    const now = new Date();
+    const failed = matched ? 0 : seen + 1;
+    const until = failed >= MAX_PIN_ATTEMPTS ? new Date(now.getTime() + PIN_LOCK_MINUTES * 60 * 1000) : null;
+    // 必須維持單一條件式 UPDATE（比對讀到的次數且限定未鎖定）：併發驗證若各自以舊值寫回，錯誤次數會突破上限。
+    const written = await prisma.$executeRaw`
+      UPDATE user_security SET pin_failed_count = ${until ? 0 : failed}, pin_locked_until = ${until}
+      WHERE user_id = ${userId} AND pin_failed_count = ${seen}
+        AND (pin_locked_until IS NULL OR pin_locked_until <= ${now})`;
+    if (Number(written) > 0) return { failed, until };
   }
+};
 
-  const failed = Number(row.pin_failed_count) + 1;
-  if (failed >= MAX_PIN_ATTEMPTS) {
-    const until = new Date(Date.now() + PIN_LOCK_MINUTES * 60 * 1000);
-    await prisma.$executeRaw`
-      UPDATE user_security SET pin_failed_count = 0, pin_locked_until = ${until} WHERE user_id = ${userId}`;
+const verifyPin = async (userId, pin) => {
+  const row = await usablePinRow(userId);
+  const matched = typeof pin === 'string' && /^\d{6}$/.test(pin) && (await password.verify(pin, row.payment_pin_hash));
+  const { failed, until } = await settlePinAttempt(userId, matched);
+  if (matched) return;
+
+  if (until) {
     await notify(null, {
       userId,
       title: '交易密碼已暫時鎖定',
@@ -103,7 +118,6 @@ const verifyPin = async (userId, pin) => {
     }).catch(() => {});
     throw new HttpError(423, `交易密碼錯誤次數過多，請 ${PIN_LOCK_MINUTES} 分鐘後再試`, 'PIN_LOCKED', { locked_until: until });
   }
-  await prisma.$executeRaw`UPDATE user_security SET pin_failed_count = ${failed} WHERE user_id = ${userId}`;
   throw badRequest(`交易密碼錯誤，剩餘嘗試次數 ${MAX_PIN_ATTEMPTS - failed} 次`, 'INVALID_PIN', {
     remaining_attempts: MAX_PIN_ATTEMPTS - failed
   });

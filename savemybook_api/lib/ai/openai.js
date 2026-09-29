@@ -1,4 +1,4 @@
-const { AiProviderError, postJson, baseClassify, errorText, quotaExhausted } = require('./http');
+const { AiProviderError, postJson, baseClassify, errorText, quotaExhausted, withUsage } = require('./http');
 
 const BASE = 'https://api.openai.com/v1';
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -47,11 +47,12 @@ const parseOutput = (data) => {
   const parts = [];
   const sources = [];
   let searchCalls = 0;
+  let refused = false;
   for (const item of Array.isArray(data?.output) ? data.output : []) {
     if (item?.type === 'web_search_call') searchCalls += 1;
     if (item?.type !== 'message' || !Array.isArray(item.content)) continue;
     for (const c of item.content) {
-      if (c?.type === 'refusal') throw new AiProviderError('BLOCKED', { provider: 'openai' });
+      if (c?.type === 'refusal') refused = true;
       if (c?.type !== 'output_text' || typeof c.text !== 'string') continue;
       parts.push(c.text);
       for (const a of Array.isArray(c.annotations) ? c.annotations : []) {
@@ -59,14 +60,13 @@ const parseOutput = (data) => {
       }
     }
   }
-  return { text: parts.join(''), sources, searchCalls };
+  return { text: parts.join(''), sources, searchCalls, refused };
 };
 
 // 推理 token 計入 max_output_tokens；額度不足時回應狀態為 incomplete 且沒有任何文字，搜尋時推理量更大。
 const REASONING_HEADROOM = 2000;
 const SEARCH_REASONING_HEADROOM = 8000;
 
-// reasoning 由呼叫端指定最低推理強度（例如客服需要理解上下文），未指定時維持最省的設定。
 const reasoningEffortOf = (model, search, reasoning) => {
   const id = String(model);
   if (/^gpt-5(-mini|-nano)?(-\d{4}-\d{2}-\d{2})?$/.test(id)) return reasoning ?? (search ? 'low' : 'minimal');
@@ -103,14 +103,25 @@ const generate = async ({ apiKey, model, system, history = [], prompt, images = 
   };
 
   const data = await postJson(`${BASE}/responses`, { headers: headers(apiKey), body, timeoutMs, classify, provider: 'openai' });
-  const { text, sources, searchCalls } = parseOutput(data);
-  if (!text.trim() && data?.status === 'incomplete') {
-    const why = data?.incomplete_details?.reason ?? 'incomplete';
-    const err = new AiProviderError(why === 'content_filter' ? 'BLOCKED' : 'INCOMPLETE', { provider: 'openai', providerMessage: `status incomplete: ${why}` });
-    err.usage = usageOf(data, searchCalls);
-    throw err;
+  const { text, sources, searchCalls, refused } = parseOutput(data);
+  const usage = usageOf(data, searchCalls);
+  if (refused) throw withUsage(new AiProviderError('BLOCKED', { provider: 'openai', providerMessage: 'refusal' }), usage);
+  const incomplete = data?.status === 'incomplete';
+  const why = incomplete ? data?.incomplete_details?.reason ?? 'incomplete' : '';
+  if (why === 'content_filter') {
+    throw withUsage(new AiProviderError('BLOCKED', { provider: 'openai', providerMessage: 'status incomplete: content_filter' }), usage);
   }
-  return { text, sources, model, usage: usageOf(data, searchCalls) };
+  if (!text.trim() && incomplete) {
+    throw withUsage(new AiProviderError('INCOMPLETE', { provider: 'openai', providerMessage: `status incomplete: ${why}` }), usage);
+  }
+  return {
+    text,
+    sources,
+    model,
+    usage,
+    finish_reason: incomplete ? `incomplete: ${why}` : String(data?.status ?? ''),
+    truncated: why === 'max_output_tokens'
+  };
 };
 
 const moderate = async ({ apiKey, text, image, timeoutMs = 10000 }) => {

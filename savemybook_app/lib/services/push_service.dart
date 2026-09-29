@@ -152,20 +152,16 @@ class PushService {
           nativeError = await _apnsError();
         }
         if (apns == null) {
-          if (nativeError != null) {
-            final hint = nativeError.contains('aps-environment')
-                ? S.buildSProvisioningProfileDoesnT
-                : S.checkPhoneOnlinePushNotificationsAdded;
-            return (null, S.iphoneFailedRegisterPushNotificationsWith(nativeError, hint));
-          }
-          return (null, S.iphoneDidnTReceiveApnsToken);
+          debugPrint('[Push] APNs token unavailable: ${nativeError ?? 'timeout'}');
+          return (null, S.pushNotificationRegistrationFailedPleaseTry);
         }
       }
       final token = await messaging.getToken();
-      return token == null ? (null, S.firebaseDidnTIssuePushToken) : (token, null);
+      if (token == null) debugPrint('[Push] FCM token unavailable');
+      return token == null ? (null, S.pushNotificationRegistrationFailedPleaseTry) : (token, null);
     } catch (e) {
       debugPrint('[Push] getToken failed: $e');
-      return (null, S.couldnTGetPushTokenP0(e));
+      return (null, S.pushNotificationRegistrationFailedPleaseTry);
     }
   }
 
@@ -176,7 +172,8 @@ class PushService {
       _lastRegisteredAt = DateTime.now();
       return null;
     }
-    return S.couldnTRegisterPushTokenWith(error);
+    debugPrint('[Push] device registration failed: $error');
+    return S.pushNotificationRegistrationFailedPleaseTry;
   }
 
   static void _onForegroundMessage(RemoteMessage message) {

@@ -1,5 +1,3 @@
-// 通行密鑰測試的共用設定：沿用 test/lib 的假 Prisma 與 Express 應用，
-// 另以 node:crypto 模擬真實的驗證器（P-256 金鑰、CBOR 編碼的 attestationObject、ECDSA 簽章）。
 const crypto = require('crypto');
 
 process.env.PASSKEY_RP_ID = 'savemybook.today';
@@ -10,7 +8,7 @@ process.env.PASSKEY_ORIGINS = 'https://savemybook.today,android:apk-key-hash:47D
 const server = require('../lib/server');
 const { registerModels } = require('../lib/fake-prisma');
 
-const { prisma, api, request, runSuite, runFolder, onReset } = server;
+const { prisma, api, request, runSuite, runFolder, onReset, onFetch, jsonResponse } = server;
 
 registerModels({
   autoKeys: { user_passkeys: 'passkey_id', user_sessions: 'session_id' },
@@ -30,8 +28,6 @@ const RP_ID = 'savemybook.today';
 const ORIGIN = 'https://savemybook.today';
 const ANDROID_ORIGIN = 'android:apk-key-hash:47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU';
 
-// ---------- 迷你 SQL 直譯器不支援的查詢 ----------
-
 const time = (value) => new Date(value).getTime();
 
 prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
@@ -46,8 +42,6 @@ prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
 
 prisma.onSql(/SELECT session_id, user_id, sid, pay_key_hash, last_seen_at FROM user_sessions/, (sql, [sid, cutoff]) =>
   prisma.rows('user_sessions').filter((s) => s.sid === sid && s.revoked_at == null && time(s.last_seen_at) >= time(cutoff)));
-
-// ---------- 資料庫狀態 ----------
 
 const reset = ({ tables = {} } = {}) => {
   server.reset({
@@ -64,8 +58,6 @@ server.setDefaultReset(() => reset());
 onReset(() => {
   authSettings.clearCache();
 });
-
-// ---------- 使用者 ----------
 
 let userSeq = 0;
 
@@ -117,8 +109,6 @@ const verifyTokenFor = ({ user, sid, scope = 'sensitive', method = 'password' })
   authToken.sign({ typ: 'verify', uid: user.user_id, sid, scope, method, jti: crypto.randomBytes(12).toString('hex') }, 300);
 
 const sensitive = (ctx) => ({ 'x-verify-token': verifyTokenFor({ user: ctx.user, sid: ctx.session.sid }) });
-
-// ---------- 模擬驗證器 ----------
 
 const b64url = (bytes) => isoBase64URL.fromBuffer(new Uint8Array(bytes));
 const sha256 = (data) => crypto.createHash('sha256').update(data).digest();
@@ -174,8 +164,8 @@ class Authenticator {
     return Buffer.from(JSON.stringify({ type, challenge, origin, crossOrigin: false }));
   }
 
-  // options 為伺服器回傳的 PublicKeyCredentialCreationOptionsJSON。
-  create(options, { origin, rpId, userVerified = true } = {}) {
+  // transports 給空陣列時比照 iOS：passkeys 套件遇到空陣列不輸出 transports 鍵。
+  create(options, { origin, rpId, userVerified = true, transports = ['internal', 'hybrid'] } = {}) {
     this.userHandle = options.user.id;
     const attestationObject = isoCBOR.encode(new Map([
       ['fmt', 'none'],
@@ -189,13 +179,12 @@ class Authenticator {
       response: {
         clientDataJSON: b64url(this.clientData('webauthn.create', options.challenge, origin)),
         attestationObject: b64url(attestationObject),
-        transports: ['internal', 'hybrid']
+        ...(transports.length && { transports })
       },
       clientExtensionResults: {}
     };
   }
 
-  // options 為伺服器回傳的 PublicKeyCredentialRequestOptionsJSON；counter 不給時自動遞增。
   get(options, { origin, rpId, counter, userVerified = true, userHandle = this.userHandle, signWith } = {}) {
     this.counter = counter ?? this.counter + 1;
     const authData = this.authData({ rpId, counter: this.counter, userVerified });
@@ -216,7 +205,6 @@ class Authenticator {
   }
 }
 
-// 走完整的 API 流程註冊一組通行密鑰，回傳驗證器。
 const registerPasskey = async (ctx, { label = 'iPhone 17', authenticator = new Authenticator() } = {}) => {
   const options = await request('POST', '/api/users/me/passkeys/options', { token: ctx.token });
   if (options.status !== 200) throw new Error(`取得註冊 options 失敗：${options.status} ${options.text}`);
@@ -229,7 +217,69 @@ const registerPasskey = async (ctx, { label = 'iPhone 17', authenticator = new A
   return authenticator;
 };
 
+const captureWarnings = async (fn) => {
+  const warnings = [];
+  const original = console.warn;
+  console.warn = (...args) => warnings.push(args.join(' '));
+  try {
+    await fn();
+  } finally {
+    console.warn = original;
+  }
+  return warnings;
+};
+
+// 讓併發請求真的交錯執行：寫入遠比讀取慢，沒有鎖時兩個請求一定都先讀完、通過檢查才寫入。
+// 另模擬 InnoDB 的列鎖：交易內的 SELECT ... FOR UPDATE 會等到持有同一列鎖的交易結束。
+const withRowLocks = async (fn, { readDelayMs = 1, writeDelayMs = 40 } = {}) => {
+  const target = { $queryRaw: prisma.$queryRaw, $executeRaw: prisma.$executeRaw, $transaction: prisma.$transaction };
+  const locks = new Map();
+  const slow = (method, ms) => async (strings, ...values) => {
+    await new Promise((resolve) => { setTimeout(resolve, ms); });
+    return target[method].call(prisma, strings, ...values);
+  };
+  prisma.$queryRaw = slow('$queryRaw', readDelayMs);
+  prisma.$executeRaw = slow('$executeRaw', writeDelayMs);
+  prisma.$transaction = async (work) => {
+    if (Array.isArray(work)) return Promise.all(work);
+    const held = [];
+    const tx = new Proxy(prisma, {
+      get: (db, prop) => (prop !== '$queryRaw' ? db[prop] : async (strings, ...values) => {
+        const sql = strings.join('?');
+        const table = /\sFROM\s+(\w+)\s.*\sFOR UPDATE$/is.exec(sql.trim())?.[1];
+        if (table) {
+          const key = `${table}:${values.join(',')}`;
+          while (locks.has(key) && !held.includes(key)) await locks.get(key).released;
+          if (!held.includes(key)) {
+            let release;
+            locks.set(key, { released: new Promise((resolve) => { release = resolve; }), release: () => release() });
+            held.push(key);
+          }
+        }
+        return db.$queryRaw(strings, ...values);
+      })
+    });
+    try {
+      return await work(tx);
+    } finally {
+      for (const key of held) {
+        const lock = locks.get(key);
+        locks.delete(key);
+        lock.release();
+      }
+    }
+  };
+  try {
+    return await fn();
+  } finally {
+    delete prisma.$queryRaw;
+    delete prisma.$executeRaw;
+    delete prisma.$transaction;
+  }
+};
+
 module.exports = {
-  api, prisma, request, runSuite, runFolder, reset, addUser, addSession, signedIn,
-  verifyTokenFor, sensitive, Authenticator, registerPasskey, RP_ID, ORIGIN, ANDROID_ORIGIN, authToken
+  api, prisma, request, runSuite, runFolder, reset, addUser, addSession, signedIn, onFetch, jsonResponse,
+  verifyTokenFor, sensitive, Authenticator, registerPasskey, RP_ID, ORIGIN, ANDROID_ORIGIN, authToken,
+  captureWarnings, withRowLocks
 };

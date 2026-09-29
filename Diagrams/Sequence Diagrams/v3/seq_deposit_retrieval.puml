@@ -1,0 +1,66 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
+
+actor 賣家
+participant UI
+participant API
+database DB
+participant 排程
+actor 管理員
+
+排程 -> API : 每 10 分鐘檢查存書登記
+activate 排程
+activate API
+opt 存書滿 7 天仍無訂單
+  API -> DB : 書籍設為「暫停販售」
+  API -> 賣家 : 推播「請取回書櫃中的書籍」
+end
+opt 暫停販售後每滿 3 天
+  API -> 賣家 : 再次推播取回提醒
+end
+opt 存書滿 14 天仍未取回
+  API -> 管理員 : 通知書櫃管理員安排處理
+end
+deactivate API
+deactivate 排程
+
+alt 賣家掃碼取回
+  賣家 -> UI : 掃描書櫃 QR Code，確認取回項目
+  activate 賣家
+  activate UI
+  UI -> API : POST /api/cabinet-sessions\n及 /api/cabinet-sessions/:no/start
+  activate API
+  API -> DB : 同櫃門書籍一併列入，暫停販售
+  ref over 賣家, UI, API : 數字比對與開關櫃門（同掃碼存書流程）
+  alt 取出書籍並完成
+    API -> DB : 移除存書登記與櫃內紀錄，釋放櫃門
+    API -> DB : 因逾期暫停之書籍恢復上架
+  else 作業未完成
+    API -> DB : 取回期間暫停販售之書籍恢復上架
+  end
+  API --> UI : 推送作業結果
+  deactivate API
+  UI --> 賣家 : 顯示作業結果
+  deactivate UI
+  deactivate 賣家
+else 人員代為取出
+  管理員 -> UI : 遠端開啟櫃門，派員取出書籍
+  activate 管理員
+  activate UI
+  管理員 -> UI : 於存書列表點擊「登記取出」
+  UI -> API : POST /api/admin/cabinets/\ndeposits/:bookId/clear
+  activate API
+  API -> DB : 移除存書登記，書籍改為下架
+  API -> 賣家 : 推播「書櫃中的書籍已由客服取出」
+  deactivate API
+  deactivate UI
+  deactivate 管理員
+end
+@enduml

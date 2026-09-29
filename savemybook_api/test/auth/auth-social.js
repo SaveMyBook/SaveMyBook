@@ -12,7 +12,6 @@ const tests = [
     assert.deepStrictEqual(ids, ['google', 'apple', 'phone', 'line', 'discord']);
     const google = res.body.data.providers.find((p) => p.id === 'google');
     assert.deepStrictEqual(google, { id: 'google', enabled: true, signup: true, configured: true });
-    // 預設 LINE 關閉但憑證已設定
     const line = res.body.data.providers.find((p) => p.id === 'line');
     assert.strictEqual(line.enabled, false);
     assert.strictEqual(line.configured, true);
@@ -368,7 +367,6 @@ const tests = [
     assert.strictEqual(denied.status, 403);
 
     const admin = h.addUser({ email: 'admin@example.com', role: 'admin' });
-    // 未明確開啟 can_manage_system 的管理員也不得存取
     const noPermission = await h.request('GET', '/api/admin/auth/settings', { token: h.tokenFor(admin) });
     assert.strictEqual(noPermission.status, 403);
     assert.strictEqual(noPermission.body.code, 'ADMIN_PERMISSION_REQUIRED');
@@ -404,7 +402,6 @@ const tests = [
     });
     assert.strictEqual(ok.status, 200);
     assert.strictEqual(ok.body.data.settings.providers.line.enabled, true);
-    // 未送出的渠道回到預設值
     assert.strictEqual(ok.body.data.settings.providers.google.enabled, true);
     assert.strictEqual(h.prisma.rows('admin_operation_logs').length, 1);
     const detail = JSON.parse(h.prisma.rows('admin_operation_logs')[0].detail);

@@ -16,8 +16,8 @@ import 'package:flutter/services.dart';
 import '../../i18n/strings.dart';
 
 class DisputeScreen extends StatefulWidget {
-  final int? orderId;
-  const DisputeScreen({super.key, this.orderId});
+  final String? orderNo;
+  const DisputeScreen({super.key, this.orderNo});
 
   @override
   State<DisputeScreen> createState() => _DisputeScreenState();
@@ -25,37 +25,36 @@ class DisputeScreen extends StatefulWidget {
 
 class _DisputeScreenState extends State<DisputeScreen> {
   final ApiService _api = ApiService();
-  final TextEditingController _orderIdController = TextEditingController();
+  final TextEditingController _orderNoController = TextEditingController();
   final TextEditingController _reasonController = TextEditingController();
   final List<XFile> _evidence = [];
 
-  bool _freezeRequested = false;
   bool _isSubmitting = false;
   bool _submitted = false;
   String? _orderError;
   String? _reasonError;
 
+  bool get _orderLocked => (widget.orderNo ?? '').isNotEmpty;
+
   @override
   void initState() {
     super.initState();
-    if (widget.orderId != null) {
-      _orderIdController.text = widget.orderId.toString();
-    }
+    if (_orderLocked) _orderNoController.text = widget.orderNo!;
   }
 
   @override
   void dispose() {
-    _orderIdController.dispose();
+    _orderNoController.dispose();
     _reasonController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (_isSubmitting) return;
-    final orderId = int.tryParse(_orderIdController.text.trim());
+    final orderNo = _orderNoController.text.replaceAll(RegExp(r'\s'), '').toUpperCase();
     final reason = _reasonController.text.trim();
 
-    final orderError = orderId == null ? S.enterOrderNumberDisputing : null;
+    final orderError = orderNo.isEmpty ? S.enterOrderNumberDisputing : null;
     final reasonError = reason.isEmpty
         ? S.describeDispute
         : reason.length < 10
@@ -65,7 +64,7 @@ class _DisputeScreenState extends State<DisputeScreen> {
       _orderError = orderError;
       _reasonError = reasonError;
     });
-    if (orderError != null || reasonError != null || orderId == null) return;
+    if (orderError != null || reasonError != null) return;
     FocusScope.of(context).unfocus();
 
     final confirmed = await showConfirmDialog(
@@ -85,8 +84,8 @@ class _DisputeScreenState extends State<DisputeScreen> {
       return;
     }
     final error = await _api.submitDispute(
-      orderId: orderId,
-      reason: _freezeRequested ? S.paymentHoldRequested(reason) : reason,
+      orderNo: orderNo,
+      reason: reason,
       evidenceUrls: evidenceUrls,
     );
     if (!mounted) return;
@@ -126,40 +125,21 @@ class _DisputeScreenState extends State<DisputeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppCard(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      child: SwitchListTile.adaptive(
-                        contentPadding: EdgeInsets.zero,
-                        value: _freezeRequested,
-                        activeThumbColor: c.accent,
-                        onChanged: (value) => setState(() => _freezeRequested = value),
-                        secondary: Icon(Icons.ac_unit_rounded, color: AppColors.primary),
-                        title: Text(
-                          S.requestPaymentHold,
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      S.submitDispute2,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-                    ),
-                    const SizedBox(height: 6),
-                    Divider(color: c.divider),
-                    const SizedBox(height: 12),
                     FormRowCard(
                       label: S.orderNumber,
-                      state: widget.orderId != null ? FieldState.locked : FieldState.normal,
+                      state: _orderLocked ? FieldState.locked : FieldState.normal,
                       child: AppTextField(
-                        controller: _orderIdController,
+                        controller: _orderNoController,
                         hint: S.eGSmb20260910123456789,
-                        enabled: widget.orderId == null,
+                        enabled: !_orderLocked,
                         errorText: _orderError,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        keyboardType: TextInputType.visiblePassword,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                          TextInputFormatter.withFunction((_, value) => value.copyWith(text: value.text.toUpperCase())),
+                        ],
                         textInputAction: TextInputAction.next,
-                        maxLength: 12,
+                        maxLength: 30,
                         onChanged: (_) {
                           if (_orderError != null) setState(() => _orderError = null);
                         },

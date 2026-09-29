@@ -15,6 +15,7 @@ Future<bool?> showLegalSaveSheet(
   required bool requiresConsent,
   required bool contentChanged,
   required LegalDiff diff,
+  bool resetsAiConsent = false,
 }) {
   final c = AppColors.of(context);
   FocusManager.instance.primaryFocus?.unfocus();
@@ -34,6 +35,7 @@ Future<bool?> showLegalSaveSheet(
       requiresConsent: requiresConsent,
       contentChanged: contentChanged,
       diff: diff,
+      resetsAiConsent: resetsAiConsent,
     ),
   );
 }
@@ -44,6 +46,7 @@ class _LegalSaveSheet extends StatefulWidget {
   final bool requiresConsent;
   final bool contentChanged;
   final LegalDiff diff;
+  final bool resetsAiConsent;
 
   const _LegalSaveSheet({
     required this.title,
@@ -51,6 +54,7 @@ class _LegalSaveSheet extends StatefulWidget {
     required this.requiresConsent,
     required this.contentChanged,
     required this.diff,
+    required this.resetsAiConsent,
   });
 
   @override
@@ -165,9 +169,19 @@ class _LegalSaveSheetState extends State<_LegalSaveSheet> {
                     Icon(Icons.info_outline_rounded, size: 16, color: c.warning),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        S.notificationsSentImmediatelyAfterSubmittingCannot,
-                        style: TextStyle(fontSize: 12.5, height: 1.5, color: c.textSecondary),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            S.notificationsSentImmediatelyAfterSubmittingCannot,
+                            style: TextStyle(fontSize: 12.5, height: 1.5, color: c.textSecondary),
+                          ),
+                          if (widget.resetsAiConsent)
+                            Text(
+                              S.usersMustAlsoAgreeAiData,
+                              style: TextStyle(fontSize: 12.5, height: 1.5, color: c.textSecondary),
+                            ),
+                        ],
                       ),
                     ),
                   ],

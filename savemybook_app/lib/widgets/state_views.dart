@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'app_asset_image.dart';
+import 'book_card.dart';
 import 'app_toast.dart';
 export 'app_toast.dart' show kBottomNavVisible, hideCurrentToast;
 import '../utils/app_colors.dart';
@@ -14,14 +15,15 @@ enum LoadingStyle { spinner, list, grid, menu }
 
 class LoadingView extends StatelessWidget {
   final LoadingStyle style;
+  final double top;
 
-  const LoadingView({super.key, this.style = LoadingStyle.spinner});
+  const LoadingView({super.key, this.style = LoadingStyle.spinner}) : top = 16;
 
-  const LoadingView.list({super.key}) : style = LoadingStyle.list;
+  const LoadingView.list({super.key}) : style = LoadingStyle.list, top = 16;
 
-  const LoadingView.grid({super.key}) : style = LoadingStyle.grid;
+  const LoadingView.grid({super.key, this.top = 16}) : style = LoadingStyle.grid;
 
-  const LoadingView.menu({super.key}) : style = LoadingStyle.menu;
+  const LoadingView.menu({super.key}) : style = LoadingStyle.menu, top = 16;
 
   @override
   Widget build(BuildContext context) {
@@ -43,17 +45,16 @@ class LoadingView extends StatelessWidget {
 
       case LoadingStyle.grid:
         return Shimmer(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(16),
+          child: ResponsiveListPadding(
+            maxWidth: Breakpoints.pageMaxWidth,
+            top: top,
+            builder: (_, padding) => GridView.builder(
+            padding: padding,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 240,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.58,
-            ),
+            gridDelegate: BookCard.gridDelegateOf(context),
             itemCount: 12,
             itemBuilder: (_, _) => const _SkeletonCard(),
+          ),
           ),
         );
 
@@ -569,7 +570,6 @@ class _AppNetworkImageState extends State<AppNetworkImage> with WidgetsBindingOb
     }
 
     if (url == null || url.isEmpty) return fallback();
-    // 404 等永久性錯誤只顯示替代圖，不再重試也不提供重試入口。
     if (_failed) return fallback(canRetry: !_permanent);
 
     return Image(
@@ -820,7 +820,8 @@ class MonthHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
       child: Row(
         children: [
-          Flexible(
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 180),
             child: Text(
               label,
               maxLines: 1,

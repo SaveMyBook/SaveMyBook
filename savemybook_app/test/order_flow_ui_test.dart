@@ -162,7 +162,7 @@ void main() {
     );
   });
 
-  testWidgets('書籍管理：已預訂、已售出、已完成分頁，這些書不能編輯或下架', (tester) async {
+  testWidgets('書籍管理：已預訂、已售出、已完成分頁，這些書不能編輯或取消上架', (tester) async {
     tester.view.physicalSize = const Size(390, 1400) * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);

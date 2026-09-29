@@ -23,9 +23,17 @@ const redact = (text) => String(text ?? '')
   .trim()
   .slice(0, 300);
 
+const CONTENT_BLOCKED_MESSAGE = '此內容無法由 AI 處理，請調整內容後再試';
+
+// 內容遭服務商阻擋時重送相同內容仍會失敗，對外改用專屬代碼，用戶端據此不提供重試。
 class AiProviderError extends HttpError {
   constructor(reason, { status = null, provider = null, providerMessage = '' } = {}) {
-    super(502, 'AI 服務暫時無法使用，請稍後再試', 'AI_PROVIDER_ERROR');
+    const blocked = reason === 'BLOCKED';
+    super(
+      blocked ? 422 : 502,
+      blocked ? CONTENT_BLOCKED_MESSAGE : 'AI 服務暫時無法使用，請稍後再試',
+      blocked ? 'AI_CONTENT_BLOCKED' : 'AI_PROVIDER_ERROR'
+    );
     this.reason = REASON_DETAILS[reason] ? reason : 'SERVER';
     this.detail = REASON_DETAILS[this.reason];
     this.httpStatus = status;
@@ -37,6 +45,12 @@ class AiProviderError extends HttpError {
     return this.providerMessage ? `${this.detail}（${this.providerMessage}）` : this.detail;
   }
 }
+
+// 已計費的失敗（例如被阻擋、截斷）也要帶上用量，否則這些 token 會被記成 0 美元。
+const withUsage = (err, usage) => {
+  err.usage = usage;
+  return err;
+};
 
 const providerMessageOf = (data) => {
   const e = data?.error;
@@ -144,4 +158,6 @@ const errorText = (data) => {
 // 429 同時用於短時間限流與額度用盡；後者重試無效，須提示管理員檢查方案。
 const quotaExhausted = (text) => /limit: ?0\b|free[_ ]tier|billing|exceeded your current quota|insufficient_quota|quota exceeded|per ?day|perday/.test(text);
 
-module.exports = { AiProviderError, REASON_DETAILS, options, postJson, baseClassify, errorText, quotaExhausted, redact };
+module.exports = {
+  AiProviderError, REASON_DETAILS, CONTENT_BLOCKED_MESSAGE, options, postJson, baseClassify, errorText, quotaExhausted, redact, withUsage
+};

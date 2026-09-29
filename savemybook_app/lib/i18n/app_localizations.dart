@@ -192,7 +192,6 @@ abstract class AppLocalizations {
   String get addedCart;
   String get sellerInformationNotFound;
   String get signContactSeller;
-  String get signStartChat;
   String get signReport;
   String get cannotReportOwnListing;
   String get reportListing;
@@ -213,7 +212,6 @@ abstract class AppLocalizations {
   String get violationWasConfirmedBookPleaseCheck;
   String get delist;
   String removedFromShopBuyersNoLonger(Object p0);
-  String get delist2;
   String get couldNotDelistPleaseTryAgain;
   String listedAgain(Object p0);
   String get notListedAnyBooksYet;
@@ -282,11 +280,8 @@ abstract class AppLocalizations {
   String get useLeast10CharactersSoSupport;
   String get submitDispute;
   String get orderEntersDisputeProcessPaymentSeller;
-  String paymentHoldRequested(Object p0);
   String get disputeSubmittedSupportContact;
   String get dispute;
-  String get requestPaymentHold;
-  String get submitDispute2;
   String get orderNumber;
   String get eGSmb20260910123456789;
   String get whatHappened;
@@ -357,7 +352,6 @@ abstract class AppLocalizations {
   String get popular;
   String get priceLowHigh;
   String get priceHighLow;
-  String get reachedEnd;
   String get guest;
   String hi(Object p0);
   String get noBooksMatchFilters;
@@ -432,17 +426,13 @@ abstract class AppLocalizations {
   String get noPendingPayouts;
   String get pendingAmount;
   String get coinsArriveOnceBuyerCollectsBook;
-  String get scanned;
-  String get scanAgain;
   String get collectBook;
   String get pointPickupQrCode;
-  String get holdSteady;
   String get bookCollected;
   String collected(Object p0);
   String order2(Object p0);
   String get signingOut;
   String get myAccount;
-  String get personNotWrittenBioYet;
   String get topTierReached;
   String morePointsReach(Object p0, Object p1);
   String get purchases;
@@ -462,13 +452,10 @@ abstract class AppLocalizations {
   String get iReadAccept;
   String get and;
   String get createAccount;
-  String get joinSavemybook;
   String get displayName;
-  String get emailSignWith;
   String get least8CharactersWithLettersNumbers;
   String get confirmPassword;
   String get enterPasswordAgain2;
-  String get alreadyAccountGoBackSign;
   String get markAsDroppedOff;
   String get droppedOff;
   String get markedAsDroppedOff;
@@ -618,7 +605,6 @@ abstract class AppLocalizations {
   String get announcementTitle;
   String get writeAnnouncement;
   String get publishNow;
-  String get leaveOffSaveAsDraft;
   String get saveDraft;
   String get deleteAnnouncement;
   String deleteP0CannotUndone(Object p0);
@@ -628,7 +614,6 @@ abstract class AppLocalizations {
   String get noAnnouncementsYetTapAddOne;
   String get published;
   String get draft;
-  String get audienceEveryone;
   String get backUpNow;
   String get wholeDatabaseExportedCompressedWithLot;
   String get startBackup;
@@ -855,10 +840,8 @@ abstract class AppLocalizations {
   String get suspendedSignedOutImmediatelyAfterSigning;
   String get blocked;
   String get blockedNoFeaturesAvailable;
-  String get notBlocked;
   String get role;
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2);
-  String get memberSTierBeenAdjustedBy;
   String get adjustTier;
   String get adminPermissions;
   String get all;
@@ -867,7 +850,6 @@ abstract class AppLocalizations {
   String get suspendAccount2;
   String runP1P0(Object p0, Object p1);
   String updatedP0SStatus(Object p0);
-  String get fullSettingsTierPermissions;
   String get members3;
   String get searchDisplayNameEmail;
   String get noMembersMatch;
@@ -991,7 +973,6 @@ abstract class AppLocalizations {
   String get disputes;
   String filedP0(Object p0);
   String decidedP0(Object p0);
-  String createdP0(Object p0);
   String get shareBook;
   String get shareAnotherApp;
   String get approved;
@@ -1046,7 +1027,6 @@ abstract class AppLocalizations {
   String p0NNtheDataGoesBack(Object p0);
   String get undo;
   String get undone;
-  String get searchActionsEGNicknameBook;
   String viewP0Changes(Object p0);
   String get undoAction2;
   String get noAnnouncements;
@@ -1094,7 +1074,6 @@ abstract class AppLocalizations {
   String get amountCanMost2DecimalPlaces;
   String get singleAdjustmentCanTExceed1;
   String wouldMakeBalanceNegativeCurrentBalance(Object p0);
-  String get amountUp2Decimals;
   String p0NbalanceAfterP1(Object p0, Object p1);
   String get cameraAccessOff;
   String get couldNotStartCamera;
@@ -1104,7 +1083,6 @@ abstract class AppLocalizations {
   String get bookReservedAnotherBuyerCanT;
   String reservedAnotherBuyerUntilP0(Object p0);
   String sellerHoldingUntilP0(Object p0);
-  String get checkOutBeforeHoldEndsOther;
   String get copyAddress;
   String p0Away(Object p0);
   String get locating;
@@ -1124,7 +1102,6 @@ abstract class AppLocalizations {
   String get keepBrowsing;
   String get reload;
   String get browseBooks;
-  String p0Sellers(Object p0);
   String unavailableP0(Object p0);
   String get removeAll;
   String get goWallet;
@@ -1166,7 +1143,6 @@ abstract class AppLocalizations {
   String get couldnTLoadConversationPleaseTry;
   String get accountCanTReceiveMessagesRight;
   String get holdMicTalkReleaseSend;
-  String get startConversation;
   String p0New(Object p0);
   String get connectionUnstableMessagesCanTSent;
   String get retry;
@@ -1191,7 +1167,6 @@ abstract class AppLocalizations {
   String get pleasePutBookAssignedLockerSoon;
   String get weLlLetKnowWhenSeller;
   String get waitingBuyerCollect;
-  String get transactionCompleteThank;
   String get confirmVeTakenBookFromLocker;
   String p0Orders2(Object p0);
   String p0ReadyPickup(Object p0);
@@ -1230,11 +1205,9 @@ abstract class AppLocalizations {
   String get verifyingIdentity;
   String get enterAgainConfirm;
   String get set6DigitPaymentPin;
-  String get enterSamePinAgain;
   String get avoidRepeatedSequentialPatternedDigits;
   String get resetPaymentPin;
   String get paymentPin;
-  String stepP02(Object p0);
   String get setPaymentPinFirst;
   String get setPaymentPinFirstSoFallback;
   String get setUpNow;
@@ -1245,7 +1218,6 @@ abstract class AppLocalizations {
   String payWithP0(Object p0);
   String get accountWellProtected;
   String get accountCouldSafer;
-  String get setPaymentPinTurnBiometricPayment;
   String tooManyAttemptsLockedUntilP0(Object p0);
   String get notSetRequiredBeforeCheckout;
   String get change;
@@ -1278,10 +1250,6 @@ abstract class AppLocalizations {
   String get nearby;
   String p0M(Object p0);
   String p0Km(Object p0);
-  String get iphoneDidnTReceiveApnsToken;
-  String get firebaseDidnTIssuePushToken;
-  String couldnTGetPushTokenP0(Object p0);
-  String couldnTRegisterPushTokenWith(Object p0);
   String get protectCoinsCheckoutRequires6Digit;
   String confirmPaymentP0Coins(Object p0);
   String get enterPasswordContinue;
@@ -1322,14 +1290,9 @@ abstract class AppLocalizations {
   String get sendRequest;
   String p0Hours(Object p0);
   String p0P1DigitsEntered(Object p0, Object p1);
-  String get buildSProvisioningProfileDoesnT;
-  String get checkPhoneOnlinePushNotificationsAdded;
-  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1);
   String get serverNotBeenUpdatedSupportFeature;
   String get someFeaturesTemporarilyUnavailableWhileServer;
   String serverRunningOutdatedApiRevisionP0(Object p0, Object p1);
-  String serverVersionP0(Object p0);
-  String get runNpmRunVerifyApiDirectory;
   String get serverUpdateRequired;
   String versionP0(Object p0);
   String get requiresUserConsent;
@@ -1681,7 +1644,6 @@ abstract class AppLocalizations {
   String errorsP0(Object p0);
   String p0Calls(Object p0);
   String get byModel;
-  String p0CallsP1Ms(Object p0, Object p1);
   String get topMembers;
   String p0Uses(Object p0);
   String get recentErrors;
@@ -1721,17 +1683,13 @@ abstract class AppLocalizations {
   String get aiDataProcessingEnabled;
   String get aiDataProcessingTurnedOff;
   String get aiDataProcessing;
-  String get messagesEnterStatusOrdersReservations;
   String get isbnTitleConditionNotesPhotosSelect;
-  String get bookDetailsFromFavoritesPurchaseHistory;
   String get aiDataProcessing2;
   String get whenUseAiFeaturesWeShare;
   String get dataShared;
   String get recipients;
   String get purpose;
-  String get usedOnlyGenerateSupportRepliesPrepare;
   String get withdrawingConsent;
-  String get canTurnOffAiDataProcessing;
   String get agreeContinue;
   String get insufficientQuotaPlanNotEnabled;
   String get modelNotFound;
@@ -1745,9 +1703,7 @@ abstract class AppLocalizations {
   String get programmingBooksBeginners;
   String get booksUnder200Coins;
   String get popularLiteraryFictionRightNow;
-  String get tellMeWhatBookLooking;
   String get describeBookLooking;
-  String get tellMeWhatWantReadI;
   String get subtitle;
   String get monthOnly;
   String get yearOnly;
@@ -1788,18 +1744,15 @@ abstract class AppLocalizations {
   String get couldNotSendCodePleaseTry;
   String get linkMobileNumber;
   String get signWithMobileNumber;
-  String get k6DigitCodeSentNumberMessage;
   String get mobileNumber;
   String get sendCode;
   String get codeIncorrectPleaseEnterAgain;
   String get codeBeenSentAgain;
   String get enterCode;
-  String get enterSmsCode;
   String codeWasSentP0(Object p0);
   String canResendP0S(Object p0);
   String get resendCode;
   String get completeAccountDetails;
-  String get p0DidNotProvideEmailAddress;
   String signWithP0(Object p0);
   String get signWith2;
   String get creatingAccountWithMethodsAboveMeans;
@@ -1846,19 +1799,15 @@ abstract class AppLocalizations {
   String get smsVerificationNotSetUpDevice;
   String get couldNotCompleteSmsVerificationPlease;
   String get allowSigningLinkingWithMethod;
-  String get appNeverStoresPasswordUsedOnly;
   String get verifyWithBiometricsInstead;
   String get accountWasCreatedWithSocialPhone;
   String get setSignPassword;
   String get enterSignPasswordRunAdminAction;
   String p1P0MethodsEnabled(Object p0, Object p1);
   String get masterSwitchOffSoEveryMethod;
-  String get signLinkingDirectSignUpAllowed;
-  String credentialsNotSetPleaseConfigureP0(Object p0);
   String get whenOffMethodHiddenFromSign;
   String get whenOffOnlyAccountsAlreadyLinked;
   String get signMethodNotLinkedAccount;
-  String p0AccountNotLinkedAnySavemybook(Object p0);
   String get iAlreadyAccountSignFirst;
   String get createNewAccountWithIdentity;
   String signExistingAccountFirstThenLink(Object p0);
@@ -1866,7 +1815,6 @@ abstract class AppLocalizations {
   String get verifyIdentityWithPasskeyContinue;
   String get verifyWithPasskeyInstead;
   String get passkeys;
-  String get verifyWithFaceIdFingerprintScreen;
   String get verifyWithPasskey;
   String get useSignPasswordInstead;
   String get signWithPasskey;
@@ -1935,7 +1883,6 @@ abstract class AppLocalizations {
   String get thresholdsStayWithTheirPositionThese;
   String p0P1P2Pts(Object p0, Object p1, Object p2);
   String get tierOrderUpdated;
-  String p0Members(Object p0);
   String get tiers;
   String get members4;
   String get memberDistribution;
@@ -2048,7 +1995,6 @@ abstract class AppLocalizations {
   String get editMessage2;
   String get suspectedScamMessage;
   String get listed3;
-  String get someDetailsWereFilledAutomaticallyFrom;
   String get summarizedByAiFromBookRecords;
   String get filledFromIsbnRecord;
   String get aboutBook;
@@ -2058,6 +2004,470 @@ abstract class AppLocalizations {
   String becauseViewedP0(Object p0);
   String moreP0CategoryBrowseOften(Object p0);
   String get morePicks;
+  String get passkeyRequestWasInterruptedPleaseTry;
+  String get couldNotVerifyWithPasskeyDevice;
+  String get iosVersionAddingPasskeyAgainReplaces;
+  String get cannotAddPasskeyDevice;
+  String get recordRemoval;
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1);
+  String get removalRecorded;
+  String get booksLockers;
+  String get overdue;
+  String get noOverdueBooks;
+  String get noBooksCurrentlyStoredLockers;
+  String get salesPaused;
+  String get adminsNotified;
+  String get confirmPurchase;
+  String get bookAlreadyLockerOrderReadyPickup;
+  String get salesPausedPleaseRetrieveBookFrom;
+  String get bookLockerCanCollectedRightAfter;
+  String get notYetLocker;
+  String get retrieve;
+  String get dropOff;
+  String get ordersBooksAlreadyLockerReadyPickup;
+  String get placedLockerToday;
+  String lockerP0Days(Object p0);
+  String confirmRetrievedP1FromP0(Object p0, Object p1);
+  String get allLockers;
+  String get lockerCannotChangedWhileBookStored;
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0);
+  String get orderPlacedBookLockerReadyPickup;
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1);
+  String get inLocker;
+  String get inAnotherLocker;
+  String confirmPutAllP0BooksOrder(Object p0);
+  String get awaitingRetrieval;
+  String get bookAdvisorSelection;
+  String get bookInfoAutoFill;
+  String get disputeAnalysis;
+  String get monthlyBudgetUsedUp;
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1);
+  String lastSyncP0(Object p0);
+  String backgroundSyncPausedUntilP0(Object p0);
+  String semanticQueriesPausedUntilP0(Object p0);
+  String lastErrorP0(Object p0);
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2);
+  String get turnOffAiDataProcessing;
+  String get aiFeaturesStopAiSupportBook;
+  String get turnOff;
+  String get messagesConversationHistoryEnterPlusOwn;
+  String get requestsConversationHistoryEnter;
+  String get bookDetailsFromSavedItemsPurchase;
+  String get aiDataProcessingNoticeBeenUpdated;
+  String questionsRequestsBookDetailsAlsoConverted(Object p0);
+  String get usedOnlyGenerateSupportRepliesRecommend;
+  String get retentionPeriod;
+  String get aiSupportBookAdvisorConversationsKept;
+  String get canTurnOffAiDataProcessing;
+  String get usersMustAlsoAgreeAiData;
+  String get consentRequiredAgain;
+  String get aiBookAdvisorUsageCountedBy;
+  String get noObviousIssuesFound;
+  String aiAssessmentP0(Object p0);
+  String get reservedModerationAdminTools;
+  String memberFeaturesCanUseP0Budget(Object p0);
+  String memberFeatureCapP0(Object p0);
+  String p0ListingsSaleNotReviewedOver(Object p0);
+  String get backupProvider;
+  String get none;
+  String get sameAsCurrentProvider;
+  String get sameAsCurrentProviderSoNo;
+  String get outcomes;
+  String get processingPaths;
+  String get indicators;
+  String get promptVersions;
+  String get embeddingCostsBySource;
+  String get succeeded;
+  String get repaired;
+  String get degraded;
+  String get emptyAfterCleanup;
+  String get refusedByProvider;
+  String get scanLockerQrCode;
+  String get flashlight;
+  String get pasteQrContent;
+  String get pointQrCodeLockerScreen;
+  String get checkingLocker;
+  String get confirmLockerTask;
+  String get retrieveBooks;
+  String get booksSameDoorRetrievedTogether;
+  String confirmWithinP0(Object p0);
+  String get openDoor;
+  String get openingDoor;
+  String placeTheseBooksDoorP0(Object p0);
+  String takeBooksFromDoorP0(Object p0);
+  String retrieveBooksFromDoorP0(Object p0);
+  String get rescan;
+  String get openMap;
+  String get reportManually;
+  String get continueTask;
+  String get cancelTask;
+  String get reportSubmittedTakesEffectAfterSupport;
+  String get manualReportAwaitingConfirmation;
+  String onceDelistedP0NoLongerAppear(Object p0);
+  String get lockerDevice;
+  String get deviceId;
+  String get deviceType;
+  String get firmware;
+  String get lastSeen;
+  String get pairingTime;
+  String get doorSensors;
+  String get installed;
+  String get notInstalled;
+  String get numberDoors;
+  String get simulatorUrl;
+  String get revokeDevice;
+  String onceRevokedDeviceCanNoLonger(Object p0);
+  String faultP0(Object p0);
+  String get clearFault;
+  String get faultCleared;
+  String get doors;
+  String get noContentsRecorded;
+  String get openDoorRemotely;
+  String get openingReason;
+  String get describeReasonRecordedOperationLog;
+  String get openCommandSent;
+  String get staffRetrievalOverdueBooks;
+  String get openWithoutNumberConfirmation;
+  String get onlyDoorsWithNoRecordedContents;
+  String get contentsNeedChecking;
+  String get confirmContents;
+  String get contentsConfirmed;
+  String get booksMayInside;
+  String get recordContents;
+  String get selectItemsActuallyStoredDoor;
+  String get clearContentsRecord;
+  String get booksRemoved;
+  String get correctRecordOnly;
+  String confirmStaffRemovedBooksFromDoor(Object p0);
+  String confirmTheseBooksNotActuallyDoor(Object p0);
+  String get describeReasonClearing;
+  String get itemsWithoutDoorRecord;
+  String get tasksConfirm;
+  String get markAsCompleted;
+  String get markAsNotCompleted;
+  String get resolutionNote;
+  String get ordersDropOffsUpdatedAccordingTask;
+  String get ordersDropOffsStayUnchanged;
+  String get recentTasks;
+  String get taskDetails;
+  String get noTasksYet;
+  String get eventLog;
+  String get noEventsYet;
+  String get closedBy;
+  String get itemsConfirmed;
+  String get taskItems;
+  String get resolutionRecord;
+  String taskProgressP0(Object p0);
+  String checkContentsDoorP0(Object p0);
+  String get manualReportsConfirm;
+  String get confirmReport;
+  String get rejectReport;
+  String get manualReportConfirmed;
+  String get manualReportRejected;
+  String get ordersDropOffsUpdatedAsReported;
+  String get statusStaysUnchangedReporterNotified;
+  String get noManualReportsConfirm;
+  String get reporter;
+  String get scanLockerCollect;
+  String get scanLockerDropOff;
+  String get scanLockerRetrieve;
+  String lockerClosedNowOpeningHoursP0(Object p0);
+  String get lockerUnderMaintenance;
+  String get lockerOutService;
+  String get noDoorsAvailableMoment;
+  String get lockerOfflineSoDoorCannotOpened;
+  String get lockerOutOrderSoDoorCannot;
+  String get manualReportsTakeEffectAfterSupport;
+  String get notSavemybookLockerQrCode;
+  String get lockerQrCodeChangedScanCode;
+  String get lockerUsePleaseWaitScanAgain;
+  String get lockerOfflineTemporarilyUnavailable;
+  String get itemChangedRefreshTryAgain;
+  String get noItemsHandleLocker;
+  String get lockerTaskProgressFinishCancelFirst;
+  String get selectLeastOneItem;
+  String get notEnoughDoorsAvailableSelectFewer;
+  String get someItemsChangedPleaseConfirmAgain;
+  String get lockerTaskWasNotFound;
+  String get actionNotAvailableRightNow;
+  String get lockerRequiresScanningScanQrCode;
+  String get orderBeingHandledLockerPleaseTry;
+  String get manualReportItemAlreadyAwaitingConfirmation;
+  String aboutP0FromLockerPleaseUse(Object p0);
+  String itemAssignedP0PleaseUseLocker(Object p0);
+  String severalTasksLockerWereNotCompleted(Object p0);
+  String itemsP0(Object p0);
+  String get taskComplete;
+  String get someItemsWereNotCompleted;
+  String get numberDidNotMatchTaskBeen;
+  String get numberWasNotConfirmedTimeTask;
+  String get itemsWereNotConfirmedTimeTask;
+  String get lockerDidNotRespondDoorWas;
+  String get taskBeenCancelled;
+  String get lockerDidNotConfirmDoorOpened;
+  String get thereWasLockerConnectionProblemSupport;
+  String get lockerRestartedSupportConfirmTask;
+  String get supportConfirmedTaskComplete;
+  String get supportConfirmedTaskWasNotCompleted;
+  String get supportEndedTask;
+  String get dropOffCompleteBuyerBeenNotified;
+  String get dropOffComplete;
+  String get retrievalComplete;
+  String get doorCouldNotIdentifiedPleaseContact;
+  String get doorFaultyPleaseContactSupport;
+  String get doorAwaitingCheckBySupportPlease;
+  String get reachedPreSaleDropOffLimit;
+  String get itemChanged;
+  String get doorDidNotOpen;
+  String get doorOpeningNotConfirmedSupportCheck;
+  String get anotherItemDoorSupportCheck;
+  String notCompletedP0(Object p0);
+  String bookBeenSoldAfterRetrievingDrop(Object p0);
+  String doorP0(Object p0);
+  String get confirmingItems;
+  String get confirmingNumber;
+  String get opening;
+  String get doorOpened;
+  String get partlyCompleted;
+  String get failed;
+  String get modelAnswer;
+  String get replacedWithStandardNotice;
+  String get clarifyingQuestion;
+  String get noSuitableBooks;
+  String get fellBackSearchRanking;
+  String get fellBackPopularBooks;
+  String get recommendationsGenerated;
+  String get noSuitableCandidates;
+  String get noCandidates;
+  String get modelSuggestionsUsed;
+  String get bibliographicDataOnly;
+  String get handoffSuggested;
+  String get insufficientGrounding;
+  String get continuedPreviousCriteria;
+  String get reusedPreviousTopic;
+  String get noSearchMatch;
+  String get invalidBookCodesReturned;
+  String get webSearchUsed;
+  String get retriedWithoutSearch;
+  String get backupProviderUsed;
+  String get conditionAdjustedFromNotes;
+  String get avgPassagesRetrieved;
+  String get avgCandidates;
+  String get avgFillerBooks;
+  String get avgBooksRecommended;
+  String get avgBooksSelected;
+  String get avgInvalidCodes;
+  String get avgPhotos;
+  String get avgSources;
+  String get bookSearch;
+  String get fellBackReferencePassage;
+  String get booksSelectedByModel;
+  String get indexUpdates;
+  String get sourceNotRecorded;
+  String get outputFormatErrors;
+  String get suggestMediation;
+  String get handoffEnforcedBySystem;
+  String get followUpSuggestionsProvided;
+  String get replyTitleNotBookCards;
+  String get replyMentionsPrice;
+  String get replyDeniesResultsDespiteBookCards;
+  String get completeItemsKeptAfterTruncation;
+  String get somePhotosNotSent;
+  String get noEvidencePhotosSent;
+  String get findingsCitePhotos;
+  String get avgPassagesCited;
+  String get avgInvalidRecommendationBases;
+  String get avgSystemGeneratedReasons;
+  String get avgInvalidPhotoReferences;
+  String get favorsBuyer;
+  String get favorsSeller;
+  String get insidePage;
+  String photoP0Evidence(Object p0);
+  String photoP0P1P2(Object p0, Object p1, Object p2);
+  String photoP0P1(Object p0, Object p1);
+  String aiReviewedP0ListingP1Evidence(Object p0, Object p1, Object p2);
+  String aiReviewedP0ListingP1Evidence2(Object p0, Object p1);
+  String someItemsMalformedP0(Object p0);
+  String fieldsDefaultedP0(Object p0);
+  String get highConfidence;
+  String get mediumConfidence;
+  String get lowConfidence;
+  String get writtenByAi;
+  String get clearBibliographyCache;
+  String get bookDetailsLookedUpAgainNext;
+  String get bibliographyCacheIsbnCleared;
+  String get noBibliographyCacheIsbn;
+  String get lookUpListPrice;
+  String get assessConditionPrice;
+  String get aiRepliesReferenceOnlyOrderPage;
+  String get preFilledFromSupportEnquiryReview;
+  String get noData;
+  String get sellingPrice;
+  String get aiQuality;
+  String get overturnedByAdmins;
+  String get flaggedByInstantRules;
+  String get flaggedByAi;
+  String get transferredSupportAgents;
+  String get ratedNotHelpful;
+  String get repliesWithoutBooks;
+  String get disputeAnalysis2;
+  String get suggestionMatchedDecision;
+  String get ratedHelpful;
+  String get bookRecommendations;
+  String get aiRecommendationClickThroughRate;
+  String get standardRecommendationClickThroughRate;
+  String get markedNotInterested;
+  String get listingAssistantAdoptionRate;
+  String get listingsUsingAssistant;
+  String get createdFromSupportEnquiries;
+  String get rejectionReason;
+  String get sourceInstantRules;
+  String get sourceAiAssessment;
+  String confidenceP0(Object p0);
+  String aiAssessmentConfidenceP0(Object p0);
+  String get assessment;
+  String get description3;
+  String get markReviewReasonAsUnfoundedWhen;
+  String get showPhotosFullDetails;
+  String analysedP0(Object p0);
+  String get wasAnalysisHelpful;
+  String get helpful;
+  String get notHelpful;
+  String get recommendedBooksDoNotMatchMy;
+  String get inaccurateInformation;
+  String get didNotAnswerQuestion;
+  String get insufficientInformation;
+  String get selectReason;
+  String get notInterested;
+  String get bookNoLongerRecommended;
+  String get cachedBibliographicDataUsed;
+  String get cachedDescriptionUsed;
+  String get isbnTitleDoNotMatch;
+  String get awaitingReview;
+  String get orderDropOff;
+  String get preSaleDropOff;
+  String get retrieval;
+  String get adminOpening;
+  String get countdownEnded;
+  String get doorSensor;
+  String get deviceRestarted;
+  String get resolvedBySupport;
+  String get deviceStarted;
+  String get doorClosed;
+  String get taskCloseReported;
+  String get fault;
+  String get faultResolved;
+  String get unexpectedDoorOpening;
+  String get connectionLost;
+  String get connectionRestored;
+  String get paired;
+  String get deviceRevoked;
+  String get taskCreated;
+  String get taskFinished;
+  String get scanRejected;
+  String get remoteOpening;
+  String get contentsRecorded;
+  String get contentsRecordCleared;
+  String get credentialPossiblyCopied;
+  String get sourceIpChanged;
+  String get doorNeedsChecking;
+  String get doorChecked;
+  String get itemBlocked;
+  String get manualReport;
+  String get manualReportReviewed;
+  String get overdueOrderHeld;
+  String get doorOpenedAfterTask;
+  String get lockDidNotRelease;
+  String get doorLeftOpen;
+  String get doorForcedOpen;
+  String get sensorError;
+  String get powerProblem;
+  String get screenProblem;
+  String get dropOffCancelledAfterDoorOpened;
+  String get dropOffMarkedAsNotCompleted;
+  String get anotherItemWasAlreadyDoor;
+  String get doorOpeningNotReported;
+  String get doorReportedOpenAfterTaskEnded;
+  String get manualReportDuringFault;
+  String get openedByStaff;
+  String get orderCompletedBySupportBeforePickup;
+  String get noDevice;
+  String get deviceOffline;
+  String get deviceFault;
+  String get underMaintenance;
+  String get scanningRequired;
+  String manualReportingAllowedP0(Object p0);
+  String userAccessSuspendedP0(Object p0);
+  String get simulator;
+  String get physicalLocker;
+  String get noDevicePaired;
+  String get awaitingPairing;
+  String get online;
+  String get offline;
+  String get locationNotPermitted;
+  String get locationUnavailable;
+  String aboutP0Away(Object p0);
+  String get dropOffReport;
+  String get pickupReport;
+  String get retrievalReport;
+  String get confirmed;
+  String get noLongerValid;
+  String get lockerInactive;
+  String get selectDoorWhereBooksActuallyStored;
+  String offlineP0(Object p0);
+  String get collectionRetrievalNotCompletedAfterDoor;
+  String get unpairedByDevice;
+  String get replacedByNewDevice;
+  String get revokedByAdministrator;
+  String get simulatorTurnedOff;
+  String get tooManyRequestsPleaseTryAgain;
+  String get viewPurchases;
+  String get viewSales;
+  String get retrievalNotAvailableLockerRightNow;
+  String get itemsCouldNotCompleted;
+  String onceDelistedP0NoLongerAppear2(Object p0);
+  String confirmP0BeenPlacedP1(Object p0, Object p1);
+  String get confirmTakenBookFromLocker;
+  String get finish;
+  String get door;
+  String get enterNumberShownLockerScreen;
+  String get ifSomeoneTellsNumberAsksEnter;
+  String get enterTwoDigits;
+  String get closeDoorFirst;
+  String get onceDoorClosedTaskEndAutomatically;
+  String get taskCompleteAutomaticallyOnceDoorClosed;
+  String get taskBeenCancelledNothingChanged;
+  String get locationAccessRequiredUseLockerTurn;
+  String get locationCouldNotConfirmedTurnLocation;
+  String get doorOpenActionNotAvailable;
+  String get taskBeingProcessedPleaseWait;
+  String numberConfirmationWasNotCompletedSeveral(Object p0);
+  String get doorRecordedContentsAwaitingCheckComplete;
+  String get lockerBeenAskedEndTask;
+  String get endTask;
+  String get pairDevice;
+  String get enterPairingCodeShownLockerScreen;
+  String get enter8DigitPairingCode;
+  String get pairingCodeInvalidExpired;
+  String get waitingDeviceConnect;
+  String get pairingWasNotCompletedEnterNew;
+  String get donePhone;
+  String get cancelledPhone;
+  String get matchCodeEntered;
+  String get lockerRefusedEndDoorOpen;
+  String get numberMatched;
+  String get numberDidNotMatch;
+  String get cancelTapCancelBeforeClosingDoor;
+  String get preciseLocationRequiredUseLockerTurn;
+  String get enterTitle3;
+  String get credentialsNotSet;
+  String get searchActions;
+  String undoneP0(Object p0);
+  String get delistListing;
+  String get amount2;
+  String get couldNotOpenChatPleaseTry;
+  String publishedP0(Object p0);
+  String get pushNotificationRegistrationFailedPleaseTry;
 }
 
 class _LEn extends AppLocalizations {
@@ -2442,7 +2852,7 @@ class _LEn extends AppLocalizations {
   String get regenerateShareLink => 'Regenerate share link';
 
   @override
-  String get oldLinkQrCodeStopWorking => 'The old link and QR code stop working immediately, and anyone you already shared with will no longer be able to open it. Regenerate?';
+  String get oldLinkQrCodeStopWorking => 'The current link and QR code will stop working immediately.';
 
   @override
   String get regenerate => 'Regenerate';
@@ -2571,9 +2981,6 @@ class _LEn extends AppLocalizations {
   String get signContactSeller => 'Sign in to contact the seller';
 
   @override
-  String get signStartChat => 'Sign in to contact the seller';
-
-  @override
   String get signReport => 'Sign in to report';
 
   @override
@@ -2631,10 +3038,7 @@ class _LEn extends AppLocalizations {
   String get delist => 'Delist';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '“${p0}” will be removed from the shop and buyers will no longer see it.';
-
-  @override
-  String get delist2 => 'Delist';
+  String removedFromShopBuyersNoLonger(Object p0) => 'Once delisted, “${p0}” will no longer appear in the shop.';
 
   @override
   String get couldNotDelistPleaseTryAgain => 'Could not delist. Please try again.';
@@ -2664,13 +3068,13 @@ class _LEn extends AppLocalizations {
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => 'Not enough coins. This order needs ${p0} but you have ${p1}.';
 
   @override
-  String booksTotal(Object p0, Object p1) => '${p0} books, ${p1} in total.\n';
+  String booksTotal(Object p0, Object p1) => '${p0} books, ${p1} coins in total.\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => 'Your balance after payment will be ${p0} coins.';
 
   @override
-  String get orderPlacedSellerDropBookOff => 'Order placed. The seller will drop the book off.';
+  String get orderPlacedSellerDropBookOff => 'The seller will drop the book off.';
 
   @override
   String get cart => 'Cart';
@@ -2841,25 +3245,16 @@ class _LEn extends AppLocalizations {
   String get orderEntersDisputeProcessPaymentSeller => 'The order enters the dispute process and payment to the seller is held until support decides.';
 
   @override
-  String paymentHoldRequested(Object p0) => '[Payment hold requested] ${p0}';
-
-  @override
   String get disputeSubmittedSupportContact => 'Dispute submitted. Support will contact you.';
 
   @override
   String get dispute => 'Dispute';
 
   @override
-  String get requestPaymentHold => 'Request payment hold';
-
-  @override
-  String get submitDispute2 => 'Submit a dispute';
-
-  @override
   String get orderNumber => 'Order number';
 
   @override
-  String get eGSmb20260910123456789 => 'e.g. SMB20260910123456789';
+  String get eGSmb20260910123456789 => 'e.g. SMB20260910143015123456';
 
   @override
   String get whatHappened => 'What happened';
@@ -2919,7 +3314,7 @@ class _LEn extends AppLocalizations {
   String get condition => 'Condition';
 
   @override
-  String get customPrice => 'Custom price';
+  String get customPrice => 'Price';
 
   @override
   String get enterPrice2 => 'Enter your price';
@@ -3066,9 +3461,6 @@ class _LEn extends AppLocalizations {
   String get priceHighLow => 'Price: high to low';
 
   @override
-  String get reachedEnd => 'You have reached the end';
-
-  @override
   String get guest => 'Guest';
 
   @override
@@ -3123,7 +3515,7 @@ class _LEn extends AppLocalizations {
   String get noAccountWithEmail => 'No account with that email';
 
   @override
-  String noAccountCreateOneNow(Object p0) => 'No account for “${p0}”. Create one now?';
+  String noAccountCreateOneNow(Object p0) => 'Create a new account with “${p0}”?';
 
   @override
   String get signUp => 'Sign up';
@@ -3288,13 +3680,7 @@ class _LEn extends AppLocalizations {
   String get pendingAmount => 'Pending amount';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => 'Paid automatically after the buyer collects the book';
-
-  @override
-  String get scanned => 'Scanned';
-
-  @override
-  String get scanAgain => 'Scan again';
+  String get coinsArriveOnceBuyerCollectsBook => 'Paid after the buyer completes the order, or 24 hours after pickup';
 
   @override
   String get collectBook => 'Collect a book';
@@ -3303,13 +3689,10 @@ class _LEn extends AppLocalizations {
   String get pointPickupQrCode => 'Point at the pickup QR code';
 
   @override
-  String get holdSteady => 'Hold steady';
-
-  @override
   String get bookCollected => 'Book collected';
 
   @override
-  String collected(Object p0) => '“${p0}” collected';
+  String collected(Object p0) => '“${p0}”';
 
   @override
   String order2(Object p0) => 'Order ${p0}';
@@ -3319,9 +3702,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get myAccount => 'My account';
-
-  @override
-  String get personNotWrittenBioYet => 'No bio yet';
 
   @override
   String get topTierReached => 'Top tier reached';
@@ -3381,13 +3761,7 @@ class _LEn extends AppLocalizations {
   String get createAccount => 'Create account';
 
   @override
-  String get joinSavemybook => 'Create account';
-
-  @override
   String get displayName => 'Display name';
-
-  @override
-  String get emailSignWith => 'Email';
 
   @override
   String get least8CharactersWithLettersNumbers => 'At least 8 characters with letters and numbers';
@@ -3397,9 +3771,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get enterPasswordAgain2 => 'Enter your password again';
-
-  @override
-  String get alreadyAccountGoBackSign => 'Already have an account? Go back to sign in';
 
   @override
   String get markAsDroppedOff => 'Mark as dropped off';
@@ -3441,7 +3812,7 @@ class _LEn extends AppLocalizations {
   String get missingInformation => 'Missing information';
 
   @override
-  String get enterOwnPrice => 'Enter your own price.';
+  String get enterOwnPrice => 'Enter a price.';
 
   @override
   String get invalidPrice => 'Invalid price';
@@ -3849,9 +4220,6 @@ class _LEn extends AppLocalizations {
   String get publishNow => 'Publish now';
 
   @override
-  String get leaveOffSaveAsDraft => 'Leave off to save as a draft';
-
-  @override
   String get saveDraft => 'Save draft';
 
   @override
@@ -3879,9 +4247,6 @@ class _LEn extends AppLocalizations {
   String get draft => 'Draft';
 
   @override
-  String get audienceEveryone => 'Audience: everyone';
-
-  @override
   String get backUpNow => 'Back up now';
 
   @override
@@ -3906,7 +4271,7 @@ class _LEn extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => 'Backed up daily, newest ${p0} kept';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => 'Older backups beyond that count are removed automatically. A backup contains personal data for the whole site, so keep downloads secure. Every download is written to the audit log.';
+  String get olderBackupsBeyondCountRemovedAutomatically => 'A backup contains personal data for the whole site, so keep downloads secure. Every download is written to the audit log.';
 
   @override
   String get noBackupsYetSchedulerRunsOnce => 'No backups yet';
@@ -4455,7 +4820,7 @@ class _LEn extends AppLocalizations {
   String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} loses every admin permission immediately.';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} gains access to the admin area with all permissions by default; you can adjust them one by one afterwards.';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} gains access to the admin area with every permission except System operations by default; you can adjust them one by one afterwards.';
 
   @override
   String get roleUpdated => 'Role updated';
@@ -4560,16 +4925,10 @@ class _LEn extends AppLocalizations {
   String get blockedNoFeaturesAvailable => 'Blocked; no features are available';
 
   @override
-  String get notBlocked => 'Not blocked';
-
-  @override
   String get role => 'Role';
 
   @override
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} points (automatic ${p1}${p2})';
-
-  @override
-  String get memberSTierBeenAdjustedBy => 'This member\'s tier has been adjusted manually and is not based solely on trades.';
 
   @override
   String get adjustTier => 'Adjust tier';
@@ -4594,9 +4953,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String updatedP0SStatus(Object p0) => 'Updated ${p0}\'s status';
-
-  @override
-  String get fullSettingsTierPermissions => 'Full settings (tier, permissions)';
 
   @override
   String get members3 => 'Members';
@@ -4836,7 +5192,7 @@ class _LEn extends AppLocalizations {
   String get replyUserQuestions => 'Reply to user questions';
 
   @override
-  String get databaseBackupDownloadOffByDefault => 'Database backup and download; off by default';
+  String get databaseBackupDownloadOffByDefault => 'Database backup and download';
 
   @override
   String p0Locker(Object p0) => '${p0} locker';
@@ -4884,7 +5240,7 @@ class _LEn extends AppLocalizations {
   String get resetPassword => 'Reset password';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0}\'s current password stops working immediately; they must sign in with the temporary password generated next.\n\nThe password is generated by the system — you cannot choose it.';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0}\'s current password stops working immediately; they must sign in with the temporary password generated next.';
 
   @override
   String get generateTemporaryPassword => 'Generate a temporary password';
@@ -4968,9 +5324,6 @@ class _LEn extends AppLocalizations {
   String decidedP0(Object p0) => 'Decided ${p0}';
 
   @override
-  String createdP0(Object p0) => 'Created ${p0}';
-
-  @override
   String get shareBook => 'Share this book';
 
   @override
@@ -5025,7 +5378,7 @@ class _LEn extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => 'This order was already refunded to the buyer and cannot go back to in progress or completed';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => 'A completed order can only be changed to "Refund in progress" or "Refunded"';
+  String get completedOrderCanOnlyChangedRefund => 'A completed order can only be changed to "Under review" or "Refunded"';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => 'Confirming pays ${p0} tokens to the seller and marks the books as sold.';
@@ -5058,7 +5411,7 @@ class _LEn extends AppLocalizations {
   String get systemNotificationSettings => 'System notification settings';
 
   @override
-  String get pushNotificationsNotSetUpBuild => 'Push notifications are not set up in this build. Add the Firebase config files and rebuild.';
+  String get pushNotificationsNotSetUpBuild => 'Push notifications are not enabled in this version of the app.';
 
   @override
   String get notificationsTurnedOffAllowAppSend => 'Notifications are turned off. Allow this app to send notifications in system settings.';
@@ -5131,9 +5484,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get undone => 'Undone';
-
-  @override
-  String get searchActionsEGNicknameBook => 'Search actions, e.g. a nickname or book title';
 
   @override
   String viewP0Changes(Object p0) => 'View ${p0} changes';
@@ -5277,9 +5627,6 @@ class _LEn extends AppLocalizations {
   String wouldMakeBalanceNegativeCurrentBalance(Object p0) => 'This would make the balance negative. Current balance: ${p0}';
 
   @override
-  String get amountUp2Decimals => 'Amount (up to 2 decimals)';
-
-  @override
   String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\nBalance after: ${p1}';
 
   @override
@@ -5307,9 +5654,6 @@ class _LEn extends AppLocalizations {
   String sellerHoldingUntilP0(Object p0) => 'The seller is holding it for you until ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => 'Check out before the hold expires';
-
-  @override
   String get copyAddress => 'Copy address';
 
   @override
@@ -5334,7 +5678,7 @@ class _LEn extends AppLocalizations {
   String get buyNow => 'Buy now';
 
   @override
-  String p0Delisted(Object p0) => '"${p0}" delisted';
+  String p0Delisted(Object p0) => '“${p0}” has been delisted';
 
   @override
   String noBooksMatchP0(Object p0) => 'No books match "${p0}"';
@@ -5365,9 +5709,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get browseBooks => 'Browse books';
-
-  @override
-  String p0Sellers(Object p0) => '${p0} sellers';
 
   @override
   String unavailableP0(Object p0) => 'Unavailable (${p0})';
@@ -5493,9 +5834,6 @@ class _LEn extends AppLocalizations {
   String get holdMicTalkReleaseSend => 'Recording too short';
 
   @override
-  String get startConversation => 'This is the start of your conversation';
-
-  @override
   String p0New(Object p0) => '${p0} new';
 
   @override
@@ -5566,9 +5904,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get waitingBuyerCollect => 'Waiting for the buyer to collect';
-
-  @override
-  String get transactionCompleteThank => 'Transaction complete';
 
   @override
   String get confirmVeTakenBookFromLocker => 'Confirm that you have taken the book from the locker. After checking its condition, complete the order in Purchases.';
@@ -5685,9 +6020,6 @@ class _LEn extends AppLocalizations {
   String get set6DigitPaymentPin => 'Set a 6-digit payment PIN';
 
   @override
-  String get enterSamePinAgain => 'Enter the same PIN again';
-
-  @override
   String get avoidRepeatedSequentialPatternedDigits => 'Avoid repeated, sequential or patterned digits';
 
   @override
@@ -5695,9 +6027,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get paymentPin => 'Payment PIN';
-
-  @override
-  String stepP02(Object p0) => 'Step ${p0} of 2';
 
   @override
   String get setPaymentPinFirst => 'Set a payment PIN first';
@@ -5728,9 +6057,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get accountCouldSafer => 'Account security can be improved';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => 'Payment PIN not set';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => 'Too many attempts. Locked until ${p0}';
@@ -5827,18 +6153,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String p0Km(Object p0) => '${p0} km';
-
-  @override
-  String get iphoneDidnTReceiveApnsToken => 'This iPhone didn\'t receive an APNs token. Make sure Push Notifications is added under Signing & Capabilities in Xcode, then reinstall the app with the same Apple developer account.';
-
-  @override
-  String get firebaseDidnTIssuePushToken => 'Firebase didn\'t issue a push token. Check that GoogleService-Info.plist matches the app\'s bundle ID';
-
-  @override
-  String couldnTGetPushTokenP0(Object p0) => 'Couldn\'t get a push token: ${p0}';
-
-  @override
-  String couldnTRegisterPushTokenWith(Object p0) => 'Couldn\'t register the push token with the server: ${p0}';
 
   @override
   String get protectCoinsCheckoutRequires6Digit => 'Set a 6-digit payment PIN before checking out.';
@@ -5961,28 +6275,13 @@ class _LEn extends AppLocalizations {
   String p0P1DigitsEntered(Object p0, Object p1) => '${p0} of ${p1} digits entered';
 
   @override
-  String get buildSProvisioningProfileDoesnT => 'This build\'s provisioning profile doesn\'t include push notifications. In Xcode, check Runner › Signing & Capabilities has Push Notifications, then delete and reinstall the app.';
-
-  @override
-  String get checkPhoneOnlinePushNotificationsAdded => 'Check that the phone is online and that Push Notifications is added under Runner › Signing & Capabilities in Xcode.';
-
-  @override
-  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone failed to register for push notifications with Apple: ${p0}\n${p1}';
-
-  @override
   String get serverNotBeenUpdatedSupportFeature => 'This feature is temporarily unavailable. Please try again later.';
 
   @override
   String get someFeaturesTemporarilyUnavailableWhileServer => 'Some features are temporarily unavailable';
 
   @override
-  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'The server is running an outdated API (revision ${p0}; the app requires ${p1}). Update the code on the server and restart the API.';
-
-  @override
-  String serverVersionP0(Object p0) => 'Server version: ${p0}';
-
-  @override
-  String get runNpmRunVerifyApiDirectory => 'Run npm run verify in the API directory on the server to check the full deployment status.';
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'The server API is outdated (current ${p0}, required ${p1}).';
 
   @override
   String get serverUpdateRequired => 'Server update required';
@@ -7038,9 +7337,6 @@ class _LEn extends AppLocalizations {
   String get byModel => 'By model';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} calls・${p1} ms';
-
-  @override
   String get topMembers => 'Top members';
 
   @override
@@ -7158,13 +7454,7 @@ class _LEn extends AppLocalizations {
   String get aiDataProcessing => 'AI data processing';
 
   @override
-  String get messagesEnterStatusOrdersReservations => 'Messages you enter and the status of your orders and reservations';
-
-  @override
-  String get isbnTitleConditionNotesPhotosSelect => 'ISBN, title, condition notes and the photos you select';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => 'Book details from your favorites and purchase history';
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN, title, condition notes, the photos you select, and the author, publisher, publication date, category and list price you enter';
 
   @override
   String get aiDataProcessing2 => 'AI data processing';
@@ -7182,13 +7472,7 @@ class _LEn extends AppLocalizations {
   String get purpose => 'Purpose';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => 'Used only to generate support replies, prepare listing details and recommend books. Never used for advertising or tracking.';
-
-  @override
   String get withdrawingConsent => 'Withdrawing consent';
-
-  @override
-  String get canTurnOffAiDataProcessing => 'You can turn off "AI data processing" at any time in Settings › Account. The data above will no longer be shared once it is turned off.';
 
   @override
   String get agreeContinue => 'Agree';
@@ -7230,13 +7514,7 @@ class _LEn extends AppLocalizations {
   String get popularLiteraryFictionRightNow => 'Popular literary fiction right now';
 
   @override
-  String get tellMeWhatBookLooking => 'Describe the book you are looking for';
-
-  @override
   String get describeBookLooking => 'Describe the book you are looking for';
-
-  @override
-  String get tellMeWhatWantReadI => 'Book recommendations based on your needs';
 
   @override
   String get subtitle => 'Subtitle';
@@ -7359,9 +7637,6 @@ class _LEn extends AppLocalizations {
   String get signWithMobileNumber => 'Sign in with a mobile number';
 
   @override
-  String get k6DigitCodeSentNumberMessage => 'A 6-digit code will be sent to this number.';
-
-  @override
   String get mobileNumber => 'Mobile number';
 
   @override
@@ -7377,9 +7652,6 @@ class _LEn extends AppLocalizations {
   String get enterCode => 'Enter the code';
 
   @override
-  String get enterSmsCode => 'Enter the SMS code';
-
-  @override
   String codeWasSentP0(Object p0) => 'The code was sent to ${p0}';
 
   @override
@@ -7390,9 +7662,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get completeAccountDetails => 'Complete your account details';
-
-  @override
-  String get p0DidNotProvideEmailAddress => 'Enter your email to complete sign-up.';
 
   @override
   String signWithP0(Object p0) => 'Sign in with ${p0}';
@@ -7533,9 +7802,6 @@ class _LEn extends AppLocalizations {
   String get allowSigningLinkingWithMethod => 'Allow signing in and linking with this method';
 
   @override
-  String get appNeverStoresPasswordUsedOnly => 'This app never stores your password; it is used only for this verification.';
-
-  @override
   String get verifyWithBiometricsInstead => 'Verify with biometrics instead';
 
   @override
@@ -7554,12 +7820,6 @@ class _LEn extends AppLocalizations {
   String get masterSwitchOffSoEveryMethod => 'The master switch is off, so every method is disabled';
 
   @override
-  String get signLinkingDirectSignUpAllowed => 'Sign-in, linking and direct sign-up are allowed';
-
-  @override
-  String credentialsNotSetPleaseConfigureP0(Object p0) => 'Credentials are not set. Please configure ${p0} on the server';
-
-  @override
   String get whenOffMethodHiddenFromSign => 'When off, this method is hidden from the sign-in page and Account security';
 
   @override
@@ -7567,9 +7827,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get signMethodNotLinkedAccount => 'This sign-in method is not linked to an account';
-
-  @override
-  String p0AccountNotLinkedAnySavemybook(Object p0) => 'This ${p0} account is not linked to a SaveMyBook account.';
 
   @override
   String get iAlreadyAccountSignFirst => 'Sign in to an existing account and link';
@@ -7593,9 +7850,6 @@ class _LEn extends AppLocalizations {
   String get passkeys => 'Passkeys';
 
   @override
-  String get verifyWithFaceIdFingerprintScreen => 'Verify with Face ID, fingerprint or the screen lock on this device. No password needed.';
-
-  @override
   String get verifyWithPasskey => 'Verify with passkey';
 
   @override
@@ -7617,13 +7871,13 @@ class _LEn extends AppLocalizations {
   String get deletePasskey => 'Delete passkey';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => 'You will no longer be able to sign in or verify your identity with this passkey. The passkey saved on your device is not removed; you can delete it in the system password settings.';
+  String get noLongerAbleSignVerifyIdentity => 'You will no longer be able to sign in or verify your identity with this passkey. If it remains on your device, you can delete it in the system password settings.';
 
   @override
   String get passkeyDeleted => 'Passkey deleted';
 
   @override
-  String get signVerifyIdentityWithFaceId => 'Sign in and verify your identity with Face ID, fingerprint or screen lock instead of a password. Passkeys are stored only on your devices and in your password manager.';
+  String get signVerifyIdentityWithFaceId => 'Sign in and verify your identity with Face ID, fingerprint or screen lock instead of a password.';
 
   @override
   String get addPasskey => 'Add a passkey';
@@ -7798,9 +8052,6 @@ class _LEn extends AppLocalizations {
 
   @override
   String get tierOrderUpdated => 'Tier order updated';
-
-  @override
-  String p0Members(Object p0) => '${p0} members';
 
   @override
   String get tiers => 'tiers';
@@ -8139,9 +8390,6 @@ class _LEn extends AppLocalizations {
   String get listed3 => 'Listed';
 
   @override
-  String get someDetailsWereFilledAutomaticallyFrom => 'Some details were filled in automatically from the ISBN record.';
-
-  @override
   String get summarizedByAiFromBookRecords => 'Summarized by AI from book records';
 
   @override
@@ -8167,6 +8415,1398 @@ class _LEn extends AppLocalizations {
 
   @override
   String get morePicks => 'More picks';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => 'The passkey request was interrupted. Please try again.';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => 'Could not verify with a passkey on this device. Use another method.';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => 'On this iOS version, adding a passkey again replaces the existing one in iCloud Keychain. If the process does not complete, the existing passkey cannot be restored. We recommend updating to iOS 17.4 or later first.';
+
+  @override
+  String get cannotAddPasskeyDevice => 'Passkeys cannot be added on this device at this time.';
+
+  @override
+  String get recordRemoval => 'Record removal';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => 'Confirm that staff have removed "${p1}" from ${p0}. The book will be delisted.';
+
+  @override
+  String get removalRecorded => 'Removal recorded';
+
+  @override
+  String get booksLockers => 'Books in lockers';
+
+  @override
+  String get overdue => 'Overdue';
+
+  @override
+  String get noOverdueBooks => 'No overdue books';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => 'No books are currently stored in lockers';
+
+  @override
+  String get salesPaused => 'Sales paused';
+
+  @override
+  String get adminsNotified => 'Admins notified';
+
+  @override
+  String get confirmPurchase => 'Confirm purchase';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => 'This book is already in the locker. The order will be ready for pickup immediately and cannot be cancelled.';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => 'Sales paused. Please retrieve the book from the locker.';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => 'This book is in the locker and can be collected right after ordering.';
+
+  @override
+  String get notYetLocker => 'Not yet in the locker';
+
+  @override
+  String get retrieve => 'Report retrieval';
+
+  @override
+  String get dropOff => 'Register drop-off';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => 'Orders for books already in the locker are ready for pickup immediately and cannot be cancelled.';
+
+  @override
+  String get placedLockerToday => 'Stored today';
+
+  @override
+  String lockerP0Days(Object p0) => '${p0}d in locker';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => 'Confirm that you have retrieved "${p1}" from ${p0}.';
+
+  @override
+  String get allLockers => 'All lockers';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => 'The locker cannot be changed while the book is stored in it.';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => 'Once delisted, “${p0}” will no longer appear in the shop and buyers will not be able to view it. Because the book is stored in a locker, you will need to retrieve it and report the retrieval before relisting it.';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => 'The book is in the locker and ready for pickup.';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => 'Confirm that staff have removed "${p1}" from ${p0}.';
+
+  @override
+  String get inLocker => 'In locker';
+
+  @override
+  String get inAnotherLocker => 'In another locker';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => 'Confirm you have put all ${p0} books in this order in the locker?';
+
+  @override
+  String get awaitingRetrieval => 'Awaiting retrieval';
+
+  @override
+  String get bookAdvisorSelection => 'Book advisor selection';
+
+  @override
+  String get bookInfoAutoFill => 'Book info auto-fill';
+
+  @override
+  String get disputeAnalysis => 'Dispute analysis';
+
+  @override
+  String get monthlyBudgetUsedUp => 'Monthly budget used up';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => 'Coverage: books ${p0}, help articles ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => 'Last sync: ${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => 'Background sync paused until ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => 'Semantic queries paused until ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => 'Last error: ${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} calls・avg ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => 'Turn off AI data processing';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => 'AI features will stop, and your AI support and book advisor conversations will be permanently deleted.';
+
+  @override
+  String get turnOff => 'Turn off';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => 'Messages and conversation history you enter, plus your own orders (including drop-off, pickup and completion times), reservations, listings (including review reasons), dispute status and outcomes, wallet balance and recent transactions, and recent support enquiries';
+
+  @override
+  String get requestsConversationHistoryEnter => 'The requests and conversation history you enter';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => 'Book details from your saved items, purchase history, cart and recently viewed books';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'The AI data processing notice has been updated. Please review it and agree again.';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => 'Questions, requests and book details are also converted into semantic vectors by ${p0} to find relevant content.';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => 'Used only to generate support replies, recommend and search for books, and prepare listing details. Never used for advertising or tracking.';
+
+  @override
+  String get retentionPeriod => 'Retention period';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI support and book advisor conversations, including your ratings of replies, are kept for 90 days after the last message and then deleted automatically. AI feature processing records are kept for 90 days and do not include conversation content or photos.';
+
+  @override
+  String get canTurnOffAiDataProcessing => 'You can turn off "AI data processing" at any time in Settings › Account. Once it is turned off, the data above will no longer be shared and your AI support and book advisor conversations will be deleted.';
+
+  @override
+  String get usersMustAlsoAgreeAiData => 'Users must also agree to AI data processing again before they can keep using AI features.';
+
+  @override
+  String get consentRequiredAgain => 'Consent required again';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI book advisor usage is counted by the number of messages users send.';
+
+  @override
+  String get noObviousIssuesFound => 'No obvious issues found';
+
+  @override
+  String aiAssessmentP0(Object p0) => 'AI assessment: ${p0}';
+
+  @override
+  String get reservedModerationAdminTools => 'Reserved for moderation and admin tools (%)';
+
+  @override
+  String memberFeaturesCanUseP0Budget(Object p0) => 'Member features can use ${p0}% of the budget';
+
+  @override
+  String memberFeatureCapP0(Object p0) => 'Member feature cap ${p0}';
+
+  @override
+  String p0ListingsSaleNotReviewedOver(Object p0) => '${p0} listings on sale not reviewed for over 1 hour';
+
+  @override
+  String get backupProvider => 'Backup provider';
+
+  @override
+  String get none => 'None';
+
+  @override
+  String get sameAsCurrentProvider => 'Same as the current provider';
+
+  @override
+  String get sameAsCurrentProviderSoNo => 'Same as the current provider, so no backup will be used';
+
+  @override
+  String get outcomes => 'Outcomes';
+
+  @override
+  String get processingPaths => 'Processing paths';
+
+  @override
+  String get indicators => 'Indicators';
+
+  @override
+  String get promptVersions => 'Prompt versions';
+
+  @override
+  String get embeddingCostsBySource => 'Embedding costs by source';
+
+  @override
+  String get succeeded => 'Succeeded';
+
+  @override
+  String get repaired => 'Repaired';
+
+  @override
+  String get degraded => 'Degraded';
+
+  @override
+  String get emptyAfterCleanup => 'Empty after cleanup';
+
+  @override
+  String get refusedByProvider => 'Refused by provider';
+
+  @override
+  String get scanLockerQrCode => 'Scan locker QR code';
+
+  @override
+  String get flashlight => 'Flashlight';
+
+  @override
+  String get pasteQrContent => 'Paste QR content';
+
+  @override
+  String get pointQrCodeLockerScreen => 'Point at the QR code on the locker screen';
+
+  @override
+  String get checkingLocker => 'Checking the locker';
+
+  @override
+  String get confirmLockerTask => 'Confirm locker task';
+
+  @override
+  String get retrieveBooks => 'Retrieve books';
+
+  @override
+  String get booksSameDoorRetrievedTogether => 'Books in the same door will be retrieved together.';
+
+  @override
+  String confirmWithinP0(Object p0) => 'Confirm within ${p0}';
+
+  @override
+  String get openDoor => 'Open door';
+
+  @override
+  String get openingDoor => 'Opening the door';
+
+  @override
+  String placeTheseBooksDoorP0(Object p0) => 'Place these books in door ${p0}';
+
+  @override
+  String takeBooksFromDoorP0(Object p0) => 'Take the books from door ${p0}';
+
+  @override
+  String retrieveBooksFromDoorP0(Object p0) => 'Retrieve the books from door ${p0}';
+
+  @override
+  String get rescan => 'Rescan';
+
+  @override
+  String get openMap => 'Open map';
+
+  @override
+  String get reportManually => 'Report manually';
+
+  @override
+  String get continueTask => 'Continue task';
+
+  @override
+  String get cancelTask => 'Cancel task';
+
+  @override
+  String get reportSubmittedTakesEffectAfterSupport => 'Report submitted. It takes effect after support confirms it.';
+
+  @override
+  String get manualReportAwaitingConfirmation => 'Manual report awaiting confirmation';
+
+  @override
+  String onceDelistedP0NoLongerAppear(Object p0) => 'Once delisted, “${p0}” will no longer appear in the shop. The book is stored in a locker, so you need to retrieve it by scanning the locker QR code in the app before relisting it.';
+
+  @override
+  String get lockerDevice => 'Locker device';
+
+  @override
+  String get deviceId => 'Device ID';
+
+  @override
+  String get deviceType => 'Device type';
+
+  @override
+  String get firmware => 'Firmware';
+
+  @override
+  String get lastSeen => 'Last seen';
+
+  @override
+  String get pairingTime => 'Pairing time';
+
+  @override
+  String get doorSensors => 'Door sensors';
+
+  @override
+  String get installed => 'Installed';
+
+  @override
+  String get notInstalled => 'Not installed';
+
+  @override
+  String get numberDoors => 'Number of doors';
+
+  @override
+  String get simulatorUrl => 'Simulator URL';
+
+  @override
+  String get revokeDevice => 'Revoke device';
+
+  @override
+  String onceRevokedDeviceCanNoLonger(Object p0) => 'Once revoked, this device can no longer operate “${p0}”, and the locker switches to manual reporting.';
+
+  @override
+  String faultP0(Object p0) => 'Fault: ${p0}';
+
+  @override
+  String get clearFault => 'Clear fault';
+
+  @override
+  String get faultCleared => 'Fault cleared';
+
+  @override
+  String get doors => 'Doors';
+
+  @override
+  String get noContentsRecorded => 'No contents recorded';
+
+  @override
+  String get openDoorRemotely => 'Open door remotely';
+
+  @override
+  String get openingReason => 'Opening reason';
+
+  @override
+  String get describeReasonRecordedOperationLog => 'Describe the reason. It will be recorded in the operation log.';
+
+  @override
+  String get openCommandSent => 'Open command sent';
+
+  @override
+  String get staffRetrievalOverdueBooks => 'Staff retrieval of overdue books';
+
+  @override
+  String get openWithoutNumberConfirmation => 'Open without number confirmation';
+
+  @override
+  String get onlyDoorsWithNoRecordedContents => 'Only for doors with no recorded contents, for testing the lock. The door will open without anyone confirming at the locker.';
+
+  @override
+  String get contentsNeedChecking => 'Contents need checking';
+
+  @override
+  String get confirmContents => 'Confirm contents';
+
+  @override
+  String get contentsConfirmed => 'Contents confirmed';
+
+  @override
+  String get booksMayInside => 'Books that may be inside';
+
+  @override
+  String get recordContents => 'Record contents';
+
+  @override
+  String get selectItemsActuallyStoredDoor => 'Select the items actually stored in this door.';
+
+  @override
+  String get clearContentsRecord => 'Clear contents record';
+
+  @override
+  String get booksRemoved => 'Books removed';
+
+  @override
+  String get correctRecordOnly => 'Correct the record only';
+
+  @override
+  String confirmStaffRemovedBooksFromDoor(Object p0) => 'Confirm that staff removed the books from door ${p0}. Drop-off records will be deleted, the books will be delisted, and the sellers will be notified.';
+
+  @override
+  String confirmTheseBooksNotActuallyDoor(Object p0) => 'Confirm that these books are not actually in door ${p0}. Only the door record is deleted; orders and drop-offs stay unchanged.';
+
+  @override
+  String get describeReasonClearing => 'Describe the reason for clearing.';
+
+  @override
+  String get itemsWithoutDoorRecord => 'Items without a door record';
+
+  @override
+  String get tasksConfirm => 'Tasks to confirm';
+
+  @override
+  String get markAsCompleted => 'Mark as completed';
+
+  @override
+  String get markAsNotCompleted => 'Mark as not completed';
+
+  @override
+  String get resolutionNote => 'Resolution note';
+
+  @override
+  String get ordersDropOffsUpdatedAccordingTask => 'Orders and drop-offs will be updated according to this task.';
+
+  @override
+  String get ordersDropOffsStayUnchanged => 'Orders and drop-offs will stay unchanged.';
+
+  @override
+  String get recentTasks => 'Recent tasks';
+
+  @override
+  String get taskDetails => 'Task details';
+
+  @override
+  String get noTasksYet => 'No tasks yet';
+
+  @override
+  String get eventLog => 'Event log';
+
+  @override
+  String get noEventsYet => 'No events yet';
+
+  @override
+  String get closedBy => 'Closed by';
+
+  @override
+  String get itemsConfirmed => 'Items confirmed';
+
+  @override
+  String get taskItems => 'Task items';
+
+  @override
+  String get resolutionRecord => 'Resolution record';
+
+  @override
+  String taskProgressP0(Object p0) => 'Task in progress: ${p0}';
+
+  @override
+  String checkContentsDoorP0(Object p0) => 'Check the contents of door ${p0}.';
+
+  @override
+  String get manualReportsConfirm => 'Manual reports to confirm';
+
+  @override
+  String get confirmReport => 'Confirm report';
+
+  @override
+  String get rejectReport => 'Reject report';
+
+  @override
+  String get manualReportConfirmed => 'Manual report confirmed';
+
+  @override
+  String get manualReportRejected => 'Manual report rejected';
+
+  @override
+  String get ordersDropOffsUpdatedAsReported => 'Orders or drop-offs will be updated as reported, and the users concerned will be notified.';
+
+  @override
+  String get statusStaysUnchangedReporterNotified => 'The status stays unchanged and the reporter will be notified.';
+
+  @override
+  String get noManualReportsConfirm => 'No manual reports to confirm';
+
+  @override
+  String get reporter => 'Reporter';
+
+  @override
+  String get scanLockerCollect => 'Scan to collect';
+
+  @override
+  String get scanLockerDropOff => 'Scan to drop off';
+
+  @override
+  String get scanLockerRetrieve => 'Scan to retrieve';
+
+  @override
+  String lockerClosedNowOpeningHoursP0(Object p0) => 'The locker is closed now. Opening hours: ${p0}';
+
+  @override
+  String get lockerUnderMaintenance => 'This locker is under maintenance.';
+
+  @override
+  String get lockerOutService => 'This locker is out of service.';
+
+  @override
+  String get noDoorsAvailableMoment => 'No doors are available at the moment.';
+
+  @override
+  String get lockerOfflineSoDoorCannotOpened => 'The locker is offline, so the door cannot be opened by scanning. Follow the instructions from support to place or take the books, then report. The report takes effect after support confirms it.';
+
+  @override
+  String get lockerOutOrderSoDoorCannot => 'The locker is out of order, so the door cannot be opened by scanning. Follow the instructions from support to place or take the books, then report. The report takes effect after support confirms it.';
+
+  @override
+  String get manualReportsTakeEffectAfterSupport => 'Manual reports take effect after support confirms them.';
+
+  @override
+  String get notSavemybookLockerQrCode => 'This is not a SaveMyBook locker QR code.';
+
+  @override
+  String get lockerQrCodeChangedScanCode => 'The locker QR code has changed. Scan the code on the locker screen again.';
+
+  @override
+  String get lockerUsePleaseWaitScanAgain => 'The locker is in use. Please wait and scan again.';
+
+  @override
+  String get lockerOfflineTemporarilyUnavailable => 'The locker is offline and temporarily unavailable.';
+
+  @override
+  String get itemChangedRefreshTryAgain => 'This item has changed. Refresh and try again.';
+
+  @override
+  String get noItemsHandleLocker => 'You have no items to handle at this locker.';
+
+  @override
+  String get lockerTaskProgressFinishCancelFirst => 'You have a locker task in progress. Finish or cancel it first.';
+
+  @override
+  String get selectLeastOneItem => 'Select at least one item.';
+
+  @override
+  String get notEnoughDoorsAvailableSelectFewer => 'Not enough doors are available. Select fewer drop-offs or try again later.';
+
+  @override
+  String get someItemsChangedPleaseConfirmAgain => 'Some items have changed. Please confirm again.';
+
+  @override
+  String get lockerTaskWasNotFound => 'This locker task was not found.';
+
+  @override
+  String get actionNotAvailableRightNow => 'This action is not available right now.';
+
+  @override
+  String get lockerRequiresScanningScanQrCode => 'This locker requires scanning. Scan the QR code at the locker.';
+
+  @override
+  String get orderBeingHandledLockerPleaseTry => 'This order is being handled at a locker. Please try again later.';
+
+  @override
+  String get manualReportItemAlreadyAwaitingConfirmation => 'A manual report for this item is already awaiting confirmation.';
+
+  @override
+  String aboutP0FromLockerPleaseUse(Object p0) => 'You are about ${p0} from the locker. Please use it at the locker.';
+
+  @override
+  String itemAssignedP0PleaseUseLocker(Object p0) => 'This item is assigned to “${p0}”. Please use that locker.';
+
+  @override
+  String severalTasksLockerWereNotCompleted(Object p0) => 'Several tasks at this locker were not completed. Try again in ${p0} minutes.';
+
+  @override
+  String itemsP0(Object p0) => 'Your items are at: ${p0}';
+
+  @override
+  String get taskComplete => 'Task complete';
+
+  @override
+  String get someItemsWereNotCompleted => 'Some items were not completed';
+
+  @override
+  String get numberDidNotMatchTaskBeen => 'The number did not match. This task has been cancelled.';
+
+  @override
+  String get numberWasNotConfirmedTimeTask => 'The number was not confirmed in time. This task has been cancelled.';
+
+  @override
+  String get itemsWereNotConfirmedTimeTask => 'The items were not confirmed in time. This task has been cancelled.';
+
+  @override
+  String get lockerDidNotRespondDoorWas => 'The locker did not respond and the door was not opened. Please try again later.';
+
+  @override
+  String get taskBeenCancelled => 'This task has been cancelled.';
+
+  @override
+  String get lockerDidNotConfirmDoorOpened => 'The locker did not confirm that the door opened. Support will confirm this task.';
+
+  @override
+  String get thereWasLockerConnectionProblemSupport => 'There was a locker connection problem. Support will confirm this task.';
+
+  @override
+  String get lockerRestartedSupportConfirmTask => 'The locker restarted. Support will confirm this task.';
+
+  @override
+  String get supportConfirmedTaskComplete => 'Support has confirmed that this task is complete.';
+
+  @override
+  String get supportConfirmedTaskWasNotCompleted => 'Support has confirmed that this task was not completed. Nothing has changed.';
+
+  @override
+  String get supportEndedTask => 'Support has ended this task.';
+
+  @override
+  String get dropOffCompleteBuyerBeenNotified => 'Drop-off complete. The buyer has been notified.';
+
+  @override
+  String get dropOffComplete => 'Drop-off complete';
+
+  @override
+  String get retrievalComplete => 'Retrieval complete';
+
+  @override
+  String get doorCouldNotIdentifiedPleaseContact => 'The door could not be identified. Please contact support.';
+
+  @override
+  String get doorFaultyPleaseContactSupport => 'The door is faulty. Please contact support.';
+
+  @override
+  String get doorAwaitingCheckBySupportPlease => 'The door is awaiting a check by support. Please contact support.';
+
+  @override
+  String get reachedPreSaleDropOffLimit => 'You have reached the pre-sale drop-off limit at this locker. Drop off another book after one sells or is retrieved.';
+
+  @override
+  String get itemChanged => 'The item has changed';
+
+  @override
+  String get doorDidNotOpen => 'The door did not open';
+
+  @override
+  String get doorOpeningNotConfirmedSupportCheck => 'Door opening not confirmed. Support will check.';
+
+  @override
+  String get anotherItemDoorSupportCheck => 'Another item is in this door. Support will check.';
+
+  @override
+  String notCompletedP0(Object p0) => 'Not completed: ${p0}';
+
+  @override
+  String bookBeenSoldAfterRetrievingDrop(Object p0) => 'This book has been sold. After retrieving it, drop it off at “${p0}”.';
+
+  @override
+  String doorP0(Object p0) => 'Door ${p0}';
+
+  @override
+  String get confirmingItems => 'Confirming items';
+
+  @override
+  String get confirmingNumber => 'Confirming number';
+
+  @override
+  String get opening => 'Opening';
+
+  @override
+  String get doorOpened => 'Door opened';
+
+  @override
+  String get partlyCompleted => 'Partly completed';
+
+  @override
+  String get failed => 'Failed';
+
+  @override
+  String get modelAnswer => 'Model answer';
+
+  @override
+  String get replacedWithStandardNotice => 'Replaced with standard notice';
+
+  @override
+  String get clarifyingQuestion => 'Clarifying question';
+
+  @override
+  String get noSuitableBooks => 'No suitable books';
+
+  @override
+  String get fellBackSearchRanking => 'Fell back to search ranking';
+
+  @override
+  String get fellBackPopularBooks => 'Fell back to popular books';
+
+  @override
+  String get recommendationsGenerated => 'Recommendations generated';
+
+  @override
+  String get noSuitableCandidates => 'No suitable candidates';
+
+  @override
+  String get noCandidates => 'No candidates';
+
+  @override
+  String get modelSuggestionsUsed => 'Model suggestions used';
+
+  @override
+  String get bibliographicDataOnly => 'Bibliographic data only';
+
+  @override
+  String get handoffSuggested => 'Handoff suggested';
+
+  @override
+  String get insufficientGrounding => 'Insufficient grounding';
+
+  @override
+  String get continuedPreviousCriteria => 'Continued previous criteria';
+
+  @override
+  String get reusedPreviousTopic => 'Reused previous topic';
+
+  @override
+  String get noSearchMatch => 'No search match';
+
+  @override
+  String get invalidBookCodesReturned => 'Invalid book codes returned';
+
+  @override
+  String get webSearchUsed => 'Web search used';
+
+  @override
+  String get retriedWithoutSearch => 'Retried without search';
+
+  @override
+  String get backupProviderUsed => 'Backup provider used';
+
+  @override
+  String get conditionAdjustedFromNotes => 'Condition adjusted from notes';
+
+  @override
+  String get avgPassagesRetrieved => 'Avg. passages retrieved';
+
+  @override
+  String get avgCandidates => 'Avg. candidates';
+
+  @override
+  String get avgFillerBooks => 'Avg. filler books';
+
+  @override
+  String get avgBooksRecommended => 'Avg. books recommended';
+
+  @override
+  String get avgBooksSelected => 'Avg. books selected';
+
+  @override
+  String get avgInvalidCodes => 'Avg. invalid codes';
+
+  @override
+  String get avgPhotos => 'Avg. photos';
+
+  @override
+  String get avgSources => 'Avg. sources';
+
+  @override
+  String get bookSearch => 'Book search';
+
+  @override
+  String get fellBackReferencePassage => 'Fell back to reference passage';
+
+  @override
+  String get booksSelectedByModel => 'Books selected by model';
+
+  @override
+  String get indexUpdates => 'Index updates';
+
+  @override
+  String get sourceNotRecorded => 'Source not recorded';
+
+  @override
+  String get outputFormatErrors => 'Output format errors';
+
+  @override
+  String get suggestMediation => 'Suggest mediation';
+
+  @override
+  String get handoffEnforcedBySystem => 'Handoff enforced by system';
+
+  @override
+  String get followUpSuggestionsProvided => 'Follow-up suggestions provided';
+
+  @override
+  String get replyTitleNotBookCards => 'Reply title not in book cards';
+
+  @override
+  String get replyMentionsPrice => 'Reply mentions price';
+
+  @override
+  String get replyDeniesResultsDespiteBookCards => 'Reply denies results despite book cards';
+
+  @override
+  String get completeItemsKeptAfterTruncation => 'Complete items kept after truncation';
+
+  @override
+  String get somePhotosNotSent => 'Some photos not sent';
+
+  @override
+  String get noEvidencePhotosSent => 'No evidence photos sent';
+
+  @override
+  String get findingsCitePhotos => 'Findings cite photos';
+
+  @override
+  String get avgPassagesCited => 'Avg. passages cited';
+
+  @override
+  String get avgInvalidRecommendationBases => 'Avg. invalid recommendation bases';
+
+  @override
+  String get avgSystemGeneratedReasons => 'Avg. system-generated reasons';
+
+  @override
+  String get avgInvalidPhotoReferences => 'Avg. invalid photo references';
+
+  @override
+  String get favorsBuyer => 'Favors buyer';
+
+  @override
+  String get favorsSeller => 'Favors seller';
+
+  @override
+  String get insidePage => 'Inside page';
+
+  @override
+  String photoP0Evidence(Object p0) => 'Photo ${p0} (evidence)';
+
+  @override
+  String photoP0P1P2(Object p0, Object p1, Object p2) => 'Photo ${p0} ("${p1}" ${p2})';
+
+  @override
+  String photoP0P1(Object p0, Object p1) => 'Photo ${p0} (${p1})';
+
+  @override
+  String aiReviewedP0ListingP1Evidence(Object p0, Object p1, Object p2) => 'AI reviewed ${p0} listing and ${p1} evidence photos; ${p2} not sent';
+
+  @override
+  String aiReviewedP0ListingP1Evidence2(Object p0, Object p1) => 'AI reviewed ${p0} listing and ${p1} evidence photos';
+
+  @override
+  String someItemsMalformedP0(Object p0) => 'Some items malformed ${p0}';
+
+  @override
+  String fieldsDefaultedP0(Object p0) => 'Fields defaulted ${p0}';
+
+  @override
+  String get highConfidence => 'High confidence';
+
+  @override
+  String get mediumConfidence => 'Medium confidence';
+
+  @override
+  String get lowConfidence => 'Low confidence';
+
+  @override
+  String get writtenByAi => 'Written by AI';
+
+  @override
+  String get clearBibliographyCache => 'Clear bibliography cache';
+
+  @override
+  String get bookDetailsLookedUpAgainNext => 'Book details will be looked up again the next time this ISBN is listed.';
+
+  @override
+  String get bibliographyCacheIsbnCleared => 'Bibliography cache for this ISBN cleared';
+
+  @override
+  String get noBibliographyCacheIsbn => 'No bibliography cache for this ISBN';
+
+  @override
+  String get lookUpListPrice => 'Look up list price';
+
+  @override
+  String get assessConditionPrice => 'Assess condition and price';
+
+  @override
+  String get aiRepliesReferenceOnlyOrderPage => 'AI replies are for reference only. The order page and support agents\' guidance take precedence.';
+
+  @override
+  String get preFilledFromSupportEnquiryReview => 'Pre-filled from the support enquiry. Review the content before saving.';
+
+  @override
+  String get noData => 'No data';
+
+  @override
+  String get sellingPrice => 'Selling price';
+
+  @override
+  String get aiQuality => 'AI quality';
+
+  @override
+  String get overturnedByAdmins => 'Overturned by admins';
+
+  @override
+  String get flaggedByInstantRules => 'Flagged by instant rules';
+
+  @override
+  String get flaggedByAi => 'Flagged by AI';
+
+  @override
+  String get transferredSupportAgents => 'Transferred to support agents';
+
+  @override
+  String get ratedNotHelpful => 'Rated not helpful';
+
+  @override
+  String get repliesWithoutBooks => 'Replies without books';
+
+  @override
+  String get disputeAnalysis2 => 'Dispute analysis';
+
+  @override
+  String get suggestionMatchedDecision => 'Suggestion matched the decision';
+
+  @override
+  String get ratedHelpful => 'Rated helpful';
+
+  @override
+  String get bookRecommendations => 'Book recommendations';
+
+  @override
+  String get aiRecommendationClickThroughRate => 'AI recommendation click-through rate';
+
+  @override
+  String get standardRecommendationClickThroughRate => 'Standard recommendation click-through rate';
+
+  @override
+  String get markedNotInterested => 'Marked not interested';
+
+  @override
+  String get listingAssistantAdoptionRate => 'Listing assistant adoption rate';
+
+  @override
+  String get listingsUsingAssistant => 'Listings using the assistant';
+
+  @override
+  String get createdFromSupportEnquiries => 'Created from support enquiries';
+
+  @override
+  String get rejectionReason => 'Rejection reason';
+
+  @override
+  String get sourceInstantRules => 'Source: instant rules';
+
+  @override
+  String get sourceAiAssessment => 'Source: AI assessment';
+
+  @override
+  String confidenceP0(Object p0) => 'Confidence ${p0}';
+
+  @override
+  String aiAssessmentConfidenceP0(Object p0) => 'AI assessment confidence ${p0}';
+
+  @override
+  String get assessment => 'Assessment';
+
+  @override
+  String get description3 => 'Description';
+
+  @override
+  String get markReviewReasonAsUnfoundedWhen => 'Mark the review reason as unfounded when approving';
+
+  @override
+  String get showPhotosFullDetails => 'Show photos and full details';
+
+  @override
+  String analysedP0(Object p0) => 'Analysed: ${p0}';
+
+  @override
+  String get wasAnalysisHelpful => 'Was this analysis helpful?';
+
+  @override
+  String get helpful => 'Helpful';
+
+  @override
+  String get notHelpful => 'Not helpful';
+
+  @override
+  String get recommendedBooksDoNotMatchMy => 'Recommended books do not match my needs';
+
+  @override
+  String get inaccurateInformation => 'Inaccurate information';
+
+  @override
+  String get didNotAnswerQuestion => 'Did not answer the question';
+
+  @override
+  String get insufficientInformation => 'Insufficient information';
+
+  @override
+  String get selectReason => 'Select a reason';
+
+  @override
+  String get notInterested => 'Not interested';
+
+  @override
+  String get bookNoLongerRecommended => 'This book will no longer be recommended';
+
+  @override
+  String get cachedBibliographicDataUsed => 'Cached bibliographic data used';
+
+  @override
+  String get cachedDescriptionUsed => 'Cached description used';
+
+  @override
+  String get isbnTitleDoNotMatch => 'ISBN and title do not match';
+
+  @override
+  String get awaitingReview => 'Awaiting review';
+
+  @override
+  String get orderDropOff => 'Order drop-off';
+
+  @override
+  String get preSaleDropOff => 'Pre-sale drop-off';
+
+  @override
+  String get retrieval => 'Retrieval';
+
+  @override
+  String get adminOpening => 'Admin opening';
+
+  @override
+  String get countdownEnded => 'Countdown ended';
+
+  @override
+  String get doorSensor => 'Door sensor';
+
+  @override
+  String get deviceRestarted => 'Device restarted';
+
+  @override
+  String get resolvedBySupport => 'Resolved by support';
+
+  @override
+  String get deviceStarted => 'Device started';
+
+  @override
+  String get doorClosed => 'Door closed';
+
+  @override
+  String get taskCloseReported => 'Task close reported';
+
+  @override
+  String get fault => 'Fault';
+
+  @override
+  String get faultResolved => 'Fault resolved';
+
+  @override
+  String get unexpectedDoorOpening => 'Unexpected door opening';
+
+  @override
+  String get connectionLost => 'Connection lost';
+
+  @override
+  String get connectionRestored => 'Connection restored';
+
+  @override
+  String get paired => 'Paired';
+
+  @override
+  String get deviceRevoked => 'Device revoked';
+
+  @override
+  String get taskCreated => 'Task created';
+
+  @override
+  String get taskFinished => 'Task finished';
+
+  @override
+  String get scanRejected => 'Scan rejected';
+
+  @override
+  String get remoteOpening => 'Remote opening';
+
+  @override
+  String get contentsRecorded => 'Contents recorded';
+
+  @override
+  String get contentsRecordCleared => 'Contents record cleared';
+
+  @override
+  String get credentialPossiblyCopied => 'Credential possibly copied';
+
+  @override
+  String get sourceIpChanged => 'Source IP changed';
+
+  @override
+  String get doorNeedsChecking => 'Door needs checking';
+
+  @override
+  String get doorChecked => 'Door checked';
+
+  @override
+  String get itemBlocked => 'Item blocked';
+
+  @override
+  String get manualReport => 'Manual report';
+
+  @override
+  String get manualReportReviewed => 'Manual report reviewed';
+
+  @override
+  String get overdueOrderHeld => 'Overdue order held';
+
+  @override
+  String get doorOpenedAfterTask => 'Door opened after task';
+
+  @override
+  String get lockDidNotRelease => 'Lock did not release';
+
+  @override
+  String get doorLeftOpen => 'Door left open';
+
+  @override
+  String get doorForcedOpen => 'Door forced open';
+
+  @override
+  String get sensorError => 'Sensor error';
+
+  @override
+  String get powerProblem => 'Power problem';
+
+  @override
+  String get screenProblem => 'Screen problem';
+
+  @override
+  String get dropOffCancelledAfterDoorOpened => 'Drop-off cancelled after the door opened';
+
+  @override
+  String get dropOffMarkedAsNotCompleted => 'Drop-off marked as not completed by support';
+
+  @override
+  String get anotherItemWasAlreadyDoor => 'Another item was already in the door';
+
+  @override
+  String get doorOpeningNotReported => 'Door opening not reported';
+
+  @override
+  String get doorReportedOpenAfterTaskEnded => 'Door reported open after the task ended';
+
+  @override
+  String get manualReportDuringFault => 'Manual report during a fault';
+
+  @override
+  String get openedByStaff => 'Opened by staff';
+
+  @override
+  String get orderCompletedBySupportBeforePickup => 'Order completed by support before pickup';
+
+  @override
+  String get noDevice => 'no device';
+
+  @override
+  String get deviceOffline => 'device offline';
+
+  @override
+  String get deviceFault => 'device fault';
+
+  @override
+  String get underMaintenance => 'under maintenance';
+
+  @override
+  String get scanningRequired => 'Scanning required';
+
+  @override
+  String manualReportingAllowedP0(Object p0) => 'Manual reporting allowed (${p0})';
+
+  @override
+  String userAccessSuspendedP0(Object p0) => 'User access suspended (${p0})';
+
+  @override
+  String get simulator => 'Simulator';
+
+  @override
+  String get physicalLocker => 'Physical locker';
+
+  @override
+  String get noDevicePaired => 'No device paired';
+
+  @override
+  String get awaitingPairing => 'Awaiting pairing';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get locationNotPermitted => 'Location not permitted';
+
+  @override
+  String get locationUnavailable => 'Location unavailable';
+
+  @override
+  String aboutP0Away(Object p0) => 'About ${p0} away';
+
+  @override
+  String get dropOffReport => 'Drop-off report';
+
+  @override
+  String get pickupReport => 'Pickup report';
+
+  @override
+  String get retrievalReport => 'Retrieval report';
+
+  @override
+  String get confirmed => 'Confirmed';
+
+  @override
+  String get noLongerValid => 'No longer valid';
+
+  @override
+  String get lockerInactive => 'locker inactive';
+
+  @override
+  String get selectDoorWhereBooksActuallyStored => 'Select the door where the books are actually stored';
+
+  @override
+  String offlineP0(Object p0) => 'Offline for ${p0}';
+
+  @override
+  String get collectionRetrievalNotCompletedAfterDoor => 'Collection or retrieval not completed after the door opened';
+
+  @override
+  String get unpairedByDevice => 'Unpaired by the device';
+
+  @override
+  String get replacedByNewDevice => 'Replaced by a new device';
+
+  @override
+  String get revokedByAdministrator => 'Revoked by an administrator';
+
+  @override
+  String get simulatorTurnedOff => 'Simulator turned off';
+
+  @override
+  String get tooManyRequestsPleaseTryAgain => 'Too many requests. Please try again later.';
+
+  @override
+  String get viewPurchases => 'View purchases';
+
+  @override
+  String get viewSales => 'View sales';
+
+  @override
+  String get retrievalNotAvailableLockerRightNow => 'Retrieval is not available at this locker right now. Please contact support.';
+
+  @override
+  String get itemsCouldNotCompleted => 'The items could not be completed';
+
+  @override
+  String onceDelistedP0NoLongerAppear2(Object p0) => 'Once delisted, “${p0}” will no longer appear in the shop. The book is stored in a locker, so you need to retrieve it before relisting it.';
+
+  @override
+  String confirmP0BeenPlacedP1(Object p0, Object p1) => 'Confirm that "${p0}" has been placed in ${p1}.';
+
+  @override
+  String get confirmTakenBookFromLocker => 'Confirm that you have taken the book from the locker.';
+
+  @override
+  String get finish => 'Done';
+
+  @override
+  String get door => 'Door';
+
+  @override
+  String get enterNumberShownLockerScreen => 'Enter the number shown on the locker screen';
+
+  @override
+  String get ifSomeoneTellsNumberAsksEnter => 'If someone tells you a number and asks you to enter it, do not proceed.';
+
+  @override
+  String get enterTwoDigits => 'Enter two digits';
+
+  @override
+  String get closeDoorFirst => 'Close the door first';
+
+  @override
+  String get onceDoorClosedTaskEndAutomatically => 'Once the door is closed, the task will end automatically as you selected.';
+
+  @override
+  String get taskCompleteAutomaticallyOnceDoorClosed => 'The task will complete automatically once the door is closed.';
+
+  @override
+  String get taskBeenCancelledNothingChanged => 'This task has been cancelled. Nothing has changed.';
+
+  @override
+  String get locationAccessRequiredUseLockerTurn => 'Location access is required to use the locker. Turn it on in system settings and try again.';
+
+  @override
+  String get locationCouldNotConfirmedTurnLocation => 'Your location could not be confirmed. Turn on location services and try again.';
+
+  @override
+  String get doorOpenActionNotAvailable => 'The door is open. This action is not available.';
+
+  @override
+  String get taskBeingProcessedPleaseWait => 'This task is being processed. Please wait.';
+
+  @override
+  String numberConfirmationWasNotCompletedSeveral(Object p0) => 'Number confirmation was not completed several times. Try again in ${p0} minutes.';
+
+  @override
+  String get doorRecordedContentsAwaitingCheckComplete => 'This door has recorded contents or is awaiting a check. Complete the number confirmation to open it.';
+
+  @override
+  String get lockerBeenAskedEndTask => 'The locker has been asked to end the task.';
+
+  @override
+  String get endTask => 'End task';
+
+  @override
+  String get pairDevice => 'Pair device';
+
+  @override
+  String get enterPairingCodeShownLockerScreen => 'Enter the pairing code shown on the locker screen';
+
+  @override
+  String get enter8DigitPairingCode => 'Enter the 8-digit pairing code';
+
+  @override
+  String get pairingCodeInvalidExpired => 'The pairing code is invalid or has expired.';
+
+  @override
+  String get waitingDeviceConnect => 'Waiting for the device to connect';
+
+  @override
+  String get pairingWasNotCompletedEnterNew => 'Pairing was not completed. Enter the new pairing code shown on the locker screen.';
+
+  @override
+  String get donePhone => 'Done on phone';
+
+  @override
+  String get cancelledPhone => 'Cancelled on phone';
+
+  @override
+  String get matchCodeEntered => 'Match code entered';
+
+  @override
+  String get lockerRefusedEndDoorOpen => 'Locker refused to end (door open)';
+
+  @override
+  String get numberMatched => 'Number matched';
+
+  @override
+  String get numberDidNotMatch => 'Number did not match';
+
+  @override
+  String get cancelTapCancelBeforeClosingDoor => 'To cancel, tap "Cancel" before closing the door. The task completes automatically when the countdown ends.';
+
+  @override
+  String get preciseLocationRequiredUseLockerTurn => 'Precise location is required to use the locker. Turn it on in system settings and try again.';
+
+  @override
+  String get enterTitle3 => 'Enter a title';
+
+  @override
+  String get credentialsNotSet => 'Credentials are not set';
+
+  @override
+  String get searchActions => 'Search actions';
+
+  @override
+  String undoneP0(Object p0) => 'Undone on ${p0}';
+
+  @override
+  String get delistListing => 'Delist the listing';
+
+  @override
+  String get amount2 => 'Amount';
+
+  @override
+  String get couldNotOpenChatPleaseTry => 'Could not open the chat. Please try again later.';
+
+  @override
+  String publishedP0(Object p0) => 'Published ${p0}';
+
+  @override
+  String get pushNotificationRegistrationFailedPleaseTry => 'Push notification registration failed. Please try again later.';
 
 }
 
@@ -8552,7 +10192,7 @@ class _LJa extends AppLocalizations {
   String get regenerateShareLink => '共有リンクを再生成';
 
   @override
-  String get oldLinkQrCodeStopWorking => '古いリンクと QR コードはすぐに無効になり、すでに共有した相手は開けなくなります。再生成しますか？';
+  String get oldLinkQrCodeStopWorking => '現在のリンクと QR コードはすぐに無効になります。';
 
   @override
   String get regenerate => '再生成';
@@ -8681,9 +10321,6 @@ class _LJa extends AppLocalizations {
   String get signContactSeller => '出品者に連絡するにはログインしてください';
 
   @override
-  String get signStartChat => '出品者に連絡するにはログインしてください';
-
-  @override
   String get signReport => '報告するにはログインしてください';
 
   @override
@@ -8738,16 +10375,13 @@ class _LJa extends AppLocalizations {
   String get violationWasConfirmedBookPleaseCheck => 'この本は違反が確認されました。出品内容を修正してください。';
 
   @override
-  String get delist => '出品を取り消す';
+  String get delist => '出品取消';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '「${p0}」はショップから外され、購入者には表示されなくなります。';
+  String removedFromShopBuyersNoLonger(Object p0) => '出品を取り消すと、「${p0}」はショップに表示されなくなります。';
 
   @override
-  String get delist2 => '出品停止';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '出品停止に失敗しました。しばらくしてからお試しください。';
+  String get couldNotDelistPleaseTryAgain => '出品の取り消しに失敗しました。しばらくしてからお試しください。';
 
   @override
   String listedAgain(Object p0) => '「${p0}」を再出品しました';
@@ -8774,13 +10408,13 @@ class _LJa extends AppLocalizations {
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => 'コインが足りません。この注文には ${p0} 必要ですが、残高は ${p1} です。';
 
   @override
-  String booksTotal(Object p0, Object p1) => '${p0} 冊、合計 ${p1}。\n';
+  String booksTotal(Object p0, Object p1) => '${p0} 冊、合計 ${p1} コイン。\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => 'お支払い後の残高は ${p0} コインになります。';
 
   @override
-  String get orderPlacedSellerDropBookOff => 'ご注文が完了しました。出品者の預け入れをお待ちください。';
+  String get orderPlacedSellerDropBookOff => '出品者の預け入れをお待ちください。';
 
   @override
   String get cart => 'カート';
@@ -8951,25 +10585,16 @@ class _LJa extends AppLocalizations {
   String get orderEntersDisputeProcessPaymentSeller => '注文は異議申立の手続きに入り、サポートが判断するまで出品者への支払いは保留されます。';
 
   @override
-  String paymentHoldRequested(Object p0) => '[支払い保留の申請] ${p0}';
-
-  @override
   String get disputeSubmittedSupportContact => '異議を申し立てました。サポートからご連絡します。';
 
   @override
   String get dispute => '異議申立';
 
   @override
-  String get requestPaymentHold => '支払い保留を申請';
-
-  @override
-  String get submitDispute2 => '異議を申し立てる';
-
-  @override
   String get orderNumber => '注文番号';
 
   @override
-  String get eGSmb20260910123456789 => '例：SMB20260910123456789';
+  String get eGSmb20260910123456789 => '例：SMB20260910143015123456';
 
   @override
   String get whatHappened => '異議の内容';
@@ -9029,7 +10654,7 @@ class _LJa extends AppLocalizations {
   String get condition => '状態';
 
   @override
-  String get customPrice => '価格を指定';
+  String get customPrice => '販売価格';
 
   @override
   String get enterPrice2 => '販売価格を入力';
@@ -9176,9 +10801,6 @@ class _LJa extends AppLocalizations {
   String get priceHighLow => '価格の高い順';
 
   @override
-  String get reachedEnd => 'これ以上はありません';
-
-  @override
   String get guest => 'ゲスト';
 
   @override
@@ -9233,7 +10855,7 @@ class _LJa extends AppLocalizations {
   String get noAccountWithEmail => 'このアカウントは登録されていません';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '「${p0}」のアカウントが見つかりません。今すぐ作成しますか？';
+  String noAccountCreateOneNow(Object p0) => '「${p0}」で新しいアカウントを作成しますか？';
 
   @override
   String get signUp => '新規登録へ';
@@ -9398,13 +11020,7 @@ class _LJa extends AppLocalizations {
   String get pendingAmount => '保留中の金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '購入者の受け取り後に自動入金';
-
-  @override
-  String get scanned => 'スキャン完了';
-
-  @override
-  String get scanAgain => 'もう一度スキャン';
+  String get coinsArriveOnceBuyerCollectsBook => '購入者が注文を完了するか、受け取りから 24 時間後に入金';
 
   @override
   String get collectBook => '本を受け取る';
@@ -9413,13 +11029,10 @@ class _LJa extends AppLocalizations {
   String get pointPickupQrCode => '受け取り用 QR コードに合わせてください';
 
   @override
-  String get holdSteady => '手ぶれにご注意ください';
-
-  @override
   String get bookCollected => '受け取り完了';
 
   @override
-  String collected(Object p0) => '「${p0}」を受け取りました';
+  String collected(Object p0) => '「${p0}」';
 
   @override
   String order2(Object p0) => '注文番号：${p0}';
@@ -9429,9 +11042,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get myAccount => 'マイページ';
-
-  @override
-  String get personNotWrittenBioYet => '自己紹介は未入力です';
 
   @override
   String get topTierReached => '最高ランク達成';
@@ -9491,13 +11101,7 @@ class _LJa extends AppLocalizations {
   String get createAccount => 'アカウントを作成';
 
   @override
-  String get joinSavemybook => 'アカウント登録';
-
-  @override
   String get displayName => '表示名';
-
-  @override
-  String get emailSignWith => 'メールアドレス';
 
   @override
   String get least8CharactersWithLettersNumbers => '8 文字以上、英字と数字を含む';
@@ -9507,9 +11111,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get enterPasswordAgain2 => 'パスワードをもう一度';
-
-  @override
-  String get alreadyAccountGoBackSign => 'すでにアカウントをお持ちですか？戻ってログイン';
 
   @override
   String get markAsDroppedOff => '預け入れ完了';
@@ -9959,9 +11560,6 @@ class _LJa extends AppLocalizations {
   String get publishNow => 'すぐに公開';
 
   @override
-  String get leaveOffSaveAsDraft => 'オフのままなら下書きとして保存';
-
-  @override
   String get saveDraft => '下書きを保存';
 
   @override
@@ -9989,9 +11587,6 @@ class _LJa extends AppLocalizations {
   String get draft => '下書き';
 
   @override
-  String get audienceEveryone => '対象：全ユーザー';
-
-  @override
   String get backUpNow => '今すぐバックアップ';
 
   @override
@@ -10016,7 +11611,7 @@ class _LJa extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '毎日自動バックアップ、最新${p0}';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '保持件数を超えた古いバックアップは自動的に削除されます。バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。';
+  String get olderBackupsBeyondCountRemovedAutomatically => 'バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。';
 
   @override
   String get noBackupsYetSchedulerRunsOnce => 'バックアップはありません';
@@ -10373,7 +11968,7 @@ class _LJa extends AppLocalizations {
   String orderP0P1(Object p0, Object p1) => '注文 ${p0}｜\$${p1}';
 
   @override
-  String reasonP0(Object p0) => '申し立て理由：${p0}';
+  String reasonP0(Object p0) => '異議の内容：${p0}';
 
   @override
   String get decisionNoteOptional => '裁定の説明（任意）';
@@ -10388,7 +11983,7 @@ class _LJa extends AppLocalizations {
   String get resolveDispute => '取引を裁定';
 
   @override
-  String get noDisputesKind => 'この種類の申し立てはありません';
+  String get noDisputesKind => 'この種類の異議申立はありません';
 
   @override
   String orderNumberP0(Object p0) => '注文番号：${p0}';
@@ -10565,7 +12160,7 @@ class _LJa extends AppLocalizations {
   String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0}。';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0}、既定ではすべての権限を持ちます。あとから個別に調整できます。';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} は管理画面にアクセスできるようになり、既定では「システム運用」以外のすべての権限を持ちます。あとから個別に調整できます。';
 
   @override
   String get roleUpdated => '役割を更新しました';
@@ -10670,16 +12265,10 @@ class _LJa extends AppLocalizations {
   String get blockedNoFeaturesAvailable => 'ブロック済み。いかなる機能も利用できません';
 
   @override
-  String get notBlocked => 'ブロックなし';
-
-  @override
   String get role => '役割';
 
   @override
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0}（自動 ${p1}${p2}）';
-
-  @override
-  String get memberSTierBeenAdjustedBy => 'この会員のランクは手動で調整されており、取引だけで自動計算されてはいません。';
 
   @override
   String get adjustTier => 'ランクを調整';
@@ -10704,9 +12293,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String updatedP0SStatus(Object p0) => '${p0}';
-
-  @override
-  String get fullSettingsTierPermissions => '詳細設定（ランク・権限）';
 
   @override
   String get members3 => '会員一覧';
@@ -10772,7 +12358,7 @@ class _LJa extends AppLocalizations {
   String reportedP0P1(Object p0, Object p1) => '報告された${p0}：${p1}';
 
   @override
-  String reasonP02(Object p0) => '違反理由：${p0}';
+  String reasonP02(Object p0) => '通報理由：${p0}';
 
   @override
   String get handlingNoteOptional => '対応メモ（任意）';
@@ -10925,7 +12511,7 @@ class _LJa extends AppLocalizations {
   String get lookUpChangeOrderStatus => '注文の検索とステータス変更';
 
   @override
-  String get decideDisputeCases => '申し立て案件の裁定';
+  String get decideDisputeCases => '異議申立案件の裁定';
 
   @override
   String get checkAdjustCoinBalances => 'コインの確認と増減';
@@ -10946,7 +12532,7 @@ class _LJa extends AppLocalizations {
   String get replyUserQuestions => 'ユーザーの質問に回答';
 
   @override
-  String get databaseBackupDownloadOffByDefault => 'データベースのバックアップとダウンロード（既定では無効）';
+  String get databaseBackupDownloadOffByDefault => 'データベースのバックアップとダウンロード';
 
   @override
   String p0Locker(Object p0) => 'ロッカーを${p0}';
@@ -10994,7 +12580,7 @@ class _LJa extends AppLocalizations {
   String get resetPassword => 'パスワードをリセット';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0}の現在のパスワードは直ちに使えなくなり、次に発行される仮パスワードでログインすることになります。\n\nパスワードはシステムが生成します。指定はできません。';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0}の現在のパスワードは直ちに使えなくなり、次に発行される仮パスワードでログインすることになります。';
 
   @override
   String get generateTemporaryPassword => '仮パスワードを発行';
@@ -11069,16 +12655,13 @@ class _LJa extends AppLocalizations {
   String processedP0(Object p0) => '${p0}に処理';
 
   @override
-  String get disputes => '申し立て';
+  String get disputes => '異議申立';
 
   @override
   String filedP0(Object p0) => '${p0}に申請';
 
   @override
   String decidedP0(Object p0) => '${p0}に裁定';
-
-  @override
-  String createdP0(Object p0) => '${p0}に作成';
 
   @override
   String get shareBook => 'この本を共有';
@@ -11129,13 +12712,13 @@ class _LJa extends AppLocalizations {
   String get buyerSPaymentGoesBackTheir => '買い手の支払いはウォレットに返金されます。売り手に代金が支払い済みの場合は先に回収します。';
 
   @override
-  String get orderReturnsWhereWasBeforeDispute => '注文は申し立て前の状態に戻り、取引を続けます。受け取り済みだった場合は売り手に代金を支払います。';
+  String get orderReturnsWhereWasBeforeDispute => '注文は異議申立前の状態に戻り、取引を続けます。受け取り済みだった場合は売り手に代金を支払います。';
 
   @override
   String get orderWasAlreadyRefundedBuyerCannot => 'この注文は買い手に返金済みのため、進行中や完了には戻せません';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '完了した注文は「返金処理中」か「返金済み」にしか変更できません';
+  String get completedOrderCanOnlyChangedRefund => '完了した注文は「審査中」か「返金済み」にしか変更できません';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '確定すると売り手に ${p0} トークンを支払い、本を売却済みにします。';
@@ -11168,7 +12751,7 @@ class _LJa extends AppLocalizations {
   String get systemNotificationSettings => 'システムの通知設定';
 
   @override
-  String get pushNotificationsNotSetUpBuild => 'このビルドではプッシュ通知が設定されていません。Firebaseの設定ファイルを追加して再ビルドしてください。';
+  String get pushNotificationsNotSetUpBuild => 'このバージョンのアプリではプッシュ通知が有効になっていません。';
 
   @override
   String get notificationsTurnedOffAllowAppSend => '通知がオフになっています。システム設定でこのアプリの通知を許可してください。';
@@ -11241,9 +12824,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get undone => '取り消し済み';
-
-  @override
-  String get searchActionsEGNicknameBook => '操作内容を検索（例：会員名や書名）';
 
   @override
   String viewP0Changes(Object p0) => '${p0} 件の変更を表示';
@@ -11387,9 +12967,6 @@ class _LJa extends AppLocalizations {
   String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '差し引くと残高がマイナスになります。現在の残高：${p0}';
 
   @override
-  String get amountUp2Decimals => '金額（小数点以下2桁まで）';
-
-  @override
   String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n調整後の残高：${p1}';
 
   @override
@@ -11417,9 +12994,6 @@ class _LJa extends AppLocalizations {
   String sellerHoldingUntilP0(Object p0) => '出品者が ${p0} まであなたのために取り置き中';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '保留期限内に購入手続きを完了してください';
-
-  @override
   String get copyAddress => '住所をコピー';
 
   @override
@@ -11444,7 +13018,7 @@ class _LJa extends AppLocalizations {
   String get buyNow => '今すぐ購入';
 
   @override
-  String p0Delisted(Object p0) => '『${p0}』を出品停止しました';
+  String p0Delisted(Object p0) => '「${p0}」の出品を取り消しました';
 
   @override
   String noBooksMatchP0(Object p0) => '「${p0}」に一致する本はありません';
@@ -11475,9 +13049,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get browseBooks => '本を探す';
-
-  @override
-  String p0Sellers(Object p0) => '出品者 ${p0} 人';
 
   @override
   String unavailableP0(Object p0) => '購入できません（${p0}）';
@@ -11603,9 +13174,6 @@ class _LJa extends AppLocalizations {
   String get holdMicTalkReleaseSend => '録音が短すぎます';
 
   @override
-  String get startConversation => 'ここから会話が始まります';
-
-  @override
   String p0New(Object p0) => '新着 ${p0} 件';
 
   @override
@@ -11676,9 +13244,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get waitingBuyerCollect => '購入者の受け取り待ち';
-
-  @override
-  String get transactionCompleteThank => '取引完了';
 
   @override
   String get confirmVeTakenBookFromLocker => 'ロッカーから書籍を取り出したことを確認してください。状態に問題がなければ、購入履歴で注文を完了してください。';
@@ -11795,9 +13360,6 @@ class _LJa extends AppLocalizations {
   String get set6DigitPaymentPin => '6 桁の取引パスワードを設定';
 
   @override
-  String get enterSamePinAgain => 'もう一度同じパスワードを入力してください';
-
-  @override
   String get avoidRepeatedSequentialPatternedDigits => '同じ数字・連続・繰り返しは使えません';
 
   @override
@@ -11805,9 +13367,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get paymentPin => '取引パスワード';
-
-  @override
-  String stepP02(Object p0) => 'ステップ ${p0} / 2';
 
   @override
   String get setPaymentPinFirst => '先に取引パスワードを設定してください';
@@ -11838,9 +13397,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get accountCouldSafer => 'セキュリティを強化できます';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => '取引パスワードが未設定です';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '失敗回数が多すぎます。${p0} までロック中';
@@ -11937,18 +13493,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String p0Km(Object p0) => '${p0} km';
-
-  @override
-  String get iphoneDidnTReceiveApnsToken => 'iPhone が APNs トークンを取得できませんでした。Xcode の Signing & Capabilities に Push Notifications が追加されているか確認し、同じ Apple デベロッパーアカウントでアプリを再インストールしてください。';
-
-  @override
-  String get firebaseDidnTIssuePushToken => 'Firebase がプッシュトークンを発行しませんでした。GoogleService-Info.plist とアプリの Bundle ID が一致しているか確認してください';
-
-  @override
-  String couldnTGetPushTokenP0(Object p0) => 'プッシュトークンを取得できませんでした：${p0}';
-
-  @override
-  String couldnTRegisterPushTokenWith(Object p0) => 'プッシュトークンをサーバーに登録できませんでした：${p0}';
 
   @override
   String get protectCoinsCheckoutRequires6Digit => '決済の前に 6 桁の取引パスワードを設定してください。';
@@ -12071,28 +13615,13 @@ class _LJa extends AppLocalizations {
   String p0P1DigitsEntered(Object p0, Object p1) => '入力済み ${p0} / ${p1} 桁';
 
   @override
-  String get buildSProvisioningProfileDoesnT => 'このビルドのプロビジョニングプロファイルにプッシュ通知の権限がありません。Xcode の Runner › Signing & Capabilities に Push Notifications があるか確認し、アプリを削除して再インストールしてください。';
-
-  @override
-  String get checkPhoneOnlinePushNotificationsAdded => '端末がネットワークに接続されていること、Xcode の Runner › Signing & Capabilities に Push Notifications があることを確認してください。';
-
-  @override
-  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone の Apple へのプッシュ通知登録に失敗しました：${p0}\n${p1}';
-
-  @override
   String get serverNotBeenUpdatedSupportFeature => 'この機能は一時的に利用できません。しばらくしてからお試しください。';
 
   @override
   String get someFeaturesTemporarilyUnavailableWhileServer => '一部の機能は一時的に利用できません';
 
   @override
-  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'サーバーの API バージョンが古すぎます（現在 ${p0}、アプリには ${p1} が必要）。サーバーのコードを更新し、API を再起動してください。';
-
-  @override
-  String serverVersionP0(Object p0) => 'サーバーの現在のバージョン：${p0}';
-
-  @override
-  String get runNpmRunVerifyApiDirectory => 'サーバーの API ディレクトリで npm run verify を実行すると、デプロイ状況をすべて確認できます。';
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => 'サーバーの API バージョンが古すぎます（現在 ${p0}、必要 ${p1}）。';
 
   @override
   String get serverUpdateRequired => 'サーバーの更新が必要です';
@@ -13148,9 +14677,6 @@ class _LJa extends AppLocalizations {
   String get byModel => 'モデル別';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 回・${p1} ms';
-
-  @override
   String get topMembers => '利用の多い会員';
 
   @override
@@ -13268,13 +14794,7 @@ class _LJa extends AppLocalizations {
   String get aiDataProcessing => 'AI によるデータ処理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '入力したメッセージ、ご自身の注文と予約の状況';
-
-  @override
-  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、状態の説明、選択した写真';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => 'お気に入りと購入履歴に含まれる書籍情報';
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、状態の説明、選択した写真、入力した著者・出版社・出版日・カテゴリ・定価';
 
   @override
   String get aiDataProcessing2 => 'AI によるデータ処理について';
@@ -13292,13 +14812,7 @@ class _LJa extends AppLocalizations {
   String get purpose => '利用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => 'サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。';
-
-  @override
   String get withdrawingConsent => '同意の撤回';
-
-  @override
-  String get canTurnOffAiDataProcessing => '「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。';
 
   @override
   String get agreeContinue => '同意する';
@@ -13340,13 +14854,7 @@ class _LJa extends AppLocalizations {
   String get popularLiteraryFictionRightNow => '最近人気の文芸小説';
 
   @override
-  String get tellMeWhatBookLooking => 'お探しの本の内容を入力してください';
-
-  @override
   String get describeBookLooking => 'お探しの本を入力してください';
-
-  @override
-  String get tellMeWhatWantReadI => 'ご希望に合わせて本をおすすめします';
 
   @override
   String get subtitle => 'サブタイトル';
@@ -13469,9 +14977,6 @@ class _LJa extends AppLocalizations {
   String get signWithMobileNumber => '携帯電話番号でログイン';
 
   @override
-  String get k6DigitCodeSentNumberMessage => 'この番号に 6 桁の認証コードを送信します。';
-
-  @override
   String get mobileNumber => '携帯電話番号';
 
   @override
@@ -13487,9 +14992,6 @@ class _LJa extends AppLocalizations {
   String get enterCode => '認証コードを入力';
 
   @override
-  String get enterSmsCode => 'SMS の認証コードを入力';
-
-  @override
   String codeWasSentP0(Object p0) => '認証コードを ${p0} に送信しました';
 
   @override
@@ -13500,9 +15002,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get completeAccountDetails => 'アカウント情報の入力';
-
-  @override
-  String get p0DidNotProvideEmailAddress => '登録を完了するにはメールアドレスを入力してください。';
 
   @override
   String signWithP0(Object p0) => '${p0} でログイン';
@@ -13643,9 +15142,6 @@ class _LJa extends AppLocalizations {
   String get allowSigningLinkingWithMethod => 'この方法でのログインと連携を許可';
 
   @override
-  String get appNeverStoresPasswordUsedOnly => 'このアプリはパスワードを保存しません。今回の認証にのみ使用します。';
-
-  @override
   String get verifyWithBiometricsInstead => '生体認証で確認する';
 
   @override
@@ -13664,12 +15160,6 @@ class _LJa extends AppLocalizations {
   String get masterSwitchOffSoEveryMethod => '総合スイッチがオフのため、すべての方法が無効です';
 
   @override
-  String get signLinkingDirectSignUpAllowed => 'ログイン・連携・新規登録が可能';
-
-  @override
-  String credentialsNotSetPleaseConfigureP0(Object p0) => '認証情報が未設定です。サーバーで ${p0} を設定してください';
-
-  @override
   String get whenOffMethodHiddenFromSign => 'オフにするとログイン画面とアカウントセキュリティに表示されません';
 
   @override
@@ -13677,9 +15167,6 @@ class _LJa extends AppLocalizations {
 
   @override
   String get signMethodNotLinkedAccount => 'このログイン方法はアカウントに連携されていません';
-
-  @override
-  String p0AccountNotLinkedAnySavemybook(Object p0) => 'この ${p0} アカウントは SaveMyBook アカウントと連携されていません。';
 
   @override
   String get iAlreadyAccountSignFirst => '既存のアカウントにログインして連携';
@@ -13703,9 +15190,6 @@ class _LJa extends AppLocalizations {
   String get passkeys => 'パスキー';
 
   @override
-  String get verifyWithFaceIdFingerprintScreen => 'このデバイスの Face ID、指紋、画面ロックで確認します。パスワードは不要です。';
-
-  @override
   String get verifyWithPasskey => 'パスキーで確認';
 
   @override
@@ -13727,13 +15211,13 @@ class _LJa extends AppLocalizations {
   String get deletePasskey => 'パスキーを削除';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '削除すると、このパスキーでログインや本人確認ができなくなります。デバイスに保存されたパスキーは削除されないため、システムのパスワード設定から削除してください。';
+  String get noLongerAbleSignVerifyIdentity => '削除すると、このパスキーでログインや本人確認ができなくなります。デバイスにパスキーが残っている場合は、システムのパスワード設定から削除してください。';
 
   @override
   String get passkeyDeleted => 'パスキーを削除しました';
 
   @override
-  String get signVerifyIdentityWithFaceId => 'パスワードの代わりに Face ID、指紋、画面ロックでログインと本人確認ができます。パスキーはお使いのデバイスとパスワード マネージャーにのみ保存されます。';
+  String get signVerifyIdentityWithFaceId => 'パスワードの代わりに Face ID、指紋、画面ロックでログインと本人確認ができます。';
 
   @override
   String get addPasskey => 'パスキーを追加';
@@ -13910,9 +15394,6 @@ class _LJa extends AppLocalizations {
   String get tierOrderUpdated => 'ランクの順序を更新しました';
 
   @override
-  String p0Members(Object p0) => '会員 ${p0} 人';
-
-  @override
   String get tiers => 'ランク';
 
   @override
@@ -14078,13 +15559,13 @@ class _LJa extends AppLocalizations {
   String get paymentReleasedWalletWhenBuyerCompletes => '購入者が注文を完了するか、受け取りから 24 時間後に代金がウォレットに入金されます';
 
   @override
-  String get completeOrderAfterCheckingBookCompletes => '書籍の状態を確認したら注文を完了してください。受け取りから 24 時間以内に申し立てがなければ自動的に完了します';
+  String get completeOrderAfterCheckingBookCompletes => '書籍の状態を確認したら注文を完了してください。受け取りから 24 時間以内に異議申立がなければ自動的に完了します';
 
   @override
   String get completeOrder => '注文を完了';
 
   @override
-  String get onceCompleteOrderPaymentReleasedSeller => '注文を完了すると代金が出品者に支払われ、以後は紛争を申し立てられません。';
+  String get onceCompleteOrderPaymentReleasedSeller => '注文を完了すると代金が出品者に支払われ、以後は異議を申し立てられません。';
 
   @override
   String get orderCompleted2 => '注文が完了しました';
@@ -14249,9 +15730,6 @@ class _LJa extends AppLocalizations {
   String get listed3 => '出品日';
 
   @override
-  String get someDetailsWereFilledAutomaticallyFrom => '一部の情報は ISBN の書誌データから自動入力されています。';
-
-  @override
   String get summarizedByAiFromBookRecords => 'AI が書誌情報から要約';
 
   @override
@@ -14277,6 +15755,1398 @@ class _LJa extends AppLocalizations {
 
   @override
   String get morePicks => 'その他のおすすめ';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => 'パスキーの操作が中断されました。もう一度お試しください。';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => 'このデバイスのパスキーで確認できませんでした。別の方法をご利用ください。';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => 'この iOS バージョンで再度追加すると、iCloud キーチェーン内の既存のパスキーが置き換えられます。追加が完了しなかった場合、既存のパスキーは復元できません。事前に iOS 17.4 以降へのアップデートをおすすめします。';
+
+  @override
+  String get cannotAddPasskeyDevice => '現在、このデバイスではパスキーを追加できません。';
+
+  @override
+  String get recordRemoval => '取り出しを登録';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '担当者が「${p0}」から「${p1}」を取り出したことを確認してください。登録後、本は出品停止になります。';
+
+  @override
+  String get removalRecorded => '取り出しを登録しました';
+
+  @override
+  String get booksLockers => 'ロッカー保管中の本';
+
+  @override
+  String get overdue => '期限超過';
+
+  @override
+  String get noOverdueBooks => '期限超過の本はありません';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '現在ロッカーに保管中の本はありません';
+
+  @override
+  String get salesPaused => '販売一時停止';
+
+  @override
+  String get adminsNotified => '管理者に通知済み';
+
+  @override
+  String get confirmPurchase => '購入の確認';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => 'この本はすでにロッカーに保管されています。注文成立後すぐに受け取れますが、注文はキャンセルできません。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '販売を一時停止しました。ロッカーから本を回収してください。';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => 'この本はロッカーに保管済みで、注文後すぐに受け取れます。';
+
+  @override
+  String get notYetLocker => 'まだロッカーに預け入れていません';
+
+  @override
+  String get retrieve => '回収報告';
+
+  @override
+  String get dropOff => '預け入れ';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => 'ロッカーに保管済みの本の注文は、成立後すぐに受け取れますが、キャンセルできません。';
+
+  @override
+  String get placedLockerToday => '本日ロッカーに預け入れ';
+
+  @override
+  String lockerP0Days(Object p0) => '保管期間 ${p0} 日';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '「${p0}」から「${p1}」を回収したことを確認してください。';
+
+  @override
+  String get allLockers => 'すべてのロッカー';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '保管中はロッカーを変更できません。';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '出品を取り消すと、「${p0}」はショップに表示されなくなり、購入者は閲覧できなくなります。ロッカー保管中に出品を取り消した場合、再出品するには本を回収して回収報告を行う必要があります。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '本はロッカーに保管済みで、すぐに受け取れます。';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '担当者が「${p0}」から「${p1}」を取り出したことを確認してください。';
+
+  @override
+  String get inLocker => 'ロッカー保管済み';
+
+  @override
+  String get inAnotherLocker => '別のロッカーに保管中';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => 'この注文の本 ${p0} 冊をすべてロッカーに預け入れましたか？';
+
+  @override
+  String get awaitingRetrieval => '回収待ち';
+
+  @override
+  String get bookAdvisorSelection => 'ブックアドバイザーの選書';
+
+  @override
+  String get bookInfoAutoFill => '書籍情報の自動補完';
+
+  @override
+  String get disputeAnalysis => '異議申立の分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '今月の予算を使い切りました';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => 'カバー率：書籍 ${p0}、サポート情報 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最終同期：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => 'バックグラウンド同期は ${p0} まで停止中';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => 'セマンティック検索は ${p0} まで停止中';
+
+  @override
+  String lastErrorP0(Object p0) => '直近のエラー：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 回・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => 'AI によるデータ処理をオフにする';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => 'AI 機能の利用が停止され、AI サポートとブックアドバイザーの会話履歴が削除されます。この操作は元に戻せません。';
+
+  @override
+  String get turnOff => 'オフにする';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '入力したメッセージと会話の内容、ご自身の注文（預け入れ・受け取り・完了の日時を含む）、予約、出品（審査理由を含む）、異議申立の処理状況と結果、ウォレット残高と最近の取引履歴、最近のお問い合わせ';
+
+  @override
+  String get requestsConversationHistoryEnter => '入力したご希望と会話の内容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => 'お気に入り、購入履歴、カート、最近見た本に含まれる書籍情報';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI によるデータ処理についての説明が更新されました。内容をご確認のうえ、改めて同意してください。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '質問、ご希望、書籍情報は、関連する内容を検索するため ${p0} によってセマンティックベクトルにも変換されます。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => 'サポートの回答、書籍のおすすめと検索、出品情報の整理にのみ使用し、広告やトラッキングには使用しません。';
+
+  @override
+  String get retentionPeriod => '保存期間';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI サポートとブックアドバイザーの会話履歴（回答への評価を含む）は、最後の会話から 90 日間保存され、その後自動的に削除されます。AI 機能の処理記録は 90 日間保存され、会話内容や写真は含まれません。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなり、AI サポートとブックアドバイザーの会話履歴は削除されます。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => 'ユーザーは AI 機能を引き続き利用するため、AI によるデータ処理に改めて同意する必要があります。';
+
+  @override
+  String get consentRequiredAgain => '再同意が必要です';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI ブックアドバイザーの回数は、ユーザーが送信したメッセージ数で数えます。';
+
+  @override
+  String get noObviousIssuesFound => '明らかな問題は見つかりませんでした';
+
+  @override
+  String aiAssessmentP0(Object p0) => 'AI 判定：${p0}';
+
+  @override
+  String get reservedModerationAdminTools => '審査・管理支援用の確保分（%）';
+
+  @override
+  String memberFeaturesCanUseP0Budget(Object p0) => '会員向け機能は予算の ${p0}% まで使用できます';
+
+  @override
+  String memberFeatureCapP0(Object p0) => '会員向け機能の上限 ${p0}';
+
+  @override
+  String p0ListingsSaleNotReviewedOver(Object p0) => '販売中の書籍 ${p0} 冊が 1 時間以上審査未完了です';
+
+  @override
+  String get backupProvider => 'バックアップ用プロバイダー';
+
+  @override
+  String get none => '使用しない';
+
+  @override
+  String get sameAsCurrentProvider => '現在のプロバイダーと同じです';
+
+  @override
+  String get sameAsCurrentProviderSoNo => '現在のプロバイダーと同じため、バックアップは使用されません';
+
+  @override
+  String get outcomes => '処理結果';
+
+  @override
+  String get processingPaths => '処理経路';
+
+  @override
+  String get indicators => '指標';
+
+  @override
+  String get promptVersions => 'プロンプトのバージョン';
+
+  @override
+  String get embeddingCostsBySource => 'ベクトル費用の内訳';
+
+  @override
+  String get succeeded => '成功';
+
+  @override
+  String get repaired => '修復後に採用';
+
+  @override
+  String get degraded => '代替処理';
+
+  @override
+  String get emptyAfterCleanup => 'クリーンアップ後に空';
+
+  @override
+  String get refusedByProvider => 'プロバイダーが拒否';
+
+  @override
+  String get scanLockerQrCode => 'ロッカーの QR コードをスキャン';
+
+  @override
+  String get flashlight => 'ライト';
+
+  @override
+  String get pasteQrContent => 'QR の内容を貼り付け';
+
+  @override
+  String get pointQrCodeLockerScreen => 'ロッカー画面の QR コードに合わせてください';
+
+  @override
+  String get checkingLocker => 'ロッカーを確認しています';
+
+  @override
+  String get confirmLockerTask => 'ロッカー手続きの確認';
+
+  @override
+  String get retrieveBooks => '本の回収';
+
+  @override
+  String get booksSameDoorRetrievedTogether => '同じ扉の本はまとめて回収されます。';
+
+  @override
+  String confirmWithinP0(Object p0) => '${p0} 以内に確認してください';
+
+  @override
+  String get openDoor => '扉を開ける';
+
+  @override
+  String get openingDoor => '扉を開いています';
+
+  @override
+  String placeTheseBooksDoorP0(Object p0) => '次の本を扉 ${p0} に入れてください';
+
+  @override
+  String takeBooksFromDoorP0(Object p0) => '扉 ${p0} の本を取り出してください';
+
+  @override
+  String retrieveBooksFromDoorP0(Object p0) => '扉 ${p0} の本を回収してください';
+
+  @override
+  String get rescan => '再スキャン';
+
+  @override
+  String get openMap => '地図を開く';
+
+  @override
+  String get reportManually => '手動で報告';
+
+  @override
+  String get continueTask => '手続きを続ける';
+
+  @override
+  String get cancelTask => '手続きを取り消す';
+
+  @override
+  String get reportSubmittedTakesEffectAfterSupport => '報告を送信しました。サポートの確認後に反映されます。';
+
+  @override
+  String get manualReportAwaitingConfirmation => '手動報告の確認待ち';
+
+  @override
+  String onceDelistedP0NoLongerAppear(Object p0) => '出品を取り消すと、「${p0}」はショップに表示されなくなります。この本はロッカーに保管されているため、再出品するにはロッカーでアプリから QR コードをスキャンして本を回収する必要があります。';
+
+  @override
+  String get lockerDevice => 'ロッカー端末';
+
+  @override
+  String get deviceId => '端末番号';
+
+  @override
+  String get deviceType => '端末の種類';
+
+  @override
+  String get firmware => 'ファームウェア';
+
+  @override
+  String get lastSeen => '最終接続';
+
+  @override
+  String get pairingTime => 'ペアリング日時';
+
+  @override
+  String get doorSensors => '扉センサー';
+
+  @override
+  String get installed => '設置済み';
+
+  @override
+  String get notInstalled => '未設置';
+
+  @override
+  String get numberDoors => '扉の数';
+
+  @override
+  String get simulatorUrl => 'シミュレーターの URL';
+
+  @override
+  String get revokeDevice => '端末を無効化';
+
+  @override
+  String onceRevokedDeviceCanNoLonger(Object p0) => '無効化すると、この端末は「${p0}」を操作できなくなり、ロッカーは手動報告に切り替わります。';
+
+  @override
+  String faultP0(Object p0) => '故障：${p0}';
+
+  @override
+  String get clearFault => '故障を解除';
+
+  @override
+  String get faultCleared => '故障を解除しました';
+
+  @override
+  String get doors => '扉';
+
+  @override
+  String get noContentsRecorded => '保管記録なし';
+
+  @override
+  String get openDoorRemotely => '扉を遠隔で開ける';
+
+  @override
+  String get openingReason => '開ける理由';
+
+  @override
+  String get describeReasonRecordedOperationLog => '理由を入力してください。操作ログに記録されます。';
+
+  @override
+  String get openCommandSent => '開錠指示を送信しました';
+
+  @override
+  String get staffRetrievalOverdueBooks => '保管期限を過ぎた本の係員による取り出し';
+
+  @override
+  String get openWithoutNumberConfirmation => '数字の確認なしで開ける';
+
+  @override
+  String get onlyDoorsWithNoRecordedContents => '保管記録のない扉のみ、電磁ロックのテスト用です。現地で誰も確認しないまま扉が開きます。';
+
+  @override
+  String get contentsNeedChecking => '保管内容の確認待ち';
+
+  @override
+  String get confirmContents => '内容を確認済みにする';
+
+  @override
+  String get contentsConfirmed => '保管内容を確認しました';
+
+  @override
+  String get booksMayInside => '保管されている可能性のある本';
+
+  @override
+  String get recordContents => '保管内容を登録';
+
+  @override
+  String get selectItemsActuallyStoredDoor => 'この扉に実際に保管されている項目を選択してください。';
+
+  @override
+  String get clearContentsRecord => '保管記録を消去';
+
+  @override
+  String get booksRemoved => '本を取り出し済み';
+
+  @override
+  String get correctRecordOnly => '記録のみ訂正';
+
+  @override
+  String confirmStaffRemovedBooksFromDoor(Object p0) => '係員が扉 ${p0} から本を取り出したことを確認してください。預け入れ登録は削除され、本は出品停止となり、出品者に通知されます。';
+
+  @override
+  String confirmTheseBooksNotActuallyDoor(Object p0) => '扉 ${p0} に実際にはこれらの本がないことを確認してください。扉の記録のみ削除し、注文や預け入れの状態は変更しません。';
+
+  @override
+  String get describeReasonClearing => '消去する理由を入力してください。';
+
+  @override
+  String get itemsWithoutDoorRecord => '扉の記録がない項目';
+
+  @override
+  String get tasksConfirm => '確認待ちの手続き';
+
+  @override
+  String get markAsCompleted => '完了として確認';
+
+  @override
+  String get markAsNotCompleted => '未完了として確認';
+
+  @override
+  String get resolutionNote => '対応メモ';
+
+  @override
+  String get ordersDropOffsUpdatedAccordingTask => 'この手続きの内容に従って注文と預け入れの状態が更新されます。';
+
+  @override
+  String get ordersDropOffsStayUnchanged => '注文と預け入れの状態は変更されません。';
+
+  @override
+  String get recentTasks => '最近の手続き';
+
+  @override
+  String get taskDetails => '手続きの詳細';
+
+  @override
+  String get noTasksYet => '手続きの記録はまだありません';
+
+  @override
+  String get eventLog => 'イベント記録';
+
+  @override
+  String get noEventsYet => 'イベントの記録はまだありません';
+
+  @override
+  String get closedBy => '閉扉の方法';
+
+  @override
+  String get itemsConfirmed => '項目の確認';
+
+  @override
+  String get taskItems => '手続きの項目';
+
+  @override
+  String get resolutionRecord => '対応記録';
+
+  @override
+  String taskProgressP0(Object p0) => '進行中の手続き：${p0}';
+
+  @override
+  String checkContentsDoorP0(Object p0) => '扉 ${p0} の保管内容を確認してください。';
+
+  @override
+  String get manualReportsConfirm => '確認待ちの手動報告';
+
+  @override
+  String get confirmReport => '報告を承認';
+
+  @override
+  String get rejectReport => '報告を却下';
+
+  @override
+  String get manualReportConfirmed => '手動報告を承認しました';
+
+  @override
+  String get manualReportRejected => '手動報告を却下しました';
+
+  @override
+  String get ordersDropOffsUpdatedAsReported => '承認すると報告内容に従って注文または預け入れの状態が更新され、関係する利用者に通知されます。';
+
+  @override
+  String get statusStaysUnchangedReporterNotified => '却下すると状態は変更されず、報告者に通知されます。';
+
+  @override
+  String get noManualReportsConfirm => '確認待ちの手動報告はありません';
+
+  @override
+  String get reporter => '報告者';
+
+  @override
+  String get scanLockerCollect => 'スキャンして受取';
+
+  @override
+  String get scanLockerDropOff => 'スキャンして預入';
+
+  @override
+  String get scanLockerRetrieve => 'スキャンして回収';
+
+  @override
+  String lockerClosedNowOpeningHoursP0(Object p0) => '現在はロッカーの営業時間外です。営業時間：${p0}';
+
+  @override
+  String get lockerUnderMaintenance => 'このロッカーはメンテナンス中です。';
+
+  @override
+  String get lockerOutService => 'このロッカーは現在休止中です。';
+
+  @override
+  String get noDoorsAvailableMoment => '現在利用できる扉がありません。';
+
+  @override
+  String get lockerOfflineSoDoorCannotOpened => 'ロッカーがオフラインのため、スキャンで扉を開けられません。サポートの案内に従って本を入れるか取り出した後に報告してください。報告はサポートの確認後に反映されます。';
+
+  @override
+  String get lockerOutOrderSoDoorCannot => 'ロッカーが故障しているため、スキャンで扉を開けられません。サポートの案内に従って本を入れるか取り出した後に報告してください。報告はサポートの確認後に反映されます。';
+
+  @override
+  String get manualReportsTakeEffectAfterSupport => '手動の報告はサポートの確認後に反映されます。';
+
+  @override
+  String get notSavemybookLockerQrCode => 'この QR コードは SaveMyBook のロッカー用ではありません。';
+
+  @override
+  String get lockerQrCodeChangedScanCode => 'ロッカーの QR コードが更新されました。ロッカー画面の QR コードを再度スキャンしてください。';
+
+  @override
+  String get lockerUsePleaseWaitScanAgain => 'ロッカーは使用中です。しばらくしてから再度スキャンしてください。';
+
+  @override
+  String get lockerOfflineTemporarilyUnavailable => 'ロッカーがオフラインのため、現在ご利用いただけません。';
+
+  @override
+  String get itemChangedRefreshTryAgain => '項目の状態が変更されました。更新してから再度お試しください。';
+
+  @override
+  String get noItemsHandleLocker => 'このロッカーでお手続きが必要な項目はありません。';
+
+  @override
+  String get lockerTaskProgressFinishCancelFirst => '進行中のロッカー手続きがあります。先に完了するか取り消してください。';
+
+  @override
+  String get selectLeastOneItem => '項目を 1 つ以上選択してください。';
+
+  @override
+  String get notEnoughDoorsAvailableSelectFewer => '利用できる扉が不足しています。預け入れる項目を減らすか、しばらくしてから再度お試しください。';
+
+  @override
+  String get someItemsChangedPleaseConfirmAgain => '一部の項目の状態が変更されました。再度ご確認ください。';
+
+  @override
+  String get lockerTaskWasNotFound => 'このロッカー手続きは見つかりません。';
+
+  @override
+  String get actionNotAvailableRightNow => '現在この操作は実行できません。';
+
+  @override
+  String get lockerRequiresScanningScanQrCode => 'このロッカーはスキャンでのご利用が必要です。ロッカーで QR コードをスキャンしてください。';
+
+  @override
+  String get orderBeingHandledLockerPleaseTry => 'この注文はロッカーで手続き中です。しばらくしてから再度お試しください。';
+
+  @override
+  String get manualReportItemAlreadyAwaitingConfirmation => 'この項目には確認待ちの手動報告がすでにあります。';
+
+  @override
+  String aboutP0FromLockerPleaseUse(Object p0) => '現在地はロッカーから約 ${p0} 離れています。ロッカーの前で操作してください。';
+
+  @override
+  String itemAssignedP0PleaseUseLocker(Object p0) => 'この項目の指定ロッカーは「${p0}」です。そちらのロッカーでお手続きください。';
+
+  @override
+  String severalTasksLockerWereNotCompleted(Object p0) => 'このロッカーでの手続きが複数回完了しなかったため、${p0} 分後に再度お試しください。';
+
+  @override
+  String itemsP0(Object p0) => 'お手続きが必要な項目の場所：${p0}';
+
+  @override
+  String get taskComplete => '手続きが完了しました';
+
+  @override
+  String get someItemsWereNotCompleted => '一部の項目が完了していません';
+
+  @override
+  String get numberDidNotMatchTaskBeen => '数字が一致しなかったため、この手続きは取り消されました。';
+
+  @override
+  String get numberWasNotConfirmedTimeTask => '時間内に数字が確認されなかったため、この手続きは取り消されました。';
+
+  @override
+  String get itemsWereNotConfirmedTimeTask => '時間内に項目が確認されなかったため、この手続きは取り消されました。';
+
+  @override
+  String get lockerDidNotRespondDoorWas => 'ロッカーが応答しなかったため、扉は開きませんでした。しばらくしてから再度お試しください。';
+
+  @override
+  String get taskBeenCancelled => 'この手続きは取り消されました。';
+
+  @override
+  String get lockerDidNotConfirmDoorOpened => 'ロッカーから扉が開いた報告がないため、この手続きはサポートの確認待ちです。';
+
+  @override
+  String get thereWasLockerConnectionProblemSupport => 'ロッカーの接続に問題が発生したため、この手続きはサポートの確認待ちです。';
+
+  @override
+  String get lockerRestartedSupportConfirmTask => 'ロッカーが再起動したため、この手続きはサポートの確認待ちです。';
+
+  @override
+  String get supportConfirmedTaskComplete => 'この手続きはサポートにより完了が確認されました。';
+
+  @override
+  String get supportConfirmedTaskWasNotCompleted => 'この手続きはサポートにより未完了と確認されました。状態は変更されていません。';
+
+  @override
+  String get supportEndedTask => 'この手続きはサポートにより終了しました。';
+
+  @override
+  String get dropOffCompleteBuyerBeenNotified => '預け入れが完了し、購入者に通知しました。';
+
+  @override
+  String get dropOffComplete => '預け入れが完了しました';
+
+  @override
+  String get retrievalComplete => '回収が完了しました';
+
+  @override
+  String get doorCouldNotIdentifiedPleaseContact => '扉を特定できません。サポートにお問い合わせください。';
+
+  @override
+  String get doorFaultyPleaseContactSupport => '扉が故障しています。サポートにお問い合わせください。';
+
+  @override
+  String get doorAwaitingCheckBySupportPlease => '扉はサポートの確認待ちです。サポートにお問い合わせください。';
+
+  @override
+  String get reachedPreSaleDropOffLimit => 'このロッカーでの販売前の預け入れが上限に達しました。売却または回収後に預け入れてください。';
+
+  @override
+  String get itemChanged => '項目の状態が変更されました';
+
+  @override
+  String get doorDidNotOpen => '扉が開きませんでした';
+
+  @override
+  String get doorOpeningNotConfirmedSupportCheck => '扉が開いた報告がないため、サポートの確認待ちです';
+
+  @override
+  String get anotherItemDoorSupportCheck => '扉内に別の項目があるため、サポートの確認待ちです';
+
+  @override
+  String notCompletedP0(Object p0) => '未完了：${p0}';
+
+  @override
+  String bookBeenSoldAfterRetrievingDrop(Object p0) => 'この本は売却済みです。回収後、「${p0}」に預け入れてください。';
+
+  @override
+  String doorP0(Object p0) => '扉 ${p0}';
+
+  @override
+  String get confirmingItems => '項目を確認中';
+
+  @override
+  String get confirmingNumber => '数字を確認中';
+
+  @override
+  String get opening => '開扉中';
+
+  @override
+  String get doorOpened => '扉が開きました';
+
+  @override
+  String get partlyCompleted => '一部完了';
+
+  @override
+  String get failed => '失敗';
+
+  @override
+  String get modelAnswer => 'モデルの回答';
+
+  @override
+  String get replacedWithStandardNotice => '定型文に置き換え';
+
+  @override
+  String get clarifyingQuestion => '要望の確認';
+
+  @override
+  String get noSuitableBooks => '該当する本なし';
+
+  @override
+  String get fellBackSearchRanking => '検索順位に切り替え';
+
+  @override
+  String get fellBackPopularBooks => '人気の本に切り替え';
+
+  @override
+  String get recommendationsGenerated => 'おすすめを生成';
+
+  @override
+  String get noSuitableCandidates => '該当する候補なし';
+
+  @override
+  String get noCandidates => '候補なし';
+
+  @override
+  String get modelSuggestionsUsed => 'モデルの提案を採用';
+
+  @override
+  String get bibliographicDataOnly => '書誌情報のみ';
+
+  @override
+  String get handoffSuggested => '担当者への引き継ぎを提案';
+
+  @override
+  String get insufficientGrounding => '根拠不足';
+
+  @override
+  String get continuedPreviousCriteria => '前回の条件を継続';
+
+  @override
+  String get reusedPreviousTopic => '前回のテーマを引き継ぎ';
+
+  @override
+  String get noSearchMatch => '検索該当なし';
+
+  @override
+  String get invalidBookCodesReturned => '無効な書籍コードを含む';
+
+  @override
+  String get webSearchUsed => 'ウェブ検索を使用';
+
+  @override
+  String get retriedWithoutSearch => '検索なしで再試行';
+
+  @override
+  String get backupProviderUsed => 'バックアップ用プロバイダーを使用';
+
+  @override
+  String get conditionAdjustedFromNotes => '説明に基づき状態を調整';
+
+  @override
+  String get avgPassagesRetrieved => '平均検索段落数';
+
+  @override
+  String get avgCandidates => '平均候補数';
+
+  @override
+  String get avgFillerBooks => '平均補充書籍数';
+
+  @override
+  String get avgBooksRecommended => '平均おすすめ数';
+
+  @override
+  String get avgBooksSelected => '平均採用数';
+
+  @override
+  String get avgInvalidCodes => '平均無効コード数';
+
+  @override
+  String get avgPhotos => '平均写真枚数';
+
+  @override
+  String get avgSources => '平均参照元数';
+
+  @override
+  String get bookSearch => '書籍検索';
+
+  @override
+  String get fellBackReferencePassage => '参考段落に切り替え';
+
+  @override
+  String get booksSelectedByModel => 'モデルが選んだ書籍';
+
+  @override
+  String get indexUpdates => 'インデックス更新';
+
+  @override
+  String get sourceNotRecorded => '発生元の記録なし';
+
+  @override
+  String get outputFormatErrors => '出力形式エラー';
+
+  @override
+  String get suggestMediation => '調整による解決を提案';
+
+  @override
+  String get handoffEnforcedBySystem => 'システムが担当者へ引き継ぎ';
+
+  @override
+  String get followUpSuggestionsProvided => 'フォローアップ候補あり';
+
+  @override
+  String get replyTitleNotBookCards => '回答の書名が書籍カードと不一致';
+
+  @override
+  String get replyMentionsPrice => '回答に価格の記載あり';
+
+  @override
+  String get replyDeniesResultsDespiteBookCards => '書籍カードがあるのに該当なしと回答';
+
+  @override
+  String get completeItemsKeptAfterTruncation => '出力の途切れ後に完全な項目を保持';
+
+  @override
+  String get somePhotosNotSent => '未送信の写真あり';
+
+  @override
+  String get noEvidencePhotosSent => '証拠写真を送信できず';
+
+  @override
+  String get findingsCitePhotos => '所見が写真を参照';
+
+  @override
+  String get avgPassagesCited => '平均引用段落数';
+
+  @override
+  String get avgInvalidRecommendationBases => '平均無効推薦根拠数';
+
+  @override
+  String get avgSystemGeneratedReasons => '平均システム生成理由数';
+
+  @override
+  String get avgInvalidPhotoReferences => '平均無効写真番号数';
+
+  @override
+  String get favorsBuyer => '購入者に有利';
+
+  @override
+  String get favorsSeller => '出品者に有利';
+
+  @override
+  String get insidePage => '本文ページ';
+
+  @override
+  String photoP0Evidence(Object p0) => '写真 ${p0}（証拠）';
+
+  @override
+  String photoP0P1P2(Object p0, Object p1, Object p2) => '写真 ${p0}（『${p1}』${p2}）';
+
+  @override
+  String photoP0P1(Object p0, Object p1) => '写真 ${p0}（${p1}）';
+
+  @override
+  String aiReviewedP0ListingP1Evidence(Object p0, Object p1, Object p2) => 'AI 参照：出品写真 ${p0} 枚、証拠写真 ${p1} 枚（未送信 ${p2} 枚）';
+
+  @override
+  String aiReviewedP0ListingP1Evidence2(Object p0, Object p1) => 'AI 参照：出品写真 ${p0} 枚、証拠写真 ${p1} 枚';
+
+  @override
+  String someItemsMalformedP0(Object p0) => '一部の項目が形式不一致 ${p0}';
+
+  @override
+  String fieldsDefaultedP0(Object p0) => '既定値で補完 ${p0}';
+
+  @override
+  String get highConfidence => '確信度：高';
+
+  @override
+  String get mediumConfidence => '確信度：中';
+
+  @override
+  String get lowConfidence => '確信度：低';
+
+  @override
+  String get writtenByAi => 'AI 作成';
+
+  @override
+  String get clearBibliographyCache => '書誌キャッシュを削除';
+
+  @override
+  String get bookDetailsLookedUpAgainNext => '次にこの ISBN が出品されたときに書誌情報を再取得します。';
+
+  @override
+  String get bibliographyCacheIsbnCleared => 'この ISBN の書誌キャッシュを削除しました';
+
+  @override
+  String get noBibliographyCacheIsbn => 'この ISBN の書誌キャッシュはありません';
+
+  @override
+  String get lookUpListPrice => '定価を確認';
+
+  @override
+  String get assessConditionPrice => '状態と価格を判定';
+
+  @override
+  String get aiRepliesReferenceOnlyOrderPage => 'AI の回答は参考情報です。実際の内容は注文ページとサポート担当者の案内をご確認ください。';
+
+  @override
+  String get preFilledFromSupportEnquiryReview => 'お問い合わせの内容を入力済みです。内容を確認してから保存してください。';
+
+  @override
+  String get noData => 'データなし';
+
+  @override
+  String get sellingPrice => '販売価格';
+
+  @override
+  String get aiQuality => 'AI 品質';
+
+  @override
+  String get overturnedByAdmins => '管理者による判定の変更率';
+
+  @override
+  String get flaggedByInstantRules => '即時ルールによる審査依頼';
+
+  @override
+  String get flaggedByAi => 'AI による審査依頼';
+
+  @override
+  String get transferredSupportAgents => 'サポート担当者への引き継ぎ';
+
+  @override
+  String get ratedNotHelpful => '「役に立たなかった」の評価';
+
+  @override
+  String get repliesWithoutBooks => '書籍を含まない回答';
+
+  @override
+  String get disputeAnalysis2 => '取引の異議申立分析';
+
+  @override
+  String get suggestionMatchedDecision => '提案と裁定の一致';
+
+  @override
+  String get ratedHelpful => '「役に立った」の評価';
+
+  @override
+  String get bookRecommendations => '書籍のおすすめ';
+
+  @override
+  String get aiRecommendationClickThroughRate => 'AI おすすめのクリック率';
+
+  @override
+  String get standardRecommendationClickThroughRate => '通常のおすすめのクリック率';
+
+  @override
+  String get markedNotInterested => '「興味なし」の件数';
+
+  @override
+  String get listingAssistantAdoptionRate => '出品アシストの採用率';
+
+  @override
+  String get listingsUsingAssistant => '出品アシストを利用した書籍';
+
+  @override
+  String get createdFromSupportEnquiries => 'お問い合わせから作成';
+
+  @override
+  String get rejectionReason => '却下理由の種類';
+
+  @override
+  String get sourceInstantRules => '判定元：即時ルール';
+
+  @override
+  String get sourceAiAssessment => '判定元：AI 判定';
+
+  @override
+  String confidenceP0(Object p0) => '確信度 ${p0}';
+
+  @override
+  String aiAssessmentConfidenceP0(Object p0) => 'AI 判定の確信度 ${p0}';
+
+  @override
+  String get assessment => '判定';
+
+  @override
+  String get description3 => '説明';
+
+  @override
+  String get markReviewReasonAsUnfoundedWhen => '承認時に審査理由を不成立として記録する';
+
+  @override
+  String get showPhotosFullDetails => '写真と詳細を表示';
+
+  @override
+  String analysedP0(Object p0) => '分析日時：${p0}';
+
+  @override
+  String get wasAnalysisHelpful => 'この分析は役に立ちましたか';
+
+  @override
+  String get helpful => '役に立った';
+
+  @override
+  String get notHelpful => '役に立たなかった';
+
+  @override
+  String get recommendedBooksDoNotMatchMy => '推薦された本が要望に合っていない';
+
+  @override
+  String get inaccurateInformation => '内容が正しくない';
+
+  @override
+  String get didNotAnswerQuestion => '質問に回答していない';
+
+  @override
+  String get insufficientInformation => '情報が不十分';
+
+  @override
+  String get selectReason => '理由を選択してください';
+
+  @override
+  String get notInterested => '興味なし';
+
+  @override
+  String get bookNoLongerRecommended => 'この本は今後おすすめに表示されません';
+
+  @override
+  String get cachedBibliographicDataUsed => 'キャッシュの書誌情報を使用';
+
+  @override
+  String get cachedDescriptionUsed => 'キャッシュの紹介文を使用';
+
+  @override
+  String get isbnTitleDoNotMatch => 'ISBN と書名が一致しない';
+
+  @override
+  String get awaitingReview => '確認待ち';
+
+  @override
+  String get orderDropOff => '注文分の預け入れ';
+
+  @override
+  String get preSaleDropOff => '販売前の預け入れ';
+
+  @override
+  String get retrieval => '回収';
+
+  @override
+  String get adminOpening => '管理者による開扉';
+
+  @override
+  String get countdownEnded => 'カウントダウン終了';
+
+  @override
+  String get doorSensor => '扉センサー検知';
+
+  @override
+  String get deviceRestarted => '端末の再起動';
+
+  @override
+  String get resolvedBySupport => 'サポートが対応';
+
+  @override
+  String get deviceStarted => '端末の起動';
+
+  @override
+  String get doorClosed => '扉が閉まりました';
+
+  @override
+  String get taskCloseReported => '手続き終了の報告';
+
+  @override
+  String get fault => '故障';
+
+  @override
+  String get faultResolved => '故障の解消';
+
+  @override
+  String get unexpectedDoorOpening => '扉の異常開放';
+
+  @override
+  String get connectionLost => '接続切断';
+
+  @override
+  String get connectionRestored => '接続復旧';
+
+  @override
+  String get paired => 'ペアリング完了';
+
+  @override
+  String get deviceRevoked => '端末を無効化しました';
+
+  @override
+  String get taskCreated => '手続きの作成';
+
+  @override
+  String get taskFinished => '手続きの終了';
+
+  @override
+  String get scanRejected => 'スキャン拒否';
+
+  @override
+  String get remoteOpening => '遠隔開扉';
+
+  @override
+  String get contentsRecorded => '保管内容を登録しました';
+
+  @override
+  String get contentsRecordCleared => '保管記録を消去しました';
+
+  @override
+  String get credentialPossiblyCopied => '認証情報の複製の疑い';
+
+  @override
+  String get sourceIpChanged => '接続元 IP の変更';
+
+  @override
+  String get doorNeedsChecking => '扉の確認待ち';
+
+  @override
+  String get doorChecked => '扉の確認完了';
+
+  @override
+  String get itemBlocked => '項目の手続き不可';
+
+  @override
+  String get manualReport => '手動報告';
+
+  @override
+  String get manualReportReviewed => '手動報告の対応';
+
+  @override
+  String get overdueOrderHeld => '期限切れ注文の対応待ち';
+
+  @override
+  String get doorOpenedAfterTask => '手続き終了後の開扉';
+
+  @override
+  String get lockDidNotRelease => '電磁ロックが解除されない';
+
+  @override
+  String get doorLeftOpen => '扉が閉まっていない';
+
+  @override
+  String get doorForcedOpen => '扉がこじ開けられた';
+
+  @override
+  String get sensorError => 'センサー異常';
+
+  @override
+  String get powerProblem => '電源異常';
+
+  @override
+  String get screenProblem => '画面の異常';
+
+  @override
+  String get dropOffCancelledAfterDoorOpened => '扉が開いた後に預け入れが取り消されました';
+
+  @override
+  String get dropOffMarkedAsNotCompleted => 'サポートが未完了と確認した預け入れ';
+
+  @override
+  String get anotherItemWasAlreadyDoor => '預け入れ時に扉内に別の項目がありました';
+
+  @override
+  String get doorOpeningNotReported => '扉が開いた報告なし';
+
+  @override
+  String get doorReportedOpenAfterTaskEnded => '手続き終了後に扉が開いたと報告';
+
+  @override
+  String get manualReportDuringFault => '故障中の手動報告';
+
+  @override
+  String get openedByStaff => '管理担当者が開けた扉';
+
+  @override
+  String get orderCompletedBySupportBeforePickup => '受け取り前にサポートが注文を完了にしました';
+
+  @override
+  String get noDevice => '端末未ペアリング';
+
+  @override
+  String get deviceOffline => '端末オフライン';
+
+  @override
+  String get deviceFault => '端末の故障';
+
+  @override
+  String get underMaintenance => 'メンテナンス中';
+
+  @override
+  String get scanningRequired => 'スキャン必須';
+
+  @override
+  String manualReportingAllowedP0(Object p0) => '手動報告可（${p0}）';
+
+  @override
+  String userAccessSuspendedP0(Object p0) => '利用者のアクセス停止（${p0}）';
+
+  @override
+  String get simulator => 'シミュレーター';
+
+  @override
+  String get physicalLocker => '実機ロッカー';
+
+  @override
+  String get noDevicePaired => '端末未ペアリング';
+
+  @override
+  String get awaitingPairing => 'ペアリング待ち';
+
+  @override
+  String get online => 'オンライン';
+
+  @override
+  String get offline => 'オフライン';
+
+  @override
+  String get locationNotPermitted => '位置情報の許可なし';
+
+  @override
+  String get locationUnavailable => '位置情報を取得できません';
+
+  @override
+  String aboutP0Away(Object p0) => '約 ${p0}';
+
+  @override
+  String get dropOffReport => '預け入れの報告';
+
+  @override
+  String get pickupReport => '受け取りの報告';
+
+  @override
+  String get retrievalReport => '回収の報告';
+
+  @override
+  String get confirmed => '承認済み';
+
+  @override
+  String get noLongerValid => '無効';
+
+  @override
+  String get lockerInactive => 'ロッカー停止中';
+
+  @override
+  String get selectDoorWhereBooksActuallyStored => '本が実際に保管されている扉を選択してください';
+
+  @override
+  String offlineP0(Object p0) => 'オフライン時間 ${p0}';
+
+  @override
+  String get collectionRetrievalNotCompletedAfterDoor => '扉が開いた後に受け取りまたは回収が完了しませんでした';
+
+  @override
+  String get unpairedByDevice => '端末側でペアリング解除';
+
+  @override
+  String get replacedByNewDevice => '新しい端末に置き換え';
+
+  @override
+  String get revokedByAdministrator => '管理者が無効化';
+
+  @override
+  String get simulatorTurnedOff => 'シミュレーター機能の停止';
+
+  @override
+  String get tooManyRequestsPleaseTryAgain => '操作が頻繁すぎます。しばらくしてから再度お試しください。';
+
+  @override
+  String get viewPurchases => '購入履歴を見る';
+
+  @override
+  String get viewSales => '販売履歴を見る';
+
+  @override
+  String get retrievalNotAvailableLockerRightNow => '現在このロッカーでは回収の手続きができません。サポートにお問い合わせください。';
+
+  @override
+  String get itemsCouldNotCompleted => '項目を完了できませんでした';
+
+  @override
+  String onceDelistedP0NoLongerAppear2(Object p0) => '出品を取り消すと、「${p0}」はショップに表示されなくなります。この本はロッカーに保管されているため、再出品するには先に本を回収する必要があります。';
+
+  @override
+  String confirmP0BeenPlacedP1(Object p0, Object p1) => '「${p0}」を「${p1}」に預け入れたことを確認してください。';
+
+  @override
+  String get confirmTakenBookFromLocker => 'ロッカーから書籍を取り出したことを確認してください。';
+
+  @override
+  String get finish => '完了';
+
+  @override
+  String get door => '扉';
+
+  @override
+  String get enterNumberShownLockerScreen => 'ロッカー画面に表示されている数字を入力してください';
+
+  @override
+  String get ifSomeoneTellsNumberAsksEnter => '他の人から数字を伝えられて入力を求められた場合は、操作しないでください。';
+
+  @override
+  String get enterTwoDigits => '2桁の数字を入力してください';
+
+  @override
+  String get closeDoorFirst => '先に扉を閉めてください';
+
+  @override
+  String get onceDoorClosedTaskEndAutomatically => '扉を閉めると、選択した内容で手続きが自動的に終了します。';
+
+  @override
+  String get taskCompleteAutomaticallyOnceDoorClosed => '扉を閉めると手続きが自動的に完了します。';
+
+  @override
+  String get taskBeenCancelledNothingChanged => 'この手続きは取り消されました。状態は変更されていません。';
+
+  @override
+  String get locationAccessRequiredUseLockerTurn => 'ロッカーを利用するには位置情報へのアクセスを許可する必要があります。システム設定で許可してから再度お試しください。';
+
+  @override
+  String get locationCouldNotConfirmedTurnLocation => '現在地を確認できません。位置情報サービスをオンにしてから再度お試しください。';
+
+  @override
+  String get doorOpenActionNotAvailable => '扉が開いているため、この操作は実行できません。';
+
+  @override
+  String get taskBeingProcessedPleaseWait => 'この手続きは処理中です。しばらくお待ちください。';
+
+  @override
+  String numberConfirmationWasNotCompletedSeveral(Object p0) => '数字の確認が複数回完了しなかったため、${p0} 分後に再度お試しください。';
+
+  @override
+  String get doorRecordedContentsAwaitingCheckComplete => 'この扉には保管記録があるか確認待ちのため、数字の確認を完了してから開けてください。';
+
+  @override
+  String get lockerBeenAskedEndTask => 'ロッカーに手続きの終了を要求しました。';
+
+  @override
+  String get endTask => '手続きを終了';
+
+  @override
+  String get pairDevice => '端末をペアリング';
+
+  @override
+  String get enterPairingCodeShownLockerScreen => 'ロッカー画面に表示されているペアリングコードを入力してください';
+
+  @override
+  String get enter8DigitPairingCode => '8桁のペアリングコードを入力してください';
+
+  @override
+  String get pairingCodeInvalidExpired => 'ペアリングコードが無効か、有効期限が切れています。';
+
+  @override
+  String get waitingDeviceConnect => '端末の接続を待っています';
+
+  @override
+  String get pairingWasNotCompletedEnterNew => 'ペアリングが完了しませんでした。ロッカー画面に表示されている新しいペアリングコードを入力してください。';
+
+  @override
+  String get donePhone => 'スマートフォンで完了';
+
+  @override
+  String get cancelledPhone => 'スマートフォンで取り消し';
+
+  @override
+  String get matchCodeEntered => '照合番号の入力';
+
+  @override
+  String get lockerRefusedEndDoorOpen => 'ロッカーが終了を拒否（扉が開いたまま）';
+
+  @override
+  String get numberMatched => '数字が一致';
+
+  @override
+  String get numberDidNotMatch => '数字が不一致';
+
+  @override
+  String get cancelTapCancelBeforeClosingDoor => '取り消す場合は、扉を閉める前に「キャンセル」をタップしてください。カウントダウン終了時に自動的に完了します。';
+
+  @override
+  String get preciseLocationRequiredUseLockerTurn => 'ロッカーを利用するには正確な位置情報をオンにする必要があります。システム設定でオンにしてから再度お試しください。';
+
+  @override
+  String get enterTitle3 => 'タイトルを入力してください';
+
+  @override
+  String get credentialsNotSet => '認証情報が未設定です';
+
+  @override
+  String get searchActions => '操作内容を検索';
+
+  @override
+  String undoneP0(Object p0) => '${p0} に取り消し済み';
+
+  @override
+  String get delistListing => '出品を取り下げる';
+
+  @override
+  String get amount2 => '金額';
+
+  @override
+  String get couldNotOpenChatPleaseTry => 'チャットを開けませんでした。しばらくしてからもう一度お試しください。';
+
+  @override
+  String publishedP0(Object p0) => '公開日：${p0}';
+
+  @override
+  String get pushNotificationRegistrationFailedPleaseTry => 'プッシュ通知の登録に失敗しました。しばらくしてからもう一度お試しください。';
 
 }
 
@@ -14662,7 +17532,7 @@ class _LKo extends AppLocalizations {
   String get regenerateShareLink => '공유 링크 재생성';
 
   @override
-  String get oldLinkQrCodeStopWorking => '기존 링크와 QR 코드가 즉시 무효화되며, 이미 공유한 사람은 더 이상 열 수 없습니다. 재생성할까요?';
+  String get oldLinkQrCodeStopWorking => '현재 링크와 QR 코드가 즉시 무효화됩니다.';
 
   @override
   String get regenerate => '재생성';
@@ -14791,9 +17661,6 @@ class _LKo extends AppLocalizations {
   String get signContactSeller => '판매자에게 연락하려면 로그인하세요';
 
   @override
-  String get signStartChat => '판매자에게 연락하려면 로그인하세요';
-
-  @override
   String get signReport => '신고하려면 로그인하세요';
 
   @override
@@ -14851,10 +17718,7 @@ class _LKo extends AppLocalizations {
   String get delist => '판매 중단';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '“${p0}”이(가) 상점에서 내려가 구매자에게 더 이상 표시되지 않습니다.';
-
-  @override
-  String get delist2 => '내리기';
+  String removedFromShopBuyersNoLonger(Object p0) => '판매를 중단하면 “${p0}”이(가) 상점에 더 이상 표시되지 않습니다.';
 
   @override
   String get couldNotDelistPleaseTryAgain => '판매 중단에 실패했습니다. 잠시 후 다시 시도해 주세요.';
@@ -14884,13 +17748,13 @@ class _LKo extends AppLocalizations {
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '코인이 부족합니다. 이 주문에는 ${p0}이(가) 필요하지만 잔액은 ${p1}입니다.';
 
   @override
-  String booksTotal(Object p0, Object p1) => '도서 ${p0}권, 합계 ${p1}.\n';
+  String booksTotal(Object p0, Object p1) => '도서 ${p0}권, 합계 ${p1} 코인.\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => '결제 후 잔액은 ${p0} 코인입니다.';
 
   @override
-  String get orderPlacedSellerDropBookOff => '주문이 완료되었습니다. 판매자의 보관을 기다려 주세요.';
+  String get orderPlacedSellerDropBookOff => '판매자의 보관을 기다려 주세요.';
 
   @override
   String get cart => '장바구니';
@@ -15061,25 +17925,16 @@ class _LKo extends AppLocalizations {
   String get orderEntersDisputeProcessPaymentSeller => '주문이 이의 처리 절차로 넘어가며, 고객센터가 판정할 때까지 판매자 정산이 보류됩니다.';
 
   @override
-  String paymentHoldRequested(Object p0) => '[정산 보류 요청] ${p0}';
-
-  @override
   String get disputeSubmittedSupportContact => '이의를 접수했습니다. 고객센터에서 연락드리겠습니다.';
 
   @override
   String get dispute => '이의 처리';
 
   @override
-  String get requestPaymentHold => '정산 보류 요청';
-
-  @override
-  String get submitDispute2 => '이의 제기하기';
-
-  @override
   String get orderNumber => '주문 번호';
 
   @override
-  String get eGSmb20260910123456789 => '예: SMB20260910123456789';
+  String get eGSmb20260910123456789 => '예: SMB20260910143015123456';
 
   @override
   String get whatHappened => '이의 내용';
@@ -15139,7 +17994,7 @@ class _LKo extends AppLocalizations {
   String get condition => '상태';
 
   @override
-  String get customPrice => '직접 입력';
+  String get customPrice => '판매 가격';
 
   @override
   String get enterPrice2 => '판매 가격 입력';
@@ -15286,9 +18141,6 @@ class _LKo extends AppLocalizations {
   String get priceHighLow => '가격 높은순';
 
   @override
-  String get reachedEnd => '마지막입니다';
-
-  @override
   String get guest => '게스트';
 
   @override
@@ -15343,7 +18195,7 @@ class _LKo extends AppLocalizations {
   String get noAccountWithEmail => '등록되지 않은 계정입니다';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '“${p0}” 계정을 찾을 수 없습니다. 지금 만들까요?';
+  String noAccountCreateOneNow(Object p0) => '“${p0}”(으)로 새 계정을 만들까요?';
 
   @override
   String get signUp => '가입하러 가기';
@@ -15508,13 +18360,7 @@ class _LKo extends AppLocalizations {
   String get pendingAmount => '대기 금액';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '구매자 수령 후 자동 지급';
-
-  @override
-  String get scanned => '스캔 완료';
-
-  @override
-  String get scanAgain => '다시 스캔';
+  String get coinsArriveOnceBuyerCollectsBook => '구매자가 주문을 완료하거나 수령 후 24시간이 지나면 지급';
 
   @override
   String get collectBook => '도서 수령';
@@ -15523,13 +18369,10 @@ class _LKo extends AppLocalizations {
   String get pointPickupQrCode => '수령용 QR 코드를 맞춰 주세요';
 
   @override
-  String get holdSteady => '흔들리지 않게 유지하세요';
-
-  @override
   String get bookCollected => '수령 완료';
 
   @override
-  String collected(Object p0) => '“${p0}” 수령 완료';
+  String collected(Object p0) => '“${p0}”';
 
   @override
   String order2(Object p0) => '주문 번호: ${p0}';
@@ -15539,9 +18382,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get myAccount => '마이페이지';
-
-  @override
-  String get personNotWrittenBioYet => '소개가 없습니다';
 
   @override
   String get topTierReached => '최고 등급 달성';
@@ -15601,13 +18441,7 @@ class _LKo extends AppLocalizations {
   String get createAccount => '계정 만들기';
 
   @override
-  String get joinSavemybook => '계정 가입';
-
-  @override
   String get displayName => '닉네임';
-
-  @override
-  String get emailSignWith => '이메일';
 
   @override
   String get least8CharactersWithLettersNumbers => '영문과 숫자를 포함해 8자 이상';
@@ -15617,9 +18451,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get enterPasswordAgain2 => '비밀번호 다시 입력';
-
-  @override
-  String get alreadyAccountGoBackSign => '이미 계정이 있으신가요? 돌아가서 로그인';
 
   @override
   String get markAsDroppedOff => '보관 완료';
@@ -16069,9 +18900,6 @@ class _LKo extends AppLocalizations {
   String get publishNow => '즉시 게시';
 
   @override
-  String get leaveOffSaveAsDraft => '끄면 초안으로만 저장됩니다';
-
-  @override
   String get saveDraft => '초안 저장';
 
   @override
@@ -16099,9 +18927,6 @@ class _LKo extends AppLocalizations {
   String get draft => '초안';
 
   @override
-  String get audienceEveryone => '대상: 전체 사용자';
-
-  @override
   String get backUpNow => '지금 백업';
 
   @override
@@ -16126,7 +18951,7 @@ class _LKo extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '매일 자동 백업, 최신 ${p0} 보관';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '보관 수를 넘은 오래된 백업은 자동으로 삭제됩니다. 백업 파일에는 사이트 전체의 개인정보가 들어 있으므로 내려받은 뒤에는 안전하게 보관하세요. 모든 다운로드는 감사 로그에 기록됩니다.';
+  String get olderBackupsBeyondCountRemovedAutomatically => '백업 파일에는 사이트 전체의 개인정보가 들어 있으므로 내려받은 뒤에는 안전하게 보관하세요. 모든 다운로드는 감사 로그에 기록됩니다.';
 
   @override
   String get noBackupsYetSchedulerRunsOnce => '백업 기록이 없습니다';
@@ -16675,7 +19500,7 @@ class _LKo extends AppLocalizations {
   String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 님은 모든 관리자 권한을 즉시 잃습니다.';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 님이 관리자 화면에 접근할 수 있게 되며, 기본적으로 모든 권한을 가집니다. 이후 항목별로 조정할 수 있습니다.';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 님이 관리자 화면에 접근할 수 있게 되며, 기본적으로 「시스템 운영」을 제외한 모든 권한을 가집니다. 이후 항목별로 조정할 수 있습니다.';
 
   @override
   String get roleUpdated => '역할을 변경했습니다';
@@ -16780,16 +19605,10 @@ class _LKo extends AppLocalizations {
   String get blockedNoFeaturesAvailable => '차단되어 어떤 기능도 사용할 수 없습니다';
 
   @override
-  String get notBlocked => '차단 안 됨';
-
-  @override
   String get role => '역할';
 
   @override
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} (자동 ${p1}${p2})';
-
-  @override
-  String get memberSTierBeenAdjustedBy => '이 회원의 등급은 수동으로 조정되어 거래만으로 자동 계산되지 않습니다.';
 
   @override
   String get adjustTier => '등급 조정';
@@ -16814,9 +19633,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String updatedP0SStatus(Object p0) => '${p0} 님의 상태를 변경했습니다';
-
-  @override
-  String get fullSettingsTierPermissions => '전체 설정 (등급, 권한)';
 
   @override
   String get members3 => '회원 목록';
@@ -16882,7 +19698,7 @@ class _LKo extends AppLocalizations {
   String reportedP0P1(Object p0, Object p1) => '신고된 ${p0}: ${p1}';
 
   @override
-  String reasonP02(Object p0) => '위반 사유: ${p0}';
+  String reasonP02(Object p0) => '신고 사유: ${p0}';
 
   @override
   String get handlingNoteOptional => '처리 메모 (선택)';
@@ -17056,7 +19872,7 @@ class _LKo extends AppLocalizations {
   String get replyUserQuestions => '사용자 질문에 답변';
 
   @override
-  String get databaseBackupDownloadOffByDefault => '데이터베이스 백업 및 다운로드, 기본값은 꺼짐';
+  String get databaseBackupDownloadOffByDefault => '데이터베이스 백업 및 다운로드';
 
   @override
   String p0Locker(Object p0) => '보관함 ${p0}';
@@ -17104,7 +19920,7 @@ class _LKo extends AppLocalizations {
   String get resetPassword => '비밀번호 재설정';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 님의 현재 비밀번호는 즉시 사용할 수 없게 되며, 다음에 발급되는 임시 비밀번호로 로그인해야 합니다.\n\n비밀번호는 시스템이 생성하며 직접 지정할 수 없습니다.';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 님의 현재 비밀번호는 즉시 사용할 수 없게 되며, 다음에 발급되는 임시 비밀번호로 로그인해야 합니다.';
 
   @override
   String get generateTemporaryPassword => '임시 비밀번호 발급';
@@ -17188,9 +20004,6 @@ class _LKo extends AppLocalizations {
   String decidedP0(Object p0) => '${p0} 판정';
 
   @override
-  String createdP0(Object p0) => '${p0} 생성';
-
-  @override
   String get shareBook => '이 책 공유';
 
   @override
@@ -17245,7 +20058,7 @@ class _LKo extends AppLocalizations {
   String get orderWasAlreadyRefundedBuyerCannot => '이 주문은 이미 구매자에게 환불되어 진행 중이나 완료로 되돌릴 수 없습니다';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '완료된 주문은 "환불 처리 중" 또는 "환불 완료"로만 변경할 수 있습니다';
+  String get completedOrderCanOnlyChangedRefund => '완료된 주문은 "심사 중" 또는 "환불 완료"로만 변경할 수 있습니다';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '확인하면 판매자에게 ${p0} 토큰을 지급하고 책을 판매 완료로 표시합니다.';
@@ -17278,7 +20091,7 @@ class _LKo extends AppLocalizations {
   String get systemNotificationSettings => '시스템 알림 설정';
 
   @override
-  String get pushNotificationsNotSetUpBuild => '이 빌드에는 푸시 알림이 설정되어 있지 않습니다. Firebase 설정 파일을 추가하고 다시 빌드하세요.';
+  String get pushNotificationsNotSetUpBuild => '이 버전의 앱에서는 푸시 알림이 활성화되어 있지 않습니다.';
 
   @override
   String get notificationsTurnedOffAllowAppSend => '알림이 꺼져 있습니다. 시스템 설정에서 이 앱의 알림을 허용하세요.';
@@ -17351,9 +20164,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get undone => '되돌림';
-
-  @override
-  String get searchActionsEGNicknameBook => '작업 내용 검색 (예: 닉네임, 책 제목)';
 
   @override
   String viewP0Changes(Object p0) => '변경 ${p0}건 보기';
@@ -17497,9 +20307,6 @@ class _LKo extends AppLocalizations {
   String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '차감하면 잔액이 마이너스가 됩니다. 현재 잔액: ${p0}';
 
   @override
-  String get amountUp2Decimals => '금액(소수점 이하 두 자리까지)';
-
-  @override
   String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n조정 후 잔액: ${p1}';
 
   @override
@@ -17527,9 +20334,6 @@ class _LKo extends AppLocalizations {
   String sellerHoldingUntilP0(Object p0) => '판매자가 ${p0}까지 회원님을 위해 보관 중';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '보관 기한 내에 결제를 완료하세요';
-
-  @override
   String get copyAddress => '주소 복사';
 
   @override
@@ -17554,7 +20358,7 @@ class _LKo extends AppLocalizations {
   String get buyNow => '지금 구매';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》 판매를 중지했습니다';
+  String p0Delisted(Object p0) => '“${p0}”의 판매를 중단했습니다';
 
   @override
   String noBooksMatchP0(Object p0) => '"${p0}"과(와) 일치하는 책이 없습니다';
@@ -17585,9 +20389,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get browseBooks => '둘러보기';
-
-  @override
-  String p0Sellers(Object p0) => '판매자 ${p0}명';
 
   @override
   String unavailableP0(Object p0) => '구매 불가 (${p0})';
@@ -17713,9 +20514,6 @@ class _LKo extends AppLocalizations {
   String get holdMicTalkReleaseSend => '녹음 시간이 너무 짧습니다';
 
   @override
-  String get startConversation => '대화가 여기서 시작됩니다';
-
-  @override
   String p0New(Object p0) => '새 메시지 ${p0}개';
 
   @override
@@ -17786,9 +20584,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get waitingBuyerCollect => '구매자의 수령을 기다리는 중';
-
-  @override
-  String get transactionCompleteThank => '거래 완료';
 
   @override
   String get confirmVeTakenBookFromLocker => '보관함에서 도서를 꺼냈는지 확인해 주세요. 도서 상태를 확인한 후 구매 내역에서 주문을 완료해 주세요.';
@@ -17905,9 +20700,6 @@ class _LKo extends AppLocalizations {
   String get set6DigitPaymentPin => '6자리 결제 비밀번호 설정';
 
   @override
-  String get enterSamePinAgain => '같은 비밀번호를 한 번 더 입력하세요';
-
-  @override
   String get avoidRepeatedSequentialPatternedDigits => '같은 숫자, 연속 숫자, 반복 패턴은 사용할 수 없습니다';
 
   @override
@@ -17915,9 +20707,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get paymentPin => '결제 비밀번호';
-
-  @override
-  String stepP02(Object p0) => '단계 ${p0} / 2';
 
   @override
   String get setPaymentPinFirst => '먼저 결제 비밀번호를 설정하세요';
@@ -17948,9 +20737,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get accountCouldSafer => '계정 보안을 강화할 수 있습니다';
-
-  @override
-  String get setPaymentPinTurnBiometricPayment => '결제 비밀번호가 설정되지 않았습니다';
 
   @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '시도 횟수 초과. ${p0}까지 잠김';
@@ -18047,18 +20833,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String p0Km(Object p0) => '${p0}';
-
-  @override
-  String get iphoneDidnTReceiveApnsToken => 'iPhone이 APNs 토큰을 받지 못했습니다. Xcode의 Signing & Capabilities에 Push Notifications가 추가되었는지 확인하고 같은 Apple 개발자 계정으로 앱을 다시 설치하세요.';
-
-  @override
-  String get firebaseDidnTIssuePushToken => 'Firebase가 푸시 토큰을 발급하지 않았습니다. GoogleService-Info.plist와 앱의 Bundle ID가 일치하는지 확인하세요';
-
-  @override
-  String couldnTGetPushTokenP0(Object p0) => '푸시 토큰을 가져오지 못했습니다: ${p0}';
-
-  @override
-  String couldnTRegisterPushTokenWith(Object p0) => '푸시 토큰을 서버에 등록하지 못했습니다: ${p0}';
 
   @override
   String get protectCoinsCheckoutRequires6Digit => '결제 전에 6자리 결제 비밀번호를 설정하세요.';
@@ -18181,28 +20955,13 @@ class _LKo extends AppLocalizations {
   String p0P1DigitsEntered(Object p0, Object p1) => '${p0} / ${p1}자리 입력됨';
 
   @override
-  String get buildSProvisioningProfileDoesnT => '이 빌드의 프로비저닝 프로필에 푸시 알림 권한이 없습니다. Xcode의 Runner › Signing & Capabilities에 Push Notifications가 있는지 확인한 뒤 앱을 삭제하고 다시 설치하세요.';
-
-  @override
-  String get checkPhoneOnlinePushNotificationsAdded => '휴대폰이 네트워크에 연결되어 있는지, Xcode의 Runner › Signing & Capabilities에 Push Notifications가 있는지 확인하세요.';
-
-  @override
-  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone의 Apple 푸시 알림 등록에 실패했습니다: ${p0}\n${p1}';
-
-  @override
   String get serverNotBeenUpdatedSupportFeature => '이 기능은 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.';
 
   @override
   String get someFeaturesTemporarilyUnavailableWhileServer => '일부 기능을 일시적으로 사용할 수 없습니다';
 
   @override
-  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '서버의 API 버전이 오래되었습니다(현재 ${p0}, 앱에 필요한 버전 ${p1}). 서버 코드를 업데이트하고 API를 재시작하세요.';
-
-  @override
-  String serverVersionP0(Object p0) => '서버 현재 버전: ${p0}';
-
-  @override
-  String get runNpmRunVerifyApiDirectory => '서버의 API 디렉터리에서 npm run verify를 실행하면 전체 배포 상태를 확인할 수 있습니다.';
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '서버 API 버전이 오래되었습니다(현재 ${p0}, 필요 ${p1}).';
 
   @override
   String get serverUpdateRequired => '서버 업데이트 필요';
@@ -19258,9 +22017,6 @@ class _LKo extends AppLocalizations {
   String get byModel => '모델별';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0}회・${p1} ms';
-
-  @override
   String get topMembers => '사용량 상위 회원';
 
   @override
@@ -19378,13 +22134,7 @@ class _LKo extends AppLocalizations {
   String get aiDataProcessing => 'AI 데이터 처리';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '입력한 메시지와 본인의 주문 및 예약 상태';
-
-  @override
-  String get isbnTitleConditionNotesPhotosSelect => 'ISBN, 도서명, 상태 설명 및 선택한 사진';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '찜 목록과 구매 내역에 포함된 도서 정보';
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN, 도서명, 상태 설명, 선택한 사진 및 입력한 저자·출판사·출판일·카테고리·정가';
 
   @override
   String get aiDataProcessing2 => 'AI 데이터 처리 안내';
@@ -19402,13 +22152,7 @@ class _LKo extends AppLocalizations {
   String get purpose => '이용 목적';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '고객센터 답변 생성, 등록 정보 정리 및 도서 추천에만 사용하며 광고나 추적에는 사용하지 않습니다.';
-
-  @override
   String get withdrawingConsent => '동의 철회';
-
-  @override
-  String get canTurnOffAiDataProcessing => '설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않습니다.';
 
   @override
   String get agreeContinue => '동의';
@@ -19450,13 +22194,7 @@ class _LKo extends AppLocalizations {
   String get popularLiteraryFictionRightNow => '요즘 인기 있는 문학 소설';
 
   @override
-  String get tellMeWhatBookLooking => '찾으시는 책을 설명해 주세요';
-
-  @override
   String get describeBookLooking => '찾으시는 책을 설명해 주세요';
-
-  @override
-  String get tellMeWhatWantReadI => '원하시는 조건에 맞춰 책을 추천합니다';
 
   @override
   String get subtitle => '부제';
@@ -19579,9 +22317,6 @@ class _LKo extends AppLocalizations {
   String get signWithMobileNumber => '휴대전화 번호로 로그인';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '이 번호로 6자리 인증번호를 보냅니다.';
-
-  @override
   String get mobileNumber => '휴대전화 번호';
 
   @override
@@ -19597,9 +22332,6 @@ class _LKo extends AppLocalizations {
   String get enterCode => '인증번호 입력';
 
   @override
-  String get enterSmsCode => 'SMS 인증번호 입력';
-
-  @override
   String codeWasSentP0(Object p0) => '인증번호를 ${p0} 으로 보냈습니다';
 
   @override
@@ -19610,9 +22342,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get completeAccountDetails => '계정 정보 입력';
-
-  @override
-  String get p0DidNotProvideEmailAddress => '가입을 완료하려면 이메일을 입력하세요.';
 
   @override
   String signWithP0(Object p0) => '${p0} (으)로 로그인';
@@ -19753,9 +22482,6 @@ class _LKo extends AppLocalizations {
   String get allowSigningLinkingWithMethod => '이 방식으로 로그인 및 연결 허용';
 
   @override
-  String get appNeverStoresPasswordUsedOnly => '이 앱은 비밀번호를 저장하지 않으며 이번 인증에만 사용합니다。';
-
-  @override
   String get verifyWithBiometricsInstead => '생체 인증으로 확인';
 
   @override
@@ -19774,12 +22500,6 @@ class _LKo extends AppLocalizations {
   String get masterSwitchOffSoEveryMethod => '전체 스위치가 꺼져 있어 모든 방식이 비활성화됩니다';
 
   @override
-  String get signLinkingDirectSignUpAllowed => '로그인, 연결, 신규 가입 가능';
-
-  @override
-  String credentialsNotSetPleaseConfigureP0(Object p0) => '자격 증명이 설정되지 않았습니다. 서버에서 ${p0} 을(를) 설정하세요';
-
-  @override
   String get whenOffMethodHiddenFromSign => '끄면 로그인 화면과 계정 보안에 표시되지 않습니다';
 
   @override
@@ -19787,9 +22507,6 @@ class _LKo extends AppLocalizations {
 
   @override
   String get signMethodNotLinkedAccount => '이 로그인 방식은 계정에 연결되어 있지 않습니다';
-
-  @override
-  String p0AccountNotLinkedAnySavemybook(Object p0) => '이 ${p0} 계정은 SaveMyBook 계정과 연결되어 있지 않습니다.';
 
   @override
   String get iAlreadyAccountSignFirst => '기존 계정에 로그인하여 연결';
@@ -19813,9 +22530,6 @@ class _LKo extends AppLocalizations {
   String get passkeys => '패스키';
 
   @override
-  String get verifyWithFaceIdFingerprintScreen => '이 기기의 Face ID, 지문 또는 화면 잠금으로 인증합니다. 비밀번호가 필요하지 않습니다.';
-
-  @override
   String get verifyWithPasskey => '패스키로 인증';
 
   @override
@@ -19837,13 +22551,13 @@ class _LKo extends AppLocalizations {
   String get deletePasskey => '패스키 삭제';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 저장된 패스키는 함께 삭제되지 않으며 시스템 비밀번호 설정에서 삭제할 수 있습니다.';
+  String get noLongerAbleSignVerifyIdentity => '삭제하면 이 패스키로 로그인하거나 본인 인증을 할 수 없습니다. 기기에 패스키가 남아 있으면 시스템 비밀번호 설정에서 삭제할 수 있습니다.';
 
   @override
   String get passkeyDeleted => '패스키가 삭제되었습니다';
 
   @override
-  String get signVerifyIdentityWithFaceId => '비밀번호 대신 Face ID, 지문 또는 화면 잠금으로 로그인하고 본인 인증을 할 수 있습니다. 패스키는 사용자의 기기와 비밀번호 관리자에만 저장됩니다.';
+  String get signVerifyIdentityWithFaceId => '비밀번호 대신 Face ID, 지문 또는 화면 잠금으로 로그인하고 본인 인증을 할 수 있습니다.';
 
   @override
   String get addPasskey => '패스키 추가';
@@ -20020,9 +22734,6 @@ class _LKo extends AppLocalizations {
   String get tierOrderUpdated => '등급 순서를 업데이트했습니다';
 
   @override
-  String p0Members(Object p0) => '회원 ${p0}명';
-
-  @override
   String get tiers => '개 등급';
 
   @override
@@ -20188,13 +22899,13 @@ class _LKo extends AppLocalizations {
   String get paymentReleasedWalletWhenBuyerCompletes => '구매자가 주문을 완료하거나 수령 후 24시간이 지나면 대금이 지갑에 입금됩니다';
 
   @override
-  String get completeOrderAfterCheckingBookCompletes => '도서 상태를 확인한 후 주문을 완료해 주세요. 수령 후 24시간 내 분쟁이 없으면 자동으로 완료됩니다';
+  String get completeOrderAfterCheckingBookCompletes => '도서 상태를 확인한 후 주문을 완료해 주세요. 수령 후 24시간 내 이의 제기가 없으면 자동으로 완료됩니다';
 
   @override
   String get completeOrder => '주문 완료';
 
   @override
-  String get onceCompleteOrderPaymentReleasedSeller => '주문을 완료하면 대금이 판매자에게 지급되며 이후에는 분쟁을 신청할 수 없습니다.';
+  String get onceCompleteOrderPaymentReleasedSeller => '주문을 완료하면 대금이 판매자에게 지급되며 이후에는 이의를 제기할 수 없습니다.';
 
   @override
   String get orderCompleted2 => '주문이 완료되었습니다';
@@ -20359,9 +23070,6 @@ class _LKo extends AppLocalizations {
   String get listed3 => '등록일';
 
   @override
-  String get someDetailsWereFilledAutomaticallyFrom => '일부 정보는 ISBN 서지 정보로 자동 입력되었습니다.';
-
-  @override
   String get summarizedByAiFromBookRecords => 'AI가 서지 정보로 정리';
 
   @override
@@ -20387,6 +23095,1398 @@ class _LKo extends AppLocalizations {
 
   @override
   String get morePicks => '추천 더 보기';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '패스키 작업이 중단되었습니다. 다시 시도해 주세요.';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '이 기기의 패스키로 인증하지 못했습니다. 다른 방법을 사용해 주세요.';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '이 iOS 버전에서 다시 추가하면 iCloud 키체인의 기존 패스키가 대체됩니다. 추가가 완료되지 않으면 기존 패스키를 복구할 수 없습니다. 먼저 iOS 17.4 이상으로 업데이트하는 것을 권장합니다.';
+
+  @override
+  String get cannotAddPasskeyDevice => '현재 이 기기에서는 패스키를 추가할 수 없습니다.';
+
+  @override
+  String get recordRemoval => '꺼냄 등록';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '담당자가 「${p0}」에서 “${p1}”을(를) 꺼냈는지 확인해 주세요. 등록 후 책은 판매 중지됩니다.';
+
+  @override
+  String get removalRecorded => '꺼냄을 등록했습니다';
+
+  @override
+  String get booksLockers => '보관함 보관 도서';
+
+  @override
+  String get overdue => '기한 초과';
+
+  @override
+  String get noOverdueBooks => '기한이 지난 책이 없습니다';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '현재 보관함에 보관 중인 책이 없습니다';
+
+  @override
+  String get salesPaused => '판매 일시 중지';
+
+  @override
+  String get adminsNotified => '관리자 알림 완료';
+
+  @override
+  String get confirmPurchase => '구매 확인';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '이 책은 이미 보관함에 있습니다. 주문 즉시 수령할 수 있으며 주문을 취소할 수 없습니다.';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '판매가 일시 중지되었습니다. 보관함에서 책을 회수해 주세요.';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '이 책은 보관함에 있어 주문 후 바로 수령할 수 있습니다.';
+
+  @override
+  String get notYetLocker => '아직 보관함에 보관하지 않음';
+
+  @override
+  String get retrieve => '회수 보고';
+
+  @override
+  String get dropOff => '보관 등록';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '보관함에 이미 있는 책의 주문은 즉시 수령할 수 있으며 취소할 수 없습니다.';
+
+  @override
+  String get placedLockerToday => '오늘 보관함에 보관';
+
+  @override
+  String lockerP0Days(Object p0) => '보관 기간 ${p0}일';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '「${p0}」에서 “${p1}”을(를) 회수했는지 확인해 주세요.';
+
+  @override
+  String get allLockers => '전체 보관함';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '보관 중에는 보관함을 변경할 수 없습니다.';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '판매를 중단하면 “${p0}”이(가) 상점에 더 이상 표시되지 않으며 구매자가 볼 수 없습니다. 보관 중에 판매를 중단하면 책을 회수하고 회수 보고를 한 후에 다시 판매할 수 있습니다.';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '책이 보관함에 있어 바로 수령할 수 있습니다.';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '담당자가 「${p0}」에서 “${p1}”을(를) 꺼냈는지 확인해 주세요.';
+
+  @override
+  String get inLocker => '보관함에 있음';
+
+  @override
+  String get inAnotherLocker => '다른 보관함에 있음';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '이 주문의 책 ${p0}권을 모두 보관함에 넣으셨나요?';
+
+  @override
+  String get awaitingRetrieval => '회수 대기';
+
+  @override
+  String get bookAdvisorSelection => '도서 어드바이저 도서 선정';
+
+  @override
+  String get bookInfoAutoFill => '도서 정보 자동 보완';
+
+  @override
+  String get disputeAnalysis => '이의 분석';
+
+  @override
+  String get monthlyBudgetUsedUp => '이번 달 예산 소진';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '적용 범위: 도서 ${p0}, 고객지원 정보 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '마지막 동기화: ${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '백그라운드 동기화가 ${p0}까지 일시 중지됨';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '의미 검색이 ${p0}까지 일시 중지됨';
+
+  @override
+  String lastErrorP0(Object p0) => '최근 오류: ${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0}회・평균 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => 'AI 데이터 처리 끄기';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => 'AI 기능 사용이 중지되고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제되며 복구할 수 없습니다.';
+
+  @override
+  String get turnOff => '끄기';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '입력한 메시지와 대화 내용, 본인의 주문(보관·수령·완료 시각 포함), 예약, 등록 도서(심사 사유 포함), 이의 제기 처리 상태 및 결과, 지갑 잔액 및 최근 거래 내역, 최근 고객 문의';
+
+  @override
+  String get requestsConversationHistoryEnter => '입력한 요청과 대화 내용';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '찜 목록, 구매 내역, 장바구니, 최근 본 책에 포함된 도서 정보';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 데이터 처리 안내가 업데이트되었습니다. 내용을 확인한 후 다시 동의해 주세요.';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '질문, 요청 및 도서 정보는 관련 내용을 검색하기 위해 ${p0}에서 의미 벡터로도 변환됩니다.';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '고객센터 답변 생성, 도서 추천 및 검색, 등록 정보 정리에만 사용하며 광고나 추적에는 사용하지 않습니다.';
+
+  @override
+  String get retentionPeriod => '보관 기간';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 고객센터와 도서 어드바이저의 대화 기록(답변에 대한 평가 포함)은 마지막 대화로부터 90일간 보관된 후 자동으로 삭제됩니다. AI 기능의 처리 기록은 90일간 보관되며 대화 내용과 사진은 포함되지 않습니다.';
+
+  @override
+  String get canTurnOffAiDataProcessing => '설정 › 계정 관리에서 언제든지 「AI 데이터 처리」를 끌 수 있으며, 끄면 위 데이터는 더 이상 제공되지 않고 AI 고객센터와 도서 어드바이저의 대화 기록이 삭제됩니다.';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '사용자는 AI 기능을 계속 사용하려면 AI 데이터 처리에 다시 동의해야 합니다.';
+
+  @override
+  String get consentRequiredAgain => '다시 동의 필요';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 도서 어드바이저 횟수는 사용자가 보낸 메시지 수로 계산합니다.';
+
+  @override
+  String get noObviousIssuesFound => '뚜렷한 문제가 발견되지 않았습니다';
+
+  @override
+  String aiAssessmentP0(Object p0) => 'AI 판정: ${p0}';
+
+  @override
+  String get reservedModerationAdminTools => '심사·관리 지원 예비분(%)';
+
+  @override
+  String memberFeaturesCanUseP0Budget(Object p0) => '회원 기능은 예산의 ${p0}%까지 사용할 수 있습니다';
+
+  @override
+  String memberFeatureCapP0(Object p0) => '회원 기능 한도 ${p0}';
+
+  @override
+  String p0ListingsSaleNotReviewedOver(Object p0) => '판매 중인 도서 ${p0}권이 1시간 넘게 심사되지 않았습니다';
+
+  @override
+  String get backupProvider => '백업 서비스 제공자';
+
+  @override
+  String get none => '사용 안 함';
+
+  @override
+  String get sameAsCurrentProvider => '현재 서비스 제공자와 같습니다';
+
+  @override
+  String get sameAsCurrentProviderSoNo => '현재 서비스 제공자와 같아 백업이 사용되지 않습니다';
+
+  @override
+  String get outcomes => '처리 결과';
+
+  @override
+  String get processingPaths => '처리 경로';
+
+  @override
+  String get indicators => '지표';
+
+  @override
+  String get promptVersions => '프롬프트 버전';
+
+  @override
+  String get embeddingCostsBySource => '벡터 비용 출처';
+
+  @override
+  String get succeeded => '성공';
+
+  @override
+  String get repaired => '복구 후 사용';
+
+  @override
+  String get degraded => '대체 처리';
+
+  @override
+  String get emptyAfterCleanup => '정리 후 내용 없음';
+
+  @override
+  String get refusedByProvider => '서비스 제공자가 거부';
+
+  @override
+  String get scanLockerQrCode => '보관함 QR 코드 스캔';
+
+  @override
+  String get flashlight => '손전등';
+
+  @override
+  String get pasteQrContent => 'QR 내용 붙여넣기';
+
+  @override
+  String get pointQrCodeLockerScreen => '보관함 화면의 QR 코드를 비춰 주세요';
+
+  @override
+  String get checkingLocker => '보관함을 확인하는 중';
+
+  @override
+  String get confirmLockerTask => '보관함 작업 확인';
+
+  @override
+  String get retrieveBooks => '도서 회수';
+
+  @override
+  String get booksSameDoorRetrievedTogether => '같은 문에 있는 도서는 함께 회수됩니다.';
+
+  @override
+  String confirmWithinP0(Object p0) => '${p0} 이내에 확인해 주세요';
+
+  @override
+  String get openDoor => '문 열기';
+
+  @override
+  String get openingDoor => '문을 여는 중';
+
+  @override
+  String placeTheseBooksDoorP0(Object p0) => '다음 도서를 문 ${p0}에 넣어 주세요';
+
+  @override
+  String takeBooksFromDoorP0(Object p0) => '문 ${p0}의 도서를 꺼내 주세요';
+
+  @override
+  String retrieveBooksFromDoorP0(Object p0) => '문 ${p0}의 도서를 회수해 주세요';
+
+  @override
+  String get rescan => '다시 스캔';
+
+  @override
+  String get openMap => '지도 열기';
+
+  @override
+  String get reportManually => '수동으로 보고';
+
+  @override
+  String get continueTask => '작업 계속';
+
+  @override
+  String get cancelTask => '작업 취소';
+
+  @override
+  String get reportSubmittedTakesEffectAfterSupport => '보고를 제출했습니다. 고객센터 확인 후 반영됩니다.';
+
+  @override
+  String get manualReportAwaitingConfirmation => '수동 보고 확인 대기 중';
+
+  @override
+  String onceDelistedP0NoLongerAppear(Object p0) => '판매를 중단하면 “${p0}”이(가) 상점에 더 이상 표시되지 않습니다. 이 도서는 보관함에 있으므로 다시 판매하려면 보관함에서 앱으로 QR 코드를 스캔하여 도서를 회수해야 합니다.';
+
+  @override
+  String get lockerDevice => '보관함 장치';
+
+  @override
+  String get deviceId => '장치 번호';
+
+  @override
+  String get deviceType => '장치 유형';
+
+  @override
+  String get firmware => '펌웨어';
+
+  @override
+  String get lastSeen => '마지막 연결';
+
+  @override
+  String get pairingTime => '페어링 시간';
+
+  @override
+  String get doorSensors => '문 센서';
+
+  @override
+  String get installed => '설치됨';
+
+  @override
+  String get notInstalled => '미설치';
+
+  @override
+  String get numberDoors => '문 수';
+
+  @override
+  String get simulatorUrl => '시뮬레이터 URL';
+
+  @override
+  String get revokeDevice => '장치 해지';
+
+  @override
+  String onceRevokedDeviceCanNoLonger(Object p0) => '해지하면 이 장치로 「${p0}」을(를) 더 이상 조작할 수 없으며 보관함은 수동 보고로 전환됩니다.';
+
+  @override
+  String faultP0(Object p0) => '고장: ${p0}';
+
+  @override
+  String get clearFault => '고장 해제';
+
+  @override
+  String get faultCleared => '고장을 해제했습니다';
+
+  @override
+  String get doors => '문';
+
+  @override
+  String get noContentsRecorded => '보관 기록 없음';
+
+  @override
+  String get openDoorRemotely => '원격으로 문 열기';
+
+  @override
+  String get openingReason => '여는 사유';
+
+  @override
+  String get describeReasonRecordedOperationLog => '사유를 입력해 주세요. 작업 기록에 남습니다.';
+
+  @override
+  String get openCommandSent => '열림 명령을 보냈습니다';
+
+  @override
+  String get staffRetrievalOverdueBooks => '보관 기한이 지난 도서 직원 회수';
+
+  @override
+  String get openWithoutNumberConfirmation => '숫자 확인 없이 열기';
+
+  @override
+  String get onlyDoorsWithNoRecordedContents => '보관 기록이 없는 문에만 해당하며 잠금장치 점검용입니다. 현장 확인 없이 문이 열립니다.';
+
+  @override
+  String get contentsNeedChecking => '보관 내용 확인 필요';
+
+  @override
+  String get confirmContents => '내용 확인 완료';
+
+  @override
+  String get contentsConfirmed => '보관 내용을 확인했습니다';
+
+  @override
+  String get booksMayInside => '보관되어 있을 수 있는 도서';
+
+  @override
+  String get recordContents => '보관 내용 등록';
+
+  @override
+  String get selectItemsActuallyStoredDoor => '이 문에 실제로 보관된 항목을 선택해 주세요.';
+
+  @override
+  String get clearContentsRecord => '보관 기록 삭제';
+
+  @override
+  String get booksRemoved => '도서를 꺼냄';
+
+  @override
+  String get correctRecordOnly => '기록만 정정';
+
+  @override
+  String confirmStaffRemovedBooksFromDoor(Object p0) => '직원이 문 ${p0}에서 도서를 꺼냈는지 확인해 주세요. 보관 등록이 삭제되고 도서는 판매 중지되며 판매자에게 알림이 전송됩니다.';
+
+  @override
+  String confirmTheseBooksNotActuallyDoor(Object p0) => '문 ${p0}에 실제로 이 도서들이 없는지 확인해 주세요. 문 기록만 삭제되며 주문과 보관 상태는 변경되지 않습니다.';
+
+  @override
+  String get describeReasonClearing => '삭제 사유를 입력해 주세요.';
+
+  @override
+  String get itemsWithoutDoorRecord => '문 기록이 없는 항목';
+
+  @override
+  String get tasksConfirm => '확인 대기 작업';
+
+  @override
+  String get markAsCompleted => '완료로 확인';
+
+  @override
+  String get markAsNotCompleted => '미완료로 확인';
+
+  @override
+  String get resolutionNote => '처리 메모';
+
+  @override
+  String get ordersDropOffsUpdatedAccordingTask => '이 작업 내용에 따라 주문과 보관 상태가 업데이트됩니다.';
+
+  @override
+  String get ordersDropOffsStayUnchanged => '주문과 보관 상태는 변경되지 않습니다.';
+
+  @override
+  String get recentTasks => '최근 작업';
+
+  @override
+  String get taskDetails => '작업 상세';
+
+  @override
+  String get noTasksYet => '작업 기록이 없습니다';
+
+  @override
+  String get eventLog => '이벤트 기록';
+
+  @override
+  String get noEventsYet => '이벤트 기록이 없습니다';
+
+  @override
+  String get closedBy => '닫힘 방식';
+
+  @override
+  String get itemsConfirmed => '항목 확인';
+
+  @override
+  String get taskItems => '작업 항목';
+
+  @override
+  String get resolutionRecord => '처리 기록';
+
+  @override
+  String taskProgressP0(Object p0) => '진행 중인 작업: ${p0}';
+
+  @override
+  String checkContentsDoorP0(Object p0) => '문 ${p0}의 보관 내용을 확인해 주세요.';
+
+  @override
+  String get manualReportsConfirm => '확인 대기 수동 보고';
+
+  @override
+  String get confirmReport => '보고 승인';
+
+  @override
+  String get rejectReport => '보고 반려';
+
+  @override
+  String get manualReportConfirmed => '수동 보고를 승인했습니다';
+
+  @override
+  String get manualReportRejected => '수동 보고를 반려했습니다';
+
+  @override
+  String get ordersDropOffsUpdatedAsReported => '승인하면 보고 내용에 따라 주문 또는 보관 상태가 업데이트되고 관련 사용자에게 알림이 전송됩니다.';
+
+  @override
+  String get statusStaysUnchangedReporterNotified => '반려하면 상태는 변경되지 않으며 보고자에게 알림이 전송됩니다.';
+
+  @override
+  String get noManualReportsConfirm => '확인 대기 중인 수동 보고가 없습니다';
+
+  @override
+  String get reporter => '보고자';
+
+  @override
+  String get scanLockerCollect => '스캔 후 수령';
+
+  @override
+  String get scanLockerDropOff => '스캔 후 보관';
+
+  @override
+  String get scanLockerRetrieve => '스캔 후 회수';
+
+  @override
+  String lockerClosedNowOpeningHoursP0(Object p0) => '현재 보관함 운영 시간이 아닙니다. 운영 시간: ${p0}';
+
+  @override
+  String get lockerUnderMaintenance => '이 보관함은 점검 중입니다.';
+
+  @override
+  String get lockerOutService => '이 보관함은 현재 운영이 중지되었습니다.';
+
+  @override
+  String get noDoorsAvailableMoment => '현재 사용 가능한 문이 없습니다.';
+
+  @override
+  String get lockerOfflineSoDoorCannotOpened => '보관함이 오프라인이어서 스캔으로 문을 열 수 없습니다. 고객센터 안내에 따라 도서를 넣거나 꺼낸 후 보고해 주세요. 보고는 고객센터 확인 후 반영됩니다.';
+
+  @override
+  String get lockerOutOrderSoDoorCannot => '보관함이 고장 나서 스캔으로 문을 열 수 없습니다. 고객센터 안내에 따라 도서를 넣거나 꺼낸 후 보고해 주세요. 보고는 고객센터 확인 후 반영됩니다.';
+
+  @override
+  String get manualReportsTakeEffectAfterSupport => '수동 보고는 고객센터 확인 후 반영됩니다.';
+
+  @override
+  String get notSavemybookLockerQrCode => '이 QR 코드는 SaveMyBook 보관함 QR 코드가 아닙니다.';
+
+  @override
+  String get lockerQrCodeChangedScanCode => '보관함 QR 코드가 변경되었습니다. 보관함 화면의 QR 코드를 다시 스캔해 주세요.';
+
+  @override
+  String get lockerUsePleaseWaitScanAgain => '보관함이 사용 중입니다. 잠시 후 다시 스캔해 주세요.';
+
+  @override
+  String get lockerOfflineTemporarilyUnavailable => '보관함이 오프라인이어서 일시적으로 이용할 수 없습니다.';
+
+  @override
+  String get itemChangedRefreshTryAgain => '항목 상태가 변경되었습니다. 새로 고친 후 다시 시도해 주세요.';
+
+  @override
+  String get noItemsHandleLocker => '이 보관함에서 처리할 항목이 없습니다.';
+
+  @override
+  String get lockerTaskProgressFinishCancelFirst => '진행 중인 보관함 작업이 있습니다. 먼저 완료하거나 취소해 주세요.';
+
+  @override
+  String get selectLeastOneItem => '항목을 하나 이상 선택해 주세요.';
+
+  @override
+  String get notEnoughDoorsAvailableSelectFewer => '사용 가능한 문이 부족합니다. 보관할 항목을 줄이거나 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get someItemsChangedPleaseConfirmAgain => '일부 항목의 상태가 변경되었습니다. 다시 확인해 주세요.';
+
+  @override
+  String get lockerTaskWasNotFound => '이 보관함 작업을 찾을 수 없습니다.';
+
+  @override
+  String get actionNotAvailableRightNow => '현재 이 작업을 실행할 수 없습니다.';
+
+  @override
+  String get lockerRequiresScanningScanQrCode => '이 보관함은 스캔이 필요합니다. 보관함에서 QR 코드를 스캔해 주세요.';
+
+  @override
+  String get orderBeingHandledLockerPleaseTry => '이 주문은 보관함에서 처리 중입니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get manualReportItemAlreadyAwaitingConfirmation => '이 항목에 확인 대기 중인 수동 보고가 이미 있습니다.';
+
+  @override
+  String aboutP0FromLockerPleaseUse(Object p0) => '현재 위치가 보관함에서 약 ${p0} 떨어져 있습니다. 보관함 앞에서 이용해 주세요.';
+
+  @override
+  String itemAssignedP0PleaseUseLocker(Object p0) => '이 항목의 지정 보관함은 「${p0}」입니다. 해당 보관함에서 이용해 주세요.';
+
+  @override
+  String severalTasksLockerWereNotCompleted(Object p0) => '이 보관함에서 작업이 여러 번 완료되지 않았습니다. ${p0}분 후 다시 시도해 주세요.';
+
+  @override
+  String itemsP0(Object p0) => '처리할 항목 위치: ${p0}';
+
+  @override
+  String get taskComplete => '작업이 완료되었습니다';
+
+  @override
+  String get someItemsWereNotCompleted => '일부 항목이 완료되지 않았습니다';
+
+  @override
+  String get numberDidNotMatchTaskBeen => '숫자가 일치하지 않아 이 작업이 취소되었습니다.';
+
+  @override
+  String get numberWasNotConfirmedTimeTask => '제한 시간 내에 숫자를 확인하지 않아 이 작업이 취소되었습니다.';
+
+  @override
+  String get itemsWereNotConfirmedTimeTask => '제한 시간 내에 항목을 확인하지 않아 이 작업이 취소되었습니다.';
+
+  @override
+  String get lockerDidNotRespondDoorWas => '보관함이 응답하지 않아 문이 열리지 않았습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get taskBeenCancelled => '이 작업이 취소되었습니다.';
+
+  @override
+  String get lockerDidNotConfirmDoorOpened => '보관함에서 문 열림 보고를 받지 못해 이 작업은 고객센터 확인 대기 중입니다.';
+
+  @override
+  String get thereWasLockerConnectionProblemSupport => '보관함 연결에 문제가 있어 이 작업은 고객센터 확인 대기 중입니다.';
+
+  @override
+  String get lockerRestartedSupportConfirmTask => '보관함이 다시 시작되어 이 작업은 고객센터 확인 대기 중입니다.';
+
+  @override
+  String get supportConfirmedTaskComplete => '고객센터에서 이 작업의 완료를 확인했습니다.';
+
+  @override
+  String get supportConfirmedTaskWasNotCompleted => '고객센터에서 이 작업이 완료되지 않았음을 확인했습니다. 상태는 변경되지 않았습니다.';
+
+  @override
+  String get supportEndedTask => '고객센터에서 이 작업을 종료했습니다.';
+
+  @override
+  String get dropOffCompleteBuyerBeenNotified => '보관이 완료되어 구매자에게 알렸습니다.';
+
+  @override
+  String get dropOffComplete => '보관이 완료되었습니다';
+
+  @override
+  String get retrievalComplete => '회수가 완료되었습니다';
+
+  @override
+  String get doorCouldNotIdentifiedPleaseContact => '문을 확인할 수 없습니다. 고객센터에 문의해 주세요.';
+
+  @override
+  String get doorFaultyPleaseContactSupport => '문이 고장 났습니다. 고객센터에 문의해 주세요.';
+
+  @override
+  String get doorAwaitingCheckBySupportPlease => '문이 고객센터 확인 대기 중입니다. 고객센터에 문의해 주세요.';
+
+  @override
+  String get reachedPreSaleDropOffLimit => '이 보관함의 판매 전 보관 한도에 도달했습니다. 판매 또는 회수 후 보관해 주세요.';
+
+  @override
+  String get itemChanged => '항목 상태가 변경되었습니다';
+
+  @override
+  String get doorDidNotOpen => '문이 열리지 않았습니다';
+
+  @override
+  String get doorOpeningNotConfirmedSupportCheck => '문 열림 보고를 받지 못해 고객센터 확인 대기 중입니다';
+
+  @override
+  String get anotherItemDoorSupportCheck => '문 안에 다른 항목이 있어 고객센터 확인 대기 중입니다';
+
+  @override
+  String notCompletedP0(Object p0) => '미완료: ${p0}';
+
+  @override
+  String bookBeenSoldAfterRetrievingDrop(Object p0) => '이 도서는 판매되었습니다. 회수 후 「${p0}」에 보관해 주세요.';
+
+  @override
+  String doorP0(Object p0) => '문 ${p0}';
+
+  @override
+  String get confirmingItems => '항목 확인 중';
+
+  @override
+  String get confirmingNumber => '숫자 확인 중';
+
+  @override
+  String get opening => '여는 중';
+
+  @override
+  String get doorOpened => '문이 열렸습니다';
+
+  @override
+  String get partlyCompleted => '일부 완료';
+
+  @override
+  String get failed => '실패';
+
+  @override
+  String get modelAnswer => '모델 답변';
+
+  @override
+  String get replacedWithStandardNotice => '고정 안내로 대체';
+
+  @override
+  String get clarifyingQuestion => '요구 사항 확인';
+
+  @override
+  String get noSuitableBooks => '적합한 도서 없음';
+
+  @override
+  String get fellBackSearchRanking => '검색 순위로 대체';
+
+  @override
+  String get fellBackPopularBooks => '인기 도서로 대체';
+
+  @override
+  String get recommendationsGenerated => '추천 생성됨';
+
+  @override
+  String get noSuitableCandidates => '적합한 후보 없음';
+
+  @override
+  String get noCandidates => '후보 없음';
+
+  @override
+  String get modelSuggestionsUsed => '모델 제안 사용';
+
+  @override
+  String get bibliographicDataOnly => '서지 정보만 반영';
+
+  @override
+  String get handoffSuggested => '상담원 연결 제안';
+
+  @override
+  String get insufficientGrounding => '근거 부족';
+
+  @override
+  String get continuedPreviousCriteria => '이전 조건 유지';
+
+  @override
+  String get reusedPreviousTopic => '이전 주제 재사용';
+
+  @override
+  String get noSearchMatch => '검색 결과 없음';
+
+  @override
+  String get invalidBookCodesReturned => '잘못된 도서 코드 포함';
+
+  @override
+  String get webSearchUsed => '웹 검색 사용';
+
+  @override
+  String get retriedWithoutSearch => '검색 없이 재시도';
+
+  @override
+  String get backupProviderUsed => '백업 서비스 제공자 사용';
+
+  @override
+  String get conditionAdjustedFromNotes => '설명에 따라 상태 조정';
+
+  @override
+  String get avgPassagesRetrieved => '평균 검색 단락 수';
+
+  @override
+  String get avgCandidates => '평균 후보 수';
+
+  @override
+  String get avgFillerBooks => '평균 보충 도서 수';
+
+  @override
+  String get avgBooksRecommended => '평균 추천 도서 수';
+
+  @override
+  String get avgBooksSelected => '평균 선정 도서 수';
+
+  @override
+  String get avgInvalidCodes => '평균 잘못된 코드 수';
+
+  @override
+  String get avgPhotos => '평균 사진 수';
+
+  @override
+  String get avgSources => '평균 참고 출처 수';
+
+  @override
+  String get bookSearch => '도서 검색';
+
+  @override
+  String get fellBackReferencePassage => '참고 단락으로 대체';
+
+  @override
+  String get booksSelectedByModel => '모델이 선정한 도서';
+
+  @override
+  String get indexUpdates => '색인 업데이트';
+
+  @override
+  String get sourceNotRecorded => '출처 기록 없음';
+
+  @override
+  String get outputFormatErrors => '출력 형식 오류';
+
+  @override
+  String get suggestMediation => '조정 처리 권장';
+
+  @override
+  String get handoffEnforcedBySystem => '시스템이 상담원 연결 지정';
+
+  @override
+  String get followUpSuggestionsProvided => '후속 질문 제안 포함';
+
+  @override
+  String get replyTitleNotBookCards => '답변 도서명이 도서 카드와 불일치';
+
+  @override
+  String get replyMentionsPrice => '답변에 가격 언급';
+
+  @override
+  String get replyDeniesResultsDespiteBookCards => '도서 카드가 있으나 관련 도서 없음으로 답변';
+
+  @override
+  String get completeItemsKeptAfterTruncation => '출력이 잘린 후 완전한 항목 유지';
+
+  @override
+  String get somePhotosNotSent => '전송되지 않은 사진 있음';
+
+  @override
+  String get noEvidencePhotosSent => '증빙 사진 미전송';
+
+  @override
+  String get findingsCitePhotos => '관찰 사항이 사진 인용';
+
+  @override
+  String get avgPassagesCited => '평균 인용 단락 수';
+
+  @override
+  String get avgInvalidRecommendationBases => '평균 무효 추천 근거 수';
+
+  @override
+  String get avgSystemGeneratedReasons => '평균 시스템 생성 사유 수';
+
+  @override
+  String get avgInvalidPhotoReferences => '평균 무효 사진 번호 수';
+
+  @override
+  String get favorsBuyer => '구매자에게 유리';
+
+  @override
+  String get favorsSeller => '판매자에게 유리';
+
+  @override
+  String get insidePage => '본문 페이지';
+
+  @override
+  String photoP0Evidence(Object p0) => '사진 ${p0}(증빙)';
+
+  @override
+  String photoP0P1P2(Object p0, Object p1, Object p2) => '사진 ${p0}(《${p1}》 ${p2})';
+
+  @override
+  String photoP0P1(Object p0, Object p1) => '사진 ${p0}(${p1})';
+
+  @override
+  String aiReviewedP0ListingP1Evidence(Object p0, Object p1, Object p2) => 'AI 참고: 등록 사진 ${p0}장, 증빙 사진 ${p1}장, 미전송 ${p2}장';
+
+  @override
+  String aiReviewedP0ListingP1Evidence2(Object p0, Object p1) => 'AI 참고: 등록 사진 ${p0}장, 증빙 사진 ${p1}장';
+
+  @override
+  String someItemsMalformedP0(Object p0) => '일부 항목 형식 불일치 ${p0}';
+
+  @override
+  String fieldsDefaultedP0(Object p0) => '기본값으로 대체 ${p0}';
+
+  @override
+  String get highConfidence => '신뢰도 높음';
+
+  @override
+  String get mediumConfidence => '신뢰도 보통';
+
+  @override
+  String get lowConfidence => '신뢰도 낮음';
+
+  @override
+  String get writtenByAi => 'AI 작성';
+
+  @override
+  String get clearBibliographyCache => '서지 캐시 삭제';
+
+  @override
+  String get bookDetailsLookedUpAgainNext => '다음에 이 ISBN이 등록될 때 서지 정보를 다시 조회합니다.';
+
+  @override
+  String get bibliographyCacheIsbnCleared => '이 ISBN의 서지 캐시를 삭제했습니다';
+
+  @override
+  String get noBibliographyCacheIsbn => '이 ISBN의 서지 캐시가 없습니다';
+
+  @override
+  String get lookUpListPrice => '정가 조회';
+
+  @override
+  String get assessConditionPrice => '상태 및 가격 판단';
+
+  @override
+  String get aiRepliesReferenceOnlyOrderPage => 'AI 답변은 참고용이며, 실제 내용은 주문 페이지와 상담원 안내를 기준으로 합니다.';
+
+  @override
+  String get preFilledFromSupportEnquiryReview => '고객 문의 내용으로 미리 입력되었습니다. 저장하기 전에 내용을 확인하세요.';
+
+  @override
+  String get noData => '데이터 없음';
+
+  @override
+  String get sellingPrice => '판매가';
+
+  @override
+  String get aiQuality => 'AI 품질';
+
+  @override
+  String get overturnedByAdmins => '관리자 번복 비율';
+
+  @override
+  String get flaggedByInstantRules => '즉시 규칙에 의한 심사 요청';
+
+  @override
+  String get flaggedByAi => 'AI에 의한 심사 요청';
+
+  @override
+  String get transferredSupportAgents => '상담원 연결';
+
+  @override
+  String get ratedNotHelpful => '도움이 되지 않음으로 평가';
+
+  @override
+  String get repliesWithoutBooks => '도서가 포함되지 않은 답변';
+
+  @override
+  String get disputeAnalysis2 => '거래 이의 제기 분석';
+
+  @override
+  String get suggestionMatchedDecision => '제안과 판정 일치';
+
+  @override
+  String get ratedHelpful => '도움이 됨으로 평가';
+
+  @override
+  String get bookRecommendations => '도서 추천';
+
+  @override
+  String get aiRecommendationClickThroughRate => 'AI 추천 클릭률';
+
+  @override
+  String get standardRecommendationClickThroughRate => '일반 추천 클릭률';
+
+  @override
+  String get markedNotInterested => '관심 없음 표시';
+
+  @override
+  String get listingAssistantAdoptionRate => '등록 도우미 채택률';
+
+  @override
+  String get listingsUsingAssistant => '등록 도우미를 사용한 도서';
+
+  @override
+  String get createdFromSupportEnquiries => '고객 문의에서 작성';
+
+  @override
+  String get rejectionReason => '반려 사유 유형';
+
+  @override
+  String get sourceInstantRules => '출처: 즉시 규칙';
+
+  @override
+  String get sourceAiAssessment => '출처: AI 판정';
+
+  @override
+  String confidenceP0(Object p0) => '신뢰도 ${p0}';
+
+  @override
+  String aiAssessmentConfidenceP0(Object p0) => 'AI 판정 신뢰도 ${p0}';
+
+  @override
+  String get assessment => '판정';
+
+  @override
+  String get description3 => '설명';
+
+  @override
+  String get markReviewReasonAsUnfoundedWhen => '승인 시 심사 사유를 불성립으로 표시';
+
+  @override
+  String get showPhotosFullDetails => '사진 및 전체 내용 보기';
+
+  @override
+  String analysedP0(Object p0) => '분석 시간: ${p0}';
+
+  @override
+  String get wasAnalysisHelpful => '이 분석이 도움이 되었습니까?';
+
+  @override
+  String get helpful => '도움이 됨';
+
+  @override
+  String get notHelpful => '도움이 되지 않음';
+
+  @override
+  String get recommendedBooksDoNotMatchMy => '추천 도서가 요구 사항과 맞지 않음';
+
+  @override
+  String get inaccurateInformation => '내용이 정확하지 않음';
+
+  @override
+  String get didNotAnswerQuestion => '질문에 답하지 않음';
+
+  @override
+  String get insufficientInformation => '정보 부족';
+
+  @override
+  String get selectReason => '사유를 선택하세요';
+
+  @override
+  String get notInterested => '관심 없음';
+
+  @override
+  String get bookNoLongerRecommended => '이 도서는 더 이상 추천되지 않습니다';
+
+  @override
+  String get cachedBibliographicDataUsed => '캐시된 서지 정보 사용';
+
+  @override
+  String get cachedDescriptionUsed => '캐시된 소개글 사용';
+
+  @override
+  String get isbnTitleDoNotMatch => 'ISBN과 도서명 불일치';
+
+  @override
+  String get awaitingReview => '확인 대기';
+
+  @override
+  String get orderDropOff => '주문 도서 보관';
+
+  @override
+  String get preSaleDropOff => '판매 전 보관';
+
+  @override
+  String get retrieval => '회수';
+
+  @override
+  String get adminOpening => '관리자 열기';
+
+  @override
+  String get countdownEnded => '카운트다운 종료';
+
+  @override
+  String get doorSensor => '문 센서 감지';
+
+  @override
+  String get deviceRestarted => '장치 재시작';
+
+  @override
+  String get resolvedBySupport => '고객센터 처리';
+
+  @override
+  String get deviceStarted => '장치 시작';
+
+  @override
+  String get doorClosed => '문이 닫혔습니다';
+
+  @override
+  String get taskCloseReported => '작업 종료 보고';
+
+  @override
+  String get fault => '고장';
+
+  @override
+  String get faultResolved => '고장 해소';
+
+  @override
+  String get unexpectedDoorOpening => '문 비정상 열림';
+
+  @override
+  String get connectionLost => '연결 끊김';
+
+  @override
+  String get connectionRestored => '연결 복구';
+
+  @override
+  String get paired => '페어링 완료';
+
+  @override
+  String get deviceRevoked => '장치를 해지했습니다';
+
+  @override
+  String get taskCreated => '작업 생성';
+
+  @override
+  String get taskFinished => '작업 종료';
+
+  @override
+  String get scanRejected => '스캔 거부';
+
+  @override
+  String get remoteOpening => '원격 열기';
+
+  @override
+  String get contentsRecorded => '보관 내용을 등록했습니다';
+
+  @override
+  String get contentsRecordCleared => '보관 기록을 삭제했습니다';
+
+  @override
+  String get credentialPossiblyCopied => '인증 정보 복제 의심';
+
+  @override
+  String get sourceIpChanged => '접속 IP 변경';
+
+  @override
+  String get doorNeedsChecking => '문 확인 필요';
+
+  @override
+  String get doorChecked => '문 확인 완료';
+
+  @override
+  String get itemBlocked => '항목 처리 불가';
+
+  @override
+  String get manualReport => '수동 보고';
+
+  @override
+  String get manualReportReviewed => '수동 보고 처리';
+
+  @override
+  String get overdueOrderHeld => '기한 초과 주문 처리 대기';
+
+  @override
+  String get doorOpenedAfterTask => '작업 종료 후 문 열림';
+
+  @override
+  String get lockDidNotRelease => '잠금 해제 안 됨';
+
+  @override
+  String get doorLeftOpen => '문이 닫히지 않음';
+
+  @override
+  String get doorForcedOpen => '문 강제 열림';
+
+  @override
+  String get sensorError => '센서 이상';
+
+  @override
+  String get powerProblem => '전원 이상';
+
+  @override
+  String get screenProblem => '화면 이상';
+
+  @override
+  String get dropOffCancelledAfterDoorOpened => '문이 열린 후 보관이 취소됨';
+
+  @override
+  String get dropOffMarkedAsNotCompleted => '고객센터가 미완료로 확인한 보관';
+
+  @override
+  String get anotherItemWasAlreadyDoor => '보관 시 문 안에 다른 항목이 있었음';
+
+  @override
+  String get doorOpeningNotReported => '문 열림 보고 없음';
+
+  @override
+  String get doorReportedOpenAfterTaskEnded => '작업 종료 후 문 열림 보고';
+
+  @override
+  String get manualReportDuringFault => '고장 중 수동 보고';
+
+  @override
+  String get openedByStaff => '관리자가 연 문';
+
+  @override
+  String get orderCompletedBySupportBeforePickup => '수령 전 고객센터가 주문을 완료 처리함';
+
+  @override
+  String get noDevice => '장치 미페어링';
+
+  @override
+  String get deviceOffline => '장치 오프라인';
+
+  @override
+  String get deviceFault => '장치 고장';
+
+  @override
+  String get underMaintenance => '점검 중';
+
+  @override
+  String get scanningRequired => '스캔 필요';
+
+  @override
+  String manualReportingAllowedP0(Object p0) => '수동 보고 허용(${p0})';
+
+  @override
+  String userAccessSuspendedP0(Object p0) => '사용자 이용 중지(${p0})';
+
+  @override
+  String get simulator => '시뮬레이터';
+
+  @override
+  String get physicalLocker => '실물 보관함';
+
+  @override
+  String get noDevicePaired => '페어링된 장치 없음';
+
+  @override
+  String get awaitingPairing => '페어링 대기';
+
+  @override
+  String get online => '온라인';
+
+  @override
+  String get offline => '오프라인';
+
+  @override
+  String get locationNotPermitted => '위치 권한 없음';
+
+  @override
+  String get locationUnavailable => '위치를 확인할 수 없음';
+
+  @override
+  String aboutP0Away(Object p0) => '약 ${p0} 거리';
+
+  @override
+  String get dropOffReport => '보관 보고';
+
+  @override
+  String get pickupReport => '수령 보고';
+
+  @override
+  String get retrievalReport => '회수 보고';
+
+  @override
+  String get confirmed => '승인됨';
+
+  @override
+  String get noLongerValid => '무효';
+
+  @override
+  String get lockerInactive => '보관함 비활성';
+
+  @override
+  String get selectDoorWhereBooksActuallyStored => '도서가 실제로 보관된 문을 선택해 주세요';
+
+  @override
+  String offlineP0(Object p0) => '오프라인 시간 ${p0}';
+
+  @override
+  String get collectionRetrievalNotCompletedAfterDoor => '문이 열린 후 수령 또는 회수가 완료되지 않음';
+
+  @override
+  String get unpairedByDevice => '장치에서 페어링 해제';
+
+  @override
+  String get replacedByNewDevice => '새 장치로 교체';
+
+  @override
+  String get revokedByAdministrator => '관리자가 해지';
+
+  @override
+  String get simulatorTurnedOff => '시뮬레이터 기능 종료';
+
+  @override
+  String get tooManyRequestsPleaseTryAgain => '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get viewPurchases => '구매 내역 보기';
+
+  @override
+  String get viewSales => '판매 내역 보기';
+
+  @override
+  String get retrievalNotAvailableLockerRightNow => '현재 이 보관함에서는 회수할 수 없습니다. 고객센터에 문의해 주세요.';
+
+  @override
+  String get itemsCouldNotCompleted => '항목을 완료하지 못했습니다';
+
+  @override
+  String onceDelistedP0NoLongerAppear2(Object p0) => '판매를 중단하면 “${p0}”이(가) 상점에 더 이상 표시되지 않습니다. 이 도서는 보관함에 있으므로 다시 판매하려면 먼저 도서를 회수해야 합니다.';
+
+  @override
+  String confirmP0BeenPlacedP1(Object p0, Object p1) => '“${p0}”을(를) 「${p1}」에 넣었는지 확인해 주세요.';
+
+  @override
+  String get confirmTakenBookFromLocker => '보관함에서 도서를 꺼냈는지 확인해 주세요.';
+
+  @override
+  String get finish => '완료';
+
+  @override
+  String get door => '문';
+
+  @override
+  String get enterNumberShownLockerScreen => '보관함 화면에 표시된 숫자를 입력해 주세요';
+
+  @override
+  String get ifSomeoneTellsNumberAsksEnter => '다른 사람이 숫자를 알려 주며 입력을 요청하는 경우 진행하지 마세요.';
+
+  @override
+  String get enterTwoDigits => '두 자리 숫자를 입력해 주세요';
+
+  @override
+  String get closeDoorFirst => '먼저 문을 닫아 주세요';
+
+  @override
+  String get onceDoorClosedTaskEndAutomatically => '문을 닫으면 선택하신 대로 작업이 자동으로 종료됩니다.';
+
+  @override
+  String get taskCompleteAutomaticallyOnceDoorClosed => '문을 닫으면 작업이 자동으로 완료됩니다.';
+
+  @override
+  String get taskBeenCancelledNothingChanged => '이 작업이 취소되었습니다. 상태는 변경되지 않았습니다.';
+
+  @override
+  String get locationAccessRequiredUseLockerTurn => '보관함을 이용하려면 위치 정보 접근을 허용해야 합니다. 시스템 설정에서 허용한 후 다시 시도해 주세요.';
+
+  @override
+  String get locationCouldNotConfirmedTurnLocation => '현재 위치를 확인할 수 없습니다. 위치 서비스를 켠 후 다시 시도해 주세요.';
+
+  @override
+  String get doorOpenActionNotAvailable => '문이 열려 있어 이 작업을 실행할 수 없습니다.';
+
+  @override
+  String get taskBeingProcessedPleaseWait => '작업을 처리하고 있습니다. 잠시 기다려 주세요.';
+
+  @override
+  String numberConfirmationWasNotCompletedSeveral(Object p0) => '숫자 확인이 여러 번 완료되지 않았습니다. ${p0}분 후 다시 시도해 주세요.';
+
+  @override
+  String get doorRecordedContentsAwaitingCheckComplete => '이 문에는 보관 기록이 있거나 확인 대기 중입니다. 숫자 확인을 완료한 후 열어 주세요.';
+
+  @override
+  String get lockerBeenAskedEndTask => '보관함에 작업 종료를 요청했습니다.';
+
+  @override
+  String get endTask => '작업 종료';
+
+  @override
+  String get pairDevice => '장치 페어링';
+
+  @override
+  String get enterPairingCodeShownLockerScreen => '보관함 화면에 표시된 페어링 코드를 입력해 주세요';
+
+  @override
+  String get enter8DigitPairingCode => '8자리 페어링 코드를 입력해 주세요';
+
+  @override
+  String get pairingCodeInvalidExpired => '페어링 코드가 유효하지 않거나 만료되었습니다.';
+
+  @override
+  String get waitingDeviceConnect => '장치 연결 대기 중';
+
+  @override
+  String get pairingWasNotCompletedEnterNew => '페어링이 완료되지 않았습니다. 보관함 화면에 표시된 새 페어링 코드를 입력해 주세요.';
+
+  @override
+  String get donePhone => '휴대폰에서 완료';
+
+  @override
+  String get cancelledPhone => '휴대폰에서 취소';
+
+  @override
+  String get matchCodeEntered => '확인 번호 입력';
+
+  @override
+  String get lockerRefusedEndDoorOpen => '보관함 종료 거부(문 열림)';
+
+  @override
+  String get numberMatched => '숫자 일치';
+
+  @override
+  String get numberDidNotMatch => '숫자 불일치';
+
+  @override
+  String get cancelTapCancelBeforeClosingDoor => '취소하려면 문을 닫기 전에 "취소"를 눌러 주세요. 카운트다운이 끝나면 자동으로 완료됩니다.';
+
+  @override
+  String get preciseLocationRequiredUseLockerTurn => '보관함을 이용하려면 정확한 위치를 켜야 합니다. 시스템 설정에서 켠 후 다시 시도해 주세요.';
+
+  @override
+  String get enterTitle3 => '제목을 입력하세요';
+
+  @override
+  String get credentialsNotSet => '자격 증명이 설정되지 않았습니다';
+
+  @override
+  String get searchActions => '작업 내용 검색';
+
+  @override
+  String undoneP0(Object p0) => '${p0}에 되돌림';
+
+  @override
+  String get delistListing => '상품 판매 중지';
+
+  @override
+  String get amount2 => '금액';
+
+  @override
+  String get couldNotOpenChatPleaseTry => '채팅을 열 수 없습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String publishedP0(Object p0) => '게시일: ${p0}';
+
+  @override
+  String get pushNotificationRegistrationFailedPleaseTry => '푸시 알림 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 
 }
 
@@ -20424,7 +24524,7 @@ class _LZh extends AppLocalizations {
   String get orderBuyerDeposited => '待取書';
 
   @override
-  String get orderBuyerRefunding => '申訴中';
+  String get orderBuyerRefunding => '爭議處理中';
 
   @override
   String get orderFlowDeposit => '待賣家存書';
@@ -20442,7 +24542,7 @@ class _LZh extends AppLocalizations {
   String get bookOnSale => '販售中';
 
   @override
-  String get bookReserved => '已預訂';
+  String get bookReserved => '已預約';
 
   @override
   String get bookSold => '已售出';
@@ -20520,7 +24620,7 @@ class _LZh extends AppLocalizations {
   String get disputeRefundAuto => '自動退款';
 
   @override
-  String get disputeDismissed => '駁回申訴';
+  String get disputeDismissed => '駁回爭議';
 
   @override
   String get disputeMediated => '協調結案';
@@ -20772,7 +24872,7 @@ class _LZh extends AppLocalizations {
   String get regenerateShareLink => '重新產生分享連結';
 
   @override
-  String get oldLinkQrCodeStopWorking => '舊的連結與 QR Code 將立即失效，已分享的連結將無法開啟。確定要重新產生嗎？';
+  String get oldLinkQrCodeStopWorking => '現有連結與 QR Code 將立即失效。';
 
   @override
   String get regenerate => '重新產生';
@@ -20901,9 +25001,6 @@ class _LZh extends AppLocalizations {
   String get signContactSeller => '請先登入才能聯絡賣家';
 
   @override
-  String get signStartChat => '請先登入才能聯絡賣家';
-
-  @override
   String get signReport => '請先登入才能檢舉';
 
   @override
@@ -20961,13 +25058,10 @@ class _LZh extends AppLocalizations {
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家將無法瀏覽。';
+  String removedFromShopBuyersNoLonger(Object p0) => '取消上架後，《${p0}》將不再於商城顯示。';
 
   @override
-  String get delist2 => '下架';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '下架失敗，請稍後再試';
+  String get couldNotDelistPleaseTryAgain => '取消上架失敗，請稍後再試';
 
   @override
   String listedAgain(Object p0) => '《${p0}》已重新上架';
@@ -20994,13 +25088,13 @@ class _LZh extends AppLocalizations {
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，此訂單需 ${p0}，目前餘額 ${p1}';
 
   @override
-  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \$${p1}。\n';
+  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 ${p1} 代幣。\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => '扣款後餘額為 ${p0} 代幣。';
 
   @override
-  String get orderPlacedSellerDropBookOff => '結帳成功，請等待賣家存書';
+  String get orderPlacedSellerDropBookOff => '請等待賣家存書';
 
   @override
   String get cart => '購物車';
@@ -21156,7 +25250,7 @@ class _LZh extends AppLocalizations {
   String get writeMessage => '輸入訊息…';
 
   @override
-  String get enterOrderNumberDisputing => '請填寫要申訴的訂單編號';
+  String get enterOrderNumberDisputing => '請填寫要申請爭議的訂單編號';
 
   @override
   String get describeDispute => '請填寫爭議說明';
@@ -21168,10 +25262,7 @@ class _LZh extends AppLocalizations {
   String get submitDispute => '送出爭議申請';
 
   @override
-  String get orderEntersDisputeProcessPaymentSeller => '送出後此訂單將進入申訴流程，款項將暫停撥付給賣家，直至客服裁決。';
-
-  @override
-  String paymentHoldRequested(Object p0) => '[申請凍結款項] ${p0}';
+  String get orderEntersDisputeProcessPaymentSeller => '送出後此訂單將進入爭議處理流程，款項將暫停撥付給賣家，直至客服裁決。';
 
   @override
   String get disputeSubmittedSupportContact => '爭議申請已送出，客服將盡快與您聯繫';
@@ -21180,16 +25271,10 @@ class _LZh extends AppLocalizations {
   String get dispute => '爭議處理';
 
   @override
-  String get requestPaymentHold => '申請凍結款項';
-
-  @override
-  String get submitDispute2 => '提交爭議申請';
-
-  @override
   String get orderNumber => '訂單編號';
 
   @override
-  String get eGSmb20260910123456789 => '例如 SMB20260910123456789';
+  String get eGSmb20260910123456789 => '例如 SMB20260910143015123456';
 
   @override
   String get whatHappened => '爭議說明';
@@ -21249,7 +25334,7 @@ class _LZh extends AppLocalizations {
   String get condition => '書況';
 
   @override
-  String get customPrice => '自訂價格';
+  String get customPrice => '售價';
 
   @override
   String get enterPrice2 => '請輸入售價';
@@ -21333,7 +25418,7 @@ class _LZh extends AppLocalizations {
   String get displayNameCannotBlank => '暱稱不可空白';
 
   @override
-  String get displayNames250Characters => '暱稱長度需介於 2 ~ 50 個字元';
+  String get displayNames250Characters => '暱稱長度須為 2 至 50 個字元';
 
   @override
   String get invalidPhoneNumberEG0912345678 => '電話格式不正確，例：0912345678';
@@ -21396,9 +25481,6 @@ class _LZh extends AppLocalizations {
   String get priceHighLow => '價格由高到低';
 
   @override
-  String get reachedEnd => '已顯示全部內容';
-
-  @override
   String get guest => '訪客';
 
   @override
@@ -21453,7 +25535,7 @@ class _LZh extends AppLocalizations {
   String get noAccountWithEmail => '此帳號尚未註冊';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '找不到帳號「${p0}」，是否立即註冊？';
+  String noAccountCreateOneNow(Object p0) => '是否以「${p0}」註冊新帳號？';
 
   @override
   String get signUp => '前往註冊';
@@ -21594,13 +25676,13 @@ class _LZh extends AppLocalizations {
   String get dispute2 => '爭議';
 
   @override
-  String get orderOpenDispute => '此訂單有進行中的申訴案件';
+  String get orderOpenDispute => '此訂單有處理中的爭議案件';
 
   @override
   String get cancelOrder => '取消訂單';
 
   @override
-  String get pendingPayoutDisappearsBuyerNotified => '取消後此筆待定收益將一併取消，並通知買家。';
+  String get pendingPayoutDisappearsBuyerNotified => '取消後此筆待撥款項將一併取消，並通知買家。';
 
   @override
   String get cancelledBySeller => '賣家取消';
@@ -21609,22 +25691,16 @@ class _LZh extends AppLocalizations {
   String get orderCancelled2 => '訂單已取消';
 
   @override
-  String get pendingPayouts => '待定收益';
+  String get pendingPayouts => '待撥款項';
 
   @override
   String get noPendingPayouts => '目前沒有待撥款的訂單';
 
   @override
-  String get pendingAmount => '待定收益金額';
+  String get pendingAmount => '待撥款金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '買家取書後自動撥款';
-
-  @override
-  String get scanned => '掃描成功';
-
-  @override
-  String get scanAgain => '繼續掃描';
+  String get coinsArriveOnceBuyerCollectsBook => '買家完成訂單或取書滿 24 小時後撥款';
 
   @override
   String get collectBook => '取書';
@@ -21633,13 +25709,10 @@ class _LZh extends AppLocalizations {
   String get pointPickupQrCode => '請對準取書 QR Code';
 
   @override
-  String get holdSteady => '請保持裝置穩定';
-
-  @override
   String get bookCollected => '取書完成';
 
   @override
-  String collected(Object p0) => '《${p0}》已完成取書';
+  String collected(Object p0) => '《${p0}》';
 
   @override
   String order2(Object p0) => '訂單編號：${p0}';
@@ -21649,9 +25722,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get myAccount => '會員中心';
-
-  @override
-  String get personNotWrittenBioYet => '尚未填寫個人簡介';
 
   @override
   String get topTierReached => '已達最高等級';
@@ -21711,13 +25781,7 @@ class _LZh extends AppLocalizations {
   String get createAccount => '建立帳號';
 
   @override
-  String get joinSavemybook => '註冊帳號';
-
-  @override
   String get displayName => '暱稱';
-
-  @override
-  String get emailSignWith => '電子郵件';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 碼，需含英文與數字';
@@ -21727,9 +25791,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get enterPasswordAgain2 => '請再次輸入密碼';
-
-  @override
-  String get alreadyAccountGoBackSign => '已有帳號？返回登入';
 
   @override
   String get markAsDroppedOff => '完成存書';
@@ -21771,7 +25832,7 @@ class _LZh extends AppLocalizations {
   String get missingInformation => '資料不齊全';
 
   @override
-  String get enterOwnPrice => '請輸入自訂價格。';
+  String get enterOwnPrice => '請輸入售價。';
 
   @override
   String get invalidPrice => '價格不正確';
@@ -21879,7 +25940,7 @@ class _LZh extends AppLocalizations {
   String get notSavemybookProfileQrCode => '此 QR Code 並非救「舊」我的書的個人 QR Code';
 
   @override
-  String get ownQrCode => '這是您的個人 QR Code';
+  String get ownQrCode => '此為您本人的 QR Code';
 
   @override
   String get couldNotStartChatPleaseTry => '無法建立聊天室，請稍後再試';
@@ -21897,7 +25958,7 @@ class _LZh extends AppLocalizations {
   String get sharingCouldNotOpenSoLink => '無法開啟分享，已複製連結';
 
   @override
-  String get savedPhotos => '已儲存到相簿';
+  String get savedPhotos => '已儲存至相簿';
 
   @override
   String get couldNotSaveCheckPhotoLibrary => '儲存失敗，請確認已允許相簿權限';
@@ -22086,7 +26147,7 @@ class _LZh extends AppLocalizations {
   String get couldNotOpenCameraCheckPermission => '無法開啟相機，請確認已授權';
 
   @override
-  String get justNow => '剛剛';
+  String get justNow => '1 分鐘內';
 
   @override
   String minAgo(Object p0) => '${p0} 分鐘前';
@@ -22179,9 +26240,6 @@ class _LZh extends AppLocalizations {
   String get publishNow => '立即發布';
 
   @override
-  String get leaveOffSaveAsDraft => '關閉時僅儲存為草稿';
-
-  @override
   String get saveDraft => '儲存草稿';
 
   @override
@@ -22209,9 +26267,6 @@ class _LZh extends AppLocalizations {
   String get draft => '草稿';
 
   @override
-  String get audienceEveryone => '對象：全體使用者';
-
-  @override
   String get backUpNow => '立即備份';
 
   @override
@@ -22236,7 +26291,7 @@ class _LZh extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '每日自動備份，保留最新 ${p0} 份';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份將自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
+  String get olderBackupsBeyondCountRemovedAutomatically => '備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
 
   @override
   String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄';
@@ -22593,7 +26648,7 @@ class _LZh extends AppLocalizations {
   String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\$${p1}';
 
   @override
-  String reasonP0(Object p0) => '申訴理由：${p0}';
+  String reasonP0(Object p0) => '爭議說明：${p0}';
 
   @override
   String get decisionNoteOptional => '裁決說明（選填）';
@@ -22605,10 +26660,10 @@ class _LZh extends AppLocalizations {
   String get decisionRecorded => '已完成裁決';
 
   @override
-  String get resolveDispute => '仲裁交易';
+  String get resolveDispute => '交易仲裁';
 
   @override
-  String get noDisputesKind => '目前沒有此類申訴案件';
+  String get noDisputesKind => '目前沒有此類爭議案件';
 
   @override
   String orderNumberP0(Object p0) => '訂單編號：${p0}';
@@ -22617,7 +26672,7 @@ class _LZh extends AppLocalizations {
   String buyerP0SellerP1(Object p0, Object p1) => '買家：${p0}｜賣家：${p1}';
 
   @override
-  String filedByP0(Object p0) => '申訴人：${p0}';
+  String filedByP0(Object p0) => '申請人：${p0}';
 
   @override
   String get handle => '處理';
@@ -22785,7 +26840,7 @@ class _LZh extends AppLocalizations {
   String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立即失去所有後台權限。';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可進入管理後台，預設擁有全部權限，並可逐項調整。';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可進入管理後台，預設開放「系統維運」以外的全部權限，並可逐項調整。';
 
   @override
   String get roleUpdated => '已更新身分';
@@ -22887,10 +26942,7 @@ class _LZh extends AppLocalizations {
   String get blocked => '列入黑名單';
 
   @override
-  String get blockedNoFeaturesAvailable => '已封鎖，無法使用任何功能';
-
-  @override
-  String get notBlocked => '未封鎖';
+  String get blockedNoFeaturesAvailable => '已列入黑名單，無法使用任何功能';
 
   @override
   String get role => '身分';
@@ -22899,19 +26951,16 @@ class _LZh extends AppLocalizations {
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 點（自動 ${p1}${p2}）';
 
   @override
-  String get memberSTierBeenAdjustedBy => '此會員的等級經人工調整，不完全依交易自動計算。';
-
-  @override
   String get adjustTier => '調整等級';
 
   @override
   String get adminPermissions => '後台權限';
 
   @override
-  String get all => '全開';
+  String get all => '全部開放';
 
   @override
-  String get allOff => '全關';
+  String get allOff => '全部收回';
 
   @override
   String get reinstateAccount2 => '恢復帳號';
@@ -22920,13 +26969,10 @@ class _LZh extends AppLocalizations {
   String get suspendAccount2 => '停權帳號';
 
   @override
-  String runP1P0(Object p0, Object p1) => '確定要對「${p0}」執行「${p1}」嗎？';
+  String runP1P0(Object p0, Object p1) => '確定要對「${p0}」執行「${p1}」？';
 
   @override
   String updatedP0SStatus(Object p0) => '已更新 ${p0} 的狀態';
-
-  @override
-  String get fullSettingsTierPermissions => '完整設定（等級、權限）';
 
   @override
   String get members3 => '會員列表';
@@ -22992,7 +27038,7 @@ class _LZh extends AppLocalizations {
   String reportedP0P1(Object p0, Object p1) => '被檢舉${p0}：${p1}';
 
   @override
-  String reasonP02(Object p0) => '違規原因：${p0}';
+  String reasonP02(Object p0) => '檢舉原因：${p0}';
 
   @override
   String get handlingNoteOptional => '處理備註（選填）';
@@ -23124,7 +27170,7 @@ class _LZh extends AppLocalizations {
   String get totalOut => '累積支出';
 
   @override
-  String balanceP0(Object p0) => '餘 ${p0}';
+  String balanceP0(Object p0) => '餘額 ${p0}';
 
   @override
   String get suspensionBlocklistRoles => '停權、黑名單、身分';
@@ -23145,7 +27191,7 @@ class _LZh extends AppLocalizations {
   String get lookUpChangeOrderStatus => '查詢與調整訂單狀態';
 
   @override
-  String get decideDisputeCases => '申訴案件裁決';
+  String get decideDisputeCases => '爭議案件裁決';
 
   @override
   String get checkAdjustCoinBalances => '查詢與增減代幣';
@@ -23166,7 +27212,7 @@ class _LZh extends AppLocalizations {
   String get replyUserQuestions => '回覆使用者問題';
 
   @override
-  String get databaseBackupDownloadOffByDefault => '資料庫備份與下載，預設關閉';
+  String get databaseBackupDownloadOffByDefault => '資料庫備份與下載';
 
   @override
   String p0Locker(Object p0) => '${p0}書櫃';
@@ -23214,7 +27260,7 @@ class _LZh extends AppLocalizations {
   String get resetPassword => '重設密碼';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼將立即失效，須改用系統產生的臨時密碼登入。\n\n臨時密碼由系統產生，無法自行指定。';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼將立即失效，須改用系統產生的臨時密碼登入。';
 
   @override
   String get generateTemporaryPassword => '產生臨時密碼';
@@ -23226,7 +27272,7 @@ class _LZh extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。此密碼僅顯示一次，關閉後將無法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 › 更改密碼」變更密碼。';
+  String get remindThemChangeSettingsChangePassword => '請通知該會員登入後立即至「設定 › 更改密碼」變更密碼。';
 
   @override
   String get temporaryPasswordCopied => '已複製臨時密碼';
@@ -23238,7 +27284,7 @@ class _LZh extends AppLocalizations {
   String get cannotResetAnotherAdminSPassword => '無法重設其他管理員的密碼';
 
   @override
-  String get generateTemporaryPasswordHandOver => '產生一組臨時密碼交給使用者';
+  String get generateTemporaryPasswordHandOver => '產生臨時密碼供該會員登入';
 
   @override
   String get orderNumberCopied => '已複製訂單編號';
@@ -23277,7 +27323,7 @@ class _LZh extends AppLocalizations {
   String get walletActivity => '錢包異動';
 
   @override
-  String balanceP02(Object p0) => '餘 ${p0}';
+  String balanceP02(Object p0) => '餘額 ${p0}';
 
   @override
   String get refunds => '退款紀錄';
@@ -23289,16 +27335,13 @@ class _LZh extends AppLocalizations {
   String processedP0(Object p0) => '處理於 ${p0}';
 
   @override
-  String get disputes => '申訴';
+  String get disputes => '爭議';
 
   @override
   String filedP0(Object p0) => '申請於 ${p0}';
 
   @override
   String decidedP0(Object p0) => '裁決於 ${p0}';
-
-  @override
-  String createdP0(Object p0) => '建立於 ${p0}';
 
   @override
   String get shareBook => '分享書籍';
@@ -23349,13 +27392,13 @@ class _LZh extends AppLocalizations {
   String get buyerSPaymentGoesBackTheir => '買家支付的款項將退回錢包；若賣家已收到貨款，將先行收回。';
 
   @override
-  String get orderReturnsWhereWasBeforeDispute => '訂單將恢復至申訴前的狀態並繼續交易；若先前已完成取書，貨款將撥付給賣家。';
+  String get orderReturnsWhereWasBeforeDispute => '訂單將恢復至申請爭議前的狀態並繼續交易；若先前已完成取書，貨款將撥付給賣家。';
 
   @override
   String get orderWasAlreadyRefundedBuyerCannot => '此訂單款項已退回買家，無法改回進行中或已完成';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '已完成的訂單只能改為「退款處理中」或「已退款」';
+  String get completedOrderCanOnlyChangedRefund => '已完成的訂單僅能改為「審核中」或「已退款」';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後將撥付 ${p0} 代幣給賣家，並將書籍標記為已售出。';
@@ -23388,7 +27431,7 @@ class _LZh extends AppLocalizations {
   String get systemNotificationSettings => '系統通知設定';
 
   @override
-  String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未設定推播，請加入 Firebase 設定檔後重新編譯。';
+  String get pushNotificationsNotSetUpBuild => '此版本的 App 未啟用推播通知。';
 
   @override
   String get notificationsTurnedOffAllowAppSend => '通知權限已關閉，請至系統設定允許此 App 傳送通知。';
@@ -23461,9 +27504,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get undone => '已還原';
-
-  @override
-  String get searchActionsEGNicknameBook => '搜尋操作內容，例如會員暱稱或書名';
 
   @override
   String viewP0Changes(Object p0) => '查看 ${p0} 項變更';
@@ -23607,9 +27647,6 @@ class _LZh extends AppLocalizations {
   String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額將為負數，目前餘額 ${p0}';
 
   @override
-  String get amountUp2Decimals => '金額（最多兩位小數）';
-
-  @override
   String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n調整後餘額 ${p1}';
 
   @override
@@ -23637,9 +27674,6 @@ class _LZh extends AppLocalizations {
   String sellerHoldingUntilP0(Object p0) => '賣家已為您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳';
-
-  @override
   String get copyAddress => '複製地址';
 
   @override
@@ -23664,7 +27698,7 @@ class _LZh extends AppLocalizations {
   String get buyNow => '立即購買';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》已下架';
+  String p0Delisted(Object p0) => '《${p0}》已取消上架';
 
   @override
   String noBooksMatchP0(Object p0) => '找不到符合「${p0}」的書籍';
@@ -23695,9 +27729,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get browseBooks => '瀏覽書籍';
-
-  @override
-  String p0Sellers(Object p0) => '${p0} 位賣家';
 
   @override
   String unavailableP0(Object p0) => '無法購買（${p0}）';
@@ -23823,9 +27854,6 @@ class _LZh extends AppLocalizations {
   String get holdMicTalkReleaseSend => '錄音時間過短';
 
   @override
-  String get startConversation => '對話開始';
-
-  @override
   String p0New(Object p0) => '${p0} 則新訊息';
 
   @override
@@ -23898,9 +27926,6 @@ class _LZh extends AppLocalizations {
   String get waitingBuyerCollect => '等待買家至書櫃取書';
 
   @override
-  String get transactionCompleteThank => '交易完成';
-
-  @override
   String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍。確認書況無誤後，請於購買紀錄完成訂單。';
 
   @override
@@ -23967,7 +27992,7 @@ class _LZh extends AppLocalizations {
   String otherDevicesP0(Object p0) => '其他裝置（${p0}）';
 
   @override
-  String get noOtherDevicesSigned => '沒有其他裝置登入您的帳號';
+  String get noOtherDevicesSigned => '目前無其他裝置登入';
 
   @override
   String get signedDevices => '登入裝置';
@@ -24015,9 +28040,6 @@ class _LZh extends AppLocalizations {
   String get set6DigitPaymentPin => '設定 6 位數交易密碼';
 
   @override
-  String get enterSamePinAgain => '請再次輸入相同密碼';
-
-  @override
   String get avoidRepeatedSequentialPatternedDigits => '不可使用相同、連續或重複的數字';
 
   @override
@@ -24025,9 +28047,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get paymentPin => '交易密碼';
-
-  @override
-  String stepP02(Object p0) => '步驟 ${p0} / 2';
 
   @override
   String get setPaymentPinFirst => '請先設定交易密碼';
@@ -24060,9 +28079,6 @@ class _LZh extends AppLocalizations {
   String get accountCouldSafer => '帳號安全性有待加強';
 
   @override
-  String get setPaymentPinTurnBiometricPayment => '尚未設定交易密碼';
-
-  @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，已鎖定至 ${p0}';
 
   @override
@@ -24087,7 +28103,7 @@ class _LZh extends AppLocalizations {
   String get draftSavedAutomatically => '已自動儲存草稿';
 
   @override
-  String get continueUnfinishedListing => '繼續上次未完成的刊登';
+  String get continueUnfinishedListing => '繼續上次未完成的上架';
 
   @override
   String clearedP0MbCache(Object p0) => '已清除 ${p0} MB 快取';
@@ -24157,18 +28173,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String p0Km(Object p0) => '${p0} 公里';
-
-  @override
-  String get iphoneDidnTReceiveApnsToken => '裝置未取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並使用同一個 Apple 開發者帳號重新安裝 App。';
-
-  @override
-  String get firebaseDidnTIssuePushToken => 'Firebase 未核發推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
-
-  @override
-  String couldnTGetPushTokenP0(Object p0) => '取得推播 token 失敗：${p0}';
-
-  @override
-  String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
 
   @override
   String get protectCoinsCheckoutRequires6Digit => '結帳前請先設定 6 位數交易密碼。';
@@ -24291,28 +28295,13 @@ class _LZh extends AppLocalizations {
   String p0P1DigitsEntered(Object p0, Object p1) => '已輸入 ${p0} / ${p1} 位';
 
   @override
-  String get buildSProvisioningProfileDoesnT => '此安裝版本的簽署描述檔未包含推播權限。請於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications，並刪除 App 後重新安裝。';
-
-  @override
-  String get checkPhoneOnlinePushNotificationsAdded => '請確認裝置已連上網路，並於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications。';
-
-  @override
-  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 註冊推播失敗：${p0}\n${p1}';
-
-  @override
   String get serverNotBeenUpdatedSupportFeature => '此功能暫時無法使用，請稍後再試';
 
   @override
   String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用';
 
   @override
-  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
-
-  @override
-  String serverVersionP0(Object p0) => '伺服器目前版本：${p0}';
-
-  @override
-  String get runNpmRunVerifyApiDirectory => '在伺服器的 API 目錄執行 npm run verify 可檢查完整的部署狀態。';
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器 API 版本過舊（目前 ${p0}，需要 ${p1}）。';
 
   @override
   String get serverUpdateRequired => '伺服器需要更新';
@@ -24612,7 +28601,7 @@ class _LZh extends AppLocalizations {
   String get appPermissions => 'App 權限';
 
   @override
-  String get noPermissionsRequiredDevice => '此裝置沒有需要授權的項目';
+  String get noPermissionsRequiredDevice => '此裝置無須授權任何項目';
 
   @override
   String get allowAll => '全部允許';
@@ -25368,9 +29357,6 @@ class _LZh extends AppLocalizations {
   String get byModel => '依模型';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
-
-  @override
   String get topMembers => '用量最高的會員';
 
   @override
@@ -25392,7 +29378,7 @@ class _LZh extends AppLocalizations {
   String get lookingUpBookDetails => '查詢書籍資料';
 
   @override
-  String get searchingWeb => '上網搜尋補充資料';
+  String get searchingWeb => '搜尋網路資料';
 
   @override
   String get analyzingPhotos => '分析照片';
@@ -25488,13 +29474,7 @@ class _LZh extends AppLocalizations {
   String get aiDataProcessing => 'AI 資料處理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
-
-  @override
-  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明與您選擇的照片';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏與購買紀錄中的書籍資訊';
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明、您選擇的照片，以及您填寫的作者、出版社、出版日期、分類與定價';
 
   @override
   String get aiDataProcessing2 => 'AI 資料處理說明';
@@ -25512,13 +29492,7 @@ class _LZh extends AppLocalizations {
   String get purpose => '使用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。';
-
-  @override
   String get withdrawingConsent => '撤回同意';
-
-  @override
-  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
 
   @override
   String get agreeContinue => '同意並繼續';
@@ -25560,22 +29534,16 @@ class _LZh extends AppLocalizations {
   String get popularLiteraryFictionRightNow => '最近熱門的文學小說';
 
   @override
-  String get tellMeWhatBookLooking => '請描述您想找的書籍';
-
-  @override
   String get describeBookLooking => '描述您想找的書籍';
-
-  @override
-  String get tellMeWhatWantReadI => '依您的需求推薦書籍';
 
   @override
   String get subtitle => '副標題';
 
   @override
-  String get monthOnly => '僅確認到月';
+  String get monthOnly => '僅精確至月';
 
   @override
-  String get yearOnly => '僅確認到年';
+  String get yearOnly => '僅精確至年';
 
   @override
   String get msg => '繁體中文';
@@ -25689,9 +29657,6 @@ class _LZh extends AppLocalizations {
   String get signWithMobileNumber => '手機號碼登入';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '將傳送 6 位數驗證碼至此手機號碼。';
-
-  @override
   String get mobileNumber => '手機號碼';
 
   @override
@@ -25707,9 +29672,6 @@ class _LZh extends AppLocalizations {
   String get enterCode => '輸入驗證碼';
 
   @override
-  String get enterSmsCode => '輸入簡訊驗證碼';
-
-  @override
   String codeWasSentP0(Object p0) => '驗證碼已傳送至 ${p0}';
 
   @override
@@ -25720,9 +29682,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get completeAccountDetails => '完成帳號資料';
-
-  @override
-  String get p0DidNotProvideEmailAddress => '請填寫電子郵件以完成註冊。';
 
   @override
   String signWithP0(Object p0) => '以 ${p0} 登入';
@@ -25779,7 +29738,7 @@ class _LZh extends AppLocalizations {
   String get socialSmsSignNotAvailableRight => '目前未開放社群與簡訊登入方式。';
 
   @override
-  String get noSignMethodAvailableLink => '目前沒有可綁定的登入方式。';
+  String get noSignMethodAvailableLink => '目前無可綁定的登入方式。';
 
   @override
   String get noPasswordSet => '尚未設定密碼';
@@ -25863,9 +29822,6 @@ class _LZh extends AppLocalizations {
   String get allowSigningLinkingWithMethod => '開放此方式登入與綁定';
 
   @override
-  String get appNeverStoresPasswordUsedOnly => '本 App 不會儲存您的密碼，僅用於本次驗證。';
-
-  @override
   String get verifyWithBiometricsInstead => '改用生物辨識驗證';
 
   @override
@@ -25884,12 +29840,6 @@ class _LZh extends AppLocalizations {
   String get masterSwitchOffSoEveryMethod => '總開關關閉，所有方式一律停用';
 
   @override
-  String get signLinkingDirectSignUpAllowed => '可登入、綁定與直接註冊';
-
-  @override
-  String credentialsNotSetPleaseConfigureP0(Object p0) => '尚未設定憑證，請於伺服器設定 ${p0}';
-
-  @override
   String get whenOffMethodHiddenFromSign => '關閉後登入頁與帳號安全將不顯示此方式';
 
   @override
@@ -25897,9 +29847,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get signMethodNotLinkedAccount => '此登入方式尚未綁定帳號';
-
-  @override
-  String p0AccountNotLinkedAnySavemybook(Object p0) => '${p0} 帳號尚未綁定救「舊」我的書帳號。';
 
   @override
   String get iAlreadyAccountSignFirst => '登入既有帳號並綁定';
@@ -25923,9 +29870,6 @@ class _LZh extends AppLocalizations {
   String get passkeys => '通行密鑰';
 
   @override
-  String get verifyWithFaceIdFingerprintScreen => '以此裝置的 Face ID、指紋或螢幕鎖定完成驗證，不必輸入密碼。';
-
-  @override
   String get verifyWithPasskey => '使用通行密鑰驗證';
 
   @override
@@ -25941,19 +29885,19 @@ class _LZh extends AppLocalizations {
   String get screenLock => '螢幕鎖定';
 
   @override
-  String fromNowCanSignVerifyIdentity(Object p0) => '之後登入與驗證身分可改用 ${p0}，不必再輸入密碼。';
+  String fromNowCanSignVerifyIdentity(Object p0) => '日後登入與驗證身分可使用 ${p0}，無須輸入密碼。';
 
   @override
   String get deletePasskey => '刪除通行密鑰';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。裝置中儲存的通行密鑰不會一併移除，可至系統的密碼設定中刪除。';
+  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。若裝置中仍保留此通行密鑰，可至系統的密碼設定中刪除。';
 
   @override
   String get passkeyDeleted => '已刪除通行密鑰';
 
   @override
-  String get signVerifyIdentityWithFaceId => '以 Face ID、指紋或螢幕鎖定登入與驗證身分，不必輸入密碼。通行密鑰只儲存在您的裝置與密碼管理工具中。';
+  String get signVerifyIdentityWithFaceId => '以 Face ID、指紋或螢幕鎖定登入與驗證身分，無須輸入密碼。';
 
   @override
   String get addPasskey => '新增通行密鑰';
@@ -26061,7 +30005,7 @@ class _LZh extends AppLocalizations {
   String get attachImages => '附加圖片';
 
   @override
-  String get imageCouldNotRead => '無法讀取這張圖片';
+  String get imageCouldNotRead => '無法讀取此圖片';
 
   @override
   String get up4ImagesPerMessage => '每則訊息最多附加 4 張圖片';
@@ -26097,7 +30041,7 @@ class _LZh extends AppLocalizations {
   String get newTier2 => '新等級';
 
   @override
-  String get whatMembersSee => '會員看到的樣式';
+  String get whatMembersSee => '會員端預覽';
 
   @override
   String get noThresholdSet => '尚未設定門檻';
@@ -26128,9 +30072,6 @@ class _LZh extends AppLocalizations {
 
   @override
   String get tierOrderUpdated => '已更新等級順序';
-
-  @override
-  String p0Members(Object p0) => '${p0} 位會員';
 
   @override
   String get tiers => '個等級';
@@ -26184,10 +30125,10 @@ class _LZh extends AppLocalizations {
   String emailAlreadyRegisteredSignLinkName(Object p0) => '此電子郵件已註冊，登入後即綁定 ${p0}。';
 
   @override
-  String signLinkNameCanThenSign(Object p0, Object p1) => '登入後即綁定 ${p0}，之後可直接使用 ${p1} 登入。';
+  String signLinkNameCanThenSign(Object p0, Object p1) => '登入後即綁定 ${p0}，日後可使用 ${p1} 登入。';
 
   @override
-  String get noPasskeyDevice => '此裝置沒有可用的通行密鑰';
+  String get noPasskeyDevice => '此裝置無可用的通行密鑰';
 
   @override
   String get signWithPasskeyAnotherDeviceSecurity => '可使用其他裝置上的通行密鑰或安全金鑰登入，或改用密碼。';
@@ -26298,7 +30239,7 @@ class _LZh extends AppLocalizations {
   String get paymentReleasedWalletWhenBuyerCompletes => '買家完成訂單或取書滿 24 小時後，款項將撥入您的錢包';
 
   @override
-  String get completeOrderAfterCheckingBookCompletes => '確認書況無誤後請完成訂單，取書滿 24 小時未申訴將自動完成';
+  String get completeOrderAfterCheckingBookCompletes => '確認書況無誤後請完成訂單，取書滿 24 小時未申請爭議將自動完成';
 
   @override
   String get completeOrder => '完成訂單';
@@ -26310,7 +30251,7 @@ class _LZh extends AppLocalizations {
   String get orderCompleted2 => '訂單已完成';
 
   @override
-  String get noReservedBooks => '目前沒有預訂的書籍';
+  String get noReservedBooks => '目前沒有預約的書籍';
 
   @override
   String heldUntilP02(Object p0) => '保留至 ${p0}';
@@ -26364,7 +30305,7 @@ class _LZh extends AppLocalizations {
   String get autoFilled => '自動補齊';
 
   @override
-  String get similarBooks => '相似的書';
+  String get similarBooks => '相似書籍';
 
   @override
   String get doNotPayTransferMoneyOutside => '請勿私下匯款或轉帳，站外付款不受平台保障';
@@ -26442,7 +30383,7 @@ class _LZh extends AppLocalizations {
   String get weOurSupportTeamNeverAsk => '平台與客服不會透過聊天要求您提供驗證碼、密碼或卡片資料';
 
   @override
-  String get doNotOpenUnknownShortLinks => '請勿點擊來路不明的短網址，也不要依對方指示操作網路銀行或 ATM';
+  String get doNotOpenUnknownShortLinks => '請勿點擊來源不明的短網址，亦勿依對方指示操作網路銀行或 ATM';
 
   @override
   String get cancelInstallmentsAccountFrozenPaymentVerification => '「解除分期」「帳戶凍結」「金流認證」「購買遊戲點數」皆為常見詐騙話術';
@@ -26469,9 +30410,6 @@ class _LZh extends AppLocalizations {
   String get listed3 => '上架日期';
 
   @override
-  String get someDetailsWereFilledAutomaticallyFrom => '部分資料依 ISBN 書目自動補齊';
-
-  @override
   String get summarizedByAiFromBookRecords => '由 AI 依書目整理';
 
   @override
@@ -26481,22 +30419,1414 @@ class _LZh extends AppLocalizations {
   String get aboutBook => '內容簡介';
 
   @override
-  String becauseBoughtP0(Object p0) => '因為您買過《${p0}》';
+  String becauseBoughtP0(Object p0) => '與已購買的《${p0}》相關';
 
   @override
-  String becauseSavedP0(Object p0) => '因為您收藏了《${p0}》';
+  String becauseSavedP0(Object p0) => '與已收藏的《${p0}》相關';
 
   @override
   String relatedP0Cart(Object p0) => '與您購物車中的《${p0}》相關';
 
   @override
-  String becauseViewedP0(Object p0) => '因為您看過《${p0}》';
+  String becauseViewedP0(Object p0) => '與瀏覽過的《${p0}》相關';
 
   @override
-  String moreP0CategoryBrowseOften(Object p0) => '您常看的「${p0}」';
+  String moreP0CategoryBrowseOften(Object p0) => '「${p0}」類別推薦';
 
   @override
   String get morePicks => '更多推薦';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '通行密鑰操作已中斷，請再試一次';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '未能以此裝置的通行密鑰完成驗證，請改用其他方式';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '在此 iOS 版本重新新增，會取代 iCloud 鑰匙圈中原有的通行密鑰；若新增未完成，原有通行密鑰將無法復原。建議先更新至 iOS 17.4 以上版本。';
+
+  @override
+  String get cannotAddPasskeyDevice => '此裝置目前無法新增通行密鑰';
+
+  @override
+  String get recordRemoval => '登記取出';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。登記後書籍將下架。';
+
+  @override
+  String get removalRecorded => '已登記取出';
+
+  @override
+  String get booksLockers => '存書列表';
+
+  @override
+  String get overdue => '逾期';
+
+  @override
+  String get noOverdueBooks => '沒有逾期的存書';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '目前沒有存放於書櫃的書籍';
+
+  @override
+  String get salesPaused => '暫停販售';
+
+  @override
+  String get adminsNotified => '已通知管理員';
+
+  @override
+  String get confirmPurchase => '確認購買';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '此書已存放於書櫃，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '已暫停販售，請至書櫃取回書籍';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '書籍已存放於書櫃，下單後即可取書';
+
+  @override
+  String get notYetLocker => '尚未存入書櫃';
+
+  @override
+  String get retrieve => '回報取回';
+
+  @override
+  String get dropOff => '登記存書';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '已存放於書櫃的書籍，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get placedLockerToday => '今日存入書櫃';
+
+  @override
+  String lockerP0Days(Object p0) => '已存放 ${p0} 天';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '請確認已自「${p0}」取回《${p1}》。';
+
+  @override
+  String get allLockers => '全部書櫃';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '存書期間無法變更書櫃';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '取消上架後，《${p0}》將不再於商城顯示，買家將無法瀏覽。由於此書存放於書櫃中，須先取回書籍並回報，才能重新上架。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '書籍已在書櫃，可立即取書';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。';
+
+  @override
+  String get inLocker => '已在書櫃';
+
+  @override
+  String get inAnotherLocker => '存放於其他書櫃';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '確認已將此訂單的 ${p0} 本書全部放入書櫃？';
+
+  @override
+  String get awaitingRetrieval => '待取回';
+
+  @override
+  String get bookAdvisorSelection => '書籍顧問選書';
+
+  @override
+  String get bookInfoAutoFill => '書籍資料補齊';
+
+  @override
+  String get disputeAnalysis => '爭議分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '本月預算已用盡';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '涵蓋率：書籍 ${p0}、客服知識 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最近同步：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '背景同步暫停至 ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '語意查詢暫停至 ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => '最近錯誤：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 次・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => '關閉 AI 資料處理';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => '關閉後將停止使用 AI 功能，並刪除您的 AI 客服與書籍顧問對話紀錄，且無法復原。';
+
+  @override
+  String get turnOff => '確認關閉';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '您輸入的訊息與對話內容，以及您本人的訂單（含存書、取書與完成時間）、預約、上架書籍（含審核原因）、交易爭議的處理狀態與結果、錢包餘額與最近收支、最近的客服工單';
+
+  @override
+  String get requestsConversationHistoryEnter => '您輸入的需求與對話內容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '您的收藏、購買紀錄、購物車與最近瀏覽中的書籍資訊';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 資料處理說明已更新，請重新閱讀並同意。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '其中提問、需求與書籍資訊另由 ${p0} 轉換為語意向量，以檢索相關內容。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '僅用於產生客服回覆、推薦與檢索書籍、整理上架資料，不會用於廣告或追蹤。';
+
+  @override
+  String get retentionPeriod => '保存期限';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 客服與書籍顧問的對話紀錄（含您對回覆的評價）自最後一次對話起保存 90 天，期滿自動刪除；AI 功能的處理紀錄保存 90 天，不含對話內容與照片。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料，並刪除 AI 客服與書籍顧問的對話紀錄。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '使用者亦須重新同意 AI 資料處理，才能繼續使用 AI 功能。';
+
+  @override
+  String get consentRequiredAgain => '須重新同意';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 書籍顧問的次數以使用者傳送的訊息數計算。';
+
+  @override
+  String get noObviousIssuesFound => '未發現明顯問題';
+
+  @override
+  String aiAssessmentP0(Object p0) => 'AI 判定：${p0}';
+
+  @override
+  String get reservedModerationAdminTools => '審核與管理輔助保留（%）';
+
+  @override
+  String memberFeaturesCanUseP0Budget(Object p0) => '會員功能可用預算的 ${p0}%';
+
+  @override
+  String memberFeatureCapP0(Object p0) => '會員功能上限 ${p0}';
+
+  @override
+  String p0ListingsSaleNotReviewedOver(Object p0) => '${p0} 本在售書籍超過 1 小時未完成審核';
+
+  @override
+  String get backupProvider => '備援服務商';
+
+  @override
+  String get none => '不使用';
+
+  @override
+  String get sameAsCurrentProvider => '與目前使用的服務商相同';
+
+  @override
+  String get sameAsCurrentProviderSoNo => '與目前使用的服務商相同，不會啟用備援';
+
+  @override
+  String get outcomes => '處理結果';
+
+  @override
+  String get processingPaths => '處理路徑';
+
+  @override
+  String get indicators => '指標';
+
+  @override
+  String get promptVersions => '提示詞版本';
+
+  @override
+  String get embeddingCostsBySource => '向量費用歸屬';
+
+  @override
+  String get succeeded => '成功';
+
+  @override
+  String get repaired => '修復後採用';
+
+  @override
+  String get degraded => '降級處理';
+
+  @override
+  String get emptyAfterCleanup => '清理後為空';
+
+  @override
+  String get refusedByProvider => '遭服務商拒絕';
+
+  @override
+  String get scanLockerQrCode => '掃描書櫃 QR Code';
+
+  @override
+  String get flashlight => '手電筒';
+
+  @override
+  String get pasteQrContent => '貼上 QR 內容';
+
+  @override
+  String get pointQrCodeLockerScreen => '請對準書櫃螢幕上的 QR Code';
+
+  @override
+  String get checkingLocker => '正在確認書櫃';
+
+  @override
+  String get confirmLockerTask => '確認書櫃作業';
+
+  @override
+  String get retrieveBooks => '取回書籍';
+
+  @override
+  String get booksSameDoorRetrievedTogether => '同一櫃門的書籍將一併取回';
+
+  @override
+  String confirmWithinP0(Object p0) => '請於 ${p0} 內確認';
+
+  @override
+  String get openDoor => '開啟櫃門';
+
+  @override
+  String get openingDoor => '櫃門開啟中';
+
+  @override
+  String placeTheseBooksDoorP0(Object p0) => '請將下列書籍放入櫃門 ${p0}';
+
+  @override
+  String takeBooksFromDoorP0(Object p0) => '請取出櫃門 ${p0} 內的書籍';
+
+  @override
+  String retrieveBooksFromDoorP0(Object p0) => '請取回櫃門 ${p0} 內的書籍';
+
+  @override
+  String get rescan => '重新掃描';
+
+  @override
+  String get openMap => '開啟地圖';
+
+  @override
+  String get reportManually => '改為手動回報';
+
+  @override
+  String get continueTask => '繼續作業';
+
+  @override
+  String get cancelTask => '取消作業';
+
+  @override
+  String get reportSubmittedTakesEffectAfterSupport => '已送出手動回報，待客服確認後生效';
+
+  @override
+  String get manualReportAwaitingConfirmation => '手動回報待客服確認';
+
+  @override
+  String onceDelistedP0NoLongerAppear(Object p0) => '取消上架後，《${p0}》將不再於商城顯示。此書存放於書櫃中，須先至書櫃以 App 掃描 QR Code 取回書籍，方可重新上架。';
+
+  @override
+  String get lockerDevice => '書櫃裝置';
+
+  @override
+  String get deviceId => '裝置編號';
+
+  @override
+  String get deviceType => '裝置種類';
+
+  @override
+  String get firmware => '韌體版本';
+
+  @override
+  String get lastSeen => '最後連線';
+
+  @override
+  String get pairingTime => '配對時間';
+
+  @override
+  String get doorSensors => '門磁感測器';
+
+  @override
+  String get installed => '已安裝';
+
+  @override
+  String get notInstalled => '未安裝';
+
+  @override
+  String get numberDoors => '櫃門數';
+
+  @override
+  String get simulatorUrl => '模擬書櫃網址';
+
+  @override
+  String get revokeDevice => '撤銷裝置';
+
+  @override
+  String onceRevokedDeviceCanNoLonger(Object p0) => '撤銷後，此裝置將無法再操作「${p0}」，書櫃將改為手動回報。';
+
+  @override
+  String faultP0(Object p0) => '故障：${p0}';
+
+  @override
+  String get clearFault => '清除故障';
+
+  @override
+  String get faultCleared => '已清除故障';
+
+  @override
+  String get doors => '櫃門';
+
+  @override
+  String get noContentsRecorded => '無存放紀錄';
+
+  @override
+  String get openDoorRemotely => '遠端開啟櫃門';
+
+  @override
+  String get openingReason => '開啟原因';
+
+  @override
+  String get describeReasonRecordedOperationLog => '請說明開啟原因，將記錄於操作紀錄';
+
+  @override
+  String get openCommandSent => '已送出開門指令';
+
+  @override
+  String get staffRetrievalOverdueBooks => '派員取出逾期存放的書籍';
+
+  @override
+  String get openWithoutNumberConfirmation => '不經數字確認直接開啟';
+
+  @override
+  String get onlyDoorsWithNoRecordedContents => '僅限無存放紀錄的櫃門，供測試電磁鎖使用。櫃門將在無人確認的情況下開啟。';
+
+  @override
+  String get contentsNeedChecking => '待確認存放內容';
+
+  @override
+  String get confirmContents => '確認內容無誤';
+
+  @override
+  String get contentsConfirmed => '已確認存放內容';
+
+  @override
+  String get booksMayInside => '可能存放的書籍';
+
+  @override
+  String get recordContents => '登記存放內容';
+
+  @override
+  String get selectItemsActuallyStoredDoor => '請選擇實際存放於此櫃門的項目';
+
+  @override
+  String get clearContentsRecord => '清空存放紀錄';
+
+  @override
+  String get booksRemoved => '書籍已取出';
+
+  @override
+  String get correctRecordOnly => '僅更正紀錄';
+
+  @override
+  String confirmStaffRemovedBooksFromDoor(Object p0) => '請確認已由人員自櫃門 ${p0} 取出書籍。存書登記將刪除，書籍改為下架，並通知賣家。';
+
+  @override
+  String confirmTheseBooksNotActuallyDoor(Object p0) => '請確認櫃門 ${p0} 內實際沒有這些書籍。僅刪除櫃門紀錄，不變更訂單或存書狀態。';
+
+  @override
+  String get describeReasonClearing => '請說明清空原因';
+
+  @override
+  String get itemsWithoutDoorRecord => '未登記櫃門的項目';
+
+  @override
+  String get tasksConfirm => '待確認作業';
+
+  @override
+  String get markAsCompleted => '確認已完成';
+
+  @override
+  String get markAsNotCompleted => '確認未完成';
+
+  @override
+  String get resolutionNote => '處理說明';
+
+  @override
+  String get ordersDropOffsUpdatedAccordingTask => '將依作業內容更新訂單與存書狀態';
+
+  @override
+  String get ordersDropOffsStayUnchanged => '訂單與存書狀態維持不變';
+
+  @override
+  String get recentTasks => '最近作業';
+
+  @override
+  String get taskDetails => '作業詳情';
+
+  @override
+  String get noTasksYet => '尚無作業紀錄';
+
+  @override
+  String get eventLog => '事件紀錄';
+
+  @override
+  String get noEventsYet => '尚無事件紀錄';
+
+  @override
+  String get closedBy => '關門方式';
+
+  @override
+  String get itemsConfirmed => '確認項目';
+
+  @override
+  String get taskItems => '作業項目';
+
+  @override
+  String get resolutionRecord => '處理紀錄';
+
+  @override
+  String taskProgressP0(Object p0) => '進行中作業：${p0}';
+
+  @override
+  String checkContentsDoorP0(Object p0) => '請確認櫃門 ${p0} 的存放內容';
+
+  @override
+  String get manualReportsConfirm => '待確認手動回報';
+
+  @override
+  String get confirmReport => '確認回報';
+
+  @override
+  String get rejectReport => '駁回回報';
+
+  @override
+  String get manualReportConfirmed => '已確認手動回報';
+
+  @override
+  String get manualReportRejected => '已駁回手動回報';
+
+  @override
+  String get ordersDropOffsUpdatedAsReported => '確認後將依回報內容更新訂單或存書狀態，並通知相關使用者。';
+
+  @override
+  String get statusStaysUnchangedReporterNotified => '駁回後狀態維持不變，並通知回報者。';
+
+  @override
+  String get noManualReportsConfirm => '尚無待確認的手動回報';
+
+  @override
+  String get reporter => '回報者';
+
+  @override
+  String get scanLockerCollect => '掃描書櫃取書';
+
+  @override
+  String get scanLockerDropOff => '掃描書櫃存書';
+
+  @override
+  String get scanLockerRetrieve => '掃描書櫃取回';
+
+  @override
+  String lockerClosedNowOpeningHoursP0(Object p0) => '目前非書櫃營業時間，營業時間為 ${p0}';
+
+  @override
+  String get lockerUnderMaintenance => '此書櫃維修中，暫停服務';
+
+  @override
+  String get lockerOutService => '此書櫃暫停服務';
+
+  @override
+  String get noDoorsAvailableMoment => '書櫃目前沒有可用的櫃門';
+
+  @override
+  String get lockerOfflineSoDoorCannotOpened => '書櫃目前連線中斷，無法以掃碼開啟櫃門。請依客服指示放入或取出書籍後再回報，回報經客服確認後生效。';
+
+  @override
+  String get lockerOutOrderSoDoorCannot => '書櫃目前故障，無法以掃碼開啟櫃門。請依客服指示放入或取出書籍後再回報，回報經客服確認後生效。';
+
+  @override
+  String get manualReportsTakeEffectAfterSupport => '手動回報經客服確認後生效。';
+
+  @override
+  String get notSavemybookLockerQrCode => '此 QR Code 並非本平台書櫃之 QR Code';
+
+  @override
+  String get lockerQrCodeChangedScanCode => '書櫃 QR Code 已更新，請重新掃描書櫃螢幕上的 QR Code';
+
+  @override
+  String get lockerUsePleaseWaitScanAgain => '書櫃使用中，請稍候再掃描';
+
+  @override
+  String get lockerOfflineTemporarilyUnavailable => '書櫃目前連線中斷，暫時無法使用';
+
+  @override
+  String get itemChangedRefreshTryAgain => '項目狀態已變更，請重新整理後再試';
+
+  @override
+  String get noItemsHandleLocker => '您在此書櫃沒有待辦理的項目';
+
+  @override
+  String get lockerTaskProgressFinishCancelFirst => '您有進行中的書櫃作業，請先完成或取消';
+
+  @override
+  String get selectLeastOneItem => '請至少選擇一個項目';
+
+  @override
+  String get notEnoughDoorsAvailableSelectFewer => '此書櫃可用的櫃門不足，請減少存書項目或稍後再試';
+
+  @override
+  String get someItemsChangedPleaseConfirmAgain => '部分項目狀態已變更，請重新確認';
+
+  @override
+  String get lockerTaskWasNotFound => '找不到此書櫃作業';
+
+  @override
+  String get actionNotAvailableRightNow => '目前無法執行此操作';
+
+  @override
+  String get lockerRequiresScanningScanQrCode => '此書櫃已啟用掃碼存取，請至書櫃掃描 QR Code 辦理';
+
+  @override
+  String get orderBeingHandledLockerPleaseTry => '此訂單正於書櫃辦理中，請稍後再試';
+
+  @override
+  String get manualReportItemAlreadyAwaitingConfirmation => '此項目已有待客服確認的手動回報';
+
+  @override
+  String aboutP0FromLockerPleaseUse(Object p0) => '您目前的位置距離書櫃約 ${p0}，請於書櫃旁操作';
+
+  @override
+  String itemAssignedP0PleaseUseLocker(Object p0) => '此項目的指定書櫃為「${p0}」，請至該書櫃辦理';
+
+  @override
+  String severalTasksLockerWereNotCompleted(Object p0) => '您在此書櫃的作業多次未完成，請於 ${p0} 分鐘後再試';
+
+  @override
+  String itemsP0(Object p0) => '您的待辦項目位於：${p0}';
+
+  @override
+  String get taskComplete => '作業完成';
+
+  @override
+  String get someItemsWereNotCompleted => '部分項目未完成';
+
+  @override
+  String get numberDidNotMatchTaskBeen => '數字不符，本次作業已取消';
+
+  @override
+  String get numberWasNotConfirmedTimeTask => '未於時限內完成數字確認，本次作業已取消';
+
+  @override
+  String get itemsWereNotConfirmedTimeTask => '未於時限內確認項目，本次作業已取消';
+
+  @override
+  String get lockerDidNotRespondDoorWas => '書櫃未回應，櫃門未開啟，請稍後再試';
+
+  @override
+  String get taskBeenCancelled => '本次作業已取消';
+
+  @override
+  String get lockerDidNotConfirmDoorOpened => '未收到書櫃的開門回報，本次作業待客服確認';
+
+  @override
+  String get thereWasLockerConnectionProblemSupport => '書櫃連線異常，本次作業待客服確認';
+
+  @override
+  String get lockerRestartedSupportConfirmTask => '書櫃重新啟動，本次作業待客服確認';
+
+  @override
+  String get supportConfirmedTaskComplete => '客服已確認本次作業完成';
+
+  @override
+  String get supportConfirmedTaskWasNotCompleted => '客服已確認本次作業未完成，狀態未變更';
+
+  @override
+  String get supportEndedTask => '客服已結束本次作業';
+
+  @override
+  String get dropOffCompleteBuyerBeenNotified => '存書完成，已通知買家取書';
+
+  @override
+  String get dropOffComplete => '存書完成';
+
+  @override
+  String get retrievalComplete => '取回完成';
+
+  @override
+  String get doorCouldNotIdentifiedPleaseContact => '無法確認櫃門，請聯絡客服';
+
+  @override
+  String get doorFaultyPleaseContactSupport => '櫃門故障，請聯絡客服';
+
+  @override
+  String get doorAwaitingCheckBySupportPlease => '櫃門待客服確認，請聯絡客服';
+
+  @override
+  String get reachedPreSaleDropOffLimit => '您在此書櫃的先行存書已達上限，請待售出或取回後再存入';
+
+  @override
+  String get itemChanged => '項目狀態已變更';
+
+  @override
+  String get doorDidNotOpen => '櫃門未能開啟';
+
+  @override
+  String get doorOpeningNotConfirmedSupportCheck => '未收到櫃門開啟回報，待客服確認';
+
+  @override
+  String get anotherItemDoorSupportCheck => '櫃門內有其他項目，待客服確認';
+
+  @override
+  String notCompletedP0(Object p0) => '未完成：${p0}';
+
+  @override
+  String bookBeenSoldAfterRetrievingDrop(Object p0) => '此書籍已售出，取回後請存入「${p0}」';
+
+  @override
+  String doorP0(Object p0) => '櫃門 ${p0}';
+
+  @override
+  String get confirmingItems => '確認項目中';
+
+  @override
+  String get confirmingNumber => '數字確認中';
+
+  @override
+  String get opening => '開門中';
+
+  @override
+  String get doorOpened => '櫃門已開啟';
+
+  @override
+  String get partlyCompleted => '部分完成';
+
+  @override
+  String get failed => '失敗';
+
+  @override
+  String get modelAnswer => '模型回答';
+
+  @override
+  String get replacedWithStandardNotice => '改用固定說明';
+
+  @override
+  String get clarifyingQuestion => '釐清需求';
+
+  @override
+  String get noSuitableBooks => '無合適書籍';
+
+  @override
+  String get fellBackSearchRanking => '改用檢索排序';
+
+  @override
+  String get fellBackPopularBooks => '改列熱門書籍';
+
+  @override
+  String get recommendationsGenerated => '已產生推薦';
+
+  @override
+  String get noSuitableCandidates => '無合適候選書';
+
+  @override
+  String get noCandidates => '無候選書';
+
+  @override
+  String get modelSuggestionsUsed => '採用模型建議';
+
+  @override
+  String get bibliographicDataOnly => '僅帶入書目資料';
+
+  @override
+  String get handoffSuggested => '建議轉接';
+
+  @override
+  String get insufficientGrounding => '依據不足';
+
+  @override
+  String get continuedPreviousCriteria => '延續前一輪條件';
+
+  @override
+  String get reusedPreviousTopic => '沿用前一輪主題';
+
+  @override
+  String get noSearchMatch => '未命中檢索';
+
+  @override
+  String get invalidBookCodesReturned => '書單含無效代號';
+
+  @override
+  String get webSearchUsed => '使用網路搜尋';
+
+  @override
+  String get retriedWithoutSearch => '改為不搜尋重試';
+
+  @override
+  String get backupProviderUsed => '改用備援服務商';
+
+  @override
+  String get conditionAdjustedFromNotes => '依說明調整書況';
+
+  @override
+  String get avgPassagesRetrieved => '平均檢索段落數';
+
+  @override
+  String get avgCandidates => '平均候選書數';
+
+  @override
+  String get avgFillerBooks => '平均補位書數';
+
+  @override
+  String get avgBooksRecommended => '平均推薦書數';
+
+  @override
+  String get avgBooksSelected => '平均採用書數';
+
+  @override
+  String get avgInvalidCodes => '平均無效代號數';
+
+  @override
+  String get avgPhotos => '平均照片數';
+
+  @override
+  String get avgSources => '平均參考來源數';
+
+  @override
+  String get bookSearch => '書籍搜尋';
+
+  @override
+  String get fellBackReferencePassage => '改用說明原文';
+
+  @override
+  String get booksSelectedByModel => '模型選書';
+
+  @override
+  String get indexUpdates => '索引更新';
+
+  @override
+  String get sourceNotRecorded => '未標示來源';
+
+  @override
+  String get outputFormatErrors => '輸出格式錯誤';
+
+  @override
+  String get suggestMediation => '建議協調處理';
+
+  @override
+  String get handoffEnforcedBySystem => '由系統強制轉接';
+
+  @override
+  String get followUpSuggestionsProvided => '附有追問建議';
+
+  @override
+  String get replyTitleNotBookCards => '回覆書名與書卡不符';
+
+  @override
+  String get replyMentionsPrice => '回覆提及價格';
+
+  @override
+  String get replyDeniesResultsDespiteBookCards => '有書卡但回覆稱無相關書籍';
+
+  @override
+  String get completeItemsKeptAfterTruncation => '輸出截斷後保留完整項目';
+
+  @override
+  String get somePhotosNotSent => '部分照片未送出';
+
+  @override
+  String get noEvidencePhotosSent => '佐證照片皆未送出';
+
+  @override
+  String get findingsCitePhotos => '觀察重點引用照片';
+
+  @override
+  String get avgPassagesCited => '平均引用段落數';
+
+  @override
+  String get avgInvalidRecommendationBases => '平均無效推薦依據數';
+
+  @override
+  String get avgSystemGeneratedReasons => '平均系統產生理由數';
+
+  @override
+  String get avgInvalidPhotoReferences => '平均無效照片編號數';
+
+  @override
+  String get favorsBuyer => '有利買家';
+
+  @override
+  String get favorsSeller => '有利賣家';
+
+  @override
+  String get insidePage => '內頁';
+
+  @override
+  String photoP0Evidence(Object p0) => '照片 ${p0}（佐證）';
+
+  @override
+  String photoP0P1P2(Object p0, Object p1, Object p2) => '照片 ${p0}（《${p1}》${p2}）';
+
+  @override
+  String photoP0P1(Object p0, Object p1) => '照片 ${p0}（${p1}）';
+
+  @override
+  String aiReviewedP0ListingP1Evidence(Object p0, Object p1, Object p2) => 'AI 參考：上架 ${p0} 張、佐證 ${p1} 張，另有 ${p2} 張未送出';
+
+  @override
+  String aiReviewedP0ListingP1Evidence2(Object p0, Object p1) => 'AI 參考：上架 ${p0} 張、佐證 ${p1} 張';
+
+  @override
+  String someItemsMalformedP0(Object p0) => '部分項目格式不符 ${p0}';
+
+  @override
+  String fieldsDefaultedP0(Object p0) => '欄位改用預設值 ${p0}';
+
+  @override
+  String get highConfidence => '可信度：高';
+
+  @override
+  String get mediumConfidence => '可信度：中';
+
+  @override
+  String get lowConfidence => '可信度：低';
+
+  @override
+  String get writtenByAi => 'AI 撰寫';
+
+  @override
+  String get clearBibliographyCache => '清除書目快取';
+
+  @override
+  String get bookDetailsLookedUpAgainNext => '其他賣家上架此 ISBN 時將重新查詢書目資料。';
+
+  @override
+  String get bibliographyCacheIsbnCleared => '已清除此 ISBN 的書目快取';
+
+  @override
+  String get noBibliographyCacheIsbn => '此 ISBN 無書目快取';
+
+  @override
+  String get lookUpListPrice => '查詢定價';
+
+  @override
+  String get assessConditionPrice => '判斷書況與售價';
+
+  @override
+  String get aiRepliesReferenceOnlyOrderPage => 'AI 回覆僅供參考，實際以訂單頁面與客服人員說明為準';
+
+  @override
+  String get preFilledFromSupportEnquiryReview => '已依客服工單預填，請確認內容後再儲存。';
+
+  @override
+  String get noData => '無資料';
+
+  @override
+  String get sellingPrice => '售價';
+
+  @override
+  String get aiQuality => 'AI 品質';
+
+  @override
+  String get overturnedByAdmins => '管理員推翻比例';
+
+  @override
+  String get flaggedByInstantRules => '即時規則送審';
+
+  @override
+  String get flaggedByAi => 'AI 送審';
+
+  @override
+  String get transferredSupportAgents => '轉由客服人員處理';
+
+  @override
+  String get ratedNotHelpful => '評為沒有幫助';
+
+  @override
+  String get repliesWithoutBooks => '未附書籍的回覆';
+
+  @override
+  String get disputeAnalysis2 => '交易爭議分析';
+
+  @override
+  String get suggestionMatchedDecision => '建議與裁決一致';
+
+  @override
+  String get ratedHelpful => '評為有幫助';
+
+  @override
+  String get bookRecommendations => '書籍推薦';
+
+  @override
+  String get aiRecommendationClickThroughRate => 'AI 推薦點擊率';
+
+  @override
+  String get standardRecommendationClickThroughRate => '一般推薦點擊率';
+
+  @override
+  String get markedNotInterested => '標示不感興趣';
+
+  @override
+  String get listingAssistantAdoptionRate => '上架輔助採用率';
+
+  @override
+  String get listingsUsingAssistant => '使用上架輔助的書籍';
+
+  @override
+  String get createdFromSupportEnquiries => '由客服工單建立';
+
+  @override
+  String get rejectionReason => '駁回原因類別';
+
+  @override
+  String get sourceInstantRules => '來源：即時規則';
+
+  @override
+  String get sourceAiAssessment => '來源：AI 判定';
+
+  @override
+  String confidenceP0(Object p0) => '可信度 ${p0}';
+
+  @override
+  String aiAssessmentConfidenceP0(Object p0) => 'AI 判定可信度 ${p0}';
+
+  @override
+  String get assessment => '判定';
+
+  @override
+  String get description3 => '描述';
+
+  @override
+  String get markReviewReasonAsUnfoundedWhen => '核准時標示送審原因不成立';
+
+  @override
+  String get showPhotosFullDetails => '顯示照片與完整內容';
+
+  @override
+  String analysedP0(Object p0) => '分析時間：${p0}';
+
+  @override
+  String get wasAnalysisHelpful => '此分析是否有幫助';
+
+  @override
+  String get helpful => '有幫助';
+
+  @override
+  String get notHelpful => '沒有幫助';
+
+  @override
+  String get recommendedBooksDoNotMatchMy => '推薦書籍不符合需求';
+
+  @override
+  String get inaccurateInformation => '內容不正確';
+
+  @override
+  String get didNotAnswerQuestion => '未回答問題';
+
+  @override
+  String get insufficientInformation => '資訊不足';
+
+  @override
+  String get selectReason => '請選擇原因';
+
+  @override
+  String get notInterested => '不感興趣';
+
+  @override
+  String get bookNoLongerRecommended => '已不再推薦此書';
+
+  @override
+  String get cachedBibliographicDataUsed => '沿用快取書目';
+
+  @override
+  String get cachedDescriptionUsed => '沿用快取簡介';
+
+  @override
+  String get isbnTitleDoNotMatch => 'ISBN 與書名不一致';
+
+  @override
+  String get awaitingReview => '待確認';
+
+  @override
+  String get orderDropOff => '依訂單存書';
+
+  @override
+  String get preSaleDropOff => '先行存書';
+
+  @override
+  String get retrieval => '取回';
+
+  @override
+  String get adminOpening => '管理員開櫃';
+
+  @override
+  String get countdownEnded => '倒數結束';
+
+  @override
+  String get doorSensor => '門磁感測';
+
+  @override
+  String get deviceRestarted => '裝置重新啟動';
+
+  @override
+  String get resolvedBySupport => '客服處理';
+
+  @override
+  String get deviceStarted => '裝置啟動';
+
+  @override
+  String get doorClosed => '櫃門已關閉';
+
+  @override
+  String get taskCloseReported => '作業結束回報';
+
+  @override
+  String get fault => '故障';
+
+  @override
+  String get faultResolved => '故障排除';
+
+  @override
+  String get unexpectedDoorOpening => '櫃門異常開啟';
+
+  @override
+  String get connectionLost => '連線中斷';
+
+  @override
+  String get connectionRestored => '恢復連線';
+
+  @override
+  String get paired => '完成配對';
+
+  @override
+  String get deviceRevoked => '已撤銷裝置';
+
+  @override
+  String get taskCreated => '建立作業';
+
+  @override
+  String get taskFinished => '作業結束';
+
+  @override
+  String get scanRejected => '掃碼遭拒';
+
+  @override
+  String get remoteOpening => '遠端開櫃';
+
+  @override
+  String get contentsRecorded => '已登記存放內容';
+
+  @override
+  String get contentsRecordCleared => '已清空存放紀錄';
+
+  @override
+  String get credentialPossiblyCopied => '憑證疑遭複製';
+
+  @override
+  String get sourceIpChanged => '來源 IP 變更';
+
+  @override
+  String get doorNeedsChecking => '櫃門待確認';
+
+  @override
+  String get doorChecked => '櫃門確認完成';
+
+  @override
+  String get itemBlocked => '項目無法辦理';
+
+  @override
+  String get manualReport => '手動回報';
+
+  @override
+  String get manualReportReviewed => '手動回報處理';
+
+  @override
+  String get overdueOrderHeld => '逾期訂單待處理';
+
+  @override
+  String get doorOpenedAfterTask => '作業結束後開門';
+
+  @override
+  String get lockDidNotRelease => '電磁鎖未釋放';
+
+  @override
+  String get doorLeftOpen => '櫃門未關閉';
+
+  @override
+  String get doorForcedOpen => '櫃門遭強制開啟';
+
+  @override
+  String get sensorError => '感測器異常';
+
+  @override
+  String get powerProblem => '電源異常';
+
+  @override
+  String get screenProblem => '螢幕異常';
+
+  @override
+  String get dropOffCancelledAfterDoorOpened => '存書作業開門後取消';
+
+  @override
+  String get dropOffMarkedAsNotCompleted => '客服確認未完成的存書作業';
+
+  @override
+  String get anotherItemWasAlreadyDoor => '存書時門內已有其他項目';
+
+  @override
+  String get doorOpeningNotReported => '未收到開門回報';
+
+  @override
+  String get doorReportedOpenAfterTaskEnded => '作業結束後回報開門';
+
+  @override
+  String get manualReportDuringFault => '故障期間的手動回報';
+
+  @override
+  String get openedByStaff => '管理人員開啟過此櫃門';
+
+  @override
+  String get orderCompletedBySupportBeforePickup => '客服將未取書的訂單改為完成';
+
+  @override
+  String get noDevice => '未配對裝置';
+
+  @override
+  String get deviceOffline => '裝置離線';
+
+  @override
+  String get deviceFault => '裝置故障';
+
+  @override
+  String get underMaintenance => '書櫃維修中';
+
+  @override
+  String get scanningRequired => '使用者須掃碼存取';
+
+  @override
+  String manualReportingAllowedP0(Object p0) => '開放手動回報（${p0}）';
+
+  @override
+  String userAccessSuspendedP0(Object p0) => '暫停使用者存取（${p0}）';
+
+  @override
+  String get simulator => '模擬書櫃';
+
+  @override
+  String get physicalLocker => '實體書櫃';
+
+  @override
+  String get noDevicePaired => '尚未配對裝置';
+
+  @override
+  String get awaitingPairing => '等待配對';
+
+  @override
+  String get online => '連線中';
+
+  @override
+  String get offline => '離線';
+
+  @override
+  String get locationNotPermitted => '未授權定位';
+
+  @override
+  String get locationUnavailable => '無法取得定位';
+
+  @override
+  String aboutP0Away(Object p0) => '距離約 ${p0}';
+
+  @override
+  String get dropOffReport => '存書回報';
+
+  @override
+  String get pickupReport => '取書回報';
+
+  @override
+  String get retrievalReport => '取回回報';
+
+  @override
+  String get confirmed => '已確認';
+
+  @override
+  String get noLongerValid => '已失效';
+
+  @override
+  String get lockerInactive => '書櫃停用';
+
+  @override
+  String get selectDoorWhereBooksActuallyStored => '請選擇書籍實際存放的櫃門';
+
+  @override
+  String offlineP0(Object p0) => '離線時間 ${p0}';
+
+  @override
+  String get collectionRetrievalNotCompletedAfterDoor => '取書或取回開門後未能完成';
+
+  @override
+  String get unpairedByDevice => '裝置解除配對';
+
+  @override
+  String get replacedByNewDevice => '由新裝置取代';
+
+  @override
+  String get revokedByAdministrator => '管理員撤銷';
+
+  @override
+  String get simulatorTurnedOff => '模擬書櫃功能關閉';
+
+  @override
+  String get tooManyRequestsPleaseTryAgain => '操作過於頻繁，請稍後再試';
+
+  @override
+  String get viewPurchases => '查看購買紀錄';
+
+  @override
+  String get viewSales => '查看銷售紀錄';
+
+  @override
+  String get retrievalNotAvailableLockerRightNow => '此書櫃目前無法辦理取回，請聯絡客服';
+
+  @override
+  String get itemsCouldNotCompleted => '項目未能完成';
+
+  @override
+  String onceDelistedP0NoLongerAppear2(Object p0) => '取消上架後，《${p0}》將不再於商城顯示。此書存放於書櫃中，須先取回書籍，方可重新上架。';
+
+  @override
+  String confirmP0BeenPlacedP1(Object p0, Object p1) => '請確認已將《${p0}》放入「${p1}」。';
+
+  @override
+  String get confirmTakenBookFromLocker => '請確認已從書櫃取出書籍。';
+
+  @override
+  String get finish => '完成';
+
+  @override
+  String get door => '櫃門';
+
+  @override
+  String get enterNumberShownLockerScreen => '請輸入書櫃螢幕上顯示的數字';
+
+  @override
+  String get ifSomeoneTellsNumberAsksEnter => '若有他人告知數字並要求您輸入，請勿操作。';
+
+  @override
+  String get enterTwoDigits => '請輸入兩位數字';
+
+  @override
+  String get closeDoorFirst => '請先關上櫃門';
+
+  @override
+  String get onceDoorClosedTaskEndAutomatically => '櫃門關上後，將依您的選擇自動結束本次作業。';
+
+  @override
+  String get taskCompleteAutomaticallyOnceDoorClosed => '櫃門關上後將自動完成本次作業。';
+
+  @override
+  String get taskBeenCancelledNothingChanged => '本次作業已取消，狀態未變更';
+
+  @override
+  String get locationAccessRequiredUseLockerTurn => '使用書櫃須允許存取位置資訊，請於系統設定中開啟後再試';
+
+  @override
+  String get locationCouldNotConfirmedTurnLocation => '目前無法確認您的位置，請開啟定位服務後再試';
+
+  @override
+  String get doorOpenActionNotAvailable => '櫃門已開啟，無法執行此操作';
+
+  @override
+  String get taskBeingProcessedPleaseWait => '本次作業處理中，請稍候';
+
+  @override
+  String numberConfirmationWasNotCompletedSeveral(Object p0) => '數字確認多次未完成，請於 ${p0} 分鐘後再試';
+
+  @override
+  String get doorRecordedContentsAwaitingCheckComplete => '櫃門內有存放紀錄或待確認，須完成數字確認後開啟';
+
+  @override
+  String get lockerBeenAskedEndTask => '已要求書櫃結束作業';
+
+  @override
+  String get endTask => '結束作業';
+
+  @override
+  String get pairDevice => '配對裝置';
+
+  @override
+  String get enterPairingCodeShownLockerScreen => '請輸入書櫃螢幕上顯示的配對碼';
+
+  @override
+  String get enter8DigitPairingCode => '請輸入 8 位數配對碼';
+
+  @override
+  String get pairingCodeInvalidExpired => '配對碼無效或已逾時';
+
+  @override
+  String get waitingDeviceConnect => '等待裝置連線';
+
+  @override
+  String get pairingWasNotCompletedEnterNew => '配對未完成，請輸入書櫃螢幕上的新配對碼';
+
+  @override
+  String get donePhone => '手機完成';
+
+  @override
+  String get cancelledPhone => '手機取消';
+
+  @override
+  String get matchCodeEntered => '輸入比對碼';
+
+  @override
+  String get lockerRefusedEndDoorOpen => '書櫃拒絕結束（櫃門未關）';
+
+  @override
+  String get numberMatched => '數字相符';
+
+  @override
+  String get numberDidNotMatch => '數字不符';
+
+  @override
+  String get cancelTapCancelBeforeClosingDoor => '如需取消，請於關上櫃門前按「取消」。倒數結束時將自動完成。';
+
+  @override
+  String get preciseLocationRequiredUseLockerTurn => '使用書櫃須開啟精確位置，請於系統設定中開啟後再試';
+
+  @override
+  String get enterTitle3 => '請輸入標題';
+
+  @override
+  String get credentialsNotSet => '尚未設定憑證';
+
+  @override
+  String get searchActions => '搜尋操作內容';
+
+  @override
+  String undoneP0(Object p0) => '還原於 ${p0}';
+
+  @override
+  String get delistListing => '下架商品';
+
+  @override
+  String get amount2 => '金額';
+
+  @override
+  String get couldNotOpenChatPleaseTry => '無法開啟對話，請稍後再試';
+
+  @override
+  String publishedP0(Object p0) => '發布日期：${p0}';
+
+  @override
+  String get pushNotificationRegistrationFailedPleaseTry => '推播註冊失敗，請稍後再試。';
 
 }
 
@@ -26534,7 +31864,7 @@ class _LZhHans extends AppLocalizations {
   String get orderBuyerDeposited => '待取书';
 
   @override
-  String get orderBuyerRefunding => '申诉中';
+  String get orderBuyerRefunding => '争议处理中';
 
   @override
   String get orderFlowDeposit => '待卖家存书';
@@ -26552,7 +31882,7 @@ class _LZhHans extends AppLocalizations {
   String get bookOnSale => '销售中';
 
   @override
-  String get bookReserved => '已预订';
+  String get bookReserved => '已预约';
 
   @override
   String get bookSold => '已售出';
@@ -26630,7 +31960,7 @@ class _LZhHans extends AppLocalizations {
   String get disputeRefundAuto => '自动退款';
 
   @override
-  String get disputeDismissed => '驳回申诉';
+  String get disputeDismissed => '驳回争议';
 
   @override
   String get disputeMediated => '协调结案';
@@ -26882,7 +32212,7 @@ class _LZhHans extends AppLocalizations {
   String get regenerateShareLink => '重新生成分享链接';
 
   @override
-  String get oldLinkQrCodeStopWorking => '旧的链接与二维码将立即失效，已分享的链接将无法打开。确定要重新生成吗？';
+  String get oldLinkQrCodeStopWorking => '现有链接与二维码将立即失效。';
 
   @override
   String get regenerate => '重新生成';
@@ -27011,9 +32341,6 @@ class _LZhHans extends AppLocalizations {
   String get signContactSeller => '请先登录才能联系卖家';
 
   @override
-  String get signStartChat => '请先登录才能联系卖家';
-
-  @override
   String get signReport => '请先登录才能举报';
 
   @override
@@ -27071,13 +32398,10 @@ class _LZhHans extends AppLocalizations {
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》将从商城下架，买家将无法浏览。';
+  String removedFromShopBuyersNoLonger(Object p0) => '取消上架后，《${p0}》将不再在商城显示。';
 
   @override
-  String get delist2 => '下架';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '下架失败，请稍后再试';
+  String get couldNotDelistPleaseTryAgain => '取消上架失败，请稍后再试';
 
   @override
   String listedAgain(Object p0) => '《${p0}》已重新上架';
@@ -27104,13 +32428,13 @@ class _LZhHans extends AppLocalizations {
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代币不足，此订单需 ${p0}，当前余额 ${p1}';
 
   @override
-  String booksTotal(Object p0, Object p1) => '共 ${p0} 本书，总金额 ${p1}。\n';
+  String booksTotal(Object p0, Object p1) => '共 ${p0} 本书，总金额 ${p1} 代币。\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => '扣款后余额为 ${p0} 代币。';
 
   @override
-  String get orderPlacedSellerDropBookOff => '结算成功，请等待卖家存书';
+  String get orderPlacedSellerDropBookOff => '请等待卖家存书';
 
   @override
   String get cart => '购物车';
@@ -27266,7 +32590,7 @@ class _LZhHans extends AppLocalizations {
   String get writeMessage => '输入消息…';
 
   @override
-  String get enterOrderNumberDisputing => '请填写要申诉的订单编号';
+  String get enterOrderNumberDisputing => '请填写要申请争议的订单编号';
 
   @override
   String get describeDispute => '请填写争议说明';
@@ -27278,10 +32602,7 @@ class _LZhHans extends AppLocalizations {
   String get submitDispute => '提交争议申请';
 
   @override
-  String get orderEntersDisputeProcessPaymentSeller => '提交后此订单将进入申诉流程，款项将暂停拨付给卖家，直至客服裁决。';
-
-  @override
-  String paymentHoldRequested(Object p0) => '[申请冻结款项] ${p0}';
+  String get orderEntersDisputeProcessPaymentSeller => '提交后此订单将进入争议处理流程，款项将暂停拨付给卖家，直至客服裁决。';
 
   @override
   String get disputeSubmittedSupportContact => '争议申请已提交，客服将尽快与您联系';
@@ -27290,16 +32611,10 @@ class _LZhHans extends AppLocalizations {
   String get dispute => '争议处理';
 
   @override
-  String get requestPaymentHold => '申请冻结款项';
-
-  @override
-  String get submitDispute2 => '提交争议申请';
-
-  @override
   String get orderNumber => '订单编号';
 
   @override
-  String get eGSmb20260910123456789 => '例如 SMB20260910123456789';
+  String get eGSmb20260910123456789 => '例如 SMB20260910143015123456';
 
   @override
   String get whatHappened => '争议说明';
@@ -27359,7 +32674,7 @@ class _LZhHans extends AppLocalizations {
   String get condition => '书况';
 
   @override
-  String get customPrice => '自定价格';
+  String get customPrice => '售价';
 
   @override
   String get enterPrice2 => '请输入售价';
@@ -27443,7 +32758,7 @@ class _LZhHans extends AppLocalizations {
   String get displayNameCannotBlank => '昵称不可空白';
 
   @override
-  String get displayNames250Characters => '昵称长度需介于 2 ~ 50 个字符';
+  String get displayNames250Characters => '昵称长度须为 2 至 50 个字符';
 
   @override
   String get invalidPhoneNumberEG0912345678 => '电话格式不正确，例：0912345678';
@@ -27506,9 +32821,6 @@ class _LZhHans extends AppLocalizations {
   String get priceHighLow => '价格由高到低';
 
   @override
-  String get reachedEnd => '已显示全部内容';
-
-  @override
   String get guest => '访客';
 
   @override
@@ -27563,7 +32875,7 @@ class _LZhHans extends AppLocalizations {
   String get noAccountWithEmail => '此账号尚未注册';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '找不到账号“${p0}”，是否立即注册？';
+  String noAccountCreateOneNow(Object p0) => '是否以“${p0}”注册新账号？';
 
   @override
   String get signUp => '前往注册';
@@ -27704,13 +33016,13 @@ class _LZhHans extends AppLocalizations {
   String get dispute2 => '争议';
 
   @override
-  String get orderOpenDispute => '此订单有进行中的申诉案件';
+  String get orderOpenDispute => '此订单有处理中的争议案件';
 
   @override
   String get cancelOrder => '取消订单';
 
   @override
-  String get pendingPayoutDisappearsBuyerNotified => '取消后此笔待定收益将一并取消，并通知买家。';
+  String get pendingPayoutDisappearsBuyerNotified => '取消后此笔待拨款项将一并取消，并通知买家。';
 
   @override
   String get cancelledBySeller => '卖家取消';
@@ -27719,22 +33031,16 @@ class _LZhHans extends AppLocalizations {
   String get orderCancelled2 => '订单已取消';
 
   @override
-  String get pendingPayouts => '待定收益';
+  String get pendingPayouts => '待拨款项';
 
   @override
   String get noPendingPayouts => '目前没有待拨款的订单';
 
   @override
-  String get pendingAmount => '待定收益金额';
+  String get pendingAmount => '待拨款金额';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '买家取书后自动拨款';
-
-  @override
-  String get scanned => '扫描成功';
-
-  @override
-  String get scanAgain => '继续扫描';
+  String get coinsArriveOnceBuyerCollectsBook => '买家完成订单或取书满 24 小时后拨款';
 
   @override
   String get collectBook => '取书';
@@ -27743,13 +33049,10 @@ class _LZhHans extends AppLocalizations {
   String get pointPickupQrCode => '请对准取书二维码';
 
   @override
-  String get holdSteady => '请保持设备稳定';
-
-  @override
   String get bookCollected => '取书完成';
 
   @override
-  String collected(Object p0) => '《${p0}》已完成取书';
+  String collected(Object p0) => '《${p0}》';
 
   @override
   String order2(Object p0) => '订单编号：${p0}';
@@ -27759,9 +33062,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get myAccount => '会员中心';
-
-  @override
-  String get personNotWrittenBioYet => '尚未填写个人简介';
 
   @override
   String get topTierReached => '已达最高等级';
@@ -27821,13 +33121,7 @@ class _LZhHans extends AppLocalizations {
   String get createAccount => '创建账号';
 
   @override
-  String get joinSavemybook => '注册账号';
-
-  @override
   String get displayName => '昵称';
-
-  @override
-  String get emailSignWith => '电子邮件';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 位，需含英文与数字';
@@ -27837,9 +33131,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get enterPasswordAgain2 => '请再次输入密码';
-
-  @override
-  String get alreadyAccountGoBackSign => '已有账号？返回登录';
 
   @override
   String get markAsDroppedOff => '完成存书';
@@ -27881,7 +33172,7 @@ class _LZhHans extends AppLocalizations {
   String get missingInformation => '资料不齐全';
 
   @override
-  String get enterOwnPrice => '请输入自定价格。';
+  String get enterOwnPrice => '请输入售价。';
 
   @override
   String get invalidPrice => '价格不正确';
@@ -27989,7 +33280,7 @@ class _LZhHans extends AppLocalizations {
   String get notSavemybookProfileQrCode => '此二维码并非救「舊」我的書的个人二维码';
 
   @override
-  String get ownQrCode => '这是您的个人二维码';
+  String get ownQrCode => '此为您本人的二维码';
 
   @override
   String get couldNotStartChatPleaseTry => '无法创建聊天室，请稍后再试';
@@ -28007,7 +33298,7 @@ class _LZhHans extends AppLocalizations {
   String get sharingCouldNotOpenSoLink => '无法打开分享，已复制链接';
 
   @override
-  String get savedPhotos => '已保存到相册';
+  String get savedPhotos => '已保存至相册';
 
   @override
   String get couldNotSaveCheckPhotoLibrary => '保存失败，请确认已允许相册权限';
@@ -28196,7 +33487,7 @@ class _LZhHans extends AppLocalizations {
   String get couldNotOpenCameraCheckPermission => '无法打开相机，请确认已授权';
 
   @override
-  String get justNow => '刚刚';
+  String get justNow => '1 分钟内';
 
   @override
   String minAgo(Object p0) => '${p0} 分钟前';
@@ -28289,9 +33580,6 @@ class _LZhHans extends AppLocalizations {
   String get publishNow => '立即发布';
 
   @override
-  String get leaveOffSaveAsDraft => '关闭时仅保存为草稿';
-
-  @override
   String get saveDraft => '保存草稿';
 
   @override
@@ -28319,9 +33607,6 @@ class _LZhHans extends AppLocalizations {
   String get draft => '草稿';
 
   @override
-  String get audienceEveryone => '对象：全体用户';
-
-  @override
   String get backUpNow => '立即备份';
 
   @override
@@ -28346,7 +33631,7 @@ class _LZhHans extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '每日自动备份，保留最新 ${p0} 份';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '超出份数的旧备份将自动清除。备份文件含全站个人资料，下载后请妥善保管，每次下载均会记入操作记录。';
+  String get olderBackupsBeyondCountRemovedAutomatically => '备份文件含全站个人资料，下载后请妥善保管，每次下载均会记入操作记录。';
 
   @override
   String get noBackupsYetSchedulerRunsOnce => '暂无备份记录';
@@ -28703,7 +33988,7 @@ class _LZhHans extends AppLocalizations {
   String orderP0P1(Object p0, Object p1) => '订单 ${p0}｜\$${p1}';
 
   @override
-  String reasonP0(Object p0) => '申诉理由：${p0}';
+  String reasonP0(Object p0) => '争议说明：${p0}';
 
   @override
   String get decisionNoteOptional => '裁决说明（选填）';
@@ -28715,10 +34000,10 @@ class _LZhHans extends AppLocalizations {
   String get decisionRecorded => '已完成裁决';
 
   @override
-  String get resolveDispute => '仲裁交易';
+  String get resolveDispute => '交易仲裁';
 
   @override
-  String get noDisputesKind => '目前没有此类申诉案件';
+  String get noDisputesKind => '目前没有此类争议案件';
 
   @override
   String orderNumberP0(Object p0) => '订单编号：${p0}';
@@ -28727,7 +34012,7 @@ class _LZhHans extends AppLocalizations {
   String buyerP0SellerP1(Object p0, Object p1) => '买家：${p0}｜卖家：${p1}';
 
   @override
-  String filedByP0(Object p0) => '申诉人：${p0}';
+  String filedByP0(Object p0) => '申请人：${p0}';
 
   @override
   String get handle => '处理';
@@ -28895,7 +34180,7 @@ class _LZhHans extends AppLocalizations {
   String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 将立即失去所有后台权限。';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 将可进入管理后台，默认拥有全部权限，并可逐项调整。';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 将可进入管理后台，默认开放“系统运维”以外的全部权限，并可逐项调整。';
 
   @override
   String get roleUpdated => '已更新身份';
@@ -28997,10 +34282,7 @@ class _LZhHans extends AppLocalizations {
   String get blocked => '列入黑名单';
 
   @override
-  String get blockedNoFeaturesAvailable => '已封锁，无法使用任何功能';
-
-  @override
-  String get notBlocked => '未封锁';
+  String get blockedNoFeaturesAvailable => '已列入黑名单，无法使用任何功能';
 
   @override
   String get role => '身份';
@@ -29009,19 +34291,16 @@ class _LZhHans extends AppLocalizations {
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 点（自动 ${p1}${p2}）';
 
   @override
-  String get memberSTierBeenAdjustedBy => '此会员的等级经人工调整，不完全按交易自动计算。';
-
-  @override
   String get adjustTier => '调整等级';
 
   @override
   String get adminPermissions => '后台权限';
 
   @override
-  String get all => '全开';
+  String get all => '全部开放';
 
   @override
-  String get allOff => '全关';
+  String get allOff => '全部收回';
 
   @override
   String get reinstateAccount2 => '恢复账号';
@@ -29030,13 +34309,10 @@ class _LZhHans extends AppLocalizations {
   String get suspendAccount2 => '停权账号';
 
   @override
-  String runP1P0(Object p0, Object p1) => '确定要对“${p0}”执行“${p1}”吗？';
+  String runP1P0(Object p0, Object p1) => '确定要对“${p0}”执行“${p1}”？';
 
   @override
   String updatedP0SStatus(Object p0) => '已更新 ${p0} 的状态';
-
-  @override
-  String get fullSettingsTierPermissions => '完整设置（等级、权限）';
 
   @override
   String get members3 => '会员列表';
@@ -29102,7 +34378,7 @@ class _LZhHans extends AppLocalizations {
   String reportedP0P1(Object p0, Object p1) => '被举报${p0}：${p1}';
 
   @override
-  String reasonP02(Object p0) => '违规原因：${p0}';
+  String reasonP02(Object p0) => '检举原因：${p0}';
 
   @override
   String get handlingNoteOptional => '处理备注（选填）';
@@ -29234,7 +34510,7 @@ class _LZhHans extends AppLocalizations {
   String get totalOut => '累计支出';
 
   @override
-  String balanceP0(Object p0) => '余 ${p0}';
+  String balanceP0(Object p0) => '余额 ${p0}';
 
   @override
   String get suspensionBlocklistRoles => '停权、黑名单、身份';
@@ -29255,7 +34531,7 @@ class _LZhHans extends AppLocalizations {
   String get lookUpChangeOrderStatus => '查询与调整订单状态';
 
   @override
-  String get decideDisputeCases => '申诉案件裁决';
+  String get decideDisputeCases => '争议案件裁决';
 
   @override
   String get checkAdjustCoinBalances => '查询与增减代币';
@@ -29276,7 +34552,7 @@ class _LZhHans extends AppLocalizations {
   String get replyUserQuestions => '回复用户问题';
 
   @override
-  String get databaseBackupDownloadOffByDefault => '数据库备份与下载，默认关闭';
+  String get databaseBackupDownloadOffByDefault => '数据库备份与下载';
 
   @override
   String p0Locker(Object p0) => '${p0}书柜';
@@ -29324,7 +34600,7 @@ class _LZhHans extends AppLocalizations {
   String get resetPassword => '重置密码';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 当前的密码将立即失效，须改用系统生成的临时密码登录。\n\n临时密码由系统生成，无法自行指定。';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 当前的密码将立即失效，须改用系统生成的临时密码登录。';
 
   @override
   String get generateTemporaryPassword => '生成临时密码';
@@ -29336,7 +34612,7 @@ class _LZhHans extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密码已重置。此密码仅显示一次，关闭后将无法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '请提醒对方登录后立即至「设置 › 更改密码」修改密码。';
+  String get remindThemChangeSettingsChangePassword => '请通知该会员登录后立即至「设置 › 更改密码」修改密码。';
 
   @override
   String get temporaryPasswordCopied => '已复制临时密码';
@@ -29348,7 +34624,7 @@ class _LZhHans extends AppLocalizations {
   String get cannotResetAnotherAdminSPassword => '无法重置其他管理员的密码';
 
   @override
-  String get generateTemporaryPasswordHandOver => '生成一组临时密码交给用户';
+  String get generateTemporaryPasswordHandOver => '生成临时密码供该会员登录';
 
   @override
   String get orderNumberCopied => '已复制订单编号';
@@ -29387,7 +34663,7 @@ class _LZhHans extends AppLocalizations {
   String get walletActivity => '钱包变动';
 
   @override
-  String balanceP02(Object p0) => '余 ${p0}';
+  String balanceP02(Object p0) => '余额 ${p0}';
 
   @override
   String get refunds => '退款记录';
@@ -29399,16 +34675,13 @@ class _LZhHans extends AppLocalizations {
   String processedP0(Object p0) => '处理于 ${p0}';
 
   @override
-  String get disputes => '申诉';
+  String get disputes => '争议';
 
   @override
   String filedP0(Object p0) => '申请于 ${p0}';
 
   @override
   String decidedP0(Object p0) => '裁决于 ${p0}';
-
-  @override
-  String createdP0(Object p0) => '创建于 ${p0}';
 
   @override
   String get shareBook => '分享书籍';
@@ -29459,13 +34732,13 @@ class _LZhHans extends AppLocalizations {
   String get buyerSPaymentGoesBackTheir => '买家支付的款项将退回钱包；若卖家已收到货款，将先行收回。';
 
   @override
-  String get orderReturnsWhereWasBeforeDispute => '订单将恢复至申诉前的状态并继续交易；若先前已完成取书，货款将拨付给卖家。';
+  String get orderReturnsWhereWasBeforeDispute => '订单将恢复至申请争议前的状态并继续交易；若先前已完成取书，货款将拨付给卖家。';
 
   @override
   String get orderWasAlreadyRefundedBuyerCannot => '此订单款项已退回买家，无法改回进行中或已完成';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '已完成的订单只能改为“退款处理中”或“已退款”';
+  String get completedOrderCanOnlyChangedRefund => '已完成的订单仅能改为“审核中”或“已退款”';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '确认后将拨付 ${p0} 代币给卖家，并将书籍标记为已售出。';
@@ -29498,7 +34771,7 @@ class _LZhHans extends AppLocalizations {
   String get systemNotificationSettings => '系统通知设置';
 
   @override
-  String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未设置推送，请加入 Firebase 配置文件后重新编译。';
+  String get pushNotificationsNotSetUpBuild => '此版本的 App 未启用推送通知。';
 
   @override
   String get notificationsTurnedOffAllowAppSend => '通知权限已关闭，请前往系统设置允许此 App 发送通知。';
@@ -29571,9 +34844,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get undone => '已还原';
-
-  @override
-  String get searchActionsEGNicknameBook => '搜索操作内容，例如会员昵称或书名';
 
   @override
   String viewP0Changes(Object p0) => '查看 ${p0} 项变更';
@@ -29717,9 +34987,6 @@ class _LZhHans extends AppLocalizations {
   String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除后余额将为负数，当前余额 ${p0}';
 
   @override
-  String get amountUp2Decimals => '金额（最多两位小数）';
-
-  @override
   String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n调整后余额 ${p1}';
 
   @override
@@ -29747,9 +35014,6 @@ class _LZhHans extends AppLocalizations {
   String sellerHoldingUntilP0(Object p0) => '卖家已为您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '请于保留期限内完成结账';
-
-  @override
   String get copyAddress => '复制地址';
 
   @override
@@ -29774,7 +35038,7 @@ class _LZhHans extends AppLocalizations {
   String get buyNow => '立即购买';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》已下架';
+  String p0Delisted(Object p0) => '《${p0}》已取消上架';
 
   @override
   String noBooksMatchP0(Object p0) => '找不到符合“${p0}”的书籍';
@@ -29805,9 +35069,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get browseBooks => '浏览书籍';
-
-  @override
-  String p0Sellers(Object p0) => '${p0} 位卖家';
 
   @override
   String unavailableP0(Object p0) => '无法购买（${p0}）';
@@ -29933,9 +35194,6 @@ class _LZhHans extends AppLocalizations {
   String get holdMicTalkReleaseSend => '录音时间过短';
 
   @override
-  String get startConversation => '对话开始';
-
-  @override
   String p0New(Object p0) => '${p0} 条新消息';
 
   @override
@@ -30008,9 +35266,6 @@ class _LZhHans extends AppLocalizations {
   String get waitingBuyerCollect => '等待买家至书柜取书';
 
   @override
-  String get transactionCompleteThank => '交易完成';
-
-  @override
   String get confirmVeTakenBookFromLocker => '请确认已从书柜取出书籍。确认书况无误后，请在购买记录中完成订单。';
 
   @override
@@ -30077,7 +35332,7 @@ class _LZhHans extends AppLocalizations {
   String otherDevicesP0(Object p0) => '其他设备（${p0}）';
 
   @override
-  String get noOtherDevicesSigned => '没有其他设备登录您的账号';
+  String get noOtherDevicesSigned => '目前无其他设备登录';
 
   @override
   String get signedDevices => '登录设备';
@@ -30125,9 +35380,6 @@ class _LZhHans extends AppLocalizations {
   String get set6DigitPaymentPin => '设置 6 位数交易密码';
 
   @override
-  String get enterSamePinAgain => '请再次输入相同密码';
-
-  @override
   String get avoidRepeatedSequentialPatternedDigits => '不可使用相同、连续或重复的数字';
 
   @override
@@ -30135,9 +35387,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get paymentPin => '交易密码';
-
-  @override
-  String stepP02(Object p0) => '步骤 ${p0} / 2';
 
   @override
   String get setPaymentPinFirst => '请先设置交易密码';
@@ -30170,9 +35419,6 @@ class _LZhHans extends AppLocalizations {
   String get accountCouldSafer => '账号安全性有待加强';
 
   @override
-  String get setPaymentPinTurnBiometricPayment => '尚未设置交易密码';
-
-  @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '错误次数过多，已锁定至 ${p0}';
 
   @override
@@ -30197,7 +35443,7 @@ class _LZhHans extends AppLocalizations {
   String get draftSavedAutomatically => '已自动保存草稿';
 
   @override
-  String get continueUnfinishedListing => '继续上次未完成的刊登';
+  String get continueUnfinishedListing => '继续上次未完成的上架';
 
   @override
   String clearedP0MbCache(Object p0) => '已清除 ${p0} MB 缓存';
@@ -30267,18 +35513,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String p0Km(Object p0) => '${p0} 公里';
-
-  @override
-  String get iphoneDidnTReceiveApnsToken => '设备未取得 Apple 推送凭证（APNs token）。请确认 Xcode 的 Signing & Capabilities 已加入 Push Notifications，并使用同一个 Apple 开发者账号重新安装 App。';
-
-  @override
-  String get firebaseDidnTIssuePushToken => 'Firebase 未签发推送 token，请确认 GoogleService-Info.plist 与 App 的 Bundle ID 一致';
-
-  @override
-  String couldnTGetPushTokenP0(Object p0) => '获取推送 token 失败：${p0}';
-
-  @override
-  String couldnTRegisterPushTokenWith(Object p0) => '推送 token 上传服务器失败：${p0}';
 
   @override
   String get protectCoinsCheckoutRequires6Digit => '结账前请先设置 6 位数交易密码。';
@@ -30401,28 +35635,13 @@ class _LZhHans extends AppLocalizations {
   String p0P1DigitsEntered(Object p0, Object p1) => '已输入 ${p0} / ${p1} 位';
 
   @override
-  String get buildSProvisioningProfileDoesnT => '此安装版本的签名描述文件未包含推送权限。请在 Xcode 的 Runner › Signing & Capabilities 确认已加入 Push Notifications，并删除 App 后重新安装。';
-
-  @override
-  String get checkPhoneOnlinePushNotificationsAdded => '请确认设备已连接网络，并在 Xcode 的 Runner › Signing & Capabilities 确认已加入 Push Notifications。';
-
-  @override
-  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 注册推送失败：${p0}\n${p1}';
-
-  @override
   String get serverNotBeenUpdatedSupportFeature => '此功能暂时无法使用，请稍后再试';
 
   @override
   String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暂时无法使用';
 
   @override
-  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '服务器运行的 API 版本过旧（当前 ${p0}，App 需要 ${p1}）。请在服务器更新代码并重新启动 API。';
-
-  @override
-  String serverVersionP0(Object p0) => '服务器当前版本：${p0}';
-
-  @override
-  String get runNpmRunVerifyApiDirectory => '在服务器的 API 目录执行 npm run verify 可检查完整的部署状态。';
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '服务器 API 版本过旧（当前 ${p0}，需要 ${p1}）。';
 
   @override
   String get serverUpdateRequired => '服务器需要更新';
@@ -30722,7 +35941,7 @@ class _LZhHans extends AppLocalizations {
   String get appPermissions => 'App 权限';
 
   @override
-  String get noPermissionsRequiredDevice => '此设备没有需要授权的项目';
+  String get noPermissionsRequiredDevice => '此设备无须授权任何项目';
 
   @override
   String get allowAll => '全部允许';
@@ -31478,9 +36697,6 @@ class _LZhHans extends AppLocalizations {
   String get byModel => '按模型';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
-
-  @override
   String get topMembers => '用量最高的会员';
 
   @override
@@ -31502,7 +36718,7 @@ class _LZhHans extends AppLocalizations {
   String get lookingUpBookDetails => '查询书籍资料';
 
   @override
-  String get searchingWeb => '联网搜索补充资料';
+  String get searchingWeb => '搜索网络资料';
 
   @override
   String get analyzingPhotos => '分析照片';
@@ -31598,13 +36814,7 @@ class _LZhHans extends AppLocalizations {
   String get aiDataProcessing => 'AI 数据处理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '您输入的消息与您的订单、预约状态';
-
-  @override
-  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、书名、书况说明与您选择的照片';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏与购买记录中的书籍信息';
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、书名、书况说明、您选择的照片，以及您填写的作者、出版社、出版日期、分类与定价';
 
   @override
   String get aiDataProcessing2 => 'AI 数据处理说明';
@@ -31622,13 +36832,7 @@ class _LZhHans extends AppLocalizations {
   String get purpose => '使用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '仅用于生成客服回复、整理上架数据与推荐书籍，不会用于广告或追踪。';
-
-  @override
   String get withdrawingConsent => '撤回同意';
-
-  @override
-  String get canTurnOffAiDataProcessing => '您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据。';
 
   @override
   String get agreeContinue => '同意并继续';
@@ -31670,22 +36874,16 @@ class _LZhHans extends AppLocalizations {
   String get popularLiteraryFictionRightNow => '最近热门的文学小说';
 
   @override
-  String get tellMeWhatBookLooking => '请描述您想找的书籍';
-
-  @override
   String get describeBookLooking => '描述您想找的书籍';
-
-  @override
-  String get tellMeWhatWantReadI => '依您的需求推荐书籍';
 
   @override
   String get subtitle => '副标题';
 
   @override
-  String get monthOnly => '仅确认到月';
+  String get monthOnly => '仅精确至月';
 
   @override
-  String get yearOnly => '仅确认到年';
+  String get yearOnly => '仅精确至年';
 
   @override
   String get msg => '繁體中文';
@@ -31799,9 +36997,6 @@ class _LZhHans extends AppLocalizations {
   String get signWithMobileNumber => '手机号码登录';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '将发送 6 位数验证码至此手机号码。';
-
-  @override
   String get mobileNumber => '手机号码';
 
   @override
@@ -31817,9 +37012,6 @@ class _LZhHans extends AppLocalizations {
   String get enterCode => '输入验证码';
 
   @override
-  String get enterSmsCode => '输入短信验证码';
-
-  @override
   String codeWasSentP0(Object p0) => '验证码已发送至 ${p0}';
 
   @override
@@ -31830,9 +37022,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get completeAccountDetails => '完成账号资料';
-
-  @override
-  String get p0DidNotProvideEmailAddress => '请填写电子邮件以完成注册。';
 
   @override
   String signWithP0(Object p0) => '以 ${p0} 登录';
@@ -31889,7 +37078,7 @@ class _LZhHans extends AppLocalizations {
   String get socialSmsSignNotAvailableRight => '目前未开放社交与短信登录方式。';
 
   @override
-  String get noSignMethodAvailableLink => '目前没有可绑定的登录方式。';
+  String get noSignMethodAvailableLink => '目前无可绑定的登录方式。';
 
   @override
   String get noPasswordSet => '尚未设置密码';
@@ -31973,9 +37162,6 @@ class _LZhHans extends AppLocalizations {
   String get allowSigningLinkingWithMethod => '开放此方式登录与绑定';
 
   @override
-  String get appNeverStoresPasswordUsedOnly => '本 App 不会储存您的密码，仅用于本次验证。';
-
-  @override
   String get verifyWithBiometricsInstead => '改用生物识别验证';
 
   @override
@@ -31994,12 +37180,6 @@ class _LZhHans extends AppLocalizations {
   String get masterSwitchOffSoEveryMethod => '总开关关闭，所有方式一律停用';
 
   @override
-  String get signLinkingDirectSignUpAllowed => '可登录、绑定与直接注册';
-
-  @override
-  String credentialsNotSetPleaseConfigureP0(Object p0) => '尚未设置凭证，请于服务器设置 ${p0}';
-
-  @override
   String get whenOffMethodHiddenFromSign => '关闭后登录页与账号安全将不显示此方式';
 
   @override
@@ -32007,9 +37187,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get signMethodNotLinkedAccount => '此登录方式尚未绑定账号';
-
-  @override
-  String p0AccountNotLinkedAnySavemybook(Object p0) => '${p0} 账号尚未绑定救「舊」我的書账号。';
 
   @override
   String get iAlreadyAccountSignFirst => '登录已有账号并绑定';
@@ -32033,9 +37210,6 @@ class _LZhHans extends AppLocalizations {
   String get passkeys => '通行密钥';
 
   @override
-  String get verifyWithFaceIdFingerprintScreen => '以此装置的 Face ID、指纹或屏幕锁定完成验证，不必输入密码。';
-
-  @override
   String get verifyWithPasskey => '使用通行密钥验证';
 
   @override
@@ -32051,19 +37225,19 @@ class _LZhHans extends AppLocalizations {
   String get screenLock => '屏幕锁定';
 
   @override
-  String fromNowCanSignVerifyIdentity(Object p0) => '之后登入与验证身分可改用 ${p0}，不必再输入密码。';
+  String fromNowCanSignVerifyIdentity(Object p0) => '日后登入与验证身分可使用 ${p0}，无须输入密码。';
 
   @override
   String get deletePasskey => '删除通行密钥';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '删除后将无法以此通行密钥登入或验证身分。装置中储存的通行密钥不会一并移除，可至系统的密码设定中删除。';
+  String get noLongerAbleSignVerifyIdentity => '删除后将无法以此通行密钥登入或验证身分。若装置中仍保留此通行密钥，可至系统的密码设定中删除。';
 
   @override
   String get passkeyDeleted => '已删除通行密钥';
 
   @override
-  String get signVerifyIdentityWithFaceId => '以 Face ID、指纹或屏幕锁定登入与验证身分，不必输入密码。通行密钥只储存在您的装置与密码管理工具中。';
+  String get signVerifyIdentityWithFaceId => '以 Face ID、指纹或屏幕锁定登入与验证身分，无须输入密码。';
 
   @override
   String get addPasskey => '新增通行密钥';
@@ -32171,7 +37345,7 @@ class _LZhHans extends AppLocalizations {
   String get attachImages => '附加图片';
 
   @override
-  String get imageCouldNotRead => '无法读取这张图片';
+  String get imageCouldNotRead => '无法读取此图片';
 
   @override
   String get up4ImagesPerMessage => '每条消息最多附加 4 张图片';
@@ -32207,7 +37381,7 @@ class _LZhHans extends AppLocalizations {
   String get newTier2 => '新等级';
 
   @override
-  String get whatMembersSee => '会员看到的样式';
+  String get whatMembersSee => '会员端预览';
 
   @override
   String get noThresholdSet => '尚未设置门槛';
@@ -32238,9 +37412,6 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get tierOrderUpdated => '已更新等级顺序';
-
-  @override
-  String p0Members(Object p0) => '${p0} 位会员';
 
   @override
   String get tiers => '个等级';
@@ -32294,10 +37465,10 @@ class _LZhHans extends AppLocalizations {
   String emailAlreadyRegisteredSignLinkName(Object p0) => '此电子邮件已注册，登入后即绑定 ${p0}。';
 
   @override
-  String signLinkNameCanThenSign(Object p0, Object p1) => '登入后即绑定 ${p0}，之后可直接使用 ${p1} 登入。';
+  String signLinkNameCanThenSign(Object p0, Object p1) => '登入后即绑定 ${p0}，日后可使用 ${p1} 登入。';
 
   @override
-  String get noPasskeyDevice => '此装置没有可用的通行密钥';
+  String get noPasskeyDevice => '此装置无可用的通行密钥';
 
   @override
   String get signWithPasskeyAnotherDeviceSecurity => '可使用其他装置上的通行密钥或安全密钥登入，或改用密码。';
@@ -32408,7 +37579,7 @@ class _LZhHans extends AppLocalizations {
   String get paymentReleasedWalletWhenBuyerCompletes => '买家完成订单或取书满 24 小时后，款项将拨入您的钱包';
 
   @override
-  String get completeOrderAfterCheckingBookCompletes => '确认书况无误后请完成订单，取书满 24 小时未申诉将自动完成';
+  String get completeOrderAfterCheckingBookCompletes => '确认书况无误后请完成订单，取书满 24 小时未申请争议将自动完成';
 
   @override
   String get completeOrder => '完成订单';
@@ -32420,7 +37591,7 @@ class _LZhHans extends AppLocalizations {
   String get orderCompleted2 => '订单已完成';
 
   @override
-  String get noReservedBooks => '目前没有预订的书籍';
+  String get noReservedBooks => '目前没有预约的书籍';
 
   @override
   String heldUntilP02(Object p0) => '保留至 ${p0}';
@@ -32474,7 +37645,7 @@ class _LZhHans extends AppLocalizations {
   String get autoFilled => '自动补齐';
 
   @override
-  String get similarBooks => '相似的书';
+  String get similarBooks => '相似书籍';
 
   @override
   String get doNotPayTransferMoneyOutside => '请勿私下汇款或转账，站外付款不受平台保障';
@@ -32552,7 +37723,7 @@ class _LZhHans extends AppLocalizations {
   String get weOurSupportTeamNeverAsk => '平台与客服不会通过聊天要求您提供验证码、密码或卡片资料';
 
   @override
-  String get doNotOpenUnknownShortLinks => '请勿点击来路不明的短网址，也不要依对方指示操作网上银行或 ATM';
+  String get doNotOpenUnknownShortLinks => '请勿点击来源不明的短网址，亦勿依对方指示操作网上银行或 ATM';
 
   @override
   String get cancelInstallmentsAccountFrozenPaymentVerification => '“解除分期”“账户冻结”“金流认证”“购买游戏点数”皆为常见诈骗话术';
@@ -32579,9 +37750,6 @@ class _LZhHans extends AppLocalizations {
   String get listed3 => '上架日期';
 
   @override
-  String get someDetailsWereFilledAutomaticallyFrom => '部分资料依 ISBN 书目自动补齐';
-
-  @override
   String get summarizedByAiFromBookRecords => '由 AI 依书目整理';
 
   @override
@@ -32591,22 +37759,1414 @@ class _LZhHans extends AppLocalizations {
   String get aboutBook => '内容简介';
 
   @override
-  String becauseBoughtP0(Object p0) => '因为您买过《${p0}》';
+  String becauseBoughtP0(Object p0) => '与已购买的《${p0}》相关';
 
   @override
-  String becauseSavedP0(Object p0) => '因为您收藏了《${p0}》';
+  String becauseSavedP0(Object p0) => '与已收藏的《${p0}》相关';
 
   @override
   String relatedP0Cart(Object p0) => '与您购物车中的《${p0}》相关';
 
   @override
-  String becauseViewedP0(Object p0) => '因为您看过《${p0}》';
+  String becauseViewedP0(Object p0) => '与浏览过的《${p0}》相关';
 
   @override
-  String moreP0CategoryBrowseOften(Object p0) => '您常看的“${p0}”';
+  String moreP0CategoryBrowseOften(Object p0) => '“${p0}”类别推荐';
 
   @override
   String get morePicks => '更多推荐';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '通行密钥操作已中断，请再试一次';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '未能以此装置的通行密钥完成验证，请改用其他方式';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '在此 iOS 版本重新新增，会取代 iCloud 钥匙串中原有的通行密钥；若新增未完成，原有通行密钥将无法恢复。建议先更新至 iOS 17.4 以上版本。';
+
+  @override
+  String get cannotAddPasskeyDevice => '此装置目前无法新增通行密钥';
+
+  @override
+  String get recordRemoval => '登记取出';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '请确认人员已自“${p0}”取出《${p1}》。登记后书籍将下架。';
+
+  @override
+  String get removalRecorded => '已登记取出';
+
+  @override
+  String get booksLockers => '存书列表';
+
+  @override
+  String get overdue => '逾期';
+
+  @override
+  String get noOverdueBooks => '没有逾期的存书';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '目前没有存放于书柜的书籍';
+
+  @override
+  String get salesPaused => '暂停销售';
+
+  @override
+  String get adminsNotified => '已通知管理员';
+
+  @override
+  String get confirmPurchase => '确认购买';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '此书已存放于书柜，订单成立后即可取书，且无法取消订单。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '已暂停销售，请至书柜取回书籍';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '书籍已存放于书柜，下单后即可取书';
+
+  @override
+  String get notYetLocker => '尚未存入书柜';
+
+  @override
+  String get retrieve => '回报取回';
+
+  @override
+  String get dropOff => '登记存书';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '已存放于书柜的书籍，订单成立后即可取书，且无法取消订单。';
+
+  @override
+  String get placedLockerToday => '今日存入书柜';
+
+  @override
+  String lockerP0Days(Object p0) => '已存放 ${p0} 天';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '请确认已自“${p0}”取回《${p1}》。';
+
+  @override
+  String get allLockers => '全部书柜';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '存书期间无法变更书柜';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '取消上架后，《${p0}》将不再在商城显示，买家将无法浏览。由于此书存放于书柜中，须先取回书籍并回报，才能重新上架。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '书籍已在书柜，可立即取书';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '请确认人员已自“${p0}”取出《${p1}》。';
+
+  @override
+  String get inLocker => '已在书柜';
+
+  @override
+  String get inAnotherLocker => '存放于其他书柜';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '确认已将此订单的 ${p0} 本书全部放入书柜？';
+
+  @override
+  String get awaitingRetrieval => '待取回';
+
+  @override
+  String get bookAdvisorSelection => '书籍顾问选书';
+
+  @override
+  String get bookInfoAutoFill => '书籍资料补齐';
+
+  @override
+  String get disputeAnalysis => '争议分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '本月预算已用尽';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '覆盖率：书籍 ${p0}、客服知识 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最近同步：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '后台同步暂停至 ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '语义查询暂停至 ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => '最近错误：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 次・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => '关闭 AI 数据处理';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => '关闭后将停止使用 AI 功能，并删除您的 AI 客服与书籍顾问对话记录，且无法恢复。';
+
+  @override
+  String get turnOff => '确认关闭';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '您输入的消息与对话内容，以及您本人的订单（含存书、取书与完成时间）、预约、上架书籍（含审核原因）、交易争议的处理状态与结果、钱包余额与最近收支、最近的客服工单';
+
+  @override
+  String get requestsConversationHistoryEnter => '您输入的需求与对话内容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '您的收藏、购买记录、购物车与最近浏览中的书籍信息';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 数据处理说明已更新，请重新阅读并同意。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '其中提问、需求与书籍信息另由 ${p0} 转换为语义向量，以检索相关内容。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '仅用于生成客服回复、推荐与检索书籍、整理上架数据，不会用于广告或追踪。';
+
+  @override
+  String get retentionPeriod => '保存期限';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 客服与书籍顾问的对话记录（含您对回复的评价）自最后一次对话起保存 90 天，期满自动删除；AI 功能的处理记录保存 90 天，不含对话内容与照片。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可随时于「设置 › 账号管理」关闭「AI 数据处理」，关闭后将不再提供上述数据，并删除 AI 客服与书籍顾问的对话记录。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '用户亦须重新同意 AI 数据处理，才能继续使用 AI 功能。';
+
+  @override
+  String get consentRequiredAgain => '须重新同意';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 书籍顾问的次数以用户发送的消息数计算。';
+
+  @override
+  String get noObviousIssuesFound => '未发现明显问题';
+
+  @override
+  String aiAssessmentP0(Object p0) => 'AI 判定：${p0}';
+
+  @override
+  String get reservedModerationAdminTools => '审核与管理辅助保留（%）';
+
+  @override
+  String memberFeaturesCanUseP0Budget(Object p0) => '会员功能可用预算的 ${p0}%';
+
+  @override
+  String memberFeatureCapP0(Object p0) => '会员功能上限 ${p0}';
+
+  @override
+  String p0ListingsSaleNotReviewedOver(Object p0) => '${p0} 本在售书籍超过 1 小时未完成审核';
+
+  @override
+  String get backupProvider => '备援服务商';
+
+  @override
+  String get none => '不使用';
+
+  @override
+  String get sameAsCurrentProvider => '与目前使用的服务商相同';
+
+  @override
+  String get sameAsCurrentProviderSoNo => '与目前使用的服务商相同，不会启用备援';
+
+  @override
+  String get outcomes => '处理结果';
+
+  @override
+  String get processingPaths => '处理路径';
+
+  @override
+  String get indicators => '指标';
+
+  @override
+  String get promptVersions => '提示词版本';
+
+  @override
+  String get embeddingCostsBySource => '向量费用归属';
+
+  @override
+  String get succeeded => '成功';
+
+  @override
+  String get repaired => '修复后采用';
+
+  @override
+  String get degraded => '降级处理';
+
+  @override
+  String get emptyAfterCleanup => '清理后为空';
+
+  @override
+  String get refusedByProvider => '遭服务商拒绝';
+
+  @override
+  String get scanLockerQrCode => '扫描书柜 QR Code';
+
+  @override
+  String get flashlight => '手电筒';
+
+  @override
+  String get pasteQrContent => '粘贴 QR 内容';
+
+  @override
+  String get pointQrCodeLockerScreen => '请对准书柜屏幕上的 QR Code';
+
+  @override
+  String get checkingLocker => '正在确认书柜';
+
+  @override
+  String get confirmLockerTask => '确认书柜作业';
+
+  @override
+  String get retrieveBooks => '取回书籍';
+
+  @override
+  String get booksSameDoorRetrievedTogether => '同一柜门的书籍将一并取回';
+
+  @override
+  String confirmWithinP0(Object p0) => '请于 ${p0} 内确认';
+
+  @override
+  String get openDoor => '开启柜门';
+
+  @override
+  String get openingDoor => '柜门开启中';
+
+  @override
+  String placeTheseBooksDoorP0(Object p0) => '请将下列书籍放入柜门 ${p0}';
+
+  @override
+  String takeBooksFromDoorP0(Object p0) => '请取出柜门 ${p0} 内的书籍';
+
+  @override
+  String retrieveBooksFromDoorP0(Object p0) => '请取回柜门 ${p0} 内的书籍';
+
+  @override
+  String get rescan => '重新扫描';
+
+  @override
+  String get openMap => '打开地图';
+
+  @override
+  String get reportManually => '改为手动回报';
+
+  @override
+  String get continueTask => '继续作业';
+
+  @override
+  String get cancelTask => '取消作业';
+
+  @override
+  String get reportSubmittedTakesEffectAfterSupport => '已提交手动回报，待客服确认后生效';
+
+  @override
+  String get manualReportAwaitingConfirmation => '手动回报待客服确认';
+
+  @override
+  String onceDelistedP0NoLongerAppear(Object p0) => '取消上架后，《${p0}》将不再在商城显示。此书存放于书柜中，须先至书柜以 App 扫描 QR Code 取回书籍，方可重新上架。';
+
+  @override
+  String get lockerDevice => '书柜装置';
+
+  @override
+  String get deviceId => '装置编号';
+
+  @override
+  String get deviceType => '装置种类';
+
+  @override
+  String get firmware => '固件版本';
+
+  @override
+  String get lastSeen => '最后连线';
+
+  @override
+  String get pairingTime => '配对时间';
+
+  @override
+  String get doorSensors => '门磁传感器';
+
+  @override
+  String get installed => '已安装';
+
+  @override
+  String get notInstalled => '未安装';
+
+  @override
+  String get numberDoors => '柜门数';
+
+  @override
+  String get simulatorUrl => '模拟书柜网址';
+
+  @override
+  String get revokeDevice => '撤销装置';
+
+  @override
+  String onceRevokedDeviceCanNoLonger(Object p0) => '撤销后，此装置将无法再操作“${p0}”，书柜将改为手动回报。';
+
+  @override
+  String faultP0(Object p0) => '故障：${p0}';
+
+  @override
+  String get clearFault => '清除故障';
+
+  @override
+  String get faultCleared => '已清除故障';
+
+  @override
+  String get doors => '柜门';
+
+  @override
+  String get noContentsRecorded => '无存放记录';
+
+  @override
+  String get openDoorRemotely => '远程开启柜门';
+
+  @override
+  String get openingReason => '开启原因';
+
+  @override
+  String get describeReasonRecordedOperationLog => '请说明开启原因，将记录于操作记录';
+
+  @override
+  String get openCommandSent => '已发送开门指令';
+
+  @override
+  String get staffRetrievalOverdueBooks => '派员取出逾期存放的书籍';
+
+  @override
+  String get openWithoutNumberConfirmation => '不经数字确认直接开启';
+
+  @override
+  String get onlyDoorsWithNoRecordedContents => '仅限无存放记录的柜门，供测试电磁锁使用。柜门将在无人确认的情况下开启。';
+
+  @override
+  String get contentsNeedChecking => '待确认存放内容';
+
+  @override
+  String get confirmContents => '确认内容无误';
+
+  @override
+  String get contentsConfirmed => '已确认存放内容';
+
+  @override
+  String get booksMayInside => '可能存放的书籍';
+
+  @override
+  String get recordContents => '登记存放内容';
+
+  @override
+  String get selectItemsActuallyStoredDoor => '请选择实际存放于此柜门的项目';
+
+  @override
+  String get clearContentsRecord => '清空存放记录';
+
+  @override
+  String get booksRemoved => '书籍已取出';
+
+  @override
+  String get correctRecordOnly => '仅更正记录';
+
+  @override
+  String confirmStaffRemovedBooksFromDoor(Object p0) => '请确认已由人员自柜门 ${p0} 取出书籍。存书登记将删除，书籍改为下架，并通知卖家。';
+
+  @override
+  String confirmTheseBooksNotActuallyDoor(Object p0) => '请确认柜门 ${p0} 内实际没有这些书籍。仅删除柜门记录，不变更订单或存书状态。';
+
+  @override
+  String get describeReasonClearing => '请说明清空原因';
+
+  @override
+  String get itemsWithoutDoorRecord => '未登记柜门的项目';
+
+  @override
+  String get tasksConfirm => '待确认作业';
+
+  @override
+  String get markAsCompleted => '确认已完成';
+
+  @override
+  String get markAsNotCompleted => '确认未完成';
+
+  @override
+  String get resolutionNote => '处理说明';
+
+  @override
+  String get ordersDropOffsUpdatedAccordingTask => '将依作业内容更新订单与存书状态';
+
+  @override
+  String get ordersDropOffsStayUnchanged => '订单与存书状态维持不变';
+
+  @override
+  String get recentTasks => '最近作业';
+
+  @override
+  String get taskDetails => '作业详情';
+
+  @override
+  String get noTasksYet => '尚无作业记录';
+
+  @override
+  String get eventLog => '事件记录';
+
+  @override
+  String get noEventsYet => '尚无事件记录';
+
+  @override
+  String get closedBy => '关门方式';
+
+  @override
+  String get itemsConfirmed => '确认项目';
+
+  @override
+  String get taskItems => '作业项目';
+
+  @override
+  String get resolutionRecord => '处理记录';
+
+  @override
+  String taskProgressP0(Object p0) => '进行中作业：${p0}';
+
+  @override
+  String checkContentsDoorP0(Object p0) => '请确认柜门 ${p0} 的存放内容';
+
+  @override
+  String get manualReportsConfirm => '待确认手动回报';
+
+  @override
+  String get confirmReport => '确认回报';
+
+  @override
+  String get rejectReport => '驳回回报';
+
+  @override
+  String get manualReportConfirmed => '已确认手动回报';
+
+  @override
+  String get manualReportRejected => '已驳回手动回报';
+
+  @override
+  String get ordersDropOffsUpdatedAsReported => '确认后将依回报内容更新订单或存书状态，并通知相关用户。';
+
+  @override
+  String get statusStaysUnchangedReporterNotified => '驳回后状态维持不变，并通知回报者。';
+
+  @override
+  String get noManualReportsConfirm => '尚无待确认的手动回报';
+
+  @override
+  String get reporter => '回报者';
+
+  @override
+  String get scanLockerCollect => '扫描书柜取书';
+
+  @override
+  String get scanLockerDropOff => '扫描书柜存书';
+
+  @override
+  String get scanLockerRetrieve => '扫描书柜取回';
+
+  @override
+  String lockerClosedNowOpeningHoursP0(Object p0) => '目前非书柜营业时间，营业时间为 ${p0}';
+
+  @override
+  String get lockerUnderMaintenance => '此书柜维修中，暂停服务';
+
+  @override
+  String get lockerOutService => '此书柜暂停服务';
+
+  @override
+  String get noDoorsAvailableMoment => '书柜目前没有可用的柜门';
+
+  @override
+  String get lockerOfflineSoDoorCannotOpened => '书柜目前连线中断，无法以扫码开启柜门。请依客服指示放入或取出书籍后再回报，回报经客服确认后生效。';
+
+  @override
+  String get lockerOutOrderSoDoorCannot => '书柜目前故障，无法以扫码开启柜门。请依客服指示放入或取出书籍后再回报，回报经客服确认后生效。';
+
+  @override
+  String get manualReportsTakeEffectAfterSupport => '手动回报经客服确认后生效。';
+
+  @override
+  String get notSavemybookLockerQrCode => '此 QR Code 并非本平台书柜之 QR Code';
+
+  @override
+  String get lockerQrCodeChangedScanCode => '书柜 QR Code 已更新，请重新扫描书柜屏幕上的 QR Code';
+
+  @override
+  String get lockerUsePleaseWaitScanAgain => '书柜使用中，请稍候再扫描';
+
+  @override
+  String get lockerOfflineTemporarilyUnavailable => '书柜目前连线中断，暂时无法使用';
+
+  @override
+  String get itemChangedRefreshTryAgain => '项目状态已变更，请刷新后再试';
+
+  @override
+  String get noItemsHandleLocker => '您在此书柜没有待办理的项目';
+
+  @override
+  String get lockerTaskProgressFinishCancelFirst => '您有进行中的书柜作业，请先完成或取消';
+
+  @override
+  String get selectLeastOneItem => '请至少选择一个项目';
+
+  @override
+  String get notEnoughDoorsAvailableSelectFewer => '此书柜可用的柜门不足，请减少存书项目或稍后再试';
+
+  @override
+  String get someItemsChangedPleaseConfirmAgain => '部分项目状态已变更，请重新确认';
+
+  @override
+  String get lockerTaskWasNotFound => '找不到此书柜作业';
+
+  @override
+  String get actionNotAvailableRightNow => '目前无法执行此操作';
+
+  @override
+  String get lockerRequiresScanningScanQrCode => '此书柜已启用扫码存取，请至书柜扫描 QR Code 办理';
+
+  @override
+  String get orderBeingHandledLockerPleaseTry => '此订单正于书柜办理中，请稍后再试';
+
+  @override
+  String get manualReportItemAlreadyAwaitingConfirmation => '此项目已有待客服确认的手动回报';
+
+  @override
+  String aboutP0FromLockerPleaseUse(Object p0) => '您目前的位置距离书柜约 ${p0}，请于书柜旁操作';
+
+  @override
+  String itemAssignedP0PleaseUseLocker(Object p0) => '此项目的指定书柜为“${p0}”，请至该书柜办理';
+
+  @override
+  String severalTasksLockerWereNotCompleted(Object p0) => '您在此书柜的作业多次未完成，请于 ${p0} 分钟后再试';
+
+  @override
+  String itemsP0(Object p0) => '您的待办项目位于：${p0}';
+
+  @override
+  String get taskComplete => '作业完成';
+
+  @override
+  String get someItemsWereNotCompleted => '部分项目未完成';
+
+  @override
+  String get numberDidNotMatchTaskBeen => '数字不符，本次作业已取消';
+
+  @override
+  String get numberWasNotConfirmedTimeTask => '未于时限内完成数字确认，本次作业已取消';
+
+  @override
+  String get itemsWereNotConfirmedTimeTask => '未于时限内确认项目，本次作业已取消';
+
+  @override
+  String get lockerDidNotRespondDoorWas => '书柜未响应，柜门未开启，请稍后再试';
+
+  @override
+  String get taskBeenCancelled => '本次作业已取消';
+
+  @override
+  String get lockerDidNotConfirmDoorOpened => '未收到书柜的开门回报，本次作业待客服确认';
+
+  @override
+  String get thereWasLockerConnectionProblemSupport => '书柜连线异常，本次作业待客服确认';
+
+  @override
+  String get lockerRestartedSupportConfirmTask => '书柜重新启动，本次作业待客服确认';
+
+  @override
+  String get supportConfirmedTaskComplete => '客服已确认本次作业完成';
+
+  @override
+  String get supportConfirmedTaskWasNotCompleted => '客服已确认本次作业未完成，状态未变更';
+
+  @override
+  String get supportEndedTask => '客服已结束本次作业';
+
+  @override
+  String get dropOffCompleteBuyerBeenNotified => '存书完成，已通知买家取书';
+
+  @override
+  String get dropOffComplete => '存书完成';
+
+  @override
+  String get retrievalComplete => '取回完成';
+
+  @override
+  String get doorCouldNotIdentifiedPleaseContact => '无法确认柜门，请联系客服';
+
+  @override
+  String get doorFaultyPleaseContactSupport => '柜门故障，请联系客服';
+
+  @override
+  String get doorAwaitingCheckBySupportPlease => '柜门待客服确认，请联系客服';
+
+  @override
+  String get reachedPreSaleDropOffLimit => '您在此书柜的先行存书已达上限，请待售出或取回后再存入';
+
+  @override
+  String get itemChanged => '项目状态已变更';
+
+  @override
+  String get doorDidNotOpen => '柜门未能开启';
+
+  @override
+  String get doorOpeningNotConfirmedSupportCheck => '未收到柜门开启回报，待客服确认';
+
+  @override
+  String get anotherItemDoorSupportCheck => '柜门内有其他项目，待客服确认';
+
+  @override
+  String notCompletedP0(Object p0) => '未完成：${p0}';
+
+  @override
+  String bookBeenSoldAfterRetrievingDrop(Object p0) => '此书籍已售出，取回后请存入“${p0}”';
+
+  @override
+  String doorP0(Object p0) => '柜门 ${p0}';
+
+  @override
+  String get confirmingItems => '确认项目中';
+
+  @override
+  String get confirmingNumber => '数字确认中';
+
+  @override
+  String get opening => '开门中';
+
+  @override
+  String get doorOpened => '柜门已开启';
+
+  @override
+  String get partlyCompleted => '部分完成';
+
+  @override
+  String get failed => '失败';
+
+  @override
+  String get modelAnswer => '模型回答';
+
+  @override
+  String get replacedWithStandardNotice => '改用固定说明';
+
+  @override
+  String get clarifyingQuestion => '厘清需求';
+
+  @override
+  String get noSuitableBooks => '无合适书籍';
+
+  @override
+  String get fellBackSearchRanking => '改用检索排序';
+
+  @override
+  String get fellBackPopularBooks => '改列热门书籍';
+
+  @override
+  String get recommendationsGenerated => '已产生推荐';
+
+  @override
+  String get noSuitableCandidates => '无合适候选书';
+
+  @override
+  String get noCandidates => '无候选书';
+
+  @override
+  String get modelSuggestionsUsed => '采用模型建议';
+
+  @override
+  String get bibliographicDataOnly => '仅带入书目资料';
+
+  @override
+  String get handoffSuggested => '建议转接';
+
+  @override
+  String get insufficientGrounding => '依据不足';
+
+  @override
+  String get continuedPreviousCriteria => '延续前一轮条件';
+
+  @override
+  String get reusedPreviousTopic => '沿用前一轮主题';
+
+  @override
+  String get noSearchMatch => '未命中检索';
+
+  @override
+  String get invalidBookCodesReturned => '书单含无效代号';
+
+  @override
+  String get webSearchUsed => '使用网络搜索';
+
+  @override
+  String get retriedWithoutSearch => '改为不搜索重试';
+
+  @override
+  String get backupProviderUsed => '改用备援服务商';
+
+  @override
+  String get conditionAdjustedFromNotes => '依说明调整书况';
+
+  @override
+  String get avgPassagesRetrieved => '平均检索段落数';
+
+  @override
+  String get avgCandidates => '平均候选书数';
+
+  @override
+  String get avgFillerBooks => '平均补位书数';
+
+  @override
+  String get avgBooksRecommended => '平均推荐书数';
+
+  @override
+  String get avgBooksSelected => '平均采用书数';
+
+  @override
+  String get avgInvalidCodes => '平均无效代号数';
+
+  @override
+  String get avgPhotos => '平均照片数';
+
+  @override
+  String get avgSources => '平均参考来源数';
+
+  @override
+  String get bookSearch => '书籍搜索';
+
+  @override
+  String get fellBackReferencePassage => '改用说明原文';
+
+  @override
+  String get booksSelectedByModel => '模型选书';
+
+  @override
+  String get indexUpdates => '索引更新';
+
+  @override
+  String get sourceNotRecorded => '未标示来源';
+
+  @override
+  String get outputFormatErrors => '输出格式错误';
+
+  @override
+  String get suggestMediation => '建议协调处理';
+
+  @override
+  String get handoffEnforcedBySystem => '由系统强制转接';
+
+  @override
+  String get followUpSuggestionsProvided => '附有追问建议';
+
+  @override
+  String get replyTitleNotBookCards => '回复书名与书卡不符';
+
+  @override
+  String get replyMentionsPrice => '回复提及价格';
+
+  @override
+  String get replyDeniesResultsDespiteBookCards => '有书卡但回复称无相关书籍';
+
+  @override
+  String get completeItemsKeptAfterTruncation => '输出截断后保留完整项目';
+
+  @override
+  String get somePhotosNotSent => '部分照片未送出';
+
+  @override
+  String get noEvidencePhotosSent => '佐证照片皆未送出';
+
+  @override
+  String get findingsCitePhotos => '观察重点引用照片';
+
+  @override
+  String get avgPassagesCited => '平均引用段落数';
+
+  @override
+  String get avgInvalidRecommendationBases => '平均无效推荐依据数';
+
+  @override
+  String get avgSystemGeneratedReasons => '平均系统产生理由数';
+
+  @override
+  String get avgInvalidPhotoReferences => '平均无效照片编号数';
+
+  @override
+  String get favorsBuyer => '有利买家';
+
+  @override
+  String get favorsSeller => '有利卖家';
+
+  @override
+  String get insidePage => '内页';
+
+  @override
+  String photoP0Evidence(Object p0) => '照片 ${p0}（佐证）';
+
+  @override
+  String photoP0P1P2(Object p0, Object p1, Object p2) => '照片 ${p0}（《${p1}》${p2}）';
+
+  @override
+  String photoP0P1(Object p0, Object p1) => '照片 ${p0}（${p1}）';
+
+  @override
+  String aiReviewedP0ListingP1Evidence(Object p0, Object p1, Object p2) => 'AI 参考：上架 ${p0} 张、佐证 ${p1} 张，另有 ${p2} 张未送出';
+
+  @override
+  String aiReviewedP0ListingP1Evidence2(Object p0, Object p1) => 'AI 参考：上架 ${p0} 张、佐证 ${p1} 张';
+
+  @override
+  String someItemsMalformedP0(Object p0) => '部分项目格式不符 ${p0}';
+
+  @override
+  String fieldsDefaultedP0(Object p0) => '字段改用默认值 ${p0}';
+
+  @override
+  String get highConfidence => '可信度：高';
+
+  @override
+  String get mediumConfidence => '可信度：中';
+
+  @override
+  String get lowConfidence => '可信度：低';
+
+  @override
+  String get writtenByAi => 'AI 撰写';
+
+  @override
+  String get clearBibliographyCache => '清除书目缓存';
+
+  @override
+  String get bookDetailsLookedUpAgainNext => '其他卖家上架此 ISBN 时将重新查询书目资料。';
+
+  @override
+  String get bibliographyCacheIsbnCleared => '已清除此 ISBN 的书目缓存';
+
+  @override
+  String get noBibliographyCacheIsbn => '此 ISBN 无书目缓存';
+
+  @override
+  String get lookUpListPrice => '查询定价';
+
+  @override
+  String get assessConditionPrice => '判断书况与售价';
+
+  @override
+  String get aiRepliesReferenceOnlyOrderPage => 'AI 回复仅供参考，实际以订单页面与客服人员说明为准';
+
+  @override
+  String get preFilledFromSupportEnquiryReview => '已依客服工单预填，请确认内容后再保存。';
+
+  @override
+  String get noData => '无数据';
+
+  @override
+  String get sellingPrice => '售价';
+
+  @override
+  String get aiQuality => 'AI 质量';
+
+  @override
+  String get overturnedByAdmins => '管理员推翻比例';
+
+  @override
+  String get flaggedByInstantRules => '即时规则送审';
+
+  @override
+  String get flaggedByAi => 'AI 送审';
+
+  @override
+  String get transferredSupportAgents => '转由客服人员处理';
+
+  @override
+  String get ratedNotHelpful => '评为没有帮助';
+
+  @override
+  String get repliesWithoutBooks => '未附书籍的回复';
+
+  @override
+  String get disputeAnalysis2 => '交易争议分析';
+
+  @override
+  String get suggestionMatchedDecision => '建议与裁决一致';
+
+  @override
+  String get ratedHelpful => '评为有帮助';
+
+  @override
+  String get bookRecommendations => '书籍推荐';
+
+  @override
+  String get aiRecommendationClickThroughRate => 'AI 推荐点击率';
+
+  @override
+  String get standardRecommendationClickThroughRate => '一般推荐点击率';
+
+  @override
+  String get markedNotInterested => '标示不感兴趣';
+
+  @override
+  String get listingAssistantAdoptionRate => '上架辅助采用率';
+
+  @override
+  String get listingsUsingAssistant => '使用上架辅助的书籍';
+
+  @override
+  String get createdFromSupportEnquiries => '由客服工单建立';
+
+  @override
+  String get rejectionReason => '驳回原因类别';
+
+  @override
+  String get sourceInstantRules => '来源：即时规则';
+
+  @override
+  String get sourceAiAssessment => '来源：AI 判定';
+
+  @override
+  String confidenceP0(Object p0) => '可信度 ${p0}';
+
+  @override
+  String aiAssessmentConfidenceP0(Object p0) => 'AI 判定可信度 ${p0}';
+
+  @override
+  String get assessment => '判定';
+
+  @override
+  String get description3 => '描述';
+
+  @override
+  String get markReviewReasonAsUnfoundedWhen => '核准时标示送审原因不成立';
+
+  @override
+  String get showPhotosFullDetails => '显示照片与完整内容';
+
+  @override
+  String analysedP0(Object p0) => '分析时间：${p0}';
+
+  @override
+  String get wasAnalysisHelpful => '此分析是否有帮助';
+
+  @override
+  String get helpful => '有帮助';
+
+  @override
+  String get notHelpful => '没有帮助';
+
+  @override
+  String get recommendedBooksDoNotMatchMy => '推荐书籍不符合需求';
+
+  @override
+  String get inaccurateInformation => '内容不正确';
+
+  @override
+  String get didNotAnswerQuestion => '未回答问题';
+
+  @override
+  String get insufficientInformation => '信息不足';
+
+  @override
+  String get selectReason => '请选择原因';
+
+  @override
+  String get notInterested => '不感兴趣';
+
+  @override
+  String get bookNoLongerRecommended => '已不再推荐此书';
+
+  @override
+  String get cachedBibliographicDataUsed => '沿用缓存书目';
+
+  @override
+  String get cachedDescriptionUsed => '沿用缓存简介';
+
+  @override
+  String get isbnTitleDoNotMatch => 'ISBN 与书名不一致';
+
+  @override
+  String get awaitingReview => '待确认';
+
+  @override
+  String get orderDropOff => '按订单存书';
+
+  @override
+  String get preSaleDropOff => '先行存书';
+
+  @override
+  String get retrieval => '取回';
+
+  @override
+  String get adminOpening => '管理员开柜';
+
+  @override
+  String get countdownEnded => '倒计时结束';
+
+  @override
+  String get doorSensor => '门磁感测';
+
+  @override
+  String get deviceRestarted => '装置重新启动';
+
+  @override
+  String get resolvedBySupport => '客服处理';
+
+  @override
+  String get deviceStarted => '装置启动';
+
+  @override
+  String get doorClosed => '柜门已关闭';
+
+  @override
+  String get taskCloseReported => '作业结束回报';
+
+  @override
+  String get fault => '故障';
+
+  @override
+  String get faultResolved => '故障排除';
+
+  @override
+  String get unexpectedDoorOpening => '柜门异常开启';
+
+  @override
+  String get connectionLost => '连线中断';
+
+  @override
+  String get connectionRestored => '恢复连线';
+
+  @override
+  String get paired => '完成配对';
+
+  @override
+  String get deviceRevoked => '已撤销装置';
+
+  @override
+  String get taskCreated => '建立作业';
+
+  @override
+  String get taskFinished => '作业结束';
+
+  @override
+  String get scanRejected => '扫码遭拒';
+
+  @override
+  String get remoteOpening => '远程开柜';
+
+  @override
+  String get contentsRecorded => '已登记存放内容';
+
+  @override
+  String get contentsRecordCleared => '已清空存放记录';
+
+  @override
+  String get credentialPossiblyCopied => '凭证疑遭复制';
+
+  @override
+  String get sourceIpChanged => '来源 IP 变更';
+
+  @override
+  String get doorNeedsChecking => '柜门待确认';
+
+  @override
+  String get doorChecked => '柜门确认完成';
+
+  @override
+  String get itemBlocked => '项目无法办理';
+
+  @override
+  String get manualReport => '手动回报';
+
+  @override
+  String get manualReportReviewed => '手动回报处理';
+
+  @override
+  String get overdueOrderHeld => '逾期订单待处理';
+
+  @override
+  String get doorOpenedAfterTask => '作业结束后开门';
+
+  @override
+  String get lockDidNotRelease => '电磁锁未释放';
+
+  @override
+  String get doorLeftOpen => '柜门未关闭';
+
+  @override
+  String get doorForcedOpen => '柜门遭强制开启';
+
+  @override
+  String get sensorError => '传感器异常';
+
+  @override
+  String get powerProblem => '电源异常';
+
+  @override
+  String get screenProblem => '屏幕异常';
+
+  @override
+  String get dropOffCancelledAfterDoorOpened => '存书作业开门后取消';
+
+  @override
+  String get dropOffMarkedAsNotCompleted => '客服确认未完成的存书作业';
+
+  @override
+  String get anotherItemWasAlreadyDoor => '存书时门内已有其他项目';
+
+  @override
+  String get doorOpeningNotReported => '未收到开门回报';
+
+  @override
+  String get doorReportedOpenAfterTaskEnded => '作业结束后回报开门';
+
+  @override
+  String get manualReportDuringFault => '故障期间的手动回报';
+
+  @override
+  String get openedByStaff => '管理人员开启过此柜门';
+
+  @override
+  String get orderCompletedBySupportBeforePickup => '客服将未取书的订单改为完成';
+
+  @override
+  String get noDevice => '未配对装置';
+
+  @override
+  String get deviceOffline => '装置离线';
+
+  @override
+  String get deviceFault => '装置故障';
+
+  @override
+  String get underMaintenance => '书柜维修中';
+
+  @override
+  String get scanningRequired => '用户须扫码存取';
+
+  @override
+  String manualReportingAllowedP0(Object p0) => '开放手动回报（${p0}）';
+
+  @override
+  String userAccessSuspendedP0(Object p0) => '暂停用户存取（${p0}）';
+
+  @override
+  String get simulator => '模拟书柜';
+
+  @override
+  String get physicalLocker => '实体书柜';
+
+  @override
+  String get noDevicePaired => '尚未配对装置';
+
+  @override
+  String get awaitingPairing => '等待配对';
+
+  @override
+  String get online => '连线中';
+
+  @override
+  String get offline => '离线';
+
+  @override
+  String get locationNotPermitted => '未授权定位';
+
+  @override
+  String get locationUnavailable => '无法取得定位';
+
+  @override
+  String aboutP0Away(Object p0) => '距离约 ${p0}';
+
+  @override
+  String get dropOffReport => '存书回报';
+
+  @override
+  String get pickupReport => '取书回报';
+
+  @override
+  String get retrievalReport => '取回回报';
+
+  @override
+  String get confirmed => '已确认';
+
+  @override
+  String get noLongerValid => '已失效';
+
+  @override
+  String get lockerInactive => '书柜停用';
+
+  @override
+  String get selectDoorWhereBooksActuallyStored => '请选择书籍实际存放的柜门';
+
+  @override
+  String offlineP0(Object p0) => '离线时间 ${p0}';
+
+  @override
+  String get collectionRetrievalNotCompletedAfterDoor => '取书或取回开门后未能完成';
+
+  @override
+  String get unpairedByDevice => '装置解除配对';
+
+  @override
+  String get replacedByNewDevice => '由新装置取代';
+
+  @override
+  String get revokedByAdministrator => '管理员撤销';
+
+  @override
+  String get simulatorTurnedOff => '模拟书柜功能关闭';
+
+  @override
+  String get tooManyRequestsPleaseTryAgain => '操作过于频繁，请稍后再试';
+
+  @override
+  String get viewPurchases => '查看购买记录';
+
+  @override
+  String get viewSales => '查看销售记录';
+
+  @override
+  String get retrievalNotAvailableLockerRightNow => '此书柜目前无法办理取回，请联系客服';
+
+  @override
+  String get itemsCouldNotCompleted => '项目未能完成';
+
+  @override
+  String onceDelistedP0NoLongerAppear2(Object p0) => '取消上架后，《${p0}》将不再在商城显示。此书存放于书柜中，须先取回书籍，方可重新上架。';
+
+  @override
+  String confirmP0BeenPlacedP1(Object p0, Object p1) => '请确认已将《${p0}》放入“${p1}”。';
+
+  @override
+  String get confirmTakenBookFromLocker => '请确认已从书柜取出书籍。';
+
+  @override
+  String get finish => '完成';
+
+  @override
+  String get door => '柜门';
+
+  @override
+  String get enterNumberShownLockerScreen => '请输入书柜屏幕上显示的数字';
+
+  @override
+  String get ifSomeoneTellsNumberAsksEnter => '若有他人告知数字并要求您输入，请勿操作。';
+
+  @override
+  String get enterTwoDigits => '请输入两位数字';
+
+  @override
+  String get closeDoorFirst => '请先关上柜门';
+
+  @override
+  String get onceDoorClosedTaskEndAutomatically => '柜门关上后，将依您的选择自动结束本次作业。';
+
+  @override
+  String get taskCompleteAutomaticallyOnceDoorClosed => '柜门关上后将自动完成本次作业。';
+
+  @override
+  String get taskBeenCancelledNothingChanged => '本次作业已取消，状态未变更';
+
+  @override
+  String get locationAccessRequiredUseLockerTurn => '使用书柜须允许访问位置信息，请在系统设置中开启后再试';
+
+  @override
+  String get locationCouldNotConfirmedTurnLocation => '目前无法确认您的位置，请开启定位服务后再试';
+
+  @override
+  String get doorOpenActionNotAvailable => '柜门已开启，无法执行此操作';
+
+  @override
+  String get taskBeingProcessedPleaseWait => '本次作业处理中，请稍候';
+
+  @override
+  String numberConfirmationWasNotCompletedSeveral(Object p0) => '数字确认多次未完成，请于 ${p0} 分钟后再试';
+
+  @override
+  String get doorRecordedContentsAwaitingCheckComplete => '柜门内有存放记录或待确认，须完成数字确认后开启';
+
+  @override
+  String get lockerBeenAskedEndTask => '已要求书柜结束作业';
+
+  @override
+  String get endTask => '结束作业';
+
+  @override
+  String get pairDevice => '配对装置';
+
+  @override
+  String get enterPairingCodeShownLockerScreen => '请输入书柜屏幕上显示的配对码';
+
+  @override
+  String get enter8DigitPairingCode => '请输入 8 位数配对码';
+
+  @override
+  String get pairingCodeInvalidExpired => '配对码无效或已过期';
+
+  @override
+  String get waitingDeviceConnect => '等待装置连接';
+
+  @override
+  String get pairingWasNotCompletedEnterNew => '配对未完成，请输入书柜屏幕上的新配对码';
+
+  @override
+  String get donePhone => '手机完成';
+
+  @override
+  String get cancelledPhone => '手机取消';
+
+  @override
+  String get matchCodeEntered => '输入比对码';
+
+  @override
+  String get lockerRefusedEndDoorOpen => '书柜拒绝结束（柜门未关）';
+
+  @override
+  String get numberMatched => '数字相符';
+
+  @override
+  String get numberDidNotMatch => '数字不符';
+
+  @override
+  String get cancelTapCancelBeforeClosingDoor => '如需取消，请于关上柜门前按「取消」。倒计时结束时将自动完成。';
+
+  @override
+  String get preciseLocationRequiredUseLockerTurn => '使用书柜须开启精确位置，请在系统设置中开启后再试';
+
+  @override
+  String get enterTitle3 => '请输入标题';
+
+  @override
+  String get credentialsNotSet => '尚未设置凭证';
+
+  @override
+  String get searchActions => '搜索操作内容';
+
+  @override
+  String undoneP0(Object p0) => '还原于 ${p0}';
+
+  @override
+  String get delistListing => '下架商品';
+
+  @override
+  String get amount2 => '金额';
+
+  @override
+  String get couldNotOpenChatPleaseTry => '无法开启对话，请稍后再试';
+
+  @override
+  String publishedP0(Object p0) => '发布日期：${p0}';
+
+  @override
+  String get pushNotificationRegistrationFailedPleaseTry => '推送注册失败，请稍后再试。';
 
 }
 
@@ -32644,7 +39204,7 @@ class _LZhHant extends AppLocalizations {
   String get orderBuyerDeposited => '待取書';
 
   @override
-  String get orderBuyerRefunding => '申訴中';
+  String get orderBuyerRefunding => '爭議處理中';
 
   @override
   String get orderFlowDeposit => '待賣家存書';
@@ -32662,7 +39222,7 @@ class _LZhHant extends AppLocalizations {
   String get bookOnSale => '販售中';
 
   @override
-  String get bookReserved => '已預訂';
+  String get bookReserved => '已預約';
 
   @override
   String get bookSold => '已售出';
@@ -32740,7 +39300,7 @@ class _LZhHant extends AppLocalizations {
   String get disputeRefundAuto => '自動退款';
 
   @override
-  String get disputeDismissed => '駁回申訴';
+  String get disputeDismissed => '駁回爭議';
 
   @override
   String get disputeMediated => '協調結案';
@@ -32992,7 +39552,7 @@ class _LZhHant extends AppLocalizations {
   String get regenerateShareLink => '重新產生分享連結';
 
   @override
-  String get oldLinkQrCodeStopWorking => '舊的連結與 QR Code 將立即失效，已分享的連結將無法開啟。確定要重新產生嗎？';
+  String get oldLinkQrCodeStopWorking => '現有連結與 QR Code 將立即失效。';
 
   @override
   String get regenerate => '重新產生';
@@ -33121,9 +39681,6 @@ class _LZhHant extends AppLocalizations {
   String get signContactSeller => '請先登入才能聯絡賣家';
 
   @override
-  String get signStartChat => '請先登入才能聯絡賣家';
-
-  @override
   String get signReport => '請先登入才能檢舉';
 
   @override
@@ -33181,13 +39738,10 @@ class _LZhHant extends AppLocalizations {
   String get delist => '取消上架';
 
   @override
-  String removedFromShopBuyersNoLonger(Object p0) => '《${p0}》將從商城下架，買家將無法瀏覽。';
+  String removedFromShopBuyersNoLonger(Object p0) => '取消上架後，《${p0}》將不再於商城顯示。';
 
   @override
-  String get delist2 => '下架';
-
-  @override
-  String get couldNotDelistPleaseTryAgain => '下架失敗，請稍後再試';
+  String get couldNotDelistPleaseTryAgain => '取消上架失敗，請稍後再試';
 
   @override
   String listedAgain(Object p0) => '《${p0}》已重新上架';
@@ -33214,13 +39768,13 @@ class _LZhHant extends AppLocalizations {
   String notEnoughCoinsOrderNeedsBut(Object p0, Object p1) => '代幣不足，此訂單需 ${p0}，目前餘額 ${p1}';
 
   @override
-  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 \$${p1}。\n';
+  String booksTotal(Object p0, Object p1) => '共 ${p0} 本書，總金額 ${p1} 代幣。\n';
 
   @override
   String balanceAfterPaymentCoins(Object p0) => '扣款後餘額為 ${p0} 代幣。';
 
   @override
-  String get orderPlacedSellerDropBookOff => '結帳成功，請等待賣家存書';
+  String get orderPlacedSellerDropBookOff => '請等待賣家存書';
 
   @override
   String get cart => '購物車';
@@ -33376,7 +39930,7 @@ class _LZhHant extends AppLocalizations {
   String get writeMessage => '輸入訊息…';
 
   @override
-  String get enterOrderNumberDisputing => '請填寫要申訴的訂單編號';
+  String get enterOrderNumberDisputing => '請填寫要申請爭議的訂單編號';
 
   @override
   String get describeDispute => '請填寫爭議說明';
@@ -33388,10 +39942,7 @@ class _LZhHant extends AppLocalizations {
   String get submitDispute => '送出爭議申請';
 
   @override
-  String get orderEntersDisputeProcessPaymentSeller => '送出後此訂單將進入申訴流程，款項將暫停撥付給賣家，直至客服裁決。';
-
-  @override
-  String paymentHoldRequested(Object p0) => '[申請凍結款項] ${p0}';
+  String get orderEntersDisputeProcessPaymentSeller => '送出後此訂單將進入爭議處理流程，款項將暫停撥付給賣家，直至客服裁決。';
 
   @override
   String get disputeSubmittedSupportContact => '爭議申請已送出，客服將盡快與您聯繫';
@@ -33400,16 +39951,10 @@ class _LZhHant extends AppLocalizations {
   String get dispute => '爭議處理';
 
   @override
-  String get requestPaymentHold => '申請凍結款項';
-
-  @override
-  String get submitDispute2 => '提交爭議申請';
-
-  @override
   String get orderNumber => '訂單編號';
 
   @override
-  String get eGSmb20260910123456789 => '例如 SMB20260910123456789';
+  String get eGSmb20260910123456789 => '例如 SMB20260910143015123456';
 
   @override
   String get whatHappened => '爭議說明';
@@ -33469,7 +40014,7 @@ class _LZhHant extends AppLocalizations {
   String get condition => '書況';
 
   @override
-  String get customPrice => '自訂價格';
+  String get customPrice => '售價';
 
   @override
   String get enterPrice2 => '請輸入售價';
@@ -33553,7 +40098,7 @@ class _LZhHant extends AppLocalizations {
   String get displayNameCannotBlank => '暱稱不可空白';
 
   @override
-  String get displayNames250Characters => '暱稱長度需介於 2 ~ 50 個字元';
+  String get displayNames250Characters => '暱稱長度須為 2 至 50 個字元';
 
   @override
   String get invalidPhoneNumberEG0912345678 => '電話格式不正確，例：0912345678';
@@ -33616,9 +40161,6 @@ class _LZhHant extends AppLocalizations {
   String get priceHighLow => '價格由高到低';
 
   @override
-  String get reachedEnd => '已顯示全部內容';
-
-  @override
   String get guest => '訪客';
 
   @override
@@ -33673,7 +40215,7 @@ class _LZhHant extends AppLocalizations {
   String get noAccountWithEmail => '此帳號尚未註冊';
 
   @override
-  String noAccountCreateOneNow(Object p0) => '找不到帳號「${p0}」，是否立即註冊？';
+  String noAccountCreateOneNow(Object p0) => '是否以「${p0}」註冊新帳號？';
 
   @override
   String get signUp => '前往註冊';
@@ -33814,13 +40356,13 @@ class _LZhHant extends AppLocalizations {
   String get dispute2 => '爭議';
 
   @override
-  String get orderOpenDispute => '此訂單有進行中的申訴案件';
+  String get orderOpenDispute => '此訂單有處理中的爭議案件';
 
   @override
   String get cancelOrder => '取消訂單';
 
   @override
-  String get pendingPayoutDisappearsBuyerNotified => '取消後此筆待定收益將一併取消，並通知買家。';
+  String get pendingPayoutDisappearsBuyerNotified => '取消後此筆待撥款項將一併取消，並通知買家。';
 
   @override
   String get cancelledBySeller => '賣家取消';
@@ -33829,22 +40371,16 @@ class _LZhHant extends AppLocalizations {
   String get orderCancelled2 => '訂單已取消';
 
   @override
-  String get pendingPayouts => '待定收益';
+  String get pendingPayouts => '待撥款項';
 
   @override
   String get noPendingPayouts => '目前沒有待撥款的訂單';
 
   @override
-  String get pendingAmount => '待定收益金額';
+  String get pendingAmount => '待撥款金額';
 
   @override
-  String get coinsArriveOnceBuyerCollectsBook => '買家取書後自動撥款';
-
-  @override
-  String get scanned => '掃描成功';
-
-  @override
-  String get scanAgain => '繼續掃描';
+  String get coinsArriveOnceBuyerCollectsBook => '買家完成訂單或取書滿 24 小時後撥款';
 
   @override
   String get collectBook => '取書';
@@ -33853,13 +40389,10 @@ class _LZhHant extends AppLocalizations {
   String get pointPickupQrCode => '請對準取書 QR Code';
 
   @override
-  String get holdSteady => '請保持裝置穩定';
-
-  @override
   String get bookCollected => '取書完成';
 
   @override
-  String collected(Object p0) => '《${p0}》已完成取書';
+  String collected(Object p0) => '《${p0}》';
 
   @override
   String order2(Object p0) => '訂單編號：${p0}';
@@ -33869,9 +40402,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get myAccount => '會員中心';
-
-  @override
-  String get personNotWrittenBioYet => '尚未填寫個人簡介';
 
   @override
   String get topTierReached => '已達最高等級';
@@ -33931,13 +40461,7 @@ class _LZhHant extends AppLocalizations {
   String get createAccount => '建立帳號';
 
   @override
-  String get joinSavemybook => '註冊帳號';
-
-  @override
   String get displayName => '暱稱';
-
-  @override
-  String get emailSignWith => '電子郵件';
 
   @override
   String get least8CharactersWithLettersNumbers => '至少 8 碼，需含英文與數字';
@@ -33947,9 +40471,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get enterPasswordAgain2 => '請再次輸入密碼';
-
-  @override
-  String get alreadyAccountGoBackSign => '已有帳號？返回登入';
 
   @override
   String get markAsDroppedOff => '完成存書';
@@ -33991,7 +40512,7 @@ class _LZhHant extends AppLocalizations {
   String get missingInformation => '資料不齊全';
 
   @override
-  String get enterOwnPrice => '請輸入自訂價格。';
+  String get enterOwnPrice => '請輸入售價。';
 
   @override
   String get invalidPrice => '價格不正確';
@@ -34099,7 +40620,7 @@ class _LZhHant extends AppLocalizations {
   String get notSavemybookProfileQrCode => '此 QR Code 並非救「舊」我的書的個人 QR Code';
 
   @override
-  String get ownQrCode => '這是您的個人 QR Code';
+  String get ownQrCode => '此為您本人的 QR Code';
 
   @override
   String get couldNotStartChatPleaseTry => '無法建立聊天室，請稍後再試';
@@ -34117,7 +40638,7 @@ class _LZhHant extends AppLocalizations {
   String get sharingCouldNotOpenSoLink => '無法開啟分享，已複製連結';
 
   @override
-  String get savedPhotos => '已儲存到相簿';
+  String get savedPhotos => '已儲存至相簿';
 
   @override
   String get couldNotSaveCheckPhotoLibrary => '儲存失敗，請確認已允許相簿權限';
@@ -34306,7 +40827,7 @@ class _LZhHant extends AppLocalizations {
   String get couldNotOpenCameraCheckPermission => '無法開啟相機，請確認已授權';
 
   @override
-  String get justNow => '剛剛';
+  String get justNow => '1 分鐘內';
 
   @override
   String minAgo(Object p0) => '${p0} 分鐘前';
@@ -34399,9 +40920,6 @@ class _LZhHant extends AppLocalizations {
   String get publishNow => '立即發布';
 
   @override
-  String get leaveOffSaveAsDraft => '關閉時僅儲存為草稿';
-
-  @override
   String get saveDraft => '儲存草稿';
 
   @override
@@ -34429,9 +40947,6 @@ class _LZhHant extends AppLocalizations {
   String get draft => '草稿';
 
   @override
-  String get audienceEveryone => '對象：全體使用者';
-
-  @override
   String get backUpNow => '立即備份';
 
   @override
@@ -34456,7 +40971,7 @@ class _LZhHant extends AppLocalizations {
   String backedUpDailyNewestP0Kept(Object p0) => '每日自動備份，保留最新 ${p0} 份';
 
   @override
-  String get olderBackupsBeyondCountRemovedAutomatically => '超出份數的舊備份將自動清除。備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
+  String get olderBackupsBeyondCountRemovedAutomatically => '備份檔含全站個人資料，下載後請妥善保管，每次下載皆會記錄於操作紀錄。';
 
   @override
   String get noBackupsYetSchedulerRunsOnce => '尚無備份紀錄';
@@ -34813,7 +41328,7 @@ class _LZhHant extends AppLocalizations {
   String orderP0P1(Object p0, Object p1) => '訂單 ${p0}｜\$${p1}';
 
   @override
-  String reasonP0(Object p0) => '申訴理由：${p0}';
+  String reasonP0(Object p0) => '爭議說明：${p0}';
 
   @override
   String get decisionNoteOptional => '裁決說明（選填）';
@@ -34825,10 +41340,10 @@ class _LZhHant extends AppLocalizations {
   String get decisionRecorded => '已完成裁決';
 
   @override
-  String get resolveDispute => '仲裁交易';
+  String get resolveDispute => '交易仲裁';
 
   @override
-  String get noDisputesKind => '目前沒有此類申訴案件';
+  String get noDisputesKind => '目前沒有此類爭議案件';
 
   @override
   String orderNumberP0(Object p0) => '訂單編號：${p0}';
@@ -34837,7 +41352,7 @@ class _LZhHant extends AppLocalizations {
   String buyerP0SellerP1(Object p0, Object p1) => '買家：${p0}｜賣家：${p1}';
 
   @override
-  String filedByP0(Object p0) => '申訴人：${p0}';
+  String filedByP0(Object p0) => '申請人：${p0}';
 
   @override
   String get handle => '處理';
@@ -35005,7 +41520,7 @@ class _LZhHant extends AppLocalizations {
   String p0LosesEveryAdminPermissionImmediately(Object p0) => '${p0} 將立即失去所有後台權限。';
 
   @override
-  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可進入管理後台，預設擁有全部權限，並可逐項調整。';
+  String p0GainsAccessAdminAreaWith(Object p0) => '${p0} 將可進入管理後台，預設開放「系統維運」以外的全部權限，並可逐項調整。';
 
   @override
   String get roleUpdated => '已更新身分';
@@ -35107,10 +41622,7 @@ class _LZhHant extends AppLocalizations {
   String get blocked => '列入黑名單';
 
   @override
-  String get blockedNoFeaturesAvailable => '已封鎖，無法使用任何功能';
-
-  @override
-  String get notBlocked => '未封鎖';
+  String get blockedNoFeaturesAvailable => '已列入黑名單，無法使用任何功能';
 
   @override
   String get role => '身分';
@@ -35119,19 +41631,16 @@ class _LZhHant extends AppLocalizations {
   String p0PointsAutomaticP1P2(Object p0, Object p1, Object p2) => '${p0} 點（自動 ${p1}${p2}）';
 
   @override
-  String get memberSTierBeenAdjustedBy => '此會員的等級經人工調整，不完全依交易自動計算。';
-
-  @override
   String get adjustTier => '調整等級';
 
   @override
   String get adminPermissions => '後台權限';
 
   @override
-  String get all => '全開';
+  String get all => '全部開放';
 
   @override
-  String get allOff => '全關';
+  String get allOff => '全部收回';
 
   @override
   String get reinstateAccount2 => '恢復帳號';
@@ -35140,13 +41649,10 @@ class _LZhHant extends AppLocalizations {
   String get suspendAccount2 => '停權帳號';
 
   @override
-  String runP1P0(Object p0, Object p1) => '確定要對「${p0}」執行「${p1}」嗎？';
+  String runP1P0(Object p0, Object p1) => '確定要對「${p0}」執行「${p1}」？';
 
   @override
   String updatedP0SStatus(Object p0) => '已更新 ${p0} 的狀態';
-
-  @override
-  String get fullSettingsTierPermissions => '完整設定（等級、權限）';
 
   @override
   String get members3 => '會員列表';
@@ -35212,7 +41718,7 @@ class _LZhHant extends AppLocalizations {
   String reportedP0P1(Object p0, Object p1) => '被檢舉${p0}：${p1}';
 
   @override
-  String reasonP02(Object p0) => '違規原因：${p0}';
+  String reasonP02(Object p0) => '檢舉原因：${p0}';
 
   @override
   String get handlingNoteOptional => '處理備註（選填）';
@@ -35344,7 +41850,7 @@ class _LZhHant extends AppLocalizations {
   String get totalOut => '累積支出';
 
   @override
-  String balanceP0(Object p0) => '餘 ${p0}';
+  String balanceP0(Object p0) => '餘額 ${p0}';
 
   @override
   String get suspensionBlocklistRoles => '停權、黑名單、身分';
@@ -35365,7 +41871,7 @@ class _LZhHant extends AppLocalizations {
   String get lookUpChangeOrderStatus => '查詢與調整訂單狀態';
 
   @override
-  String get decideDisputeCases => '申訴案件裁決';
+  String get decideDisputeCases => '爭議案件裁決';
 
   @override
   String get checkAdjustCoinBalances => '查詢與增減代幣';
@@ -35386,7 +41892,7 @@ class _LZhHant extends AppLocalizations {
   String get replyUserQuestions => '回覆使用者問題';
 
   @override
-  String get databaseBackupDownloadOffByDefault => '資料庫備份與下載，預設關閉';
+  String get databaseBackupDownloadOffByDefault => '資料庫備份與下載';
 
   @override
   String p0Locker(Object p0) => '${p0}書櫃';
@@ -35434,7 +41940,7 @@ class _LZhHant extends AppLocalizations {
   String get resetPassword => '重設密碼';
 
   @override
-  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼將立即失效，須改用系統產生的臨時密碼登入。\n\n臨時密碼由系統產生，無法自行指定。';
+  String p0SCurrentPasswordStopsWorking(Object p0) => '${p0} 目前的密碼將立即失效，須改用系統產生的臨時密碼登入。';
 
   @override
   String get generateTemporaryPassword => '產生臨時密碼';
@@ -35446,7 +41952,7 @@ class _LZhHant extends AppLocalizations {
   String p0SPasswordBeenResetPassword(Object p0) => '${p0} 的密碼已重設。此密碼僅顯示一次，關閉後將無法再查看。';
 
   @override
-  String get remindThemChangeSettingsChangePassword => '請提醒對方登入後立即至「設定 › 更改密碼」變更密碼。';
+  String get remindThemChangeSettingsChangePassword => '請通知該會員登入後立即至「設定 › 更改密碼」變更密碼。';
 
   @override
   String get temporaryPasswordCopied => '已複製臨時密碼';
@@ -35458,7 +41964,7 @@ class _LZhHant extends AppLocalizations {
   String get cannotResetAnotherAdminSPassword => '無法重設其他管理員的密碼';
 
   @override
-  String get generateTemporaryPasswordHandOver => '產生一組臨時密碼交給使用者';
+  String get generateTemporaryPasswordHandOver => '產生臨時密碼供該會員登入';
 
   @override
   String get orderNumberCopied => '已複製訂單編號';
@@ -35497,7 +42003,7 @@ class _LZhHant extends AppLocalizations {
   String get walletActivity => '錢包異動';
 
   @override
-  String balanceP02(Object p0) => '餘 ${p0}';
+  String balanceP02(Object p0) => '餘額 ${p0}';
 
   @override
   String get refunds => '退款紀錄';
@@ -35509,16 +42015,13 @@ class _LZhHant extends AppLocalizations {
   String processedP0(Object p0) => '處理於 ${p0}';
 
   @override
-  String get disputes => '申訴';
+  String get disputes => '爭議';
 
   @override
   String filedP0(Object p0) => '申請於 ${p0}';
 
   @override
   String decidedP0(Object p0) => '裁決於 ${p0}';
-
-  @override
-  String createdP0(Object p0) => '建立於 ${p0}';
 
   @override
   String get shareBook => '分享書籍';
@@ -35569,13 +42072,13 @@ class _LZhHant extends AppLocalizations {
   String get buyerSPaymentGoesBackTheir => '買家支付的款項將退回錢包；若賣家已收到貨款，將先行收回。';
 
   @override
-  String get orderReturnsWhereWasBeforeDispute => '訂單將恢復至申訴前的狀態並繼續交易；若先前已完成取書，貨款將撥付給賣家。';
+  String get orderReturnsWhereWasBeforeDispute => '訂單將恢復至申請爭議前的狀態並繼續交易；若先前已完成取書，貨款將撥付給賣家。';
 
   @override
   String get orderWasAlreadyRefundedBuyerCannot => '此訂單款項已退回買家，無法改回進行中或已完成';
 
   @override
-  String get completedOrderCanOnlyChangedRefund => '已完成的訂單只能改為「退款處理中」或「已退款」';
+  String get completedOrderCanOnlyChangedRefund => '已完成的訂單僅能改為「審核中」或「已退款」';
 
   @override
   String confirmingPaysP0TokensSellerMarks(Object p0) => '確認後將撥付 ${p0} 代幣給賣家，並將書籍標記為已售出。';
@@ -35608,7 +42111,7 @@ class _LZhHant extends AppLocalizations {
   String get systemNotificationSettings => '系統通知設定';
 
   @override
-  String get pushNotificationsNotSetUpBuild => '此版本的 App 尚未設定推播，請加入 Firebase 設定檔後重新編譯。';
+  String get pushNotificationsNotSetUpBuild => '此版本的 App 未啟用推播通知。';
 
   @override
   String get notificationsTurnedOffAllowAppSend => '通知權限已關閉，請至系統設定允許此 App 傳送通知。';
@@ -35681,9 +42184,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get undone => '已還原';
-
-  @override
-  String get searchActionsEGNicknameBook => '搜尋操作內容，例如會員暱稱或書名';
 
   @override
   String viewP0Changes(Object p0) => '查看 ${p0} 項變更';
@@ -35827,9 +42327,6 @@ class _LZhHant extends AppLocalizations {
   String wouldMakeBalanceNegativeCurrentBalance(Object p0) => '扣除後餘額將為負數，目前餘額 ${p0}';
 
   @override
-  String get amountUp2Decimals => '金額（最多兩位小數）';
-
-  @override
   String p0NbalanceAfterP1(Object p0, Object p1) => '${p0}\n調整後餘額 ${p1}';
 
   @override
@@ -35857,9 +42354,6 @@ class _LZhHant extends AppLocalizations {
   String sellerHoldingUntilP0(Object p0) => '賣家已為您保留至 ${p0}';
 
   @override
-  String get checkOutBeforeHoldEndsOther => '請於保留期限內完成結帳';
-
-  @override
   String get copyAddress => '複製地址';
 
   @override
@@ -35884,7 +42378,7 @@ class _LZhHant extends AppLocalizations {
   String get buyNow => '立即購買';
 
   @override
-  String p0Delisted(Object p0) => '《${p0}》已下架';
+  String p0Delisted(Object p0) => '《${p0}》已取消上架';
 
   @override
   String noBooksMatchP0(Object p0) => '找不到符合「${p0}」的書籍';
@@ -35915,9 +42409,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get browseBooks => '瀏覽書籍';
-
-  @override
-  String p0Sellers(Object p0) => '${p0} 位賣家';
 
   @override
   String unavailableP0(Object p0) => '無法購買（${p0}）';
@@ -36043,9 +42534,6 @@ class _LZhHant extends AppLocalizations {
   String get holdMicTalkReleaseSend => '錄音時間過短';
 
   @override
-  String get startConversation => '對話開始';
-
-  @override
   String p0New(Object p0) => '${p0} 則新訊息';
 
   @override
@@ -36118,9 +42606,6 @@ class _LZhHant extends AppLocalizations {
   String get waitingBuyerCollect => '等待買家至書櫃取書';
 
   @override
-  String get transactionCompleteThank => '交易完成';
-
-  @override
   String get confirmVeTakenBookFromLocker => '請確認已從書櫃取出書籍。確認書況無誤後，請於購買紀錄完成訂單。';
 
   @override
@@ -36187,7 +42672,7 @@ class _LZhHant extends AppLocalizations {
   String otherDevicesP0(Object p0) => '其他裝置（${p0}）';
 
   @override
-  String get noOtherDevicesSigned => '沒有其他裝置登入您的帳號';
+  String get noOtherDevicesSigned => '目前無其他裝置登入';
 
   @override
   String get signedDevices => '登入裝置';
@@ -36235,9 +42720,6 @@ class _LZhHant extends AppLocalizations {
   String get set6DigitPaymentPin => '設定 6 位數交易密碼';
 
   @override
-  String get enterSamePinAgain => '請再次輸入相同密碼';
-
-  @override
   String get avoidRepeatedSequentialPatternedDigits => '不可使用相同、連續或重複的數字';
 
   @override
@@ -36245,9 +42727,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get paymentPin => '交易密碼';
-
-  @override
-  String stepP02(Object p0) => '步驟 ${p0} / 2';
 
   @override
   String get setPaymentPinFirst => '請先設定交易密碼';
@@ -36280,9 +42759,6 @@ class _LZhHant extends AppLocalizations {
   String get accountCouldSafer => '帳號安全性有待加強';
 
   @override
-  String get setPaymentPinTurnBiometricPayment => '尚未設定交易密碼';
-
-  @override
   String tooManyAttemptsLockedUntilP0(Object p0) => '錯誤次數過多，已鎖定至 ${p0}';
 
   @override
@@ -36307,7 +42783,7 @@ class _LZhHant extends AppLocalizations {
   String get draftSavedAutomatically => '已自動儲存草稿';
 
   @override
-  String get continueUnfinishedListing => '繼續上次未完成的刊登';
+  String get continueUnfinishedListing => '繼續上次未完成的上架';
 
   @override
   String clearedP0MbCache(Object p0) => '已清除 ${p0} MB 快取';
@@ -36377,18 +42853,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String p0Km(Object p0) => '${p0} 公里';
-
-  @override
-  String get iphoneDidnTReceiveApnsToken => '裝置未取得 Apple 推播憑證（APNs token）。請確認 Xcode 的 Signing & Capabilities 已加入 Push Notifications，並使用同一個 Apple 開發者帳號重新安裝 App。';
-
-  @override
-  String get firebaseDidnTIssuePushToken => 'Firebase 未核發推播 token，請確認 GoogleService-Info.plist 與 App 的 Bundle ID 一致';
-
-  @override
-  String couldnTGetPushTokenP0(Object p0) => '取得推播 token 失敗：${p0}';
-
-  @override
-  String couldnTRegisterPushTokenWith(Object p0) => '推播 token 上傳伺服器失敗：${p0}';
 
   @override
   String get protectCoinsCheckoutRequires6Digit => '結帳前請先設定 6 位數交易密碼。';
@@ -36511,28 +42975,13 @@ class _LZhHant extends AppLocalizations {
   String p0P1DigitsEntered(Object p0, Object p1) => '已輸入 ${p0} / ${p1} 位';
 
   @override
-  String get buildSProvisioningProfileDoesnT => '此安裝版本的簽署描述檔未包含推播權限。請於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications，並刪除 App 後重新安裝。';
-
-  @override
-  String get checkPhoneOnlinePushNotificationsAdded => '請確認裝置已連上網路，並於 Xcode 的 Runner › Signing & Capabilities 確認已加入 Push Notifications。';
-
-  @override
-  String iphoneFailedRegisterPushNotificationsWith(Object p0, Object p1) => 'iPhone 向 Apple 註冊推播失敗：${p0}\n${p1}';
-
-  @override
   String get serverNotBeenUpdatedSupportFeature => '此功能暫時無法使用，請稍後再試';
 
   @override
   String get someFeaturesTemporarilyUnavailableWhileServer => '部分功能暫時無法使用';
 
   @override
-  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器執行的 API 版本過舊（目前 ${p0}，App 需要 ${p1}）。請在伺服器更新程式碼並重新啟動 API。';
-
-  @override
-  String serverVersionP0(Object p0) => '伺服器目前版本：${p0}';
-
-  @override
-  String get runNpmRunVerifyApiDirectory => '在伺服器的 API 目錄執行 npm run verify 可檢查完整的部署狀態。';
+  String serverRunningOutdatedApiRevisionP0(Object p0, Object p1) => '伺服器 API 版本過舊（目前 ${p0}，需要 ${p1}）。';
 
   @override
   String get serverUpdateRequired => '伺服器需要更新';
@@ -36832,7 +43281,7 @@ class _LZhHant extends AppLocalizations {
   String get appPermissions => 'App 權限';
 
   @override
-  String get noPermissionsRequiredDevice => '此裝置沒有需要授權的項目';
+  String get noPermissionsRequiredDevice => '此裝置無須授權任何項目';
 
   @override
   String get allowAll => '全部允許';
@@ -37588,9 +44037,6 @@ class _LZhHant extends AppLocalizations {
   String get byModel => '依模型';
 
   @override
-  String p0CallsP1Ms(Object p0, Object p1) => '${p0} 次・${p1} ms';
-
-  @override
   String get topMembers => '用量最高的會員';
 
   @override
@@ -37612,7 +44058,7 @@ class _LZhHant extends AppLocalizations {
   String get lookingUpBookDetails => '查詢書籍資料';
 
   @override
-  String get searchingWeb => '上網搜尋補充資料';
+  String get searchingWeb => '搜尋網路資料';
 
   @override
   String get analyzingPhotos => '分析照片';
@@ -37708,13 +44154,7 @@ class _LZhHant extends AppLocalizations {
   String get aiDataProcessing => 'AI 資料處理';
 
   @override
-  String get messagesEnterStatusOrdersReservations => '您輸入的訊息與您的訂單、預約狀態';
-
-  @override
-  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明與您選擇的照片';
-
-  @override
-  String get bookDetailsFromFavoritesPurchaseHistory => '您的收藏與購買紀錄中的書籍資訊';
+  String get isbnTitleConditionNotesPhotosSelect => 'ISBN、書名、書況說明、您選擇的照片，以及您填寫的作者、出版社、出版日期、分類與定價';
 
   @override
   String get aiDataProcessing2 => 'AI 資料處理說明';
@@ -37732,13 +44172,7 @@ class _LZhHant extends AppLocalizations {
   String get purpose => '使用目的';
 
   @override
-  String get usedOnlyGenerateSupportRepliesPrepare => '僅用於產生客服回覆、整理上架資料與推薦書籍，不會用於廣告或追蹤。';
-
-  @override
   String get withdrawingConsent => '撤回同意';
-
-  @override
-  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料。';
 
   @override
   String get agreeContinue => '同意並繼續';
@@ -37780,22 +44214,16 @@ class _LZhHant extends AppLocalizations {
   String get popularLiteraryFictionRightNow => '最近熱門的文學小說';
 
   @override
-  String get tellMeWhatBookLooking => '請描述您想找的書籍';
-
-  @override
   String get describeBookLooking => '描述您想找的書籍';
-
-  @override
-  String get tellMeWhatWantReadI => '依您的需求推薦書籍';
 
   @override
   String get subtitle => '副標題';
 
   @override
-  String get monthOnly => '僅確認到月';
+  String get monthOnly => '僅精確至月';
 
   @override
-  String get yearOnly => '僅確認到年';
+  String get yearOnly => '僅精確至年';
 
   @override
   String get msg => '繁體中文';
@@ -37909,9 +44337,6 @@ class _LZhHant extends AppLocalizations {
   String get signWithMobileNumber => '手機號碼登入';
 
   @override
-  String get k6DigitCodeSentNumberMessage => '將傳送 6 位數驗證碼至此手機號碼。';
-
-  @override
   String get mobileNumber => '手機號碼';
 
   @override
@@ -37927,9 +44352,6 @@ class _LZhHant extends AppLocalizations {
   String get enterCode => '輸入驗證碼';
 
   @override
-  String get enterSmsCode => '輸入簡訊驗證碼';
-
-  @override
   String codeWasSentP0(Object p0) => '驗證碼已傳送至 ${p0}';
 
   @override
@@ -37940,9 +44362,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get completeAccountDetails => '完成帳號資料';
-
-  @override
-  String get p0DidNotProvideEmailAddress => '請填寫電子郵件以完成註冊。';
 
   @override
   String signWithP0(Object p0) => '以 ${p0} 登入';
@@ -37999,7 +44418,7 @@ class _LZhHant extends AppLocalizations {
   String get socialSmsSignNotAvailableRight => '目前未開放社群與簡訊登入方式。';
 
   @override
-  String get noSignMethodAvailableLink => '目前沒有可綁定的登入方式。';
+  String get noSignMethodAvailableLink => '目前無可綁定的登入方式。';
 
   @override
   String get noPasswordSet => '尚未設定密碼';
@@ -38083,9 +44502,6 @@ class _LZhHant extends AppLocalizations {
   String get allowSigningLinkingWithMethod => '開放此方式登入與綁定';
 
   @override
-  String get appNeverStoresPasswordUsedOnly => '本 App 不會儲存您的密碼，僅用於本次驗證。';
-
-  @override
   String get verifyWithBiometricsInstead => '改用生物辨識驗證';
 
   @override
@@ -38104,12 +44520,6 @@ class _LZhHant extends AppLocalizations {
   String get masterSwitchOffSoEveryMethod => '總開關關閉，所有方式一律停用';
 
   @override
-  String get signLinkingDirectSignUpAllowed => '可登入、綁定與直接註冊';
-
-  @override
-  String credentialsNotSetPleaseConfigureP0(Object p0) => '尚未設定憑證，請於伺服器設定 ${p0}';
-
-  @override
   String get whenOffMethodHiddenFromSign => '關閉後登入頁與帳號安全將不顯示此方式';
 
   @override
@@ -38117,9 +44527,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get signMethodNotLinkedAccount => '此登入方式尚未綁定帳號';
-
-  @override
-  String p0AccountNotLinkedAnySavemybook(Object p0) => '${p0} 帳號尚未綁定救「舊」我的書帳號。';
 
   @override
   String get iAlreadyAccountSignFirst => '登入既有帳號並綁定';
@@ -38143,9 +44550,6 @@ class _LZhHant extends AppLocalizations {
   String get passkeys => '通行密鑰';
 
   @override
-  String get verifyWithFaceIdFingerprintScreen => '以此裝置的 Face ID、指紋或螢幕鎖定完成驗證，不必輸入密碼。';
-
-  @override
   String get verifyWithPasskey => '使用通行密鑰驗證';
 
   @override
@@ -38161,19 +44565,19 @@ class _LZhHant extends AppLocalizations {
   String get screenLock => '螢幕鎖定';
 
   @override
-  String fromNowCanSignVerifyIdentity(Object p0) => '之後登入與驗證身分可改用 ${p0}，不必再輸入密碼。';
+  String fromNowCanSignVerifyIdentity(Object p0) => '日後登入與驗證身分可使用 ${p0}，無須輸入密碼。';
 
   @override
   String get deletePasskey => '刪除通行密鑰';
 
   @override
-  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。裝置中儲存的通行密鑰不會一併移除，可至系統的密碼設定中刪除。';
+  String get noLongerAbleSignVerifyIdentity => '刪除後將無法以此通行密鑰登入或驗證身分。若裝置中仍保留此通行密鑰，可至系統的密碼設定中刪除。';
 
   @override
   String get passkeyDeleted => '已刪除通行密鑰';
 
   @override
-  String get signVerifyIdentityWithFaceId => '以 Face ID、指紋或螢幕鎖定登入與驗證身分，不必輸入密碼。通行密鑰只儲存在您的裝置與密碼管理工具中。';
+  String get signVerifyIdentityWithFaceId => '以 Face ID、指紋或螢幕鎖定登入與驗證身分，無須輸入密碼。';
 
   @override
   String get addPasskey => '新增通行密鑰';
@@ -38281,7 +44685,7 @@ class _LZhHant extends AppLocalizations {
   String get attachImages => '附加圖片';
 
   @override
-  String get imageCouldNotRead => '無法讀取這張圖片';
+  String get imageCouldNotRead => '無法讀取此圖片';
 
   @override
   String get up4ImagesPerMessage => '每則訊息最多附加 4 張圖片';
@@ -38317,7 +44721,7 @@ class _LZhHant extends AppLocalizations {
   String get newTier2 => '新等級';
 
   @override
-  String get whatMembersSee => '會員看到的樣式';
+  String get whatMembersSee => '會員端預覽';
 
   @override
   String get noThresholdSet => '尚未設定門檻';
@@ -38348,9 +44752,6 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get tierOrderUpdated => '已更新等級順序';
-
-  @override
-  String p0Members(Object p0) => '${p0} 位會員';
 
   @override
   String get tiers => '個等級';
@@ -38404,10 +44805,10 @@ class _LZhHant extends AppLocalizations {
   String emailAlreadyRegisteredSignLinkName(Object p0) => '此電子郵件已註冊，登入後即綁定 ${p0}。';
 
   @override
-  String signLinkNameCanThenSign(Object p0, Object p1) => '登入後即綁定 ${p0}，之後可直接使用 ${p1} 登入。';
+  String signLinkNameCanThenSign(Object p0, Object p1) => '登入後即綁定 ${p0}，日後可使用 ${p1} 登入。';
 
   @override
-  String get noPasskeyDevice => '此裝置沒有可用的通行密鑰';
+  String get noPasskeyDevice => '此裝置無可用的通行密鑰';
 
   @override
   String get signWithPasskeyAnotherDeviceSecurity => '可使用其他裝置上的通行密鑰或安全金鑰登入，或改用密碼。';
@@ -38518,7 +44919,7 @@ class _LZhHant extends AppLocalizations {
   String get paymentReleasedWalletWhenBuyerCompletes => '買家完成訂單或取書滿 24 小時後，款項將撥入您的錢包';
 
   @override
-  String get completeOrderAfterCheckingBookCompletes => '確認書況無誤後請完成訂單，取書滿 24 小時未申訴將自動完成';
+  String get completeOrderAfterCheckingBookCompletes => '確認書況無誤後請完成訂單，取書滿 24 小時未申請爭議將自動完成';
 
   @override
   String get completeOrder => '完成訂單';
@@ -38530,7 +44931,7 @@ class _LZhHant extends AppLocalizations {
   String get orderCompleted2 => '訂單已完成';
 
   @override
-  String get noReservedBooks => '目前沒有預訂的書籍';
+  String get noReservedBooks => '目前沒有預約的書籍';
 
   @override
   String heldUntilP02(Object p0) => '保留至 ${p0}';
@@ -38584,7 +44985,7 @@ class _LZhHant extends AppLocalizations {
   String get autoFilled => '自動補齊';
 
   @override
-  String get similarBooks => '相似的書';
+  String get similarBooks => '相似書籍';
 
   @override
   String get doNotPayTransferMoneyOutside => '請勿私下匯款或轉帳，站外付款不受平台保障';
@@ -38662,7 +45063,7 @@ class _LZhHant extends AppLocalizations {
   String get weOurSupportTeamNeverAsk => '平台與客服不會透過聊天要求您提供驗證碼、密碼或卡片資料';
 
   @override
-  String get doNotOpenUnknownShortLinks => '請勿點擊來路不明的短網址，也不要依對方指示操作網路銀行或 ATM';
+  String get doNotOpenUnknownShortLinks => '請勿點擊來源不明的短網址，亦勿依對方指示操作網路銀行或 ATM';
 
   @override
   String get cancelInstallmentsAccountFrozenPaymentVerification => '「解除分期」「帳戶凍結」「金流認證」「購買遊戲點數」皆為常見詐騙話術';
@@ -38689,9 +45090,6 @@ class _LZhHant extends AppLocalizations {
   String get listed3 => '上架日期';
 
   @override
-  String get someDetailsWereFilledAutomaticallyFrom => '部分資料依 ISBN 書目自動補齊';
-
-  @override
   String get summarizedByAiFromBookRecords => '由 AI 依書目整理';
 
   @override
@@ -38701,22 +45099,1414 @@ class _LZhHant extends AppLocalizations {
   String get aboutBook => '內容簡介';
 
   @override
-  String becauseBoughtP0(Object p0) => '因為您買過《${p0}》';
+  String becauseBoughtP0(Object p0) => '與已購買的《${p0}》相關';
 
   @override
-  String becauseSavedP0(Object p0) => '因為您收藏了《${p0}》';
+  String becauseSavedP0(Object p0) => '與已收藏的《${p0}》相關';
 
   @override
   String relatedP0Cart(Object p0) => '與您購物車中的《${p0}》相關';
 
   @override
-  String becauseViewedP0(Object p0) => '因為您看過《${p0}》';
+  String becauseViewedP0(Object p0) => '與瀏覽過的《${p0}》相關';
 
   @override
-  String moreP0CategoryBrowseOften(Object p0) => '您常看的「${p0}」';
+  String moreP0CategoryBrowseOften(Object p0) => '「${p0}」類別推薦';
 
   @override
   String get morePicks => '更多推薦';
+
+  @override
+  String get passkeyRequestWasInterruptedPleaseTry => '通行密鑰操作已中斷，請再試一次';
+
+  @override
+  String get couldNotVerifyWithPasskeyDevice => '未能以此裝置的通行密鑰完成驗證，請改用其他方式';
+
+  @override
+  String get iosVersionAddingPasskeyAgainReplaces => '在此 iOS 版本重新新增，會取代 iCloud 鑰匙圈中原有的通行密鑰；若新增未完成，原有通行密鑰將無法復原。建議先更新至 iOS 17.4 以上版本。';
+
+  @override
+  String get cannotAddPasskeyDevice => '此裝置目前無法新增通行密鑰';
+
+  @override
+  String get recordRemoval => '登記取出';
+
+  @override
+  String confirmStaffRemovedP1FromP0(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。登記後書籍將下架。';
+
+  @override
+  String get removalRecorded => '已登記取出';
+
+  @override
+  String get booksLockers => '存書列表';
+
+  @override
+  String get overdue => '逾期';
+
+  @override
+  String get noOverdueBooks => '沒有逾期的存書';
+
+  @override
+  String get noBooksCurrentlyStoredLockers => '目前沒有存放於書櫃的書籍';
+
+  @override
+  String get salesPaused => '暫停販售';
+
+  @override
+  String get adminsNotified => '已通知管理員';
+
+  @override
+  String get confirmPurchase => '確認購買';
+
+  @override
+  String get bookAlreadyLockerOrderReadyPickup => '此書已存放於書櫃，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get salesPausedPleaseRetrieveBookFrom => '已暫停販售，請至書櫃取回書籍';
+
+  @override
+  String get bookLockerCanCollectedRightAfter => '書籍已存放於書櫃，下單後即可取書';
+
+  @override
+  String get notYetLocker => '尚未存入書櫃';
+
+  @override
+  String get retrieve => '回報取回';
+
+  @override
+  String get dropOff => '登記存書';
+
+  @override
+  String get ordersBooksAlreadyLockerReadyPickup => '已存放於書櫃的書籍，訂單成立後即可取書，且無法取消訂單。';
+
+  @override
+  String get placedLockerToday => '今日存入書櫃';
+
+  @override
+  String lockerP0Days(Object p0) => '已存放 ${p0} 天';
+
+  @override
+  String confirmRetrievedP1FromP0(Object p0, Object p1) => '請確認已自「${p0}」取回《${p1}》。';
+
+  @override
+  String get allLockers => '全部書櫃';
+
+  @override
+  String get lockerCannotChangedWhileBookStored => '存書期間無法變更書櫃';
+
+  @override
+  String removedFromShopDepositedRetrieveBeforeRelisting(Object p0) => '取消上架後，《${p0}》將不再於商城顯示，買家將無法瀏覽。由於此書存放於書櫃中，須先取回書籍並回報，才能重新上架。';
+
+  @override
+  String get orderPlacedBookLockerReadyPickup => '書籍已在書櫃，可立即取書';
+
+  @override
+  String confirmStaffRemovedBookFromLocker(Object p0, Object p1) => '請確認人員已自「${p0}」取出《${p1}》。';
+
+  @override
+  String get inLocker => '已在書櫃';
+
+  @override
+  String get inAnotherLocker => '存放於其他書櫃';
+
+  @override
+  String confirmPutAllP0BooksOrder(Object p0) => '確認已將此訂單的 ${p0} 本書全部放入書櫃？';
+
+  @override
+  String get awaitingRetrieval => '待取回';
+
+  @override
+  String get bookAdvisorSelection => '書籍顧問選書';
+
+  @override
+  String get bookInfoAutoFill => '書籍資料補齊';
+
+  @override
+  String get disputeAnalysis => '爭議分析';
+
+  @override
+  String get monthlyBudgetUsedUp => '本月預算已用盡';
+
+  @override
+  String coverageBooksP0HelpArticlesP1(Object p0, Object p1) => '涵蓋率：書籍 ${p0}、客服知識 ${p1}';
+
+  @override
+  String lastSyncP0(Object p0) => '最近同步：${p0}';
+
+  @override
+  String backgroundSyncPausedUntilP0(Object p0) => '背景同步暫停至 ${p0}';
+
+  @override
+  String semanticQueriesPausedUntilP0(Object p0) => '語意查詢暫停至 ${p0}';
+
+  @override
+  String lastErrorP0(Object p0) => '最近錯誤：${p0}';
+
+  @override
+  String p0CallsAvgP1MsP95(Object p0, Object p1, Object p2) => '${p0} 次・平均 ${p1} ms・p95 ${p2} ms';
+
+  @override
+  String get turnOffAiDataProcessing => '關閉 AI 資料處理';
+
+  @override
+  String get aiFeaturesStopAiSupportBook => '關閉後將停止使用 AI 功能，並刪除您的 AI 客服與書籍顧問對話紀錄，且無法復原。';
+
+  @override
+  String get turnOff => '確認關閉';
+
+  @override
+  String get messagesConversationHistoryEnterPlusOwn => '您輸入的訊息與對話內容，以及您本人的訂單（含存書、取書與完成時間）、預約、上架書籍（含審核原因）、交易爭議的處理狀態與結果、錢包餘額與最近收支、最近的客服工單';
+
+  @override
+  String get requestsConversationHistoryEnter => '您輸入的需求與對話內容';
+
+  @override
+  String get bookDetailsFromSavedItemsPurchase => '您的收藏、購買紀錄、購物車與最近瀏覽中的書籍資訊';
+
+  @override
+  String get aiDataProcessingNoticeBeenUpdated => 'AI 資料處理說明已更新，請重新閱讀並同意。';
+
+  @override
+  String questionsRequestsBookDetailsAlsoConverted(Object p0) => '其中提問、需求與書籍資訊另由 ${p0} 轉換為語意向量，以檢索相關內容。';
+
+  @override
+  String get usedOnlyGenerateSupportRepliesRecommend => '僅用於產生客服回覆、推薦與檢索書籍、整理上架資料，不會用於廣告或追蹤。';
+
+  @override
+  String get retentionPeriod => '保存期限';
+
+  @override
+  String get aiSupportBookAdvisorConversationsKept => 'AI 客服與書籍顧問的對話紀錄（含您對回覆的評價）自最後一次對話起保存 90 天，期滿自動刪除；AI 功能的處理紀錄保存 90 天，不含對話內容與照片。';
+
+  @override
+  String get canTurnOffAiDataProcessing => '您可隨時於「設定 › 帳號管理」關閉「AI 資料處理」，關閉後將不再提供上述資料，並刪除 AI 客服與書籍顧問的對話紀錄。';
+
+  @override
+  String get usersMustAlsoAgreeAiData => '使用者亦須重新同意 AI 資料處理，才能繼續使用 AI 功能。';
+
+  @override
+  String get consentRequiredAgain => '須重新同意';
+
+  @override
+  String get aiBookAdvisorUsageCountedBy => 'AI 書籍顧問的次數以使用者傳送的訊息數計算。';
+
+  @override
+  String get noObviousIssuesFound => '未發現明顯問題';
+
+  @override
+  String aiAssessmentP0(Object p0) => 'AI 判定：${p0}';
+
+  @override
+  String get reservedModerationAdminTools => '審核與管理輔助保留（%）';
+
+  @override
+  String memberFeaturesCanUseP0Budget(Object p0) => '會員功能可用預算的 ${p0}%';
+
+  @override
+  String memberFeatureCapP0(Object p0) => '會員功能上限 ${p0}';
+
+  @override
+  String p0ListingsSaleNotReviewedOver(Object p0) => '${p0} 本在售書籍超過 1 小時未完成審核';
+
+  @override
+  String get backupProvider => '備援服務商';
+
+  @override
+  String get none => '不使用';
+
+  @override
+  String get sameAsCurrentProvider => '與目前使用的服務商相同';
+
+  @override
+  String get sameAsCurrentProviderSoNo => '與目前使用的服務商相同，不會啟用備援';
+
+  @override
+  String get outcomes => '處理結果';
+
+  @override
+  String get processingPaths => '處理路徑';
+
+  @override
+  String get indicators => '指標';
+
+  @override
+  String get promptVersions => '提示詞版本';
+
+  @override
+  String get embeddingCostsBySource => '向量費用歸屬';
+
+  @override
+  String get succeeded => '成功';
+
+  @override
+  String get repaired => '修復後採用';
+
+  @override
+  String get degraded => '降級處理';
+
+  @override
+  String get emptyAfterCleanup => '清理後為空';
+
+  @override
+  String get refusedByProvider => '遭服務商拒絕';
+
+  @override
+  String get scanLockerQrCode => '掃描書櫃 QR Code';
+
+  @override
+  String get flashlight => '手電筒';
+
+  @override
+  String get pasteQrContent => '貼上 QR 內容';
+
+  @override
+  String get pointQrCodeLockerScreen => '請對準書櫃螢幕上的 QR Code';
+
+  @override
+  String get checkingLocker => '正在確認書櫃';
+
+  @override
+  String get confirmLockerTask => '確認書櫃作業';
+
+  @override
+  String get retrieveBooks => '取回書籍';
+
+  @override
+  String get booksSameDoorRetrievedTogether => '同一櫃門的書籍將一併取回';
+
+  @override
+  String confirmWithinP0(Object p0) => '請於 ${p0} 內確認';
+
+  @override
+  String get openDoor => '開啟櫃門';
+
+  @override
+  String get openingDoor => '櫃門開啟中';
+
+  @override
+  String placeTheseBooksDoorP0(Object p0) => '請將下列書籍放入櫃門 ${p0}';
+
+  @override
+  String takeBooksFromDoorP0(Object p0) => '請取出櫃門 ${p0} 內的書籍';
+
+  @override
+  String retrieveBooksFromDoorP0(Object p0) => '請取回櫃門 ${p0} 內的書籍';
+
+  @override
+  String get rescan => '重新掃描';
+
+  @override
+  String get openMap => '開啟地圖';
+
+  @override
+  String get reportManually => '改為手動回報';
+
+  @override
+  String get continueTask => '繼續作業';
+
+  @override
+  String get cancelTask => '取消作業';
+
+  @override
+  String get reportSubmittedTakesEffectAfterSupport => '已送出手動回報，待客服確認後生效';
+
+  @override
+  String get manualReportAwaitingConfirmation => '手動回報待客服確認';
+
+  @override
+  String onceDelistedP0NoLongerAppear(Object p0) => '取消上架後，《${p0}》將不再於商城顯示。此書存放於書櫃中，須先至書櫃以 App 掃描 QR Code 取回書籍，方可重新上架。';
+
+  @override
+  String get lockerDevice => '書櫃裝置';
+
+  @override
+  String get deviceId => '裝置編號';
+
+  @override
+  String get deviceType => '裝置種類';
+
+  @override
+  String get firmware => '韌體版本';
+
+  @override
+  String get lastSeen => '最後連線';
+
+  @override
+  String get pairingTime => '配對時間';
+
+  @override
+  String get doorSensors => '門磁感測器';
+
+  @override
+  String get installed => '已安裝';
+
+  @override
+  String get notInstalled => '未安裝';
+
+  @override
+  String get numberDoors => '櫃門數';
+
+  @override
+  String get simulatorUrl => '模擬書櫃網址';
+
+  @override
+  String get revokeDevice => '撤銷裝置';
+
+  @override
+  String onceRevokedDeviceCanNoLonger(Object p0) => '撤銷後，此裝置將無法再操作「${p0}」，書櫃將改為手動回報。';
+
+  @override
+  String faultP0(Object p0) => '故障：${p0}';
+
+  @override
+  String get clearFault => '清除故障';
+
+  @override
+  String get faultCleared => '已清除故障';
+
+  @override
+  String get doors => '櫃門';
+
+  @override
+  String get noContentsRecorded => '無存放紀錄';
+
+  @override
+  String get openDoorRemotely => '遠端開啟櫃門';
+
+  @override
+  String get openingReason => '開啟原因';
+
+  @override
+  String get describeReasonRecordedOperationLog => '請說明開啟原因，將記錄於操作紀錄';
+
+  @override
+  String get openCommandSent => '已送出開門指令';
+
+  @override
+  String get staffRetrievalOverdueBooks => '派員取出逾期存放的書籍';
+
+  @override
+  String get openWithoutNumberConfirmation => '不經數字確認直接開啟';
+
+  @override
+  String get onlyDoorsWithNoRecordedContents => '僅限無存放紀錄的櫃門，供測試電磁鎖使用。櫃門將在無人確認的情況下開啟。';
+
+  @override
+  String get contentsNeedChecking => '待確認存放內容';
+
+  @override
+  String get confirmContents => '確認內容無誤';
+
+  @override
+  String get contentsConfirmed => '已確認存放內容';
+
+  @override
+  String get booksMayInside => '可能存放的書籍';
+
+  @override
+  String get recordContents => '登記存放內容';
+
+  @override
+  String get selectItemsActuallyStoredDoor => '請選擇實際存放於此櫃門的項目';
+
+  @override
+  String get clearContentsRecord => '清空存放紀錄';
+
+  @override
+  String get booksRemoved => '書籍已取出';
+
+  @override
+  String get correctRecordOnly => '僅更正紀錄';
+
+  @override
+  String confirmStaffRemovedBooksFromDoor(Object p0) => '請確認已由人員自櫃門 ${p0} 取出書籍。存書登記將刪除，書籍改為下架，並通知賣家。';
+
+  @override
+  String confirmTheseBooksNotActuallyDoor(Object p0) => '請確認櫃門 ${p0} 內實際沒有這些書籍。僅刪除櫃門紀錄，不變更訂單或存書狀態。';
+
+  @override
+  String get describeReasonClearing => '請說明清空原因';
+
+  @override
+  String get itemsWithoutDoorRecord => '未登記櫃門的項目';
+
+  @override
+  String get tasksConfirm => '待確認作業';
+
+  @override
+  String get markAsCompleted => '確認已完成';
+
+  @override
+  String get markAsNotCompleted => '確認未完成';
+
+  @override
+  String get resolutionNote => '處理說明';
+
+  @override
+  String get ordersDropOffsUpdatedAccordingTask => '將依作業內容更新訂單與存書狀態';
+
+  @override
+  String get ordersDropOffsStayUnchanged => '訂單與存書狀態維持不變';
+
+  @override
+  String get recentTasks => '最近作業';
+
+  @override
+  String get taskDetails => '作業詳情';
+
+  @override
+  String get noTasksYet => '尚無作業紀錄';
+
+  @override
+  String get eventLog => '事件紀錄';
+
+  @override
+  String get noEventsYet => '尚無事件紀錄';
+
+  @override
+  String get closedBy => '關門方式';
+
+  @override
+  String get itemsConfirmed => '確認項目';
+
+  @override
+  String get taskItems => '作業項目';
+
+  @override
+  String get resolutionRecord => '處理紀錄';
+
+  @override
+  String taskProgressP0(Object p0) => '進行中作業：${p0}';
+
+  @override
+  String checkContentsDoorP0(Object p0) => '請確認櫃門 ${p0} 的存放內容';
+
+  @override
+  String get manualReportsConfirm => '待確認手動回報';
+
+  @override
+  String get confirmReport => '確認回報';
+
+  @override
+  String get rejectReport => '駁回回報';
+
+  @override
+  String get manualReportConfirmed => '已確認手動回報';
+
+  @override
+  String get manualReportRejected => '已駁回手動回報';
+
+  @override
+  String get ordersDropOffsUpdatedAsReported => '確認後將依回報內容更新訂單或存書狀態，並通知相關使用者。';
+
+  @override
+  String get statusStaysUnchangedReporterNotified => '駁回後狀態維持不變，並通知回報者。';
+
+  @override
+  String get noManualReportsConfirm => '尚無待確認的手動回報';
+
+  @override
+  String get reporter => '回報者';
+
+  @override
+  String get scanLockerCollect => '掃描書櫃取書';
+
+  @override
+  String get scanLockerDropOff => '掃描書櫃存書';
+
+  @override
+  String get scanLockerRetrieve => '掃描書櫃取回';
+
+  @override
+  String lockerClosedNowOpeningHoursP0(Object p0) => '目前非書櫃營業時間，營業時間為 ${p0}';
+
+  @override
+  String get lockerUnderMaintenance => '此書櫃維修中，暫停服務';
+
+  @override
+  String get lockerOutService => '此書櫃暫停服務';
+
+  @override
+  String get noDoorsAvailableMoment => '書櫃目前沒有可用的櫃門';
+
+  @override
+  String get lockerOfflineSoDoorCannotOpened => '書櫃目前連線中斷，無法以掃碼開啟櫃門。請依客服指示放入或取出書籍後再回報，回報經客服確認後生效。';
+
+  @override
+  String get lockerOutOrderSoDoorCannot => '書櫃目前故障，無法以掃碼開啟櫃門。請依客服指示放入或取出書籍後再回報，回報經客服確認後生效。';
+
+  @override
+  String get manualReportsTakeEffectAfterSupport => '手動回報經客服確認後生效。';
+
+  @override
+  String get notSavemybookLockerQrCode => '此 QR Code 並非本平台書櫃之 QR Code';
+
+  @override
+  String get lockerQrCodeChangedScanCode => '書櫃 QR Code 已更新，請重新掃描書櫃螢幕上的 QR Code';
+
+  @override
+  String get lockerUsePleaseWaitScanAgain => '書櫃使用中，請稍候再掃描';
+
+  @override
+  String get lockerOfflineTemporarilyUnavailable => '書櫃目前連線中斷，暫時無法使用';
+
+  @override
+  String get itemChangedRefreshTryAgain => '項目狀態已變更，請重新整理後再試';
+
+  @override
+  String get noItemsHandleLocker => '您在此書櫃沒有待辦理的項目';
+
+  @override
+  String get lockerTaskProgressFinishCancelFirst => '您有進行中的書櫃作業，請先完成或取消';
+
+  @override
+  String get selectLeastOneItem => '請至少選擇一個項目';
+
+  @override
+  String get notEnoughDoorsAvailableSelectFewer => '此書櫃可用的櫃門不足，請減少存書項目或稍後再試';
+
+  @override
+  String get someItemsChangedPleaseConfirmAgain => '部分項目狀態已變更，請重新確認';
+
+  @override
+  String get lockerTaskWasNotFound => '找不到此書櫃作業';
+
+  @override
+  String get actionNotAvailableRightNow => '目前無法執行此操作';
+
+  @override
+  String get lockerRequiresScanningScanQrCode => '此書櫃已啟用掃碼存取，請至書櫃掃描 QR Code 辦理';
+
+  @override
+  String get orderBeingHandledLockerPleaseTry => '此訂單正於書櫃辦理中，請稍後再試';
+
+  @override
+  String get manualReportItemAlreadyAwaitingConfirmation => '此項目已有待客服確認的手動回報';
+
+  @override
+  String aboutP0FromLockerPleaseUse(Object p0) => '您目前的位置距離書櫃約 ${p0}，請於書櫃旁操作';
+
+  @override
+  String itemAssignedP0PleaseUseLocker(Object p0) => '此項目的指定書櫃為「${p0}」，請至該書櫃辦理';
+
+  @override
+  String severalTasksLockerWereNotCompleted(Object p0) => '您在此書櫃的作業多次未完成，請於 ${p0} 分鐘後再試';
+
+  @override
+  String itemsP0(Object p0) => '您的待辦項目位於：${p0}';
+
+  @override
+  String get taskComplete => '作業完成';
+
+  @override
+  String get someItemsWereNotCompleted => '部分項目未完成';
+
+  @override
+  String get numberDidNotMatchTaskBeen => '數字不符，本次作業已取消';
+
+  @override
+  String get numberWasNotConfirmedTimeTask => '未於時限內完成數字確認，本次作業已取消';
+
+  @override
+  String get itemsWereNotConfirmedTimeTask => '未於時限內確認項目，本次作業已取消';
+
+  @override
+  String get lockerDidNotRespondDoorWas => '書櫃未回應，櫃門未開啟，請稍後再試';
+
+  @override
+  String get taskBeenCancelled => '本次作業已取消';
+
+  @override
+  String get lockerDidNotConfirmDoorOpened => '未收到書櫃的開門回報，本次作業待客服確認';
+
+  @override
+  String get thereWasLockerConnectionProblemSupport => '書櫃連線異常，本次作業待客服確認';
+
+  @override
+  String get lockerRestartedSupportConfirmTask => '書櫃重新啟動，本次作業待客服確認';
+
+  @override
+  String get supportConfirmedTaskComplete => '客服已確認本次作業完成';
+
+  @override
+  String get supportConfirmedTaskWasNotCompleted => '客服已確認本次作業未完成，狀態未變更';
+
+  @override
+  String get supportEndedTask => '客服已結束本次作業';
+
+  @override
+  String get dropOffCompleteBuyerBeenNotified => '存書完成，已通知買家取書';
+
+  @override
+  String get dropOffComplete => '存書完成';
+
+  @override
+  String get retrievalComplete => '取回完成';
+
+  @override
+  String get doorCouldNotIdentifiedPleaseContact => '無法確認櫃門，請聯絡客服';
+
+  @override
+  String get doorFaultyPleaseContactSupport => '櫃門故障，請聯絡客服';
+
+  @override
+  String get doorAwaitingCheckBySupportPlease => '櫃門待客服確認，請聯絡客服';
+
+  @override
+  String get reachedPreSaleDropOffLimit => '您在此書櫃的先行存書已達上限，請待售出或取回後再存入';
+
+  @override
+  String get itemChanged => '項目狀態已變更';
+
+  @override
+  String get doorDidNotOpen => '櫃門未能開啟';
+
+  @override
+  String get doorOpeningNotConfirmedSupportCheck => '未收到櫃門開啟回報，待客服確認';
+
+  @override
+  String get anotherItemDoorSupportCheck => '櫃門內有其他項目，待客服確認';
+
+  @override
+  String notCompletedP0(Object p0) => '未完成：${p0}';
+
+  @override
+  String bookBeenSoldAfterRetrievingDrop(Object p0) => '此書籍已售出，取回後請存入「${p0}」';
+
+  @override
+  String doorP0(Object p0) => '櫃門 ${p0}';
+
+  @override
+  String get confirmingItems => '確認項目中';
+
+  @override
+  String get confirmingNumber => '數字確認中';
+
+  @override
+  String get opening => '開門中';
+
+  @override
+  String get doorOpened => '櫃門已開啟';
+
+  @override
+  String get partlyCompleted => '部分完成';
+
+  @override
+  String get failed => '失敗';
+
+  @override
+  String get modelAnswer => '模型回答';
+
+  @override
+  String get replacedWithStandardNotice => '改用固定說明';
+
+  @override
+  String get clarifyingQuestion => '釐清需求';
+
+  @override
+  String get noSuitableBooks => '無合適書籍';
+
+  @override
+  String get fellBackSearchRanking => '改用檢索排序';
+
+  @override
+  String get fellBackPopularBooks => '改列熱門書籍';
+
+  @override
+  String get recommendationsGenerated => '已產生推薦';
+
+  @override
+  String get noSuitableCandidates => '無合適候選書';
+
+  @override
+  String get noCandidates => '無候選書';
+
+  @override
+  String get modelSuggestionsUsed => '採用模型建議';
+
+  @override
+  String get bibliographicDataOnly => '僅帶入書目資料';
+
+  @override
+  String get handoffSuggested => '建議轉接';
+
+  @override
+  String get insufficientGrounding => '依據不足';
+
+  @override
+  String get continuedPreviousCriteria => '延續前一輪條件';
+
+  @override
+  String get reusedPreviousTopic => '沿用前一輪主題';
+
+  @override
+  String get noSearchMatch => '未命中檢索';
+
+  @override
+  String get invalidBookCodesReturned => '書單含無效代號';
+
+  @override
+  String get webSearchUsed => '使用網路搜尋';
+
+  @override
+  String get retriedWithoutSearch => '改為不搜尋重試';
+
+  @override
+  String get backupProviderUsed => '改用備援服務商';
+
+  @override
+  String get conditionAdjustedFromNotes => '依說明調整書況';
+
+  @override
+  String get avgPassagesRetrieved => '平均檢索段落數';
+
+  @override
+  String get avgCandidates => '平均候選書數';
+
+  @override
+  String get avgFillerBooks => '平均補位書數';
+
+  @override
+  String get avgBooksRecommended => '平均推薦書數';
+
+  @override
+  String get avgBooksSelected => '平均採用書數';
+
+  @override
+  String get avgInvalidCodes => '平均無效代號數';
+
+  @override
+  String get avgPhotos => '平均照片數';
+
+  @override
+  String get avgSources => '平均參考來源數';
+
+  @override
+  String get bookSearch => '書籍搜尋';
+
+  @override
+  String get fellBackReferencePassage => '改用說明原文';
+
+  @override
+  String get booksSelectedByModel => '模型選書';
+
+  @override
+  String get indexUpdates => '索引更新';
+
+  @override
+  String get sourceNotRecorded => '未標示來源';
+
+  @override
+  String get outputFormatErrors => '輸出格式錯誤';
+
+  @override
+  String get suggestMediation => '建議協調處理';
+
+  @override
+  String get handoffEnforcedBySystem => '由系統強制轉接';
+
+  @override
+  String get followUpSuggestionsProvided => '附有追問建議';
+
+  @override
+  String get replyTitleNotBookCards => '回覆書名與書卡不符';
+
+  @override
+  String get replyMentionsPrice => '回覆提及價格';
+
+  @override
+  String get replyDeniesResultsDespiteBookCards => '有書卡但回覆稱無相關書籍';
+
+  @override
+  String get completeItemsKeptAfterTruncation => '輸出截斷後保留完整項目';
+
+  @override
+  String get somePhotosNotSent => '部分照片未送出';
+
+  @override
+  String get noEvidencePhotosSent => '佐證照片皆未送出';
+
+  @override
+  String get findingsCitePhotos => '觀察重點引用照片';
+
+  @override
+  String get avgPassagesCited => '平均引用段落數';
+
+  @override
+  String get avgInvalidRecommendationBases => '平均無效推薦依據數';
+
+  @override
+  String get avgSystemGeneratedReasons => '平均系統產生理由數';
+
+  @override
+  String get avgInvalidPhotoReferences => '平均無效照片編號數';
+
+  @override
+  String get favorsBuyer => '有利買家';
+
+  @override
+  String get favorsSeller => '有利賣家';
+
+  @override
+  String get insidePage => '內頁';
+
+  @override
+  String photoP0Evidence(Object p0) => '照片 ${p0}（佐證）';
+
+  @override
+  String photoP0P1P2(Object p0, Object p1, Object p2) => '照片 ${p0}（《${p1}》${p2}）';
+
+  @override
+  String photoP0P1(Object p0, Object p1) => '照片 ${p0}（${p1}）';
+
+  @override
+  String aiReviewedP0ListingP1Evidence(Object p0, Object p1, Object p2) => 'AI 參考：上架 ${p0} 張、佐證 ${p1} 張，另有 ${p2} 張未送出';
+
+  @override
+  String aiReviewedP0ListingP1Evidence2(Object p0, Object p1) => 'AI 參考：上架 ${p0} 張、佐證 ${p1} 張';
+
+  @override
+  String someItemsMalformedP0(Object p0) => '部分項目格式不符 ${p0}';
+
+  @override
+  String fieldsDefaultedP0(Object p0) => '欄位改用預設值 ${p0}';
+
+  @override
+  String get highConfidence => '可信度：高';
+
+  @override
+  String get mediumConfidence => '可信度：中';
+
+  @override
+  String get lowConfidence => '可信度：低';
+
+  @override
+  String get writtenByAi => 'AI 撰寫';
+
+  @override
+  String get clearBibliographyCache => '清除書目快取';
+
+  @override
+  String get bookDetailsLookedUpAgainNext => '其他賣家上架此 ISBN 時將重新查詢書目資料。';
+
+  @override
+  String get bibliographyCacheIsbnCleared => '已清除此 ISBN 的書目快取';
+
+  @override
+  String get noBibliographyCacheIsbn => '此 ISBN 無書目快取';
+
+  @override
+  String get lookUpListPrice => '查詢定價';
+
+  @override
+  String get assessConditionPrice => '判斷書況與售價';
+
+  @override
+  String get aiRepliesReferenceOnlyOrderPage => 'AI 回覆僅供參考，實際以訂單頁面與客服人員說明為準';
+
+  @override
+  String get preFilledFromSupportEnquiryReview => '已依客服工單預填，請確認內容後再儲存。';
+
+  @override
+  String get noData => '無資料';
+
+  @override
+  String get sellingPrice => '售價';
+
+  @override
+  String get aiQuality => 'AI 品質';
+
+  @override
+  String get overturnedByAdmins => '管理員推翻比例';
+
+  @override
+  String get flaggedByInstantRules => '即時規則送審';
+
+  @override
+  String get flaggedByAi => 'AI 送審';
+
+  @override
+  String get transferredSupportAgents => '轉由客服人員處理';
+
+  @override
+  String get ratedNotHelpful => '評為沒有幫助';
+
+  @override
+  String get repliesWithoutBooks => '未附書籍的回覆';
+
+  @override
+  String get disputeAnalysis2 => '交易爭議分析';
+
+  @override
+  String get suggestionMatchedDecision => '建議與裁決一致';
+
+  @override
+  String get ratedHelpful => '評為有幫助';
+
+  @override
+  String get bookRecommendations => '書籍推薦';
+
+  @override
+  String get aiRecommendationClickThroughRate => 'AI 推薦點擊率';
+
+  @override
+  String get standardRecommendationClickThroughRate => '一般推薦點擊率';
+
+  @override
+  String get markedNotInterested => '標示不感興趣';
+
+  @override
+  String get listingAssistantAdoptionRate => '上架輔助採用率';
+
+  @override
+  String get listingsUsingAssistant => '使用上架輔助的書籍';
+
+  @override
+  String get createdFromSupportEnquiries => '由客服工單建立';
+
+  @override
+  String get rejectionReason => '駁回原因類別';
+
+  @override
+  String get sourceInstantRules => '來源：即時規則';
+
+  @override
+  String get sourceAiAssessment => '來源：AI 判定';
+
+  @override
+  String confidenceP0(Object p0) => '可信度 ${p0}';
+
+  @override
+  String aiAssessmentConfidenceP0(Object p0) => 'AI 判定可信度 ${p0}';
+
+  @override
+  String get assessment => '判定';
+
+  @override
+  String get description3 => '描述';
+
+  @override
+  String get markReviewReasonAsUnfoundedWhen => '核准時標示送審原因不成立';
+
+  @override
+  String get showPhotosFullDetails => '顯示照片與完整內容';
+
+  @override
+  String analysedP0(Object p0) => '分析時間：${p0}';
+
+  @override
+  String get wasAnalysisHelpful => '此分析是否有幫助';
+
+  @override
+  String get helpful => '有幫助';
+
+  @override
+  String get notHelpful => '沒有幫助';
+
+  @override
+  String get recommendedBooksDoNotMatchMy => '推薦書籍不符合需求';
+
+  @override
+  String get inaccurateInformation => '內容不正確';
+
+  @override
+  String get didNotAnswerQuestion => '未回答問題';
+
+  @override
+  String get insufficientInformation => '資訊不足';
+
+  @override
+  String get selectReason => '請選擇原因';
+
+  @override
+  String get notInterested => '不感興趣';
+
+  @override
+  String get bookNoLongerRecommended => '已不再推薦此書';
+
+  @override
+  String get cachedBibliographicDataUsed => '沿用快取書目';
+
+  @override
+  String get cachedDescriptionUsed => '沿用快取簡介';
+
+  @override
+  String get isbnTitleDoNotMatch => 'ISBN 與書名不一致';
+
+  @override
+  String get awaitingReview => '待確認';
+
+  @override
+  String get orderDropOff => '依訂單存書';
+
+  @override
+  String get preSaleDropOff => '先行存書';
+
+  @override
+  String get retrieval => '取回';
+
+  @override
+  String get adminOpening => '管理員開櫃';
+
+  @override
+  String get countdownEnded => '倒數結束';
+
+  @override
+  String get doorSensor => '門磁感測';
+
+  @override
+  String get deviceRestarted => '裝置重新啟動';
+
+  @override
+  String get resolvedBySupport => '客服處理';
+
+  @override
+  String get deviceStarted => '裝置啟動';
+
+  @override
+  String get doorClosed => '櫃門已關閉';
+
+  @override
+  String get taskCloseReported => '作業結束回報';
+
+  @override
+  String get fault => '故障';
+
+  @override
+  String get faultResolved => '故障排除';
+
+  @override
+  String get unexpectedDoorOpening => '櫃門異常開啟';
+
+  @override
+  String get connectionLost => '連線中斷';
+
+  @override
+  String get connectionRestored => '恢復連線';
+
+  @override
+  String get paired => '完成配對';
+
+  @override
+  String get deviceRevoked => '已撤銷裝置';
+
+  @override
+  String get taskCreated => '建立作業';
+
+  @override
+  String get taskFinished => '作業結束';
+
+  @override
+  String get scanRejected => '掃碼遭拒';
+
+  @override
+  String get remoteOpening => '遠端開櫃';
+
+  @override
+  String get contentsRecorded => '已登記存放內容';
+
+  @override
+  String get contentsRecordCleared => '已清空存放紀錄';
+
+  @override
+  String get credentialPossiblyCopied => '憑證疑遭複製';
+
+  @override
+  String get sourceIpChanged => '來源 IP 變更';
+
+  @override
+  String get doorNeedsChecking => '櫃門待確認';
+
+  @override
+  String get doorChecked => '櫃門確認完成';
+
+  @override
+  String get itemBlocked => '項目無法辦理';
+
+  @override
+  String get manualReport => '手動回報';
+
+  @override
+  String get manualReportReviewed => '手動回報處理';
+
+  @override
+  String get overdueOrderHeld => '逾期訂單待處理';
+
+  @override
+  String get doorOpenedAfterTask => '作業結束後開門';
+
+  @override
+  String get lockDidNotRelease => '電磁鎖未釋放';
+
+  @override
+  String get doorLeftOpen => '櫃門未關閉';
+
+  @override
+  String get doorForcedOpen => '櫃門遭強制開啟';
+
+  @override
+  String get sensorError => '感測器異常';
+
+  @override
+  String get powerProblem => '電源異常';
+
+  @override
+  String get screenProblem => '螢幕異常';
+
+  @override
+  String get dropOffCancelledAfterDoorOpened => '存書作業開門後取消';
+
+  @override
+  String get dropOffMarkedAsNotCompleted => '客服確認未完成的存書作業';
+
+  @override
+  String get anotherItemWasAlreadyDoor => '存書時門內已有其他項目';
+
+  @override
+  String get doorOpeningNotReported => '未收到開門回報';
+
+  @override
+  String get doorReportedOpenAfterTaskEnded => '作業結束後回報開門';
+
+  @override
+  String get manualReportDuringFault => '故障期間的手動回報';
+
+  @override
+  String get openedByStaff => '管理人員開啟過此櫃門';
+
+  @override
+  String get orderCompletedBySupportBeforePickup => '客服將未取書的訂單改為完成';
+
+  @override
+  String get noDevice => '未配對裝置';
+
+  @override
+  String get deviceOffline => '裝置離線';
+
+  @override
+  String get deviceFault => '裝置故障';
+
+  @override
+  String get underMaintenance => '書櫃維修中';
+
+  @override
+  String get scanningRequired => '使用者須掃碼存取';
+
+  @override
+  String manualReportingAllowedP0(Object p0) => '開放手動回報（${p0}）';
+
+  @override
+  String userAccessSuspendedP0(Object p0) => '暫停使用者存取（${p0}）';
+
+  @override
+  String get simulator => '模擬書櫃';
+
+  @override
+  String get physicalLocker => '實體書櫃';
+
+  @override
+  String get noDevicePaired => '尚未配對裝置';
+
+  @override
+  String get awaitingPairing => '等待配對';
+
+  @override
+  String get online => '連線中';
+
+  @override
+  String get offline => '離線';
+
+  @override
+  String get locationNotPermitted => '未授權定位';
+
+  @override
+  String get locationUnavailable => '無法取得定位';
+
+  @override
+  String aboutP0Away(Object p0) => '距離約 ${p0}';
+
+  @override
+  String get dropOffReport => '存書回報';
+
+  @override
+  String get pickupReport => '取書回報';
+
+  @override
+  String get retrievalReport => '取回回報';
+
+  @override
+  String get confirmed => '已確認';
+
+  @override
+  String get noLongerValid => '已失效';
+
+  @override
+  String get lockerInactive => '書櫃停用';
+
+  @override
+  String get selectDoorWhereBooksActuallyStored => '請選擇書籍實際存放的櫃門';
+
+  @override
+  String offlineP0(Object p0) => '離線時間 ${p0}';
+
+  @override
+  String get collectionRetrievalNotCompletedAfterDoor => '取書或取回開門後未能完成';
+
+  @override
+  String get unpairedByDevice => '裝置解除配對';
+
+  @override
+  String get replacedByNewDevice => '由新裝置取代';
+
+  @override
+  String get revokedByAdministrator => '管理員撤銷';
+
+  @override
+  String get simulatorTurnedOff => '模擬書櫃功能關閉';
+
+  @override
+  String get tooManyRequestsPleaseTryAgain => '操作過於頻繁，請稍後再試';
+
+  @override
+  String get viewPurchases => '查看購買紀錄';
+
+  @override
+  String get viewSales => '查看銷售紀錄';
+
+  @override
+  String get retrievalNotAvailableLockerRightNow => '此書櫃目前無法辦理取回，請聯絡客服';
+
+  @override
+  String get itemsCouldNotCompleted => '項目未能完成';
+
+  @override
+  String onceDelistedP0NoLongerAppear2(Object p0) => '取消上架後，《${p0}》將不再於商城顯示。此書存放於書櫃中，須先取回書籍，方可重新上架。';
+
+  @override
+  String confirmP0BeenPlacedP1(Object p0, Object p1) => '請確認已將《${p0}》放入「${p1}」。';
+
+  @override
+  String get confirmTakenBookFromLocker => '請確認已從書櫃取出書籍。';
+
+  @override
+  String get finish => '完成';
+
+  @override
+  String get door => '櫃門';
+
+  @override
+  String get enterNumberShownLockerScreen => '請輸入書櫃螢幕上顯示的數字';
+
+  @override
+  String get ifSomeoneTellsNumberAsksEnter => '若有他人告知數字並要求您輸入，請勿操作。';
+
+  @override
+  String get enterTwoDigits => '請輸入兩位數字';
+
+  @override
+  String get closeDoorFirst => '請先關上櫃門';
+
+  @override
+  String get onceDoorClosedTaskEndAutomatically => '櫃門關上後，將依您的選擇自動結束本次作業。';
+
+  @override
+  String get taskCompleteAutomaticallyOnceDoorClosed => '櫃門關上後將自動完成本次作業。';
+
+  @override
+  String get taskBeenCancelledNothingChanged => '本次作業已取消，狀態未變更';
+
+  @override
+  String get locationAccessRequiredUseLockerTurn => '使用書櫃須允許存取位置資訊，請於系統設定中開啟後再試';
+
+  @override
+  String get locationCouldNotConfirmedTurnLocation => '目前無法確認您的位置，請開啟定位服務後再試';
+
+  @override
+  String get doorOpenActionNotAvailable => '櫃門已開啟，無法執行此操作';
+
+  @override
+  String get taskBeingProcessedPleaseWait => '本次作業處理中，請稍候';
+
+  @override
+  String numberConfirmationWasNotCompletedSeveral(Object p0) => '數字確認多次未完成，請於 ${p0} 分鐘後再試';
+
+  @override
+  String get doorRecordedContentsAwaitingCheckComplete => '櫃門內有存放紀錄或待確認，須完成數字確認後開啟';
+
+  @override
+  String get lockerBeenAskedEndTask => '已要求書櫃結束作業';
+
+  @override
+  String get endTask => '結束作業';
+
+  @override
+  String get pairDevice => '配對裝置';
+
+  @override
+  String get enterPairingCodeShownLockerScreen => '請輸入書櫃螢幕上顯示的配對碼';
+
+  @override
+  String get enter8DigitPairingCode => '請輸入 8 位數配對碼';
+
+  @override
+  String get pairingCodeInvalidExpired => '配對碼無效或已逾時';
+
+  @override
+  String get waitingDeviceConnect => '等待裝置連線';
+
+  @override
+  String get pairingWasNotCompletedEnterNew => '配對未完成，請輸入書櫃螢幕上的新配對碼';
+
+  @override
+  String get donePhone => '手機完成';
+
+  @override
+  String get cancelledPhone => '手機取消';
+
+  @override
+  String get matchCodeEntered => '輸入比對碼';
+
+  @override
+  String get lockerRefusedEndDoorOpen => '書櫃拒絕結束（櫃門未關）';
+
+  @override
+  String get numberMatched => '數字相符';
+
+  @override
+  String get numberDidNotMatch => '數字不符';
+
+  @override
+  String get cancelTapCancelBeforeClosingDoor => '如需取消，請於關上櫃門前按「取消」。倒數結束時將自動完成。';
+
+  @override
+  String get preciseLocationRequiredUseLockerTurn => '使用書櫃須開啟精確位置，請於系統設定中開啟後再試';
+
+  @override
+  String get enterTitle3 => '請輸入標題';
+
+  @override
+  String get credentialsNotSet => '尚未設定憑證';
+
+  @override
+  String get searchActions => '搜尋操作內容';
+
+  @override
+  String undoneP0(Object p0) => '還原於 ${p0}';
+
+  @override
+  String get delistListing => '下架商品';
+
+  @override
+  String get amount2 => '金額';
+
+  @override
+  String get couldNotOpenChatPleaseTry => '無法開啟對話，請稍後再試';
+
+  @override
+  String publishedP0(Object p0) => '發布日期：${p0}';
+
+  @override
+  String get pushNotificationRegistrationFailedPleaseTry => '推播註冊失敗，請稍後再試。';
 
 }
 

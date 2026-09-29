@@ -28,7 +28,9 @@ module.exports = {
       assert.strictEqual(value.features.listing_assist.web_search, true);
       assert.strictEqual(value.features.moderation.action, 'review');
       assert.strictEqual(value.limits.monthly_budget_usd, 10);
+      assert.strictEqual(value.limits.reserve_ratio, 0.2);
       assert.strictEqual(value.limits.daily_per_user.listing_assist, 15);
+      assert.strictEqual(value.limits.daily_per_user.book_chat, 20, '書籍顧問改以訊息數計次後的預設值');
     }],
 
     ['讀取資料庫時，不合法的值靜默改回預設值', () => {
@@ -50,22 +52,23 @@ module.exports = {
     }],
 
     ['管理員送出不合法的值時逐項回報原因', () => {
-      rejectsBadRequest({ enabled: 'yes' }, 'enabled 必須是 true 或 false');
-      rejectsBadRequest({ default_provider: 'claude' }, '預設服務商僅接受：deepseek, gemini, openai');
+      rejectsBadRequest({ enabled: 'yes' }, 'AI 功能開關設定不正確');
+      rejectsBadRequest({ default_provider: 'claude' }, '預設服務商不正確');
       rejectsBadRequest({ providers: { gemini: { model: '模型 名稱' } } }, 'Google Gemini 模型名稱格式不正確');
-      rejectsBadRequest({ providers: { deepseek: { input_per_m: 1001 } } }, 'DeepSeek 輸入單價必須是 0 ~ 1000 之間的數值');
+      rejectsBadRequest({ providers: { deepseek: { input_per_m: 1001 } } }, 'DeepSeek 輸入單價須為 0 至 1000 之間的數值');
       rejectsBadRequest(
         { providers: { gemini: { search_free_per_month: 1.5 } } },
-        'Google Gemini 每月免費搜尋次數必須是 0 ~ 1000000 之間的整數'
+        'Google Gemini 每月免費搜尋次數須為 0 至 1000000 之間的整數'
       );
-      rejectsBadRequest({ features: { support: { enabled: 1 } } }, 'AI 客服的 enabled 必須是 true 或 false');
+      rejectsBadRequest({ features: { support: { enabled: 1 } } }, 'AI 客服的開關設定不正確');
       rejectsBadRequest(
         { features: { listing_assist: { provider: 'claude' } } },
-        '上架輔助的服務商僅接受：deepseek, gemini, openai 或 null'
+        '上架輔助的服務商不正確'
       );
-      rejectsBadRequest({ features: { moderation: { action: 'delete' } } }, '上架審核的處理方式僅接受：review, block');
-      rejectsBadRequest({ limits: { monthly_budget_usd: -1 } }, '每月預算必須是 0 ~ 100000 之間的數值');
-      rejectsBadRequest({ limits: { daily_per_user: { book_chat: 20000 } } }, '書籍顧問每人每日次數必須是 0 ~ 10000 之間的整數');
+      rejectsBadRequest({ features: { moderation: { action: 'delete' } } }, '上架審核的處理方式不正確');
+      rejectsBadRequest({ limits: { monthly_budget_usd: -1 } }, '每月預算須為 0 至 100000 之間的數值');
+      rejectsBadRequest({ limits: { reserve_ratio: 0.95 } }, '審核與管理輔助保留比例須為 0 至 0.9 之間的數值');
+      rejectsBadRequest({ limits: { daily_per_user: { book_chat: 20000 } } }, '書籍顧問每人每日次數須為 0 至 10000 之間的整數');
     }],
 
     ['功能的服務商可以是 null，代表沿用預設服務商', () => {
@@ -83,7 +86,7 @@ module.exports = {
         enabled: true,
         providers: { gemini: { model: 'gemini-3.1-pro' } },
         features: { support: { enabled: false } },
-        limits: { monthly_budget_usd: 25, daily_per_user: { support: 5 } }
+        limits: { monthly_budget_usd: 25, reserve_ratio: 0.3, daily_per_user: { support: 5 } }
       });
       const changes = settingsService.diffSettings(before, after);
       const byField = Object.fromEntries(changes.map((c) => [c.field, c]));
@@ -91,6 +94,7 @@ module.exports = {
       assert.strictEqual(byField['providers.gemini.model'].label, 'Google Gemini 模型');
       assert.strictEqual(byField['features.support.enabled'].label, 'AI 客服開關');
       assert.strictEqual(byField['limits.monthly_budget_usd'].label, '每月預算（美元）');
+      assert.strictEqual(byField['limits.reserve_ratio'].label, '審核與管理輔助保留比例');
       assert.strictEqual(byField['limits.daily_per_user.support'].label, 'AI 客服每人每日次數');
       assert.strictEqual(settingsService.diffSettings(before, before).length, 0);
     }],
@@ -167,7 +171,7 @@ module.exports = {
       for (const body of [{}, { settings: [] }, { settings: 'on' }]) {
         const res = await request('PUT', '/api/admin/ai/settings', { token, headers, body });
         assert.strictEqual(res.status, 400);
-        assert.strictEqual(res.body.message, '請提供 settings 設定內容');
+        assert.strictEqual(res.body.message, '請提供設定內容');
       }
     }],
 
@@ -202,7 +206,102 @@ module.exports = {
       const { token } = adminToken({ can_view_stats: true });
       const res = await request('GET', '/api/admin/ai/usage?period=year', { token });
       assert.strictEqual(res.status, 400);
-      assert.strictEqual(res.body.message, 'period 僅接受：today, 7d, 30d, month');
+      assert.strictEqual(res.body.message, '統計期間不正確');
+    }],
+
+    ['連線測試：使用尚未儲存的模型名稱，分別檢查文字、JSON 與影像', async () => {
+      const { token, admin } = adminToken({ can_manage_system: true });
+      h.setSettings({ enabled: true });
+      const respond = (provider, options) => {
+        if (options.images?.length) return { text: '紅色', usage: {}, latency_ms: 30 };
+        if (options.json) return { text: '{"status":"ok"}', json: { status: 'ok' }, usage: {}, latency_ms: 20 };
+        return { text: '連線成功', usage: {}, latency_ms: 10 };
+      };
+      h.queueJson(respond, respond, respond);
+
+      const res = await request('POST', '/api/admin/ai/test', { token, body: { provider: 'gemini', model: ' gemini-9-preview ' } });
+      assert.strictEqual(res.status, 200);
+      const data = res.body.data;
+      assert.strictEqual(data.ok, true);
+      assert.strictEqual(data.model, 'gemini-9-preview');
+      assert.strictEqual(data.latency_ms, 10);
+      assert.strictEqual(data.reply, '連線成功');
+      assert.deepStrictEqual(data.checks, [
+        { name: 'text', status: 'ok', latency_ms: 10, error: null },
+        { name: 'json', status: 'ok', latency_ms: 20, error: null },
+        { name: 'image', status: 'ok', latency_ms: 30, error: null }
+      ]);
+      assert.ok(h.calls.every((c) => c.options.model === 'gemini-9-preview'), '送出的是尚未儲存的模型');
+      assert.strictEqual(h.calls.find((c) => c.options.images?.length).options.images[0].mimeType, 'image/png');
+      const logs = prisma.rows('ai_usage_logs');
+      assert.deepStrictEqual(logs.map((r) => [r.feature, r.model, Number(r.user_id)]), [
+        ['test', 'gemini-9-preview', admin.user_id], ['test', 'gemini-9-preview', admin.user_id], ['test', 'gemini-9-preview', admin.user_id]
+      ]);
+      const saved = await settingsService.load();
+      assert.strictEqual(saved.providers.gemini.model, 'gemini-3.1-flash-lite', '測試不會改動已儲存的設定');
+    }],
+
+    ['連線測試：模型名稱不符合規則時回 400；未提供時沿用已儲存的模型', async () => {
+      const { token } = adminToken({ can_manage_system: true });
+      h.setSettings({ enabled: true });
+      for (const model of ['', 'gpt 5', 'x'.repeat(81), 42]) {
+        const res = await request('POST', '/api/admin/ai/test', { token, body: { provider: 'gemini', model } });
+        assert.strictEqual(res.status, 400, JSON.stringify(model));
+        assert.strictEqual(res.body.message, 'Google Gemini 模型名稱格式不正確');
+      }
+      assert.strictEqual(h.calls.length, 0);
+
+      const respond = (provider, options) => ({ text: options.json ? '{"status":"ok"}' : '紅', json: { status: 'ok' }, usage: {}, latency_ms: 5 });
+      h.queueJson(respond, respond, respond);
+      const res = await request('POST', '/api/admin/ai/test', { token, body: { provider: 'gemini' } });
+      assert.strictEqual(res.body.data.model, 'gemini-3.1-flash-lite');
+    }],
+
+    ['連線測試：影像項目接受簡體字「红色」的回覆', async () => {
+      const { token } = adminToken({ can_manage_system: true });
+      h.setSettings({ enabled: true });
+      const respond = (provider, options) => ({ text: options.images?.length ? '红色' : options.json ? '{"status":"ok"}' : '連線成功', json: { status: 'ok' }, usage: {}, latency_ms: 5 });
+      h.queueJson(respond, respond, respond);
+      const res = await request('POST', '/api/admin/ai/test', { token, body: { provider: 'gemini' } });
+      assert.strictEqual(res.body.data.ok, true);
+      assert.deepStrictEqual(res.body.data.checks.map((c) => [c.name, c.status]), [['text', 'ok'], ['json', 'ok'], ['image', 'ok']]);
+    }],
+
+    ['連線測試：各項分別回報失敗原因，不支援影像的服務商略過影像檢查', async () => {
+      const { token } = adminToken({ can_manage_system: true });
+      h.setSettings({ enabled: true });
+      const respond = (provider, options) => {
+        if (options.json) {
+          const err = new h.ai.AiProviderError('INVALID_OUTPUT', { provider });
+          err.latency_ms = 15;
+          throw err;
+        }
+        return { text: '好的', usage: {}, latency_ms: 8 };
+      };
+      h.queueJson(respond, respond);
+
+      const res = await request('POST', '/api/admin/ai/test', { token, body: { provider: 'deepseek', model: 'deepseek-chat' } });
+      const data = res.body.data;
+      assert.strictEqual(data.ok, false);
+      assert.strictEqual(data.error, 'JSON：回應格式不正確');
+      assert.deepStrictEqual(data.checks.map((c) => [c.name, c.status, c.error]), [
+        ['text', 'ok', null],
+        ['json', 'failed', '回應格式不正確'],
+        ['image', 'skipped', null]
+      ]);
+      assert.strictEqual(data.checks[1].latency_ms, 15);
+      assert.strictEqual(h.calls.length, 2);
+
+      h.queueJson(() => ({ text: '藍色', usage: {}, latency_ms: 4 }), () => ({ text: '{}', json: { status: 'ok' }, usage: {}, latency_ms: 4 }), () => ({ text: '藍色', usage: {}, latency_ms: 4 }));
+      const misread = await request('POST', '/api/admin/ai/test', { token, body: { provider: 'gemini' } });
+      assert.strictEqual(misread.body.data.checks[2].status, 'failed');
+      assert.strictEqual(misread.body.data.checks[2].error, '回覆與測試圖片不符');
+      assert.strictEqual(misread.body.data.error, '圖片辨識：回覆與測試圖片不符');
+
+      const missing = await request('POST', '/api/admin/ai/test', { token, body: { provider: 'openai', model: 'gpt-5-mini' } });
+      assert.deepStrictEqual(missing.body.data, {
+        ok: false, provider: 'openai', model: 'gpt-5-mini', latency_ms: 0, error: '尚未設定 API 金鑰', checks: []
+      });
     }],
 
     ['上架審核清單需要「內容管理」權限', async () => {

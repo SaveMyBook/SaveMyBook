@@ -735,6 +735,7 @@ class _DoneButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Center(
                 widthFactor: 1,
+                heightFactor: 1,
                 child: AnimatedSwitcher(
                   duration: Motion.micro,
                   child: loading

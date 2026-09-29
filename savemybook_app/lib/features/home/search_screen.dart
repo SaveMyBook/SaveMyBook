@@ -137,7 +137,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
                 return LayoutBuilder(builder: (context, constraints) => ListView(
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: responsiveListPadding(constraints, horizontal: 20, top: 20, bottom: 24),
+                  padding: responsiveListPadding(constraints, top: 20, bottom: 24),
                   children: [
                     AnimatedSize(
                       duration: Motion.base,
@@ -271,8 +271,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   EdgeInsets _headerPadding(BoxConstraints constraints) {
-    final side = responsiveListPadding(constraints, horizontal: 20).left;
-    if (side < 64) return const EdgeInsets.fromLTRB(8, 8, 20, 20);
+    final side = responsiveListPadding(constraints).left;
+    if (side < 64) return const EdgeInsets.fromLTRB(4, 8, 16, 20);
     return EdgeInsets.fromLTRB(side - 56, 8, side, 20);
   }
 

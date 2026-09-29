@@ -20,21 +20,43 @@ const assertAvailable = async () => {
   }
 };
 
-const verificationFailed = () => badRequest('通行密鑰驗證失敗，請重新操作', 'PASSKEY_VERIFICATION_FAILED');
+const verificationFailed = () => badRequest('通行密鑰驗證失敗，請重新操作或改用其他方式', 'PASSKEY_VERIFICATION_FAILED');
 const challengeInvalid = () => badRequest('驗證要求已失效，請重新操作', 'PASSKEY_CHALLENGE_INVALID');
+const originNotAllowed = () => badRequest('此裝置目前無法使用通行密鑰，請改用其他方式', 'PASSKEY_ORIGIN_NOT_ALLOWED');
+const limitReached = () =>
+  badRequest(`每個帳號最多註冊 ${MAX_PER_USER} 組通行密鑰，請先刪除不再使用的裝置`, 'PASSKEY_LIMIT');
 
 const passkeysOf = (userId) => prisma.$queryRaw`
   SELECT passkey_id, credential_id, transports, aaguid, device_label, created_at, last_used_at, backed_up
   FROM user_passkeys WHERE user_id = ${userId} ORDER BY created_at ASC`;
 
-const countOf = async (userId) => {
-  const [row] = await prisma.$queryRaw`SELECT COUNT(*) AS n FROM user_passkeys WHERE user_id = ${userId}`;
+const countOf = async (userId, db = prisma) => {
+  const [row] = await db.$queryRaw`SELECT COUNT(*) AS n FROM user_passkeys WHERE user_id = ${userId}`;
   return Number(row?.n ?? 0);
 };
 
 const hasPasskey = async (userId) => (await countOf(userId)) > 0;
 
-const transportsOf = (row) => (row.transports ? String(row.transports).split(',').filter(Boolean) : undefined);
+// 必須一律輸出陣列：App 的 passkeys 套件以 (json['transports'] as List) 解析，缺少此鍵會在叫出系統視窗前就拋出例外。
+const transportsOf = (row) => (row.transports ? String(row.transports).split(',').filter(Boolean) : []);
+
+// 新增、刪除通行密鑰與解除社群綁定都先鎖同一列 users，「數量上限」與「剩餘登入方式」的檢查才不會被併發請求同時通過。
+// 取得鎖之前不可在交易內做一般讀取：InnoDB 的讀取快照在第一次一般讀取時建立，之後會看不到另一個請求剛提交的刪除。
+const lockUser = (tx, userId) => tx.$queryRaw`SELECT user_id FROM users WHERE user_id = ${userId} FOR UPDATE`;
+
+const logRejected = (purpose, response, reason, extra = '') => {
+  const clientData = webauthn.clientDataOf(response) ?? {};
+  console.warn(`[通行密鑰驗證未通過] purpose=${purpose}${extra} origin=${clientData.origin ?? '-'} type=${clientData.type ?? '-'} 原因=${reason}`);
+};
+
+const flagsOf = (authenticatorData) => {
+  const flags = isoBase64URL.toBuffer(authenticatorData)[32];
+  if (flags === undefined) return '';
+  const bit = (mask) => (flags & mask ? 1 : 0);
+  return ` UP=${bit(0x01)} UV=${bit(0x04)} BE=${bit(0x08)} BS=${bit(0x10)}`;
+};
+
+const originAllowed = (response, origins) => origins.includes(webauthn.clientDataOf(response)?.origin);
 
 const AUTHENTICATORS = {
   'fbfc3007-154e-4ecc-8c0b-6e020557d7bd': 'icloud_keychain',
@@ -54,6 +76,7 @@ const authenticatorOf = (aaguid) => AUTHENTICATORS[String(aaguid ?? '').toLowerC
 
 const shape = (row) => ({
   passkey_id: publicId.encode('passkey', row.passkey_id),
+  credential_id: row.credential_id,
   device_label: row.device_label ?? null,
   authenticator: authenticatorOf(row.aaguid),
   created_at: row.created_at,
@@ -66,7 +89,20 @@ const list = async (userId) => {
   return (await passkeysOf(userId)).map(shape);
 };
 
-// ---------- 挑戰值 ----------
+const ANDROID_ORIGIN_PREFIX = 'android:apk-key-hash:';
+
+const status = () => {
+  if (!isAvailable()) return { enabled: false, rp_id: null, platforms: { ios: false, android: false } };
+  const { rpId, origins } = webauthn.config();
+  return {
+    enabled: true,
+    rp_id: rpId,
+    platforms: {
+      ios: origins.includes(`https://${rpId}`),
+      android: origins.some((origin) => origin.startsWith(ANDROID_ORIGIN_PREFIX))
+    }
+  };
+};
 
 const storeChallenge = async (text, { purpose, userId = null }) => {
   await prisma.$executeRaw`
@@ -100,8 +136,6 @@ const cleanupExpired = async () => {
   return prisma.$executeRaw`DELETE FROM webauthn_challenges WHERE created_at < ${cutoff}`;
 };
 
-// ---------- 註冊 ----------
-
 const registrationOptions = async (userId) => {
   await assertAvailable();
   const [user, existing] = await Promise.all([
@@ -109,9 +143,7 @@ const registrationOptions = async (userId) => {
     passkeysOf(userId)
   ]);
   if (!user) throw notFound('找不到使用者');
-  if (existing.length >= MAX_PER_USER) {
-    throw badRequest(`每個帳號最多註冊 ${MAX_PER_USER} 組通行密鑰，請先刪除不再使用的裝置`, 'PASSKEY_LIMIT');
-  }
+  if (existing.length >= MAX_PER_USER) throw limitReached();
 
   const { rpId, rpName } = webauthn.config();
   const challenge = webauthn.createChallenge({ purpose: 'register', userId });
@@ -161,11 +193,12 @@ const register = async (userId, input, deviceLabel) => {
   const attestation = normalizedResponse(input, ['clientDataJSON', 'attestationObject']);
   const challenge = await consumeChallenge(attestation, { purpose: 'register', userId });
 
-  if ((await countOf(userId)) >= MAX_PER_USER) {
-    throw badRequest(`每個帳號最多註冊 ${MAX_PER_USER} 組通行密鑰，請先刪除不再使用的裝置`, 'PASSKEY_LIMIT');
-  }
-
   const { rpId, origins } = webauthn.config();
+  const reject = (reason) => logRejected('register', attestation, reason, ` user_id=${userId}`);
+  if (!originAllowed(attestation, origins)) {
+    reject('來源不在 PASSKEY_ORIGINS');
+    throw originNotAllowed();
+  }
   let result;
   try {
     result = await verifyRegistrationResponse({
@@ -176,10 +209,14 @@ const register = async (userId, input, deviceLabel) => {
       requireUserVerification: true,
       supportedAlgorithmIDs: webauthn.SUPPORTED_ALGORITHMS
     });
-  } catch {
+  } catch (err) {
+    reject(err.message);
     throw verificationFailed();
   }
-  if (!result.verified) throw verificationFailed();
+  if (!result.verified) {
+    reject('attestation 未通過驗證');
+    throw verificationFailed();
+  }
 
   const info = result.registrationInfo;
   const credentialId = info.credential.id;
@@ -191,12 +228,16 @@ const register = async (userId, input, deviceLabel) => {
     .slice(0, 100) || null;
 
   try {
-    await prisma.$executeRaw`
-      INSERT INTO user_passkeys
-        (user_id, credential_id, public_key, sign_count, transports, aaguid, backed_up, device_label, created_at)
-      VALUES
-        (${userId}, ${credentialId}, ${isoBase64URL.fromBuffer(info.credential.publicKey)}, ${info.credential.counter},
-         ${transports}, ${info.aaguid ?? null}, ${info.credentialBackedUp ? 1 : 0}, ${deviceLabel}, ${new Date()})`;
+    await prisma.$transaction(async (tx) => {
+      await lockUser(tx, userId);
+      if ((await countOf(userId, tx)) >= MAX_PER_USER) throw limitReached();
+      await tx.$executeRaw`
+        INSERT INTO user_passkeys
+          (user_id, credential_id, public_key, sign_count, transports, aaguid, backed_up, device_label, created_at)
+        VALUES
+          (${userId}, ${credentialId}, ${isoBase64URL.fromBuffer(info.credential.publicKey)}, ${info.credential.counter},
+           ${transports}, ${info.aaguid ?? null}, ${info.credentialBackedUp ? 1 : 0}, ${deviceLabel}, ${new Date()})`;
+    });
   } catch (err) {
     if (isDuplicateKey(err)) {
       throw conflict('此通行密鑰已經註冊', 'PASSKEY_ALREADY_REGISTERED');
@@ -214,32 +255,33 @@ const register = async (userId, input, deviceLabel) => {
   return list(userId);
 };
 
-// ---------- 刪除 ----------
-
-const otherSignInMethods = async (userId) => {
-  const [passwordSet, linked] = await Promise.all([
-    identities.hasPassword(userId),
-    identities.identitiesOf(userId)
-  ]);
-  return (passwordSet ? 1 : 0) + linked.length;
+const otherSignInMethods = async (tx, userId) => {
+  const [user] = await tx.$queryRaw`SELECT password_set FROM users WHERE user_id = ${userId}`;
+  const [linked] = await tx.$queryRaw`SELECT COUNT(*) AS n FROM user_identities WHERE user_id = ${userId}`;
+  return (Number(user?.password_set ?? 1) === 1 ? 1 : 0) + Number(linked?.n ?? 0);
 };
 
 const remove = async (userId, code) => {
   await assertAvailable();
   const passkeyId = publicId.decode('passkey', code);
-  const rows = passkeyId == null ? [] : await prisma.$queryRaw`
-    SELECT passkey_id, device_label FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
-  if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已經刪除');
+  if (passkeyId == null) throw notFound('找不到此通行密鑰，可能已刪除');
 
-  if ((await countOf(userId)) <= 1 && (await otherSignInMethods(userId)) === 0) {
-    throw badRequest('這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式', 'LAST_SIGN_IN_METHOD');
-  }
+  const removed = await prisma.$transaction(async (tx) => {
+    await lockUser(tx, userId);
+    const rows = await tx.$queryRaw`
+      SELECT passkey_id, device_label FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
+    if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已刪除');
+    if ((await countOf(userId, tx)) <= 1 && (await otherSignInMethods(tx, userId)) === 0) {
+      throw badRequest('這是此帳號唯一的登入方式，請先設定密碼或綁定其他登入方式', 'LAST_SIGN_IN_METHOD');
+    }
+    await tx.$executeRaw`DELETE FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
+    return rows[0];
+  });
 
-  await prisma.$executeRaw`DELETE FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
   await notify(null, {
     userId,
     title: '已刪除通行密鑰',
-    content: `您的帳號已刪除通行密鑰${rows[0].device_label ? `「${rows[0].device_label}」` : ''}。若非本人操作，請立即變更密碼。`,
+    content: `您的帳號已刪除通行密鑰${removed.device_label ? `「${removed.device_label}」` : ''}。若非本人操作，請立即變更密碼。`,
     relatedType: 'security'
   }).catch(() => {});
   return list(userId);
@@ -250,14 +292,12 @@ const rename = async (userId, code, deviceLabel) => {
   const passkeyId = publicId.decode('passkey', code);
   const rows = passkeyId == null ? [] : await prisma.$queryRaw`
     SELECT passkey_id FROM user_passkeys WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
-  if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已經刪除');
+  if (rows.length === 0) throw notFound('找不到此通行密鑰，可能已刪除');
 
   await prisma.$executeRaw`
     UPDATE user_passkeys SET device_label = ${deviceLabel} WHERE passkey_id = ${passkeyId} AND user_id = ${userId}`;
   return list(userId);
 };
-
-// ---------- 驗證 ----------
 
 const authenticationOptions = async ({ purpose, scope = '', userId = null, allowCredentials }) => {
   const challenge = webauthn.createChallenge({ purpose, scope, userId: userId ?? '' });
@@ -309,7 +349,6 @@ const counterRegressed = async (row, received) => {
   return badRequest('此通行密鑰的驗證紀錄異常，已拒絕本次驗證', 'PASSKEY_COUNTER_REGRESSED');
 };
 
-// 回傳通過驗證的 user_id。userId 有值時憑證必須屬於該使用者。
 const verifyAssertion = async (input, { purpose, scope = '', userId = null }) => {
   await assertAvailable();
   const assertion = normalizedResponse(input, ['clientDataJSON', 'authenticatorData', 'signature']);
@@ -323,12 +362,13 @@ const verifyAssertion = async (input, { purpose, scope = '', userId = null }) =>
     throw badRequest('無法辨識此通行密鑰，可能已從帳號中刪除', 'PASSKEY_NOT_RECOGNIZED');
   }
 
-  const handle = assertion.response.userHandle;
-  if (handle && handle !== webauthn.userHandleText(row.user_id)) {
-    throw badRequest('無法辨識此通行密鑰，可能已從帳號中刪除', 'PASSKEY_NOT_RECOGNIZED');
-  }
-
   const { rpId, origins } = webauthn.config();
+  const reject = (reason) => logRejected(purpose, assertion, reason,
+    ` passkey_id=${row.passkey_id} user_id=${row.user_id}${flagsOf(assertion.response.authenticatorData)}`);
+  if (!originAllowed(assertion, origins)) {
+    reject('來源不在 PASSKEY_ORIGINS');
+    throw originNotAllowed();
+  }
   let result;
   try {
     result = await verifyAuthenticationResponse({
@@ -345,10 +385,21 @@ const verifyAssertion = async (input, { purpose, scope = '', userId = null }) =>
         transports: transportsOf(row)
       }
     });
-  } catch {
+  } catch (err) {
+    reject(err.message);
     throw verificationFailed();
   }
-  if (!result.verified) throw verificationFailed();
+  if (!result.verified) {
+    reject('簽章不符');
+    throw verificationFailed();
+  }
+
+  // 不可因 userHandle 不符而拒絕：credential_id 唯一且簽章已通過，擁有者以資料列為準。不符的常見原因是更換過 JWT_SECRET
+  // （使用者代號由它推導）或 Android 把 JSON null 讀成字串 "null"；回 PASSKEY_NOT_RECOGNIZED 會讓 App 要求系統刪除仍然有效的通行密鑰。
+  const handle = assertion.response.userHandle;
+  if (typeof handle === 'string' && handle !== '' && handle !== 'null' && handle !== webauthn.userHandleText(row.user_id)) {
+    console.warn(`[通行密鑰 userHandle 不符] passkey_id=${row.passkey_id} user_id=${row.user_id}`);
+  }
 
   const { newCounter, credentialBackedUp } = result.authenticationInfo;
   const stored = Number(row.sign_count ?? 0);
@@ -371,6 +422,6 @@ const login = async (assertion, device) => {
 };
 
 module.exports = {
-  MAX_PER_USER, isAvailable, assertAvailable, hasPasskey, list, registrationOptions, register,
+  MAX_PER_USER, isAvailable, assertAvailable, status, hasPasskey, list, registrationOptions, register,
   rename, remove, loginOptions, verifyOptions, verifyAssertion, login, cleanupExpired
 };

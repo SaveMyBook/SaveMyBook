@@ -47,7 +47,7 @@ const albumOf = (value) => {
   }
   return value.map((item) => {
     const url = v.text(item, { label: '圖片網址', max: 500 });
-    if (!CHAT_IMAGE_RE.test(url)) throw badRequest('圖片請先透過 /api/uploads/chat-image 上傳');
+    if (!CHAT_IMAGE_RE.test(url)) throw badRequest('圖片無效，請重新上傳');
     return url;
   });
 };
@@ -65,13 +65,13 @@ const buildContent = (body) => {
 
   if (type === 'image') {
     const url = v.text(body.content, { label: '圖片網址', max: 500 });
-    if (!CHAT_IMAGE_RE.test(url)) throw badRequest('圖片請先透過 /api/uploads/chat-image 上傳');
+    if (!CHAT_IMAGE_RE.test(url)) throw badRequest('圖片無效，請重新上傳');
     return { messageType: 'image', content: url, preview: '[圖片]' };
   }
 
   if (type === 'voice') {
     const url = v.text(body.content, { label: '語音網址', max: 500 });
-    if (!VOICE_RE.test(url)) throw badRequest('語音請先透過 /api/uploads/voice 上傳');
+    if (!VOICE_RE.test(url)) throw badRequest('語音無效，請重新錄製');
     const duration = Math.round(Number(body.duration));
     if (!Number.isFinite(duration) || duration < 1) throw badRequest('語音長度不正確');
     if (duration > codec.MAX_VOICE_SECONDS) throw badRequest(`語音最長 ${codec.MAX_VOICE_SECONDS} 秒`);

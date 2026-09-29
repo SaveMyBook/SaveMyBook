@@ -8,6 +8,7 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import 'admin_announcement_screen.dart';
 import 'admin_book_screen.dart';
+import 'admin_cabinet_deposit_screen.dart';
 import 'admin_cabinet_screen.dart';
 import 'admin_content_screen.dart';
 import 'admin_category_screen.dart';
@@ -184,6 +185,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             icon: Icons.storage_rounded,
             title: S.lockerMonitor,
             onTap: () => _open(const AdminCabinetScreen()),
+          ),
+          AppMenuItem(
+            icon: Icons.inventory_2_outlined,
+            title: S.booksLockers,
+            onTap: () => _open(const AdminCabinetDepositScreen()),
           ),
           AppMenuItem(
             icon: Icons.history_rounded,

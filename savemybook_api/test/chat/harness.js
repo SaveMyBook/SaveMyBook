@@ -1,5 +1,3 @@
-// 聊天測試的共用設定：沿用 test/lib 的假 Prisma，另外補上聊天功能用到的關聯查詢（include/_count）、
-// 原生 SQL（JOIN、子查詢、多筆 INSERT）與各資料表預設值，以及建立帳號、聊天室、群組的輔助函式。
 const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
@@ -9,8 +7,6 @@ const server = require('../lib/server');
 const { registerModels, AUTO_KEYS, UNIQUE_KEYS, MODEL_DEFAULTS } = require('../lib/fake-prisma');
 
 const { prisma, api, request, runSuite, onFetch, jsonResponse, fetchLog } = server;
-
-// ---------- 資料表設定 ----------
 
 registerModels({
   autoKeys: {
@@ -45,8 +41,6 @@ registerModels({
     wallet_transactions: { related_order_id: null, description: null }
   }
 });
-
-// ---------- where / orderBy / include ----------
 
 const RELATIONS = {
   chat_rooms: {
@@ -188,8 +182,6 @@ function resolveRelation(table, row, name, args) {
   return list.map((r) => project(def.table, r, options));
 }
 
-// ---------- 覆寫模型 API ----------
-
 const applyData = (row, data) => {
   for (const [key, value] of Object.entries(data)) {
     if (isPlain(value) && 'increment' in value) row[key] = Number(row[key] ?? 0) + Number(value.increment);
@@ -276,8 +268,6 @@ prisma.model = (table) => {
   };
 };
 
-// ---------- 原生 SQL ----------
-
 const INSERT_RE = /^INSERT\s+(IGNORE\s+)?INTO\s+(\w+)\s*\(([^)]+)\)\s*VALUES\s*(.+?)(?:\s+ON DUPLICATE KEY UPDATE\s+(.+))?$/i;
 
 let lastInsertId = 0;
@@ -318,7 +308,6 @@ prisma.onSql(/^INSERT\s+(IGNORE\s+)?INTO/i, (sql, values) => {
             existing[assign[1]] = data[assign[2]];
             continue;
           }
-          // 重新邀請退出過的成員時會寫 left_at = NULL 這類常數指派。
           const literalAssign = /^\s*(\w+)\s*=\s*(NULL|\d+|'[^']*')\s*$/i.exec(part);
           if (!literalAssign) throw new Error(`ON DUPLICATE 未支援：${part}`);
           const [, column, value] = literalAssign;
@@ -350,7 +339,6 @@ const activeMembers = (roomId) => prisma.rows('chat_room_members')
 
 const visibleToMember = (message, member) => Number(message.message_id) >= Number(member.history_from_id ?? 0);
 
-// services/chat/rooms.js membershipOf
 prisma.onSql('FROM chat_rooms r LEFT JOIN chat_room_members m', (sql, [userId, roomId]) => {
   const room = roomOf(roomId);
   if (!room) return [];
@@ -367,7 +355,6 @@ prisma.onSql('FROM chat_rooms r LEFT JOIN chat_room_members m', (sql, [userId, r
   }];
 });
 
-// services/chat/rooms.js memberRooms
 prisma.onSql('FROM chat_room_members m JOIN chat_rooms r', (sql, values) => {
   const myId = Number(values[values.length - 1]);
   return prisma.rows('chat_room_members')
@@ -397,7 +384,6 @@ prisma.onSql('FROM chat_room_members m JOIN chat_rooms r', (sql, values) => {
     });
 });
 
-// services/chat/rooms.js unreadCount
 prisma.onSql('SELECT COUNT(*) AS n FROM chat_messages x JOIN chat_room_members m', (sql, [myId]) => {
   const total = prisma.rows('chat_messages').filter((x) => {
     if (x.sender_id === Number(myId)) return false;
@@ -410,7 +396,6 @@ prisma.onSql('SELECT COUNT(*) AS n FROM chat_messages x JOIN chat_room_members m
   return [{ n: BigInt(total) }];
 });
 
-// services/chat/rooms.js markAllRead（一對一訊息）
 prisma.onSql('UPDATE chat_messages x JOIN chat_room_members m', (sql, [myId]) => {
   let count = 0;
   for (const x of prisma.rows('chat_messages')) {
@@ -424,7 +409,6 @@ prisma.onSql('UPDATE chat_messages x JOIN chat_room_members m', (sql, [myId]) =>
   return count;
 });
 
-// services/chat/rooms.js markAllRead（群組已讀游標）
 prisma.onSql('UPDATE chat_room_members m SET m.last_read_message_id', (sql, [myId]) => {
   let count = 0;
   for (const m of prisma.rows('chat_room_members')) {
@@ -437,14 +421,12 @@ prisma.onSql('UPDATE chat_room_members m SET m.last_read_message_id', (sql, [myI
   return count;
 });
 
-// services/chat/rooms.js setPinned 的釘選數量
 prisma.onSql('FROM chat_room_pins p JOIN chat_room_members m', (sql, [myId]) => {
   const total = prisma.rows('chat_room_pins').filter((p) => p.user_id === Number(myId)
     && activeMembers(p.room_id).some((m) => m.user_id === Number(myId))).length;
   return [{ n: BigInt(total) }];
 });
 
-// services/chat/members.js active
 prisma.onSql('FROM chat_room_members m JOIN users u', (sql, [roomId]) => activeMembers(roomId)
   .map((m) => {
     const user = prisma.rows('users').find((u) => u.user_id === m.user_id);
@@ -460,7 +442,6 @@ prisma.onSql('FROM chat_room_members m JOIN users u', (sql, [roomId]) => activeM
   })
   .sort((a, b) => compare(a.joined_at, b.joined_at) || a.user_id - b.user_id));
 
-// services/chat/members.js setGroupNickname / clearRoomPreferences
 prisma.onSql('UPDATE chat_room_members SET group_nickname', (sql, values) => {
   const [nickname, roomId, userId] = sql.includes('group_nickname = NULL') ? [null, ...values] : values;
   const member = membershipRow(roomId, userId);
@@ -469,12 +450,10 @@ prisma.onSql('UPDATE chat_room_members SET group_nickname', (sql, values) => {
   return 1;
 });
 
-// services/chat/members.js groupNicknames
 prisma.onSql('SELECT room_id, user_id, group_nickname FROM chat_room_members', (sql, roomIds) => prisma.rows('chat_room_members')
   .filter((m) => roomIds.map(Number).includes(Number(m.room_id)) && m.left_at == null && m.group_nickname)
   .map((m) => ({ room_id: m.room_id, user_id: m.user_id, group_nickname: m.group_nickname })));
 
-// services/chat/members.js markRead
 prisma.onSql('SET last_read_message_id = GREATEST', (sql, [messageId, roomId, userId]) => {
   const member = membershipRow(roomId, userId);
   if (!member) return 0;
@@ -482,13 +461,11 @@ prisma.onSql('SET last_read_message_id = GREATEST', (sql, [messageId, roomId, us
   return 1;
 });
 
-// services/chat/controls.js relation
 prisma.onSql('SELECT blocker_id FROM user_blocks', (sql, [myId, partnerId]) => prisma.rows('user_blocks')
   .filter((b) => (b.blocker_id === Number(myId) && b.blocked_id === Number(partnerId))
     || (b.blocker_id === Number(partnerId) && b.blocked_id === Number(myId)))
   .map((b) => ({ blocker_id: b.blocker_id })));
 
-// services/chat/controls.js listBlocks
 prisma.onSql('FROM user_blocks b JOIN users u', (sql, [myId]) => prisma.rows('user_blocks')
   .filter((b) => b.blocker_id === Number(myId))
   .sort((a, b) => compare(b.created_at, a.created_at))
@@ -499,7 +476,6 @@ prisma.onSql('FROM user_blocks b JOIN users u', (sql, [myId]) => prisma.rows('us
     };
   }));
 
-// services/chat/messages.js recentEdits
 prisma.onSql(/FROM chat_messages WHERE room_id = \? AND message_type = 'text' AND edited_at >=/, (sql, [roomId, since]) => prisma
   .rows('chat_messages')
   .filter((m) => m.room_id === Number(roomId) && m.message_type === 'text' && m.edited_at != null
@@ -512,7 +488,6 @@ prisma.onSql(/FROM chat_messages WHERE room_id = \? AND message_type = 'text' AN
     ...(sql.includes('mentions') ? { mentions: m.mentions ?? null } : {})
   })));
 
-// services/chat/transfer-records.js expireDue
 prisma.onSql("UPDATE chat_transfers SET status = 'expired'", (sql, [now]) => {
   let count = 0;
   for (const row of prisma.rows('chat_transfers')) {
@@ -524,7 +499,6 @@ prisma.onSql("UPDATE chat_transfers SET status = 'expired'", (sql, [now]) => {
   return count;
 });
 
-// services/push/dispatcher.js claimBatch
 prisma.onSql('FROM notifications n JOIN (SELECT MAX(created_at)', (sql, [minutes, now, limit]) => {
   const rows = prisma.rows('notifications');
   const latest = rows.reduce((max, n) => Math.max(max, new Date(n.created_at).getTime()), 0);
@@ -547,8 +521,6 @@ prisma.onSql('FROM notifications n JOIN (SELECT MAX(created_at)', (sql, [minutes
     }));
 });
 
-// ---------- 資料庫狀態 ----------
-
 const EMPTY_TABLES = [
   'users', 'chat_rooms', 'chat_messages', 'chat_room_members', 'chat_room_pins', 'chat_aliases',
   'chat_room_mutes', 'user_blocks', 'chat_transfers', 'chat_mentions', 'notifications', 'wallets',
@@ -562,8 +534,6 @@ const reset = ({ tables = {} } = {}) => {
 };
 
 server.setDefaultReset(() => reset());
-
-// ---------- 測試資料 ----------
 
 // 傳訊、群組與轉帳共用同一個以使用者編號計數的限流器，編號不重置才不會讓後面的測試被擋下。
 let userSeq = 1000;
@@ -603,7 +573,6 @@ const addUser = ({ nickname, isActive = true, isBlacklisted = false, balance = n
   return row;
 };
 
-// 轉帳與支付請款須附交易密碼驗證權杖；測試直接以 services/security 相同的內容簽一份。
 const paymentHeaders = (user) => ({
   'x-verify-token': authToken.sign(
     { typ: 'verify', uid: user.user_id, sid: null, scope: 'payment', method: 'pin', jti: crypto.randomBytes(12).toString('hex') },
@@ -663,14 +632,11 @@ const say = async (user, roomId, content, extra = {}) => {
   return body.data;
 };
 
-// 把訊息的建立時間往前調，用來測試編輯／收回的時間窗。
 const ageMessage = (messageId, ms) => {
   const row = prisma.rows('chat_messages').find((m) => m.message_id === messageId);
   row.created_at = new Date(new Date(row.created_at).getTime() - ms);
   return row;
 };
-
-// ---------- 推播 ----------
 
 const { privateKey } = crypto.generateKeyPairSync('rsa', {
   modulusLength: 2048,

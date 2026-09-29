@@ -109,6 +109,10 @@ class ReservationCardView extends StatelessWidget {
             const SizedBox(height: 8),
             AnimatedSwitcher(
               duration: Motion.base,
+              layoutBuilder: (current, previous) => Stack(
+                alignment: AlignmentDirectional.centerStart,
+                children: [...previous, ?current],
+              ),
               child: Container(
                 key: ValueKey(label),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -163,7 +167,7 @@ class ReservationCardView extends StatelessWidget {
                 ),
               ),
             ),
-            if (r.hours > 0) ...[
+            if (r.hours > 0 && r.isPending && !_pendingExpired) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -179,7 +183,7 @@ class ReservationCardView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top: 1),
+                    padding: const EdgeInsets.only(top: 3),
                     child: Icon(Icons.notes_rounded, size: 14, color: c.textHint),
                   ),
                   const SizedBox(width: 4),

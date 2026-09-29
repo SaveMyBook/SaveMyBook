@@ -1,4 +1,3 @@
-// 連結預覽測試：以假的 node:dns 與 node:http(s) 取代對外連線，記錄每一次解析與實際連線的位址。
 const dns = require('node:dns');
 const http = require('node:http');
 const https = require('node:https');

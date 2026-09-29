@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
@@ -21,22 +23,39 @@ class BookCard extends StatelessWidget {
 
   static const _titleStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.bold, height: 1.2);
 
+  static const double _priceFontSize = 20;
+
+  static const double _sellerFontSize = 12;
+
   static const double gridHeight = 296;
 
-  static const SliverGridDelegate gridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
+  static double gridHeightOf(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final grown = scaler.scale(_priceFontSize) + scaler.scale(_sellerFontSize) - _priceFontSize - _sellerFontSize;
+    return gridHeight + math.max(0.0, grown * 1.5);
+  }
+
+  static SliverGridDelegate gridDelegateOf(BuildContext context) => SliverGridDelegateWithMaxCrossAxisExtent(
     maxCrossAxisExtent: 240,
     crossAxisSpacing: 12,
     mainAxisSpacing: 12,
-    mainAxisExtent: gridHeight,
+    mainAxisExtent: gridHeightOf(context),
   );
 
   static const double listHeight = 140;
 
-  static const SliverGridDelegate listDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
+  static double listHeightOf(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final title = (scaler.scale(_titleStyle.fontSize!) - _titleStyle.fontSize!) * _titleStyle.height! * 2;
+    final price = (scaler.scale(_priceFontSize) - _priceFontSize) * 1.5;
+    return listHeight + math.max(0.0, title + price);
+  }
+
+  static SliverGridDelegate listDelegateOf(BuildContext context) => SliverGridDelegateWithMaxCrossAxisExtent(
     maxCrossAxisExtent: 560,
     crossAxisSpacing: 12,
     mainAxisSpacing: 12,
-    mainAxisExtent: listHeight,
+    mainAxisExtent: listHeightOf(context),
   );
 
   @override
@@ -68,27 +87,32 @@ class BookCard extends StatelessWidget {
             ),
             _statusOverlay(),
           ]),
-          Expanded(child: LayoutBuilder(builder: (context, constraints) {
-            final titleMaxWidth = constraints.maxWidth - 48.0;
-            final painter = TextPainter(
-              text: TextSpan(text: book.title, style: _titleStyle.copyWith(color: c.textPrimary)),
-              maxLines: 1, textDirection: TextDirection.ltr,
-            )..layout(maxWidth: titleMaxWidth.clamp(0.0, double.infinity));
-            final overflows = painter.didExceedMaxLines;
-            painter.dispose();
-
-            return Padding(
+          Expanded(child: Stack(fit: StackFit.expand, clipBehavior: Clip.none, children: [
+            Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                    Expanded(child: overflows
-                        ? SizedBox(height: 20, child: Marquee(text: book.title, style: _titleStyle.copyWith(color: c.textPrimary),
-                        blankSpace: 40.0, velocity: 50.0, pauseAfterRound: const Duration(seconds: 2),
-                        startAfter: const Duration(seconds: 1), fadingEdgeStartFraction: 0.0, fadingEdgeEndFraction: 0.15,
-                        accelerationDuration: Duration.zero, decelerationDuration: Duration.zero))
-                        : Text(book.title, style: _titleStyle.copyWith(color: c.textPrimary), maxLines: 1)),
-                    FavoriteButton(bookId: book.bookId, size: 20),
+                    Expanded(child: LayoutBuilder(builder: (context, constraints) {
+                      final titleStyle = _titleStyle.copyWith(color: c.textPrimary);
+                      final scaler = MediaQuery.textScalerOf(context);
+                      final painter = TextPainter(
+                        text: TextSpan(text: book.title, style: DefaultTextStyle.of(context).style.merge(titleStyle)),
+                        maxLines: 1,
+                        textDirection: Directionality.of(context),
+                        textScaler: scaler,
+                      )..layout(maxWidth: constraints.maxWidth);
+                      final overflows = painter.didExceedMaxLines;
+                      painter.dispose();
+
+                      return overflows
+                          ? SizedBox(height: math.max(20.0, scaler.scale(_titleStyle.fontSize!) * _titleStyle.height!), child: Marquee(text: book.title, style: titleStyle,
+                          blankSpace: 40.0, velocity: 50.0, pauseAfterRound: const Duration(seconds: 2),
+                          startAfter: const Duration(seconds: 1), fadingEdgeStartFraction: 0.0, fadingEdgeEndFraction: 0.15,
+                          accelerationDuration: Duration.zero, decelerationDuration: Duration.zero))
+                          : Text(book.title, style: titleStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
+                    })),
+                    const SizedBox(width: 33, height: 46),
                   ]),
                   const SizedBox(height: 6),
                   _buildTags(c),
@@ -96,7 +120,7 @@ class BookCard extends StatelessWidget {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerLeft,
-                    child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
+                    child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
                   ),
                 ]),
                 GestureDetector(
@@ -105,12 +129,17 @@ class BookCard extends StatelessWidget {
                   child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                     _sellerAvatar(c, 9),
                     const SizedBox(width: 6),
-                    Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: _sellerFontSize, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
                   ]),
                 ),
               ]),
-            );
-          })),
+            ),
+            PositionedDirectional(
+              top: 12,
+              end: -1,
+              child: FavoriteButton(bookId: book.bookId, size: 20),
+            ),
+          ])),
         ]),
       ),
     );
@@ -119,11 +148,12 @@ class BookCard extends StatelessWidget {
   Widget _buildListCard(BuildContext context) {
     final c = AppColors.of(context);
     final sellerName = _sellerName();
+    final height = listHeightOf(context);
 
     return GestureDetector(
       onTap: () => _navigateToDetail(context),
       child: Container(
-        height: 140,
+        height: height,
         decoration: _cardDecoration(c),
         child: Row(children: [
           Stack(children: [
@@ -134,7 +164,7 @@ class BookCard extends StatelessWidget {
                 child: AppNetworkImage(
                   url: book.hasImage ? book.imageUrl : null,
                   width: 110,
-                  height: 140,
+                  height: height,
                   fallbackIconSize: 32,
                 ),
               ),
@@ -144,7 +174,7 @@ class BookCard extends StatelessWidget {
 
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 1, 12),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Row(children: [
@@ -152,30 +182,36 @@ class BookCard extends StatelessWidget {
                     FavoriteButton(bookId: book.bookId, size: 20),
                   ]),
                   const SizedBox(height: 8),
-                  _buildTags(c),
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 13),
+                    child: _buildTags(c),
+                  ),
                 ]),
 
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
-                    ),
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _openSeller(context),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      _sellerAvatar(c, 9),
-                      const SizedBox(width: 5),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 80),
-                        child: Text(sellerName, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 13),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
                       ),
-                    ]),
-                  ),
-                ]),
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _openSeller(context),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        _sellerAvatar(c, 9),
+                        const SizedBox(width: 5),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 80),
+                          child: Text(sellerName, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                      ]),
+                    ),
+                  ]),
+                ),
               ]),
             ),
           ),

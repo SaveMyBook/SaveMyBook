@@ -4,6 +4,7 @@ const { userBrief, userName, coverImage } = require('../lib/selects');
 const { REPORT_STATUS_LABELS } = require('../constants/domain');
 const { notify } = require('./notify');
 const audit = require('./audit');
+const deposits = require('./book-deposits');
 const publicId = require('../lib/public-id');
 
 const RESULTS = ['reviewing', 'resolved', 'dismissed'];
@@ -56,7 +57,7 @@ const create = async (userId, { targetType, targetId, reason, evidenceUrls }) =>
     },
     select: { report_id: true }
   });
-  if (duplicate) throw conflict('您已檢舉過此項目，我們正在處理中');
+  if (duplicate) throw conflict('此項目已檢舉，目前處理中');
 
   return prisma.$transaction(async (tx) => {
     const created = await tx.reports.create({
@@ -73,7 +74,9 @@ const create = async (userId, { targetType, targetId, reason, evidenceUrls }) =>
       await notify(tx, {
         userId: ownerId,
         title: targetType === 'book' ? '您的商品遭到檢舉' : '您的帳號遭到檢舉',
-        content: '我們已收到一則檢舉並開始審核，審核期間商品仍可正常販售。若違規成立將另行通知您。',
+        content: targetType === 'book'
+          ? '此商品已被檢舉，審核期間仍可正常販售；如違規成立將另行通知。'
+          : '此帳號已被檢舉，目前審核中；如違規成立將另行通知。',
         relatedId: targetId,
         relatedType: targetType
       });
@@ -169,6 +172,7 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
           where: { book_id: report.target_id },
           data: { status: 'removed', is_approved: false, updated_at: new Date() }
         });
+        await deposits.releaseAutoPause(tx, report.target_id);
       }
     } else if (report.target_type === 'user') {
       ownerId = report.target_id;
@@ -177,7 +181,7 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
     await notify(tx, {
       userId: report.reporter_id,
       title: '您的檢舉已處理',
-      content: status === 'dismissed' ? '經審核未違反社群規範，感謝您的回報。' : '感謝您的回報，我們已完成處理。',
+      content: status === 'dismissed' ? '經審核未違反社群規範。' : '檢舉已處理完成。',
       relatedId: reportId,
       relatedType: 'report'
     });
@@ -191,7 +195,7 @@ const review = async (reportId, { status, adminNote, removeTarget }, { adminId, 
           ? (removeTarget && report.target_type === 'book'
               ? '經審核違規成立，該商品已下架。如有疑問請聯絡客服。'
               : '經審核違規成立，請留意社群規範，重複違規將影響帳號權益。')
-          : '經審核未違反社群規範，您的商品／帳號不受影響。',
+          : `經審核未違反社群規範，此${report.target_type === 'book' ? '商品' : '帳號'}不受影響。`,
         relatedId: report.target_id,
         relatedType: report.target_type
       });

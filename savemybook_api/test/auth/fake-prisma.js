@@ -1,4 +1,3 @@
-// 以記憶體資料表模擬 Prisma Client：支援本專案實際用到的 model API 與原生 SQL 子集。
 const AUTO_KEYS = {
   users: 'user_id',
   login_logs: 'log_id',
@@ -16,7 +15,6 @@ const UNIQUE_KEYS = {
   admin_permissions: [['user_id']]
 };
 
-// 資料表層級的預設值，Prisma 的 @default 在此自行補上。
 const MODEL_DEFAULTS = {
   users: {
     avatar_url: null, bio: null, phone: null, birthday: null, gender: 'undisclosed',
@@ -64,8 +62,6 @@ const project = (row, { select, omit } = {}) => {
   }
   return { ...row };
 };
-
-// ---------- 原生 SQL 迷你直譯器 ----------
 
 const splitTop = (text, separator) => {
   const parts = [];

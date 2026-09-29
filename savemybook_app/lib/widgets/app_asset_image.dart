@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../utils/app_colors.dart';
 
-/// 圖片載入失敗時，判斷是否為重試也不會成功的永久性錯誤。
-///
-/// 只有 [NetworkImageLoadException] 帶得到 HTTP 狀態碼；4xx（含 404）代表檔案
-/// 在伺服器上已不存在，必須停止自動重試，否則每張失敗的圖都會固定打好幾次後端。
+/// 只有 [NetworkImageLoadException] 帶得到 HTTP 狀態碼；4xx 代表檔案已不存在，必須停止自動重試，否則每張失敗的圖都會反覆打後端。
 bool isPermanentImageError(Object error) {
   if (error is NetworkImageLoadException) return error.statusCode >= 400 && error.statusCode < 500;
   if (error is SocketException || error is HttpException) return false;
@@ -15,10 +12,7 @@ bool isPermanentImageError(Object error) {
   return false;
 }
 
-/// 本地資產圖片的統一入口：檔案不存在時顯示同尺寸的品牌色替代圖。
-///
-/// `Image.asset` 找不到資產時只會經由 errorBuilder 回報，沒有 errorBuilder 就會
-/// 把例外丟到畫面上，因此所有資產圖一律走這個元件。
+/// `Image.asset` 沒有 errorBuilder 時，找不到資產會把例外丟到畫面上，因此資產圖一律走這個元件。
 class AppAssetImage extends StatelessWidget {
   final String asset;
   final double? width;

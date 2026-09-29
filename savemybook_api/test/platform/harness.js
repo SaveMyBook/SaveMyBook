@@ -1,5 +1,3 @@
-// 平台共用功能（帳號安全、隱私、通知推播、後台）的測試設定：
-// 沿用 test/lib 的假 Prisma、假 fetch 與 Express 應用，另外補上迷你 SQL 直譯器不支援的查詢。
 const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
@@ -38,9 +36,6 @@ const maintenance = api('lib/maintenance');
 const sessions = api('services/sessions');
 const push = api('services/push');
 
-// ---------- FCM ----------
-
-// 推播派送需要一個可用的服務帳戶金鑰；改用臨時金鑰與攔截的 fetch，完全不連外。
 const { privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
 const serviceAccountFile = path.join(tempDir, 'fcm.json');
 fs.writeFileSync(serviceAccountFile, JSON.stringify({
@@ -69,13 +64,10 @@ onFetch('https://fcm.googleapis.com/', (url, init) => {
   return jsonResponse(next.body ?? {}, { status: next.status ?? 200 });
 });
 
-// ---------- 迷你 SQL 直譯器不支援的查詢 ----------
-
 const num = (value) => Number(value ?? 0) || 0;
 const rowsOf = (table) => prisma.rows(table);
 const time = (value) => new Date(value).getTime();
 
-// 以 LEFT JOIN 一次取回工作階段與帳號安全設定。
 prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
   const session = rowsOf('user_sessions').find((s) => s.sid === sid) ?? null;
   const security = rowsOf('user_security').find((s) => Number(s.user_id) === Number(userId)) ?? null;
@@ -119,7 +111,6 @@ prisma.onSql(/^INSERT INTO push_devices \(/, (sql, values) => {
   return 1;
 });
 
-// 只保留每位使用者最近使用的 N 台裝置。
 prisma.onSql(/DELETE FROM push_devices WHERE user_id = \? AND device_id NOT IN/, (sql, [userId, , limit]) => {
   const mine = rowsOf('push_devices')
     .filter((d) => Number(d.user_id) === Number(userId))
@@ -152,7 +143,6 @@ prisma.onSql(/AS category, COUNT\(\*\) AS n\s+FROM notifications WHERE user_id =
   return [...counts].map(([category, n]) => ({ category, n: BigInt(n) }));
 });
 
-// 推播派送批次：取回視窗內尚未推播的通知。
 prisma.onSql(/FROM notifications n JOIN \(SELECT MAX\(created_at\) AS latest FROM notifications\) m/, (sql, [minutes, now]) => {
   const all = rowsOf('notifications');
   if (all.length === 0) return [];
@@ -174,8 +164,6 @@ prisma.onSql(/FROM notifications n JOIN \(SELECT MAX\(created_at\) AS latest FRO
     }));
 });
 
-// ---------- 資料庫狀態 ----------
-
 const EMPTY_TABLES = [
   'users', 'login_logs', 'admin_permissions', 'admin_operation_logs', 'notifications', 'user_settings',
   'user_sessions', 'user_security', 'push_devices', 'user_qr_codes', 'db_backups', 'favorites',
@@ -195,8 +183,6 @@ const reset = ({ tables = {} } = {}) => {
 };
 
 server.setDefaultReset(() => reset());
-
-// ---------- 使用者與工作階段 ----------
 
 let userSeq = 0;
 
@@ -274,7 +260,6 @@ const setPin = (user, pin = '135790') => {
 
 const tokenFor = (user, sid) => authToken.signToken(user, sid);
 
-// 驗證權杖由 services/security 簽發，測試需要時直接以同樣的內容簽一份。
 const verifyTokenFor = ({ user, sid = null, scope = 'sensitive', method = 'password' }) =>
   authToken.sign(
     { typ: 'verify', uid: user.user_id, sid, scope, method, jti: crypto.randomBytes(12).toString('hex') },
@@ -285,8 +270,6 @@ const verified = (user, sid, extra = {}) => ({
   ...extra,
   headers: { 'x-verify-token': verifyTokenFor({ user, sid }), ...(extra.headers ?? {}) }
 });
-
-// ---------- 推播 ----------
 
 const addDevice = (user, { token, platform = 'ios', appVersion = '1.0.0', sessionSid = null, lastSeenAt = new Date() } = {}) => {
   const row = {

@@ -12,7 +12,6 @@ module.exports = {
   name: '平台：加密編號',
   tests: [
     ['前綴含 O／I／L 的類型也能解碼（含小寫與易混淆字元）', () => {
-      // LG、OD、LD、LV、SL 的前綴本身就有 O／I／L，若把正規化套用到整串會讓前綴永遠比對不到。
       for (const type of ['log', 'order', 'legal', 'level', 'cabinet_slot']) {
         const code = publicId.encode(type, 1234);
         assert.strictEqual(publicId.decode(type, code), 1234, `${type} 原樣解碼`);
@@ -56,7 +55,6 @@ module.exports = {
       const codes = [1, 2, 3, 4, 5].map((id) => publicId.encode('log', id));
       assert.strictEqual(new Set(codes).size, 5);
       for (let i = 1; i < codes.length; i += 1) {
-        // 相鄰編號的代碼不得只差一個字元，否則等同暴露流水號。
         const differing = [...codes[i]].filter((ch, index) => ch !== codes[i - 1][index]).length;
         assert.ok(differing > 1, `${codes[i - 1]} 與 ${codes[i]} 太相近`);
       }
@@ -74,7 +72,6 @@ module.exports = {
       assert.strictEqual(publicId.decode('book', code.toLowerCase()), 8888);
       assert.strictEqual(publicId.decode('book', ` ${code.slice(0, 4)}-${code.slice(4)} `), 8888);
 
-      // 字母表不含 I、L、O、U，輸入時一律視為 1 與 0。
       const confusing = publicId.encode('book', 8888).replace(/0/g, 'O').replace(/1/g, 'L');
       assert.strictEqual(publicId.decode('book', confusing), 8888);
     }],

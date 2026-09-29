@@ -174,7 +174,6 @@ void main() {
       expect(find.byIcon(Icons.menu_book_rounded), findsOneWidget);
       expect(find.byIcon(Icons.refresh_rounded), findsNothing);
 
-      // 自動重試視窗（3 秒 + 10 秒）全部走完仍不得再打伺服器。
       await tester.pump(const Duration(seconds: 20));
       expect(client.requests, 1);
     });
@@ -202,7 +201,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(client.requests, 3);
 
-      // 第三次之後必須停手，不能無限重試。
       await tester.pump(const Duration(seconds: 60));
       await tester.pumpAndSettle();
       expect(client.requests, 3);

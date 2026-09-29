@@ -25,7 +25,6 @@ const tests = [
     const detail = ok(await request('GET', `/api/chat/rooms/${roomId}`, { token: me.token }));
     assert.strictEqual(detail.data.muted, true);
 
-    // 重複靜音不會產生第二筆紀錄。
     ok(await request('PUT', `/api/chat/rooms/${roomId}/mute`, { token: me.token, body: { muted: true } }));
     assert.strictEqual(prisma.rows('chat_room_mutes').length, 1);
 
@@ -40,11 +39,11 @@ const tests = [
 
     const bad = await request('PUT', `/api/chat/rooms/${roomId}/mute`, { token: me.token, body: { muted: 'yes' } });
     assert.strictEqual(bad.status, 400);
-    assert.strictEqual(bad.body.message, 'muted 必須為布林值');
+    assert.strictEqual(bad.body.message, '設定值不正確');
 
     const denied = await request('PUT', `/api/chat/rooms/${roomId}/mute`, { token: outsider.token, body: { muted: true } });
     assert.strictEqual(denied.status, 403);
-    assert.strictEqual(denied.body.message, '存取被拒');
+    assert.strictEqual(denied.body.message, '無權限執行此操作');
   }],
 
   ['封鎖後自己無法傳訊息，對方則收到帳號無法接收的訊息', async () => {
@@ -165,7 +164,6 @@ const tests = [
     assert.strictEqual(messages.meta.room.title, '書店老闆');
     assert.deepStrictEqual(messages.meta.aliases, { [String(partner.user_id)]: '書店老闆' });
 
-    // 暱稱只對設定者生效。
     const hers = ok(await request('GET', '/api/chat/rooms', { token: partner.token }));
     assert.strictEqual(hers.data[0].title, '我');
 
@@ -191,11 +189,11 @@ const tests = [
 
     const missing = await request('PUT', `/api/chat/aliases/${partner.user_id}`, { token: me.token, body: {} });
     assert.strictEqual(missing.status, 400);
-    assert.strictEqual(missing.body.message, '請提供 alias');
+    assert.strictEqual(missing.body.message, '請輸入暱稱');
 
     const wrongType = await request('PUT', `/api/chat/aliases/${partner.user_id}`, { token: me.token, body: { alias: 12 } });
     assert.strictEqual(wrongType.status, 400);
-    assert.strictEqual(wrongType.body.message, 'alias 必須為字串');
+    assert.strictEqual(wrongType.body.message, '暱稱格式不正確');
 
     const tooLong = await request('PUT', `/api/chat/aliases/${partner.user_id}`, {
       token: me.token, body: { alias: 'a'.repeat(31) }

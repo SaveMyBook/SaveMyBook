@@ -13,8 +13,6 @@ import 'social_account_choice.dart';
 import 'social_profile_screen.dart';
 import '../../i18n/strings.dart';
 
-/// 各渠道的標誌：品牌用 Font Awesome Free 的 brands 字型，簡訊沿用 Material 圖示。
-/// 認不得的渠道退回品牌色字首，任何情況都不會留白或丟出例外。
 class ProviderGlyph extends StatelessWidget {
   final String provider;
   final double size;
@@ -53,7 +51,6 @@ class ProviderGlyph extends StatelessWidget {
       height: side,
       child: Center(
         child: switch ((brand, icon)) {
-          // FaIcon 不會把圖示塞進正方形，寬扁的品牌標誌才不會被裁掉。
           (final FaIconData brand, _) => FaIcon(brand, size: size, color: tint),
           (_, final IconData icon) => Icon(icon, size: side, color: tint),
           _ => Text(
@@ -101,6 +98,7 @@ class SocialSignInButton extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
               width: 24,
@@ -111,7 +109,7 @@ class SocialSignInButton extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Expanded(
+            Flexible(
               child: Text(
                 label,
                 maxLines: 1,
@@ -126,7 +124,6 @@ class SocialSignInButton extends StatelessWidget {
   }
 }
 
-/// 三個以上渠道時改用的方形圖示按鈕，避免登入頁被一整排長條按鈕塞滿。
 class SocialSignInTile extends StatelessWidget {
   final String provider;
   final String label;
@@ -186,7 +183,6 @@ class SocialSignInTile extends StatelessWidget {
   }
 }
 
-/// 登入頁的社群登入區塊；只顯示伺服器允許且本平台支援的渠道。
 class SocialSignInSection extends StatelessWidget {
   final AuthProvidersInfo providers;
   final String? busyProvider;
@@ -238,7 +234,6 @@ class SocialSignInSection extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         if (ids.length > 2)
-          // 一列平均分配，五個渠道在手機寬度下仍排得下，不會落單成第二列。
           Row(
             children: [
               for (final id in ids) ...[
@@ -283,7 +278,6 @@ class SocialSignInSection extends StatelessWidget {
   }
 }
 
-/// 登入與綁定共用的流程；回傳 true 代表已完成。
 class SocialSignInFlow {
   const SocialSignInFlow._();
 
@@ -395,8 +389,6 @@ class SocialSignInFlow {
     return false;
   }
 
-  /// LINE／Discord：一次性碼在「尚未綁定」與「需補電子郵件」後仍然有效，
-  /// 使用者做完選擇可以直接重送，不必再開一次授權頁。
   static Future<bool> _exchange(
     BuildContext context,
     String provider,

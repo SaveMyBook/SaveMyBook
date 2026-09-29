@@ -9,7 +9,7 @@ class HttpError extends Error {
 
 const badRequest = (message, code, extra) => new HttpError(400, message, code, extra);
 const unauthorized = (message, code) => new HttpError(401, message, code);
-const forbidden = (message = '存取被拒', code) => new HttpError(403, message, code);
+const forbidden = (message = '無權限執行此操作', code) => new HttpError(403, message, code);
 const notFound = (message = '找不到資料', code) => new HttpError(404, message, code);
 const conflict = (message, code) => new HttpError(409, message, code);
 

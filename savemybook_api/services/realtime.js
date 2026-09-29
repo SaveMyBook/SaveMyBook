@@ -69,6 +69,12 @@ const typingVisible = async (roomId, userId) => {
   return !relation.blocked && !relation.blockedBy;
 };
 
+// 呼叫端須在交易提交之後才呼叫，App 收到推播時才讀得到新資料。
+const emitToUser = (userId, event, payload) => {
+  if (!io || !userId) return;
+  io.to(userRoom(userId)).emit(event, payload);
+};
+
 const emitTyping = async (roomId, userId, typing) => {
   if (!io) return;
   if ((await typingVisible(roomId, userId)) === false) return;
@@ -147,4 +153,4 @@ const attach = (httpServer) => {
   };
 };
 
-module.exports = { attach, collect, touchRoom, emitTyping };
+module.exports = { attach, collect, touchRoom, emitTyping, emitToUser };

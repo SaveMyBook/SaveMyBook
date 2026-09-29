@@ -5,6 +5,10 @@ tags:
       智慧書櫃與櫃位的維運。本組端點均需 `can_manage_cabinets` 權限。
       所有異動皆寫入稽核紀錄，可由 `GET /api/admin/maintenance-logs` 查詢。
 
+      賣家可在訂單成立前將書存入書櫃（見「書籍」的 Pre-order Deposit）。存書滿 14 天仍未取回（書櫃維修中暫不通知，
+      維修結束後仍逾期者於下次排程通知），或賣家帳號刪除時書仍在櫃中，系統通知具本權限的管理員（`related_type` 為 `cabinet_deposit`）；
+      人員取出書籍後以 `POST /api/admin/cabinets/deposits/{bookId}/clear` 登記。
+
 paths:
   /api/admin/cabinets:
     get:
@@ -12,8 +16,9 @@ paths:
       operationId: adminListCabinets
       tags: [admin-cabinets]
       description: |
-        回傳全部書櫃，含已停用者。各筆包含櫃位清單、累計訂單數，
-        以及各狀態櫃位的數量統計 `slot_summary`。
+        回傳全部書櫃，含已停用者。各筆包含櫃位清單、累計訂單數、書櫃裝置摘要 `device`，
+        以及各狀態櫃位的數量統計 `slot_summary`。書櫃有可用裝置時，`slot_summary` 只統計有電磁鎖通道（`lock_channel`）的櫃門；
+        沒有可用裝置時統計全部櫃位。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -40,10 +45,23 @@ paths:
                                   slot_number: { type: string }
                                   status: { type: string, enum: [empty, occupied, reserved, maintenance] }
                                   updated_at: { type: string, format: date-time }
+                                  lock_channel: { type: integer, nullable: true, description: 電磁鎖通道；未對應裝置櫃門時為 null, example: 1 }
+                                  fault_code: { type: string, nullable: true, description: 櫃門故障代碼, example: null }
+                                  check_required_at: { type: string, format: date-time, nullable: true, description: 櫃門設為待確認的時間 }
                             is_maintenance: { type: boolean, description: 整台書櫃維修中, example: false }
+                            device:
+                              type: object
+                              nullable: true
+                              description: 書櫃目前的裝置：優先為可用的有效裝置，其次為待配對裝置；都沒有時為 null。
+                              properties:
+                                device_no: { type: string, example: DV3K9QX2M }
+                                kind: { type: string, enum: [simulator, esp32], example: esp32 }
+                                status: { type: string, enum: [active, pending], example: active }
+                                online: { type: boolean, description: 有效裝置最近 15 秒內有連線, example: true }
+                                last_seen_at: { type: string, format: date-time, nullable: true }
                             slot_summary:
                               type: object
-                              description: 各狀態的櫃位數量統計。
+                              description: 各狀態的櫃位數量統計；書櫃有可用裝置時只統計有 `lock_channel` 的櫃門。
                               properties:
                                 empty: { type: integer, example: 17 }
                                 occupied: { type: integer, example: 2 }
@@ -111,6 +129,88 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/cabinets/deposits:
+    get:
+      summary: 訂單成立前的存書列表
+      operationId: adminListCabinetDeposits
+      tags: [admin-cabinets]
+      description: |
+        列出目前存放於書櫃、尚未成立訂單的書籍，依存書時間由舊到新排序。
+        書籍售出後存書紀錄即移除，改由訂單追蹤，不會出現在本列表；訂單在買家取書前取消或退款時，
+        下單前已存書的書重新列入（存書時間自取消時起算）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: overdue
+          schema: { type: boolean, default: false }
+          description: 帶入 true 時只列出存放滿 14 天，或已通知管理員（例如賣家帳號刪除時書仍在櫃中）的書籍。
+        - in: query
+          name: cabinet_id
+          schema: { type: integer }
+          description: 限定書櫃。
+          example: 2
+      responses:
+        '200':
+          description: 成功。`pagination` 位於回應最外層。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCabinetDeposit' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/deposits/{bookId}/clear:
+    post:
+      summary: 登記人員已取出存書
+      operationId: adminClearCabinetDeposit
+      tags: [admin-cabinets]
+      description: |
+        人員自書櫃取出賣家未取回的書後呼叫，移除存書紀錄。書籍若仍為 `on_sale` 則改為 `removed`，已下架者維持下架，
+        不會自動恢復上架。通知賣家（帳號已刪除者除外）並寫入稽核紀錄。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: bookId
+          required: true
+          schema: { type: integer }
+          description: 書籍編號。
+          example: 101
+      responses:
+        '200':
+          description: 已登記取出。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已登記書籍取出 }
+                  data:
+                    type: object
+                    properties:
+                      book_id: { type: integer, example: 101 }
+                      book_status: { type: string, enum: [on_sale, reserved, sold, removed], example: removed }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404':
+          description: 此書籍沒有存書紀錄。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到此書籍的存書紀錄 }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/cabinets/{id}:
     put:
       summary: 編輯書櫃
@@ -120,7 +220,8 @@ paths:
         部分更新：僅異動請求中帶入的欄位。
 
         `is_active` 設為 false 後，該書櫃不再出現於 `GET /api/cabinets`，
-        賣家上架時亦無法選取，但既有訂單不受影響。
+        賣家上架時亦無法選取，但既有訂單不受影響。書櫃仍有訂單成立前存放的書籍時無法停用，
+        回傳 409 `CABINET_HAS_DEPOSITS`，請先於存書列表登記取出。
 
         `total_slots` 於建立時即固定，不得透過本端點異動。
       security: [{ bearerAuth: [] }]
@@ -158,6 +259,12 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 書櫃仍有訂單成立前存放的書籍，無法停用。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: CABINET_HAS_DEPOSITS, message: 此書櫃仍有 2 本訂單成立前存放的書籍，請先於存書列表登記取出後再停用 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/cabinets/{id}/maintenance:
@@ -260,8 +367,37 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 'status 僅接受：empty, occupied, reserved, maintenance' }
+              example: { success: false, message: '櫃位狀態不正確' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+  schemas:
+    AdminCabinetDeposit:
+      type: object
+      properties:
+        book_id: { type: integer, example: 101 }
+        book_no: { type: string, description: 書籍加密編號, example: BK3KER74B }
+        title: { type: string, example: 挪威的森林 }
+        book_status: { type: string, enum: [on_sale, reserved, sold, removed], example: removed }
+        image_url: { type: string, nullable: true, example: /uploads/books/1736512345678-987654321.jpg }
+        seller:
+          type: object
+          nullable: true
+          properties:
+            user_id: { type: integer, example: 12 }
+            user_no: { type: string, description: 會員加密編號, example: MB7Q2XK9D }
+            nickname: { type: string, example: 小明 }
+            avatar_url: { type: string, nullable: true }
+            deleted: { type: boolean, description: 賣家帳號已刪除（匿名化）, example: false }
+        cabinet: { $ref: '#/components/schemas/CabinetBrief' }
+        deposited_at: { type: string, format: date-time, description: 存書登記生效的時間 }
+        days_stored: { type: integer, description: 已存放的完整天數, example: 15 }
+        paused: { type: boolean, description: 已滿 7 天並通知賣家取回, example: true }
+        paused_at: { type: string, format: date-time, nullable: true }
+        reminded_at: { type: string, format: date-time, nullable: true, description: 最近一次提醒賣家取回的時間 }
+        escalated: { type: boolean, description: 已通知管理員, example: true }
+        escalated_at: { type: string, format: date-time, nullable: true }
+        overdue: { type: boolean, description: 已存放滿 14 天，或已通知管理員安排取出, example: true }

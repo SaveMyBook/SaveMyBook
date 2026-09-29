@@ -1,4 +1,3 @@
-// 登入相關測試的共用設定：沿用 test/lib 的假 Prisma 與假 fetch，另外提供 Firebase 權杖與帳號資料的產生器。
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
@@ -14,6 +13,7 @@ process.env.OAUTH_REDIRECT_BASE = 'https://api.example.test';
 
 const server = require('../lib/server');
 const { registerModels } = require('../lib/fake-prisma');
+const { gate, concurrently } = require('../lib/gate');
 
 const { prisma, api, onFetch, jsonResponse, fetchLog, request, listen, close, runSuite, onReset } = server;
 
@@ -28,8 +28,6 @@ registerModels({
   },
   defaults: { users: { password_set: 1 } }
 });
-
-// ---------- 測試用 RSA 金鑰與 x509 憑證 ----------
 
 const certDir = fs.mkdtempSync(path.join(os.tmpdir(), 'smb-cert-'));
 const keyFile = path.join(certDir, 'key.pem');
@@ -93,8 +91,6 @@ const firebaseToken = ({
   return jwt.sign(payload, key, { algorithm: 'RS256', expiresIn, keyid: kid });
 };
 
-// ---------- 迷你 SQL 直譯器不支援的查詢 ----------
-
 const time = (value) => new Date(value).getTime();
 
 prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
@@ -110,7 +106,29 @@ prisma.onSql(/LEFT JOIN user_sessions s ON s\.sid/, (sql, [sid, userId]) => {
 prisma.onSql(/SELECT session_id, user_id, sid, pay_key_hash, last_seen_at FROM user_sessions/, (sql, [sid, cutoff]) =>
   prisma.rows('user_sessions').filter((s) => s.sid === sid && s.revoked_at == null && time(s.last_seen_at) >= time(cutoff)));
 
-// ---------- 資料庫狀態 ----------
+let oauthReadGate = null;
+
+prisma.onSql(/^SELECT .+ FROM oauth_(states|results) WHERE (state|code) = \?$/, (sql, values) =>
+  (oauthReadGate ? oauthReadGate.wait(prisma.runSelect(sql, values)) : undefined));
+
+const holdOAuthReads = (n) => {
+  oauthReadGate = gate(n);
+  return () => {
+    oauthReadGate.open();
+    oauthReadGate = null;
+  };
+};
+
+// 呼叫 mod[name] 前把一次性碼改成已逾期，等同請求通過 readResult 後、寫入副作用前跨過到期時間。
+const expireOAuthResultsDuring = (mod, name) => {
+  const original = mod[name];
+  mod[name] = async (...args) => {
+    const expiredAt = new Date(Date.now() - api('services/oauth-providers').RESULT_TTL_MS - 1000);
+    prisma.rows('oauth_results').forEach((row) => { row.created_at = expiredAt; });
+    return original(...args);
+  };
+  return () => { mod[name] = original; };
+};
 
 const authSettings = api('services/auth-settings');
 const firebase = api('lib/firebase-token');
@@ -189,7 +207,6 @@ const setAuthSettings = (config) => {
 
 const tokenFor = (user) => authToken.signToken(user, undefined);
 
-// 驗證權杖由 services/security 簽發，測試需要時直接以同樣的內容簽一份。
 const verifyHeaders = (user, scope = 'sensitive') => ({
   'x-verify-token': authToken.sign(
     { typ: 'verify', uid: user.user_id, sid: null, scope, method: 'password', jti: crypto.randomBytes(12).toString('hex') },
@@ -202,5 +219,5 @@ module.exports = {
   prisma, api, reset, addUser, addIdentity, setAuthSettings, tokenFor, verifyHeaders, request, listen, close,
   firebaseToken, signingKey, signingCert, wrongKey, CERT_KID, CERT_URL, PROJECT_ID,
   onFetch, jsonResponse, fetchLog, certRequests: () => certRequests,
-  authSettings, jwt, bcrypt
+  authSettings, jwt, bcrypt, holdOAuthReads, expireOAuthResultsDuring, concurrently
 };

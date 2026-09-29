@@ -438,7 +438,6 @@ class _ZoomableImageState extends State<_ZoomableImage> with SingleTickerProvide
           ],
         );
       },
-      // 404 代表原圖已不存在，重試不會有結果，只說明狀況。
       errorBuilder: (_, error, _) {
         final permanent = isPermanentImageError(error);
         return Center(

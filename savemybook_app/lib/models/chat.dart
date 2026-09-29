@@ -485,12 +485,11 @@ class ChatReply {
       );
 }
 
+/// 宣告順序即危險程度（由高到低）；ChatRisk.categories 依此排序，第一個即為提醒文字採用的類別。
 enum ChatRiskCategory { credential, scam, link, payment, offsite, contact }
 
 class ChatRisk {
   final bool high;
-
-  /// 依危險程度排序，第一個即為提醒文字採用的類別。
   final List<ChatRiskCategory> categories;
 
   const ChatRisk({required this.high, required this.categories});

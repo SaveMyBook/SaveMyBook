@@ -19,7 +19,9 @@ class VerifyOutcome {
 extension SecurityApi on ApiService {
   Future<SecurityStatus> fetchSecurityStatus() async {
     final res = await _send('GET', '/security');
-    if (res == null || res['success'] != true || res['data'] is! Map) return SecurityStatus.unknown;
+    if (res == null) return SecurityStatus.unknown;
+    if (res['success'] != true) return SecurityStatus.failed(res['message'] is String ? res['message'] as String : null);
+    if (res['data'] is! Map) return SecurityStatus.unknown;
     return SecurityStatus.fromJson(Map<String, dynamic>.from(res['data']));
   }
 

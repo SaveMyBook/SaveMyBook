@@ -1,0 +1,497 @@
+paths:
+  /api/admin/cabinets/{id}/device:
+    get:
+      summary: 書櫃裝置摘要
+      operationId: adminGetCabinetDevice
+      tags: [admin-cabinets]
+      description: |
+        書櫃的裝置、待完成的配對、存取模式與各櫃門的存放內容。
+
+        - `device`：有效裝置；沒有時為 null（模擬器關閉時，模擬書櫃不算有效裝置）。
+        - `pairing`：管理員已輸入配對碼、裝置尚未領取憑證且仍在效期內的配對；沒有時為 null。回應不含配對碼。
+        - `kiosk_url`：模擬書櫃網頁的網址，`simulator_enabled` 為 false 時為 null。
+        - `doors[].check`：待確認櫃門（門內實際內容可能與紀錄不符）。`candidates` 為造成待確認的作業中指派到此門、
+          目前沒有櫃門紀錄的書，可直接以「登記存放內容」補登。
+        - `doors[].items[].kind`：`order` 屬於進行中訂單；`deposit` 有存書登記；`other` 兩者皆非，例如訂單取消後或存書登記失敗後尚未取回的書。
+        - `unplaced`：這台書櫃有存書登記、或訂單為已存書，卻查不到櫃門紀錄的書（例如配對裝置前以手動回報存入的書）。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminCabinetDevice' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+    delete:
+      summary: 撤銷書櫃裝置
+      operationId: adminRevokeCabinetDevice
+      tags: [admin-cabinets]
+      description: |
+        撤銷有效裝置（`revoke_reason` 為 `admin`）並作廢裝置尚未領取憑證的配對，裝置須重新配對才能使用。
+        撤銷後書櫃立即回到手動回報模式。書櫃裝置故障而需緊急改為手動處理時，也以此撤銷。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 255, example: 更換主機板 }
+      responses:
+        '200':
+          description: 已撤銷。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 書櫃裝置已撤銷 }
+                  data:
+                    type: object
+                    properties:
+                      cabinet_id: { type: integer, example: 3 }
+                      revoked: { type: array, items: { type: string }, description: 已撤銷的裝置編號。, example: [DV3K9QX2M] }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 此書櫃沒有有效裝置，也沒有尚未完成的配對。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: DEVICE_NOT_PAIRED, message: 此書櫃尚未配對裝置 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/device/pair:
+    post:
+      summary: 以配對碼綁定書櫃裝置
+      operationId: adminPairCabinetDevice
+      tags: [admin-cabinets]
+      description: |
+        需 `admin` 範圍的身分驗證。輸入書櫃裝置螢幕顯示的 8 位數配對碼（可含連字號或空白），將該裝置綁定到此書櫃；
+        管理員不需在書櫃上操作。裝置種類、櫃門數、門磁與韌體版本由裝置申請配對碼時回報，回應中列出供管理員核對。
+
+        綁定後建立待配對的裝置紀錄，裝置下次輪詢 `POST /api/device/v1/pair/poll`（約 3 秒內）即取得裝置憑證並完成配對；
+        此時才撤銷同一台書櫃原有的有效裝置、將 A01 起的櫃門對應電磁鎖通道，並記錄 `paired` 事件、通知管理員。
+        配對碼剩餘效期不足 30 秒時延長為 30 秒，供裝置領取憑證。
+
+        配對碼格式不符、查無、已逾時或已綁定時一律回 400 `PAIRING_CODE_INVALID`，不區分原因。每位管理員每 10 分鐘最多 10 次。
+        操作紀錄只記錄裝置種類、櫃門數與韌體版本，不記錄配對碼。模擬器關閉時無法綁定模擬書櫃。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string, description: 書櫃螢幕顯示的 8 位數配對碼，可含連字號或空白。, example: 1234-5678 }
+      responses:
+        '201':
+          description: 已綁定，等待裝置領取憑證。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已送出配對，裝置連線後即完成 }
+                  data:
+                    type: object
+                    properties:
+                      kind: { type: string, enum: [simulator, esp32], example: esp32 }
+                      door_count: { type: integer, example: 4 }
+                      has_door_sensor: { type: boolean, example: false }
+                      firmware: { type: string, example: esp-1.0.0 }
+                      summary:
+                        $ref: '#/components/schemas/AdminCabinetDevice'
+        '400':
+          description: 配對碼無效、已逾時或已綁定，或書櫃編號格式錯誤。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: PAIRING_CODE_INVALID, message: 配對碼無效或已逾時 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: |
+            請求者非管理員、缺少書櫃管理權限、尚未完成 `admin` 範圍的身分驗證（`VERIFICATION_REQUIRED`），
+            或模擬器未開啟時要求綁定模擬書櫃（`DEVICE_DISABLED`）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                需要驗證:
+                  value:
+                    success: false
+                    code: VERIFICATION_REQUIRED
+                    message: 請以登入密碼或通行密鑰驗證身分以執行此後台操作
+                    verification: { scope: admin, methods: [password, passkey] }
+                模擬器未開啟:
+                  value: { success: false, code: DEVICE_DISABLED, message: 模擬書櫃目前未開放 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/device/fault-clear:
+    post:
+      summary: 清除裝置故障
+      operationId: adminClearCabinetDeviceFault
+      tags: [admin-cabinets]
+      description: 清除有效裝置回報的故障代碼與故障起始時間，並記錄 `fault_cleared` 事件。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+      responses:
+        '200':
+          description: 已清除。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 裝置故障紀錄已清除 }
+                  data:
+                    type: object
+                    properties:
+                      device_no: { type: string, example: DV3K9QX2M }
+                      fault_code: { type: string, nullable: true, example: null }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 此書櫃沒有有效裝置。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: DEVICE_NOT_PAIRED, message: 此書櫃尚未配對裝置 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/events:
+    get:
+      summary: 書櫃事件紀錄
+      operationId: adminListCabinetEvents
+      tags: [admin-cabinets]
+      description: |
+        裝置回報與伺服器記錄的事件，依發生時間由新到舊排序。`source` 為 `device`（裝置回報）、`server`（系統記錄）、
+        `admin`（管理員操作）或 `user`（使用者於 App 操作）。常見的 `type`：`paired`、`revoked`、`device_cloned`、`ip_changed`、`connection_lost`、
+        `connection_restored`、`fault`、`fault_cleared`、`door_forced`、`door_placed`、`door_check_required`、
+        `door_check_cleared`，以及書櫃作業的 `session_created`、`match_entered`、`door_opened`、`close_refused`、`session_closed`、`session_finished` 等。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: type
+          schema: { type: string, maxLength: 32 }
+          description: 只列出此種類的事件。
+          example: fault
+      responses:
+        '200':
+          description: 成功。`pagination` 位於回應最外層。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminCabinetEvent' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/doors/{slotId}/place:
+    post:
+      summary: 登記櫃門存放內容
+      operationId: adminPlaceCabinetDoor
+      tags: [admin-cabinets]
+      description: |
+        把書登記到此櫃門，擇一提供：
+        - `order_id`：登記該訂單尚未有櫃門紀錄的全部書籍。
+        - `book_ids`：只登記指定的書。
+
+        可登記的書限於摘要中 `unplaced` 屬於本書櫃的書，或此櫃門 `check.candidates` 中的書，且目前沒有櫃門紀錄。
+        登記後同一扇櫃門內只能有一個保管單位：同一筆進行中訂單的書、單一一本先行存書，或同一位賣家待取回的書。
+        成功時記錄 `door_placed` 事件，並解除此櫃門的待確認。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - $ref: '#/components/parameters/DoorSlotIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_id: { type: integer, example: 128 }
+                book_ids: { type: array, maxItems: 50, items: { type: integer }, example: [55] }
+      responses:
+        '200':
+          description: 已登記，回傳此櫃門的最新內容。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已登記櫃門存放內容 }
+                  data: { $ref: '#/components/schemas/AdminCabinetDoor' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/DoorNotFound' }
+        '409':
+          description: 此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一個保管單位。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: DOOR_ASSIGN_INVALID, message: 此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/doors/{slotId}/check-clear:
+    post:
+      summary: 確認櫃門內容無誤
+      operationId: adminClearCabinetDoorCheck
+      tags: [admin-cabinets]
+      description: |
+        解除待確認，存放紀錄不變，並記錄 `door_check_cleared` 事件。櫃門不是待確認時不做任何變更。
+        門內實際內容與紀錄不符時，改以「登記存放內容」或「清空存放紀錄」處理。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - $ref: '#/components/parameters/DoorSlotIdPath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 255, example: 現場確認櫃內書籍與紀錄相符 }
+      responses:
+        '200':
+          description: 已確認，回傳此櫃門的最新內容。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已確認櫃門內容 }
+                  data: { $ref: '#/components/schemas/AdminCabinetDoor' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/DoorNotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinets/{id}/doors/{slotId}/fault-clear:
+    post:
+      summary: 清除櫃門故障
+      operationId: adminClearCabinetDoorFault
+      tags: [admin-cabinets]
+      description: 清除櫃門的故障代碼並記錄 `fault_cleared` 事件，不影響待確認。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+        - $ref: '#/components/parameters/DoorSlotIdPath'
+      responses:
+        '200':
+          description: 已清除，回傳此櫃門的最新內容。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 櫃門故障紀錄已清除 }
+                  data: { $ref: '#/components/schemas/AdminCabinetDoor' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/DoorNotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+components:
+  parameters:
+    CabinetIdPath:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer }
+      description: 書櫃編號。
+      example: 3
+    DoorSlotIdPath:
+      in: path
+      name: slotId
+      required: true
+      schema: { type: integer }
+      description: 櫃門的格位編號（`slot_id`）。
+      example: 41
+
+  responses:
+    DoorNotFound:
+      description: 書櫃不存在，或櫃門不屬於此書櫃、沒有對應的電磁鎖通道。
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+          example: { success: false, code: DOOR_NOT_FOUND, message: 找不到此櫃門 }
+
+  schemas:
+    AdminCabinetDoor:
+      type: object
+      properties:
+        slot_id: { type: integer, example: 41 }
+        slot_no: { type: string, example: SL5T2K8QW }
+        label: { type: string, example: A01 }
+        channel: { type: integer, example: 1 }
+        status: { type: string, enum: [empty, occupied, reserved, maintenance], example: occupied }
+        fault_code: { type: string, nullable: true, example: null }
+        sensor: { type: string, nullable: true, enum: [open, closed, null], description: 門磁最近一次回報的狀態。, example: null }
+        check:
+          type: object
+          nullable: true
+          properties:
+            at: { type: string, format: date-time }
+            reason:
+              type: string
+              enum: [CANCELLED_AFTER_OPEN, DISCARDED_AFTER_OPEN, DOOR_CONFLICT, DOOR_UNCONFIRMED, LATE_OPEN, MANUAL_REPORT, ADMIN_OPEN, ADMIN_COMPLETED, ITEM_FAILED_AFTER_OPEN]
+              description: '`ITEM_FAILED_AFTER_OPEN`：取書或取回項目未能提交，但櫃門曾開啟，書可能已被取走。'
+              example: CANCELLED_AFTER_OPEN
+            session_no: { type: string, nullable: true, example: CS8MZQ41K }
+            candidates:
+              type: array
+              items:
+                type: object
+                properties:
+                  book_id: { type: integer, example: 58 }
+                  book_no: { type: string, example: BK7Q2M9XA }
+                  title: { type: string, example: 作業系統 }
+                  kind: { type: string, enum: [pickup, order_deposit, pre_deposit, retrieval], example: pre_deposit }
+                  order_id: { type: integer, nullable: true, example: null }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              kind: { type: string, enum: [order, deposit, other], example: deposit }
+              book_id: { type: integer, example: 55 }
+              book_no: { type: string, example: BK3K9QX2M }
+              title: { type: string, example: 資料庫系統概論 }
+              order_id: { type: integer, nullable: true, example: null }
+              order_no: { type: string, nullable: true, example: null }
+              seller_nickname: { type: string, nullable: true, example: 小明 }
+              placed_at: { type: string, format: date-time }
+
+    AdminCabinetDevice:
+      type: object
+      properties:
+        cabinet:
+          type: object
+          properties:
+            cabinet_id: { type: integer, example: 3 }
+            cabinet_name: { type: string, example: 北商大書櫃 }
+            is_active: { type: boolean, example: true }
+            is_maintenance: { type: boolean, example: false }
+            open_time: { type: string, nullable: true, example: '08:00' }
+            close_time: { type: string, nullable: true, example: '22:00' }
+        access:
+          type: object
+          properties:
+            mode: { type: string, enum: [scan, manual, unavailable], example: scan }
+            reason: { type: string, nullable: true, example: null }
+            online: { type: boolean, example: true }
+            open_now: { type: boolean, example: true }
+        simulator_enabled: { type: boolean, example: true }
+        kiosk_url: { type: string, nullable: true, example: 'https://api.savemybook.today/kiosk' }
+        device:
+          type: object
+          nullable: true
+          properties:
+            device_no: { type: string, example: DV3K9QX2M }
+            kind: { type: string, enum: [simulator, esp32], example: simulator }
+            status: { type: string, example: active }
+            online: { type: boolean, example: true }
+            last_seen_at: { type: string, format: date-time, nullable: true }
+            paired_at: { type: string, format: date-time, nullable: true }
+            firmware: { type: string, nullable: true, example: sim-1.0.0 }
+            door_count: { type: integer, example: 4 }
+            has_door_sensor: { type: boolean, example: false }
+            unlock_pulse_ms: { type: integer, example: 800 }
+            fault_code: { type: string, nullable: true, example: null }
+        pairing:
+          type: object
+          nullable: true
+          properties:
+            kind: { type: string, enum: [simulator, esp32], example: esp32 }
+            door_count: { type: integer, example: 4 }
+            has_door_sensor: { type: boolean, example: false }
+            firmware: { type: string, example: esp-1.0.0 }
+            expires_at: { type: string, format: date-time, description: 裝置須於此時間前領取憑證。 }
+        active_session_no: { type: string, nullable: true, description: 裝置目前占用中的書櫃作業。, example: null }
+        doors:
+          type: array
+          items: { $ref: '#/components/schemas/AdminCabinetDoor' }
+        unplaced:
+          type: array
+          items:
+            type: object
+            properties:
+              kind: { type: string, enum: [order, deposit], example: order }
+              order_id: { type: integer, nullable: true, example: 128 }
+              order_no: { type: string, nullable: true, example: SMB20260928143015123456 }
+              book_id: { type: integer, example: 57 }
+              book_no: { type: string, example: BK4M8QZ2T }
+              title: { type: string, example: 演算法導論 }
+
+    AdminCabinetEvent:
+      type: object
+      properties:
+        type: { type: string, example: fault }
+        source: { type: string, enum: [device, server, admin, user], example: device }
+        channel: { type: integer, nullable: true, example: 2 }
+        label: { type: string, nullable: true, example: A02 }
+        device_no: { type: string, nullable: true, example: DV3K9QX2M }
+        session_no: { type: string, nullable: true, example: CS8MZQ41K }
+        order_id: { type: integer, nullable: true, example: null }
+        order_no: { type: string, nullable: true, example: null }
+        book_id: { type: integer, nullable: true, example: null }
+        book_no: { type: string, nullable: true, example: null }
+        actor:
+          type: object
+          nullable: true
+          properties:
+            user_no: { type: string, example: MB7Q2M9XA }
+            nickname: { type: string, example: 客服人員 }
+        detail: { type: object, nullable: true, description: 事件內容，依種類而定。, example: { code: LOCK_NO_RELEASE } }
+        result: { type: string, nullable: true, description: 裝置事件的處理結果。, example: ok }
+        occurred_at: { type: string, format: date-time }
+        received_at: { type: string, format: date-time }

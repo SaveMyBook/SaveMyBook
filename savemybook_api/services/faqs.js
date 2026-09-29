@@ -2,6 +2,8 @@ const prisma = require('../lib/prisma');
 const { badRequest, notFound } = require('../lib/errors');
 const { clip } = require('../lib/text');
 const audit = require('./audit');
+const { isSubstantive } = require('./ai/support');
+const { deidentify } = require('./ai/deidentify');
 
 const FIELDS = {
   category: '分類',
@@ -13,7 +15,12 @@ const FIELDS = {
 
 const ORDER = [{ category: 'asc' }, { sort_order: 'asc' }, { faq_id: 'asc' }];
 
-const listVisible = () => prisma.faqs.findMany({ where: { is_visible: true }, orderBy: ORDER });
+// 前台不需登入，只回傳公開欄位；來源工單編號是流水號，且會透露哪些問題來自個別使用者的客服對話。
+const PUBLIC_SELECT = {
+  faq_id: true, category: true, question: true, answer: true, sort_order: true, is_visible: true, created_at: true, updated_at: true
+};
+
+const listVisible = () => prisma.faqs.findMany({ where: { is_visible: true }, orderBy: ORDER, select: PUBLIC_SELECT });
 
 const listAll = () => prisma.faqs.findMany({ orderBy: ORDER });
 
@@ -23,14 +30,27 @@ const findOrThrow = async (faqId) => {
   return faq;
 };
 
+const ticketSource = (ticketId) => Promise.all([
+  prisma.support_tickets.findUnique({ where: { ticket_id: ticketId }, select: { subject: true, category: true, from_ai_support: true } }),
+  prisma.ai_support_sessions.findFirst({ where: { ticket_id: ticketId }, select: { session_id: true } })
+]);
+
+const notFromAi = () => badRequest('此工單不是由 AI 客服轉接', 'TICKET_NOT_FROM_AI');
+
+// 品質報表以 source_ticket_id 統計由 AI 客服對話回流的常見問題，一般工單不得帶入。
 const create = async (data, { adminId, req }) => {
+  if (data.source_ticket_id) {
+    const [ticket, session] = await ticketSource(data.source_ticket_id);
+    if (!ticket) throw badRequest('找不到來源工單');
+    if (!ticket.from_ai_support && !session) throw notFromAi();
+  }
   const created = await prisma.faqs.create({ data });
   await audit.record(null, {
     adminId,
     action: '新增常見問題',
     targetType: 'faq',
     targetId: created.faq_id,
-    summary: `新增常見問題「${data.question}」`,
+    summary: `新增常見問題「${data.question}」${data.source_ticket_id ? '（由客服工單建立）' : ''}`,
     undo: [audit.undoCreate('faqs', created.faq_id)],
     req
   });
@@ -101,4 +121,41 @@ const remove = async (faqId, { adminId, req }) => {
   });
 };
 
-module.exports = { listVisible, listAll, create, reorder, update, remove };
+const FAQ_CATEGORIES = ['account', 'trade', 'wallet', 'cabinet'];
+const HANDOFF_PREFIX = /^AI 客服轉接：/;
+const QUESTION_MAX = 200;
+const ANSWER_MAX = 2000;
+const STAFF_REPLIES = 5;
+
+// 由 AI 客服轉接的工單預填常見問題：問題取使用者最後一則實質提問（對話已過保存期限或撤回同意而刪除時改用工單主旨），
+// 答案取客服人員最後一則文字回覆。常見問題會公開，預填內容先去識別化，管理員確認後才儲存。
+const draftFromTicket = async (ticketId) => {
+  const [ticket, session] = await ticketSource(ticketId);
+  if (!ticket) throw notFound('找不到此工單');
+  if (!ticket.from_ai_support && !session) throw notFromAi();
+  const [asked, replies] = await Promise.all([
+    session
+      ? prisma.ai_support_messages.findMany({
+        where: { session_id: session.session_id, role: 'user' },
+        orderBy: { message_id: 'desc' },
+        select: { content: true }
+      })
+      : [],
+    prisma.support_ticket_messages.findMany({
+      where: { ticket_id: ticketId, is_staff: true },
+      orderBy: { created_at: 'desc' },
+      take: STAFF_REPLIES,
+      select: { content: true }
+    })
+  ]);
+  const question = asked.map((m) => m.content).find(isSubstantive) ?? ticket.subject.replace(HANDOFF_PREFIX, '');
+  const answer = replies.map((m) => String(m.content ?? '').trim()).find(Boolean) ?? '';
+  return {
+    category: FAQ_CATEGORIES.includes(ticket.category) ? ticket.category : 'general',
+    question: deidentify(question, QUESTION_MAX),
+    answer: deidentify(answer, ANSWER_MAX),
+    source_ticket_id: ticketId
+  };
+};
+
+module.exports = { listVisible, listAll, create, reorder, update, remove, draftFromTicket };

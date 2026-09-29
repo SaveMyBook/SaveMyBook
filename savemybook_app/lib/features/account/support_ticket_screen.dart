@@ -20,6 +20,7 @@ import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
+import '../admin/admin_content_screen.dart';
 import 'ai_support_entry.dart';
 import 'ticket_attachments.dart';
 
@@ -156,10 +157,6 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Icon(Icons.forum_outlined, size: 13, color: c.textHint),
-              const SizedBox(width: 4),
-              Text('${ticket.messageCount}', style: TextStyle(fontSize: 11, color: c.textHint)),
-              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   ticket.categoryText,
@@ -510,6 +507,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     }
   }
 
+  /// 以使用者的提問與客服回覆預填常見問題，確認後走一般的新增流程。
+  Future<void> _createFaq() async {
+    final (draft, error) = await runBusy(context, () => _api.fetchFaqDraft(widget.ticketId)) ?? (null, null);
+    if (!mounted) return;
+    if (draft == null) {
+      showAppSnackBar(context, error ?? S.loadFailed, isError: true);
+      return;
+    }
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => AdminFaqScreen(draft: draft)));
+  }
+
   Future<void> _changeStatus() async {
     final c = AppColors.of(context);
     final status = await showAppPicker<String>(
@@ -553,6 +561,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             title: ticket?.subject ?? S.enquiry,
             icon: Icons.support_agent_rounded,
             actions: [
+              if (widget.asAdmin && ticket?.fromAiSupport == true)
+                HeaderIconButton(icon: Icons.quiz_outlined, onTap: _createFaq),
               if (widget.asAdmin)
                 HeaderIconButton(icon: Icons.tune_rounded, onTap: _changeStatus)
               else if (canReply)
@@ -606,11 +616,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             child: Text(ticket.categoryText, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 12, color: c.textSecondary)),
           ),
-          if (widget.asAdmin && ticket.userName.isNotEmpty)
-            Flexible(
+          if (widget.asAdmin && ticket.userName.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Expanded(
               child: Text(ticket.userName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                   style: TextStyle(fontSize: 12, color: c.textSecondary)),
             ),
+          ],
         ],
       ),
     );
@@ -627,6 +640,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         crossAxisAlignment: alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
               if (!alignRight) ...[
@@ -729,6 +743,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ),
               ),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   IconButton(
                     tooltip: S.attachImages,
@@ -741,6 +756,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     child: AppTextField(
                       controller: _controller,
                       hint: S.writeReply,
+                      minLines: 1,
                       maxLines: 4,
                       maxLength: 1000,
                       onSubmitted: (_) => _send(),

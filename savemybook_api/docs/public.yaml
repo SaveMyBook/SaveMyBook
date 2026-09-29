@@ -3,7 +3,7 @@ tags:
     x-displayName: 公開頁面
     description: |
       對外的 HTML 頁面，非 JSON API。供未安裝應用程式的使用者
-      透過連結檢視基本資訊。
+      透過連結檢視基本資訊；另含測試期間使用的模擬書櫃頁面（`/kiosk`）。
 
 paths:
   /u/{token}:
@@ -148,3 +148,71 @@ paths:
         '200': { description: HTML 頁面。, content: { text/html: { schema: { type: string } } } }
         '404': { description: 文件不存在或內容為空。, content: { text/html: { schema: { type: string } } } }
 
+  /kiosk:
+    get:
+      summary: 模擬書櫃頁面（HTML）
+      operationId: publicKioskPage
+      tags: [public]
+      description: |
+        以瀏覽器模擬一台智慧書櫃（240×320 顯示螢幕與 4 扇櫃門），供測試掃碼存取流程。螢幕只負責顯示，沒有可操作的元素。
+        頁面右側為模擬控制台，可模擬離線、重新開機、網路延遲、櫃門故障與門磁感測器，實體書櫃沒有這些功能。
+
+        - **開關**：僅在環境變數 `CABINET_SIMULATOR=true` 時提供，否則本路徑與 `/kiosk/assets/*` 一律回 404（純文字「找不到此頁面」）。
+          關閉後，所有模擬書櫃的裝置憑證同時失效。
+        - **權限**：頁面本身沒有任何權限。第一次開啟時以 `POST /api/device/v1/pair/request` 申請配對碼並顯示於模擬螢幕，
+          管理員於後台輸入配對碼後，頁面以 `POST /api/device/v1/pair/poll` 取得裝置憑證；之後與 ESP32 實機使用同一組裝置 API。
+        - **本機資料**：裝置憑證、事件佇列、事件序號與開門中紀錄存放於瀏覽器 localStorage（`smb.device.*`）。
+          同一瀏覽器只允許一個分頁執行書櫃（`navigator.locks`），其他分頁只顯示「模擬書櫃已在其他分頁執行」。
+        - **安全標頭**：`Content-Security-Policy` 只允許同源的腳本、樣式與連線（`default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`），
+          頁面沒有行內腳本或樣式；另加 `Cache-Control: no-store`、`Referrer-Policy: no-referrer`、`X-Robots-Tag: noindex, nofollow`、
+          `Permissions-Policy: camera=(), microphone=(), geolocation=()`、`X-Frame-Options: DENY`。
+        - **測試期間接受的風險**：本頁與 `/api-docs` 同源，接上實機、正式營運前應關閉 `CABINET_SIMULATOR`，或改由獨立子網域提供。
+      security: []
+      responses:
+        '200':
+          description: 模擬書櫃頁面 HTML。
+          content:
+            text/html:
+              schema: { type: string }
+        '404':
+          description: 模擬器未開啟。
+          content:
+            text/plain:
+              schema: { type: string, example: 找不到此頁面 }
+
+  /kiosk/assets/{file}:
+    get:
+      summary: 模擬書櫃頁面的靜態資產
+      operationId: publicKioskAsset
+      tags: [public]
+      description: |
+        提供模擬書櫃頁面使用的腳本與樣式，只接受白名單內的檔名；其他檔名、含 `..`、`/` 或 `%2F` 的路徑一律回 404。
+        回應帶 `Cache-Control: no-cache` 與頁面相同的安全標頭；模擬器未開啟時同樣回 404。
+
+        | 檔案 | 內容 |
+        | --- | --- |
+        | `device-core.js` | 書櫃核心邏輯（輪詢、事件佇列、開鎖時序、本機開門模式），同時是 ESP32 韌體的參考實作；UMD 格式，Node 端對端腳本 `scripts/simulate-cabinet-flow.js` 共用同一份程式 |
+        | `kiosk.js` | 以 canvas 繪製書櫃螢幕（僅顯示）與模擬控制台 |
+        | `qrcode.js` | 內嵌的 QR Code 產生程式（Kazuhiko Arase，MIT 授權），不從外部網站載入 |
+        | `kiosk.css` | 頁面樣式（支援深色模式） |
+      security: []
+      parameters:
+        - in: path
+          name: file
+          required: true
+          schema:
+            type: string
+            enum: [device-core.js, kiosk.js, qrcode.js, kiosk.css]
+      responses:
+        '200':
+          description: 資產內容。
+          content:
+            text/javascript:
+              schema: { type: string }
+            text/css:
+              schema: { type: string }
+        '404':
+          description: 檔名不在白名單內，或模擬器未開啟。
+          content:
+            text/plain:
+              schema: { type: string, example: 找不到此頁面 }

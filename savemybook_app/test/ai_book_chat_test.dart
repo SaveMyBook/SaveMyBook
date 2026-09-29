@@ -64,9 +64,9 @@ void main() {
     test('後台設定包含書籍顧問開關與每日上限', () {
       final s = AiSettings.fromJson(const {});
       expect(s.features[AiFeatures.bookChat]!.enabled, isTrue);
-      expect(s.dailyPerUser[AiFeatures.bookChat], 30);
-      expect((s.toJson()['features'] as Map)[AiFeatures.bookChat], {'enabled': true, 'provider': null});
-      expect(((s.toJson()['limits'] as Map)['daily_per_user'] as Map)[AiFeatures.bookChat], 30);
+      expect(s.dailyPerUser[AiFeatures.bookChat], 20);
+      expect((s.toJson()['features'] as Map)[AiFeatures.bookChat], {'enabled': true, 'provider': null, 'fallback_provider': null});
+      expect(((s.toJson()['limits'] as Map)['daily_per_user'] as Map)[AiFeatures.bookChat], 20);
     });
   });
 
@@ -176,6 +176,50 @@ void main() {
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 3));
       }, () => api.client);
+      AiStatus.debugSet(AiStatusInfo.none);
+    });
+
+    testWidgets('內容遭服務商阻擋時顯示說明且不提供重新傳送，一般錯誤仍可重送', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      tester.view.physicalSize = const Size(390, 844) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      var blocked = true;
+      final client = MockClient((req) async {
+        final path = req.url.path.replaceFirst('/api', '');
+        if (path == '/ai/book-chat/messages') {
+          return http.Response(
+            jsonEncode(blocked
+                ? {'success': false, 'code': 'AI_CONTENT_BLOCKED', 'message': '此內容無法由 AI 處理，請調整內容後再試'}
+                : {'success': false, 'code': 'AI_PROVIDER_ERROR', 'message': 'AI 服務暫時無法使用，請稍後再試'}),
+            blocked ? 422 : 502,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }
+        return http.Response(jsonEncode({'success': true, 'data': null}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+      });
+
+      await http.runWithClient(() async {
+        await tester.pumpWidget(app(const AiBookChatScreen()));
+        AiStatus.debugSet(const AiStatusInfo(bookChat: true, consented: true, providersInUse: ['DeepSeek']));
+        await settle(tester);
+
+        await tester.tap(find.text('適合通勤閱讀的推理小說'));
+        await settle(tester, 12);
+        expect(find.text('此內容無法由 AI 處理，請調整內容後再試'), findsOneWidget);
+        expect(find.byTooltip(S.resend), findsNothing);
+
+        blocked = false;
+        await tester.enterText(find.byType(TextField), '推薦推理小說');
+        await tester.testTextInput.receiveAction(TextInputAction.send);
+        await settle(tester, 12);
+        expect(find.text('AI 服務暫時無法使用，請稍後再試'), findsOneWidget);
+        expect(find.byTooltip(S.resend), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
       AiStatus.debugSet(AiStatusInfo.none);
     });
 

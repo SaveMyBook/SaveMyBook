@@ -8,16 +8,13 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/biometric_icon.dart';
 import 'set_password_screen.dart';
 
-/// 生物辨識與通行密鑰驗證的入口，回傳權杖代表成功，回傳訊息代表失敗，兩者皆空代表使用者取消。
+/// 兩者皆為 null 代表使用者取消。
 typedef BiometricVerify = Future<({String? token, String? message})> Function();
 
 typedef PasskeyVerify = BiometricVerify;
 
-/// 這些狀況重試也不會過，訊息顯示為整塊警示並停用送出鍵。
 const _blockingCodes = {'RATE_LIMITED', 'PASSWORD_NOT_SET', 'SIGNED_OUT'};
 
-/// 以登入密碼或通行密鑰驗證身分的專用面板。回傳驗證權杖，使用者取消則回傳 null。
-/// 提供 [onPasskey] 時預設顯示通行密鑰，輸入密碼改為次要選項。
 Future<String?> showIdentityVerificationSheet(
   BuildContext context, {
   required String scope,
@@ -301,8 +298,6 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
         ),
       ),
       ?_alertBox(c),
-      const SizedBox(height: 12),
-      _notice(c, Icons.shield_outlined, S.appNeverStoresPasswordUsedOnly),
       const SizedBox(height: 18),
       PrimaryButton(
         label: S.verifyS,
@@ -316,6 +311,7 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
           onPressed: _submitting ? null : _biometric,
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(46),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             foregroundColor: c.accent,
             side: BorderSide(color: c.border),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -329,6 +325,7 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
         Center(
           child: TextButton.icon(
             onPressed: _submitting ? null : _switchToPasskey,
+            style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)),
             icon: Icon(Icons.key_rounded, size: 18, color: c.accent),
             label: Text(S.verifyWithPasskeyInstead, style: TextStyle(color: c.accent)),
           ),
@@ -339,38 +336,8 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
 
   List<Widget> _passkeyBody(AppColors c) {
     return [
-      Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: c.accent.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: c.accent.withValues(alpha: 0.18)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.key_rounded, size: 26, color: c.accent),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    S.passkeys,
-                    style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: c.textPrimary),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    S.verifyWithFaceIdFingerprintScreen,
-                    style: TextStyle(fontSize: 12, height: 1.45, color: c.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
       ?_alertBox(c),
-      const SizedBox(height: 18),
+      SizedBox(height: _alert == null ? 0 : 18),
       PrimaryButton(
         label: S.verifyWithPasskey,
         height: 50,
@@ -383,6 +350,7 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
           onPressed: _submitting ? null : _switchToPassword,
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(46),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             foregroundColor: c.accent,
             side: BorderSide(color: c.border),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/member_level.dart';
@@ -28,7 +30,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
   int _selectedIndex = 0;
 
   static const _viewportFraction = 0.92;
-  static const _pageInset = 4.0;
+  static const _pageInset = 6.0;
   static const _railPadding = 34.0;
   static const _nodeSize = 38.0;
   static const _caretHalf = 10.0;
@@ -165,7 +167,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                     ),
                     padding: responsiveListPadding(
                       constraints,
-                      maxWidth: Breakpoints.readingMaxWidth,
+                      maxWidth: Breakpoints.readingMaxWidth - 40,
                       horizontal: 20,
                       top: 26,
                       bottom: 40,
@@ -233,7 +235,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                         blendMode: BlendMode.dstIn,
                         shaderCallback: (rect) {
                           final peek = (1 - _viewportFraction) / 2;
-                          final gap = 6 / rect.width;
+                          final gap = _pageInset / rect.width;
                           return LinearGradient(
                             colors: const [Colors.transparent, Colors.transparent, Colors.black, Colors.black, Colors.transparent, Colors.transparent],
                             stops: [0, peek - gap, peek + gap, 1 - peek - gap, 1 - peek + gap, 1],
@@ -313,16 +315,6 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'SAVEMYBOOK',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 10),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 280),
                 transitionBuilder: (child, animation) => FadeTransition(
@@ -398,96 +390,100 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
+  double _railInset(double w) => math.max(_railPadding, w * (1 - _viewportFraction) / 2 + _pageInset + _cardRadius + _caretHalf - _nodeSize / 2);
+
   Widget _buildRail(LevelStyle style) {
     final levels = _info.levels;
     final currentIndex = _currentIndex;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: _railPadding),
-      child: Row(
-        children: [
-          for (var i = 0; i < levels.length; i++) ...[
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (i == _selectedIndex) return;
-                HapticFeedback.selectionClick();
-                _pageController.animateToPage(
-                  i,
-                  duration: Motion.enter,
-                  curve: Motion.emphasized,
-                );
-              },
-              child: SizedBox(
-                width: _nodeSize,
-                height: _nodeSize,
-                child: Center(
-                  child: AnimatedScale(
-                    scale: i == _selectedIndex ? 1.26 : 1.0,
+    return LayoutBuilder(
+      builder: (context, constraints) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: _railInset(constraints.maxWidth)),
+        child: Row(
+          children: [
+            for (var i = 0; i < levels.length; i++) ...[
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  if (i == _selectedIndex) return;
+                  HapticFeedback.selectionClick();
+                  _pageController.animateToPage(
+                    i,
                     duration: Motion.enter,
-                    curve: Motion.pop,
-                    child: AnimatedContainer(
-                      duration: Motion.base,
-                      curve: Motion.emphasized,
-                      width: _nodeSize,
-                      height: _nodeSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: currentIndex >= 0 && i <= currentIndex
-                            ? Colors.white.withValues(alpha: 0.30)
-                            : Colors.white.withValues(alpha: 0.10),
-                        border: Border.all(
-                          color: i == _selectedIndex
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.30),
-                          width: i == _selectedIndex ? 2.5 : 1,
+                    curve: Motion.emphasized,
+                  );
+                },
+                child: SizedBox(
+                  width: _nodeSize,
+                  height: _nodeSize,
+                  child: Center(
+                    child: AnimatedScale(
+                      scale: i == _selectedIndex ? 1.26 : 1.0,
+                      duration: Motion.enter,
+                      curve: Motion.pop,
+                      child: AnimatedContainer(
+                        duration: Motion.base,
+                        curve: Motion.emphasized,
+                        width: _nodeSize,
+                        height: _nodeSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: currentIndex >= 0 && i <= currentIndex
+                              ? Colors.white.withValues(alpha: 0.30)
+                              : Colors.white.withValues(alpha: 0.10),
+                          border: Border.all(
+                            color: i == _selectedIndex
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.30),
+                            width: i == _selectedIndex ? 2.5 : 1,
+                          ),
+                          boxShadow: i == _selectedIndex
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.white.withValues(alpha: 0.45),
+                                    blurRadius: 14,
+                                    spreadRadius: 1,
+                                  ),
+                                ]
+                              : null,
                         ),
-                        boxShadow: i == _selectedIndex
-                            ? [
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.45),
-                                  blurRadius: 14,
-                                  spreadRadius: 1,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Icon(
-                        _styleFor(i).icon,
-                        size: 18,
-                        color: currentIndex >= 0 && i <= currentIndex
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.45),
+                        child: Icon(
+                          _styleFor(i).icon,
+                          size: 18,
+                          color: currentIndex >= 0 && i <= currentIndex
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.45),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            if (i != levels.length - 1)
-              Expanded(
-                child: Stack(
-                  alignment: Alignment.centerLeft,
-                  children: [
-                    Container(height: 2, color: Colors.white.withValues(alpha: 0.22)),
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(
-                        begin: 0,
-                        end: currentIndex >= 0 && i < currentIndex ? 1.0 : 0.0,
+              if (i != levels.length - 1)
+                Expanded(
+                  child: Stack(
+                    alignment: Alignment.centerLeft,
+                    children: [
+                      Container(height: 2, color: Colors.white.withValues(alpha: 0.22)),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(
+                          begin: 0,
+                          end: currentIndex >= 0 && i < currentIndex ? 1.0 : 0.0,
+                        ),
+                        duration: Motion.large,
+                        curve: Motion.emphasized,
+                        builder: (_, value, _) => FractionallySizedBox(
+                          widthFactor: value,
+                          alignment: Alignment.centerLeft,
+                          child: Container(height: 2, color: Colors.white),
+                        ),
                       ),
-                      duration: Motion.large,
-                      curve: Motion.emphasized,
-                      builder: (_, value, _) => FractionallySizedBox(
-                        widthFactor: value,
-                        alignment: Alignment.centerLeft,
-                        child: Container(height: 2, color: Colors.white),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -504,7 +500,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
             itemCount: _info.levels.length,
             onPageChanged: (i) => setState(() => _selectedIndex = i),
             itemBuilder: (_, i) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
+              padding: const EdgeInsets.symmetric(horizontal: _pageInset),
               child: _buildStatusCard(c, i),
             ),
           ),
@@ -519,9 +515,10 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final usable = constraints.maxWidth - _railPadding * 2;
+        final inset = _railInset(constraints.maxWidth);
+        final usable = constraints.maxWidth - inset * 2;
         final step = count == 1 ? 0.0 : (usable - _nodeSize) / (count - 1);
-        final nodeCentre = _railPadding + _nodeSize / 2 + step * _selectedIndex;
+        final nodeCentre = inset + _nodeSize / 2 + step * _selectedIndex;
 
         final cardLeft = constraints.maxWidth * ((1 - _viewportFraction) / 2) + _pageInset;
         final cardRight = constraints.maxWidth * (1 - (1 - _viewportFraction) / 2) - _pageInset;
@@ -675,32 +672,9 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                S.benefits(level.levelName),
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
-              ),
-            ),
-            const SizedBox(width: 8),
-            if (benefits.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: style.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '×${benefits.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: style.accent,
-                  ),
-                ),
-              ),
-          ],
+        Text(
+          S.benefits(level.levelName),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary),
         ),
         const SizedBox(height: 16),
         if (benefits.isEmpty)

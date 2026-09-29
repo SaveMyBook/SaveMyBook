@@ -1,8 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../models/order.dart';
 import '../../services/api_service.dart';
+import '../../services/cabinet_code.dart';
+import '../cabinet/cabinet_entry.dart';
+import '../cabinet/cabinet_flow_screen.dart';
+import '../cabinet/cabinet_resume.dart';
+import '../cabinet/cabinet_scanner_view.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
@@ -14,7 +21,8 @@ import '../../i18n/strings.dart';
 
 class PickupBookScreen extends StatefulWidget {
   final bool isActive;
-  const PickupBookScreen({super.key, this.isActive = false});
+  final Stream<String>? scanInput;
+  const PickupBookScreen({super.key, this.isActive = false, this.scanInput});
 
   @override
   State<PickupBookScreen> createState() => _PickupBookScreenState();
@@ -24,16 +32,22 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
   final ApiService _api = ApiService();
   final PageController _pageController = PageController(viewportFraction: 0.92);
   MobileScannerController? _controller;
+  StreamSubscription<String>? _input;
   bool _scanned = false;
+  bool _cameraOn = false;
+  bool _suspended = false;
   List<Order> _ready = [];
   int _page = 0;
 
   @override
   void initState() {
     super.initState();
+    _input = widget.scanInput?.listen(_onValue);
+    CabinetFlowScreen.showing.addListener(_onFlowShowing);
     if (widget.isActive) {
-      _controller = MobileScannerController(formats: [BarcodeFormat.qrCode]);
+      _startCamera(rebuild: false);
       _loadOrders();
+      unawaited(CabinetResume.check());
     }
   }
 
@@ -43,27 +57,54 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
     if (widget.isActive && !oldWidget.isActive) {
       _startCamera();
       _loadOrders();
+      unawaited(CabinetResume.check());
     } else if (!widget.isActive && oldWidget.isActive) {
+      _suspended = false;
       _stopCamera();
     }
   }
 
-  void _startCamera() {
-    _controller?.dispose();
-    _controller = MobileScannerController(formats: [BarcodeFormat.qrCode]);
+  void _startCamera({bool rebuild = true}) {
+    if (CabinetFlowScreen.isShowing) {
+      _suspended = true;
+      return;
+    }
+    if (_cameraOn) return;
+    _cameraOn = true;
     _scanned = false;
-    if (mounted) setState(() {});
+    if (widget.scanInput == null) {
+      final controller = CabinetCamera.create();
+      _controller = controller;
+      unawaited(CabinetCamera.start(controller));
+    }
+    if (rebuild && mounted) setState(() {});
   }
 
   void _stopCamera() {
-    _controller?.dispose();
+    CabinetCamera.release(_controller);
     _controller = null;
+    _cameraOn = false;
     if (mounted) setState(() {});
   }
 
+  // 顯示計數會在流程畫面的 initState 與 dispose 變動，這兩個時點都不能 setState。
+  void _onFlowShowing() => scheduleMicrotask(() {
+    if (!mounted) return;
+    if (CabinetFlowScreen.isShowing) {
+      if (!_cameraOn) return;
+      _stopCamera();
+      _suspended = true;
+    } else if (_suspended) {
+      _suspended = false;
+      if (widget.isActive) _startCamera();
+    }
+  });
+
   @override
   void dispose() {
-    _controller?.dispose();
+    unawaited(_input?.cancel());
+    CabinetFlowScreen.showing.removeListener(_onFlowShowing);
+    CabinetCamera.release(_controller);
     _pageController.dispose();
     super.dispose();
   }
@@ -80,15 +121,36 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
   }
 
   void _onDetect(BarcodeCapture capture) {
-    if (_scanned) return;
     final value = capture.barcodes.firstOrNull?.rawValue;
-    if (value == null || value.isEmpty) return;
-    HapticFeedback.mediumImpact();
-    setState(() => _scanned = true);
-    _handleScanResult(value);
+    if (value != null) _onValue(value);
   }
 
-  Future<void> _handleScanResult(String value) async {
+  void _onValue(String value) {
+    if (_scanned || !_cameraOn || !mounted || value.trim().isEmpty || CabinetFlowScreen.isShowing) return;
+    HapticFeedback.mediumImpact();
+    setState(() => _scanned = true);
+    if (isCabinetCode(value)) {
+      _openCabinet(value);
+    } else {
+      _showNotCabinetCode();
+    }
+  }
+
+  Future<void> _paste() async {
+    final text = await readClipboardText();
+    if (text != null) _onValue(text);
+  }
+
+  Future<void> _openCabinet(String value) async {
+    _stopCamera();
+    await openCabinetFlow(context, code: value);
+    if (!mounted) return;
+    _scanned = false;
+    if (widget.isActive) _startCamera();
+    _loadOrders();
+  }
+
+  Future<void> _showNotCabinetCode() async {
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -97,19 +159,11 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
         return AlertDialog(
           backgroundColor: c.card,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(S.scanned, style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary)),
-          content: SelectableText(value, style: TextStyle(color: c.textSecondary)),
+          content: Text(S.notSavemybookLockerQrCode, style: TextStyle(fontWeight: FontWeight.w600, color: c.textPrimary)),
           actions: [
             TextButton(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: value));
-                Navigator.pop(ctx);
-              },
-              child: Text(S.copy, style: TextStyle(color: AppColors.primary)),
-            ),
-            TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(S.scanAgain, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              child: Text(S.rescan, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -136,59 +190,85 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          if (_controller != null) MobileScanner(controller: _controller!, onDetect: _onDetect),
+          if (_controller != null)
+            MobileScanner(
+              controller: _controller!,
+              onDetect: _onDetect,
+              errorBuilder: (context, error, _) => CabinetCameraError(error: error),
+            ),
           Column(
             children: [
               Container(
-                padding: EdgeInsets.only(top: media.padding.top + 8, bottom: 12, left: 16, right: 16),
+                padding: EdgeInsets.only(top: media.padding.top, left: 16, right: 16),
                 decoration: BoxDecoration(color: c.headerBg),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        S.collectBook,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                child: SizedBox(
+                  height: 56,
+                  width: double.infinity,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                S.collectBook,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      if (_controller != null)
+                        Positioned(right: -8, child: CabinetTorchButton(controller: _controller!)),
+                    ],
+                  ),
                 ),
               ),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final reserved = _ready.isEmpty ? 0.0 : 136.0;
-                    final frame = ((constraints.maxHeight - reserved - navSpace - 110) * 0.8).clamp(120.0, context.isWide ? 280.0 : 220.0);
+                    final paste = cabinetPasteEnabled ? 48.0 : 0.0;
+                    final frame = ((constraints.maxHeight - reserved - paste - navSpace - 110) * 0.8).clamp(120.0, context.isWide ? 280.0 : 220.0);
                     return Column(
                       children: [
                         const Spacer(flex: 2),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            S.pointPickupQrCode,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9)),
+                        _unlessCameraError(
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                child: Text(
+                                  S.pointQrCodeLockerScreen,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9)),
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              SizedBox(
+                                width: frame,
+                                height: frame,
+                                child: CustomPaint(
+                                  painter: _CornerFramePainter(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    cornerLength: frame * 0.23,
+                                    strokeWidth: 5,
+                                    radius: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(S.holdSteady, style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6))),
-                        const SizedBox(height: 28),
-                        SizedBox(
-                          width: frame,
-                          height: frame,
-                          child: CustomPaint(
-                            painter: _CornerFramePainter(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              cornerLength: frame * 0.23,
-                              strokeWidth: 5,
-                              radius: 16,
-                            ),
-                          ),
-                        ),
+                        if (cabinetPasteEnabled)
+                          Padding(padding: const EdgeInsets.only(top: 8), child: CabinetPasteButton(onPressed: _paste)),
                         const Spacer(flex: 3),
                         AnimatedSize(
                           duration: Motion.enter,
@@ -209,6 +289,22 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _unlessCameraError(Widget child) {
+    final controller = _controller;
+    if (controller == null) return child;
+    return ValueListenableBuilder<MobileScannerState>(
+      valueListenable: controller,
+      builder: (context, state, child) => Visibility(
+        visible: state.error == null,
+        maintainSize: true,
+        maintainAnimation: true,
+        maintainState: true,
+        child: child!,
+      ),
+      child: child,
     );
   }
 

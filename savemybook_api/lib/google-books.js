@@ -1,5 +1,11 @@
 const { env } = require('../config/env');
+const isbnCodes = require('./isbn');
 
+const isbnsOf = (info) => (Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [])
+  .filter((i) => i?.type === 'ISBN_13' || i?.type === 'ISBN_10')
+  .map((i) => String(i.identifier ?? ''));
+
+// 以 isbn: 查詢仍可能回傳其他書，第一筆不一定相符，須比對書目登錄的 ISBN。
 const fetchVolumeByIsbn = async (isbn) => {
   const url = new URL('https://www.googleapis.com/books/v1/volumes');
   url.searchParams.set('q', `isbn:${isbn}`);
@@ -10,7 +16,7 @@ const fetchVolumeByIsbn = async (isbn) => {
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!response.ok) throw new Error(`Google Books HTTP ${response.status}`);
   const data = await response.json();
-  return data?.items?.[0]?.volumeInfo ?? null;
+  return (data?.items ?? []).map((item) => item?.volumeInfo).find((info) => info && isbnCodes.sameBook(isbn, isbnsOf(info))) ?? null;
 };
 
 const identifierOf = (info) => {

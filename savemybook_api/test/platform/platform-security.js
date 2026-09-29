@@ -1,5 +1,6 @@
 const assert = require('assert');
 const h = require('./harness');
+const { gate, concurrently } = require('../lib/gate');
 
 const { prisma, request } = h;
 const security = h.api('services/security');
@@ -7,7 +8,6 @@ const sessions = h.api('services/sessions');
 
 const PIN = '135790';
 
-// 建立一位已登入的使用者，回傳連線所需的權杖與裝置。
 const signedIn = ({ pin = null } = {}) => {
   const user = h.addUser();
   const session = h.addSession(user);
@@ -18,6 +18,23 @@ const signedIn = ({ pin = null } = {}) => {
 const verify = (ctx, body) => request('POST', '/api/security/verify', { token: ctx.token, body });
 
 const sensitiveHeaders = (ctx) => ({ 'x-verify-token': h.verifyTokenFor({ user: ctx.user, sid: ctx.session.sid }) });
+
+const passwordLib = h.api('lib/password');
+
+const holdPinChecks = (n, { first = null } = {}) => {
+  const original = passwordLib.verify;
+  const arrived = gate(n);
+  passwordLib.verify = async (plain, hashed) => {
+    const ok = await original(plain, hashed);
+    await arrived.wait();
+    if (first && ok !== (first === 'match')) await new Promise((resolve) => setTimeout(resolve, 50));
+    return ok;
+  };
+  return () => {
+    arrived.open();
+    passwordLib.verify = original;
+  };
+};
 
 module.exports = {
   name: '平台：帳號安全',
@@ -43,7 +60,6 @@ module.exports = {
       const sensitive = await verify(ctx, { scope: 'sensitive', method: 'face' });
       assert.strictEqual(sensitive.body.message, '不支援此驗證方式');
 
-      // 後台範圍只收登入密碼，交易密碼與生物辨識連簽發都不允許。
       const admin = await verify(ctx, { scope: 'admin', method: 'pin', pin: PIN });
       assert.strictEqual(admin.status, 400);
       assert.strictEqual(admin.body.message, '不支援此驗證方式');
@@ -154,7 +170,6 @@ module.exports = {
       assert.strictEqual(notice.title, '交易密碼已暫時鎖定');
       assert.ok(notice.content.includes('連續輸入錯誤 5 次'));
 
-      // 鎖定期間即使輸入正確也會被擋下。
       const locked = await verify(ctx, { scope: 'payment', method: 'pin', pin: PIN });
       assert.strictEqual(locked.status, 423);
       assert.strictEqual(locked.body.code, 'PIN_LOCKED');
@@ -173,6 +188,60 @@ module.exports = {
       assert.strictEqual(status.body.data.pin_locked_until, null);
     }],
 
+    ['併發送出錯誤的交易密碼時最多只記錄 5 次錯誤，且只鎖定並通知一次', async () => {
+      const ctx = signedIn({ pin: PIN });
+      const results = await concurrently(
+        holdPinChecks(8),
+        Array.from({ length: 8 }, () => verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' }))
+      );
+
+      const invalid = results.filter((r) => r.status === 400 && r.body.code === 'INVALID_PIN');
+      assert.deepStrictEqual(invalid.map((r) => r.body.remaining_attempts).sort(), [1, 2, 3, 4]);
+      const locked = results.filter((r) => r.status === 423 && r.body.code === 'PIN_LOCKED');
+      assert.strictEqual(locked.length, 4);
+      assert.ok(locked.every((r) => r.body.locked_until));
+
+      const [row] = prisma.rows('user_security');
+      assert.strictEqual(Number(row.pin_failed_count), 0);
+      assert.ok(new Date(row.pin_locked_until) > new Date());
+      assert.strictEqual(prisma.rows('notifications').filter((n) => n.title === '交易密碼已暫時鎖定').length, 1);
+    }],
+
+    ['第 5 次錯誤與正確的交易密碼併發時，較晚完成的正確密碼不得通過，也不得解除鎖定', async () => {
+      const ctx = signedIn({ pin: PIN });
+      prisma.rows('user_security')[0].pin_failed_count = 4;
+      const [wrong, right] = await concurrently(holdPinChecks(2, { first: 'mismatch' }), [
+        verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' }),
+        verify(ctx, { scope: 'payment', method: 'pin', pin: PIN })
+      ]);
+
+      assert.strictEqual(wrong.status, 423);
+      assert.strictEqual(wrong.body.code, 'PIN_LOCKED');
+      assert.strictEqual(right.status, 423);
+      assert.strictEqual(right.body.code, 'PIN_LOCKED');
+      assert.strictEqual(right.body.data, undefined);
+
+      const [row] = prisma.rows('user_security');
+      assert.ok(new Date(row.pin_locked_until) > new Date());
+      assert.strictEqual(Number(row.pin_failed_count), 0);
+    }],
+
+    ['併發時先完成的正確交易密碼會歸零，其後的錯誤依最新次數計算剩餘次數', async () => {
+      const ctx = signedIn({ pin: PIN });
+      prisma.rows('user_security')[0].pin_failed_count = 3;
+      const [ok, ...wrong] = await concurrently(holdPinChecks(3, { first: 'match' }), [
+        verify(ctx, { scope: 'payment', method: 'pin', pin: PIN }),
+        verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' }),
+        verify(ctx, { scope: 'payment', method: 'pin', pin: '246813' })
+      ]);
+
+      assert.strictEqual(ok.status, 200);
+      assert.ok(ok.body.data.verify_token);
+      assert.deepStrictEqual(wrong.map((r) => r.body.remaining_attempts).sort(), [3, 4]);
+      assert.strictEqual(Number(prisma.rows('user_security')[0].pin_failed_count), 2);
+      assert.strictEqual(prisma.rows('user_security')[0].pin_locked_until, null);
+    }],
+
     ['交易用的驗證權杖只能使用一次', async () => {
       const ctx = signedIn({ pin: PIN });
       const issued = await verify(ctx, { scope: 'payment', method: 'pin', pin: PIN });
@@ -187,7 +256,6 @@ module.exports = {
         (err) => err.code === 'VERIFICATION_REQUIRED' && err.message === '此驗證已使用，請重新驗證'
       );
 
-      // 呼叫失敗時會把權杖釋放回去，讓使用者不必重新驗證。
       security.releaseToken(decoded.jti);
       assert.strictEqual(security.consumeToken(raw, user, 'payment').jti, decoded.jti);
     }],
@@ -229,7 +297,6 @@ module.exports = {
       assert.strictEqual(byPassword.body.data.scope, 'admin');
       assert.strictEqual(security.consumeToken(byPassword.body.data.verify_token, user, 'admin').method, 'password');
 
-      // sensitive 與 admin 是不同範圍：兩邊的權杖都不能互相頂替。
       const sensitive = await verify(ctx, { scope: 'sensitive', method: 'password', password: 'Passw0rd123' });
       assert.throws(
         () => security.consumeToken(sensitive.body.data.verify_token, user, 'admin'),
@@ -240,7 +307,6 @@ module.exports = {
         (err) => err.code === 'VERIFICATION_REQUIRED'
       );
 
-      // 直接偽造一份以交易密碼簽發的 admin 權杖，仍不得通行。
       const forged = h.verifyTokenFor({ user: ctx.user, sid: ctx.session.sid, scope: 'admin', method: 'pin' });
       assert.throws(() => security.consumeToken(forged, user, 'admin'), (err) => err.code === 'VERIFICATION_REQUIRED');
     }],
@@ -343,7 +409,6 @@ module.exports = {
       assert.strictEqual(res.body.data.revoked, 2);
       assert.strictEqual(res.body.data.signed_out_current, false);
       assert.strictEqual(prisma.rows('user_sessions').filter((s) => s.revoked_at == null).length, 1);
-      // 沒有裝置代碼的舊 Token 以時間點一併作廢。
       assert.ok(prisma.rows('user_security')[0].tokens_valid_after);
     }],
 

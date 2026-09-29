@@ -155,6 +155,42 @@ const tests = [
     assert.strictEqual(replay.body.code, 'OAUTH_CODE_INVALID');
   }],
 
+  ['LINE：同一組一次性碼併發登入並綁定時只會簽發一次登入', async () => {
+    enableAll();
+    const user = h.addUser({ email: 'member@example.com', password: PASSWORD });
+    const code = await lineCode();
+
+    const results = await h.concurrently(
+      h.holdOAuthReads(4),
+      Array.from({ length: 4 }, () => linkLogin({ code, email: 'member@example.com', password: PASSWORD }))
+    );
+    assert.strictEqual(results.filter((r) => r.status === 200).length, 1);
+    assert.ok(results.filter((r) => r.status !== 200).every((r) => ['OAUTH_CODE_INVALID', 'IDENTITY_TAKEN'].includes(r.body.code)));
+    assert.strictEqual(h.prisma.rows('user_sessions').length, 1);
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 0);
+    assert.strictEqual(h.prisma.rows('user_identities').length, 1);
+    assert.strictEqual(Number(h.prisma.rows('user_identities')[0].user_id), user.user_id);
+  }],
+
+  ['LINE：一次性碼在處理途中跨過到期時間，已寫入綁定的請求仍完成登入', async () => {
+    enableAll();
+    const user = h.addUser({ email: 'member@example.com', password: PASSWORD });
+    const code = await lineCode();
+
+    const restore = h.expireOAuthResultsDuring(h.api('services/auth-identities'), 'link');
+    let res;
+    try {
+      res = await linkLogin({ code, email: 'member@example.com', password: PASSWORD });
+    } finally {
+      restore();
+    }
+    assert.strictEqual(res.status, 200, res.text);
+    assert.strictEqual(authToken.verify(res.body.data.token).userId, user.user_id);
+    assert.strictEqual(h.prisma.rows('user_identities').length, 1);
+    assert.strictEqual(h.prisma.rows('user_sessions').length, 1);
+    assert.strictEqual(h.prisma.rows('oauth_results').length, 0);
+  }],
+
   ['LINE：建立帳號時電子郵件已註冊（409）後，以同一組碼登入並綁定', async () => {
     enableAll();
     h.addUser({ email: 'member@example.com', password: PASSWORD });

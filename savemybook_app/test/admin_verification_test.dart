@@ -19,7 +19,6 @@ import 'package:savemybook_app/widgets/pin_pad.dart';
 
 const _password = 'Passw0rd123';
 
-/// 模擬伺服器：後台範圍只接受 scope=admin + method=password。
 MockClient fakeApi(List<Map<String, dynamic>> verifyCalls, {bool hasPassword = true}) {
   return MockClient((req) async {
     final path = req.url.path.replaceFirst('/api', '');
@@ -123,12 +122,11 @@ void main() {
       });
       await settle(tester);
 
-      // 已設定交易密碼也不該出現 PIN 面板或「改用登入密碼」的切換。
       expect(find.byType(IdentityVerificationSheet), findsOneWidget);
       expect(find.byType(PinEntryPanel), findsNothing);
       expect(find.text(S.usePasswordInstead), findsNothing);
       expect(find.text('調整管理員權限前，請先驗證身分'), findsOneWidget);
-      expect(find.text(S.appNeverStoresPasswordUsedOnly), findsOneWidget);
+      expect(find.text(S.password2), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), 'wrong-password');
@@ -169,10 +167,8 @@ void main() {
       await settle(tester);
       expect(first.value, 'admin-token');
 
-      // 後台驗證過不代表一般敏感操作也驗過。
       expect(VerificationService.cachedSensitiveToken, isNull);
 
-      // 同一範圍在效期內直接沿用快取，不再打一次驗證。
       final again = _Result();
       await tester.runAsync(() async {
         again.watch(VerificationService.requireAdminPassword(navKey.currentContext!));

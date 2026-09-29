@@ -578,7 +578,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     onClose != null ? onClose() : Navigator.of(context).maybePop();
   }
 
-  // 已有即時連線時，定時輪詢只作為備援；推送通知與使用者操作一律立即取得。
   Future<void> _poll({bool force = false, bool scheduled = false}) async {
     if (scheduled && RealtimeService.instance.connected.value && DateTime.now().difference(_polledAt) < _fallbackInterval) {
       return;
@@ -1612,11 +1611,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             controller: _controller,
             focusNode: _focus,
             enabled: inputEnabled,
-            disabledHint: _blocked
-                ? S.blockedUser
-                : _partnerUnavailable
-                    ? S.accountCanTReceiveMessagesRight
-                    : null,
             top: _buildInputTop(c),
             quickRepliesOpen: _quickRepliesOpen,
             onSend: _onSend,

@@ -19,9 +19,25 @@ const setup = async () => {
 module.exports = {
   name: '通行密鑰：登入',
   tests: [
-    ['伺服器已啟用時 status 回報 enabled', async () => {
+    ['伺服器已啟用時 status 回報 enabled、RP ID 與各平台是否可用', async () => {
       const res = await request('GET', '/api/auth/passkeys/status');
-      assert.deepStrictEqual(res.body, { success: true, data: { enabled: true } });
+      assert.deepStrictEqual(res.body, {
+        success: true,
+        data: { enabled: true, rp_id: 'savemybook.today', platforms: { ios: true, android: true } }
+      });
+    }],
+
+    ['PASSKEY_ORIGINS 沒有 Android 簽署金鑰時，status 回報 Android 不可用', async () => {
+      const { env } = h.api('config/env');
+      const origins = env.passkeyOrigins;
+      env.passkeyOrigins = ['https://savemybook.today'];
+      try {
+        const res = await request('GET', '/api/auth/passkeys/status');
+        assert.strictEqual(res.body.data.enabled, true, '舊版 App 只看 enabled，不可因此停用 iOS');
+        assert.deepStrictEqual(res.body.data.platforms, { ios: true, android: false });
+      } finally {
+        env.passkeyOrigins = origins;
+      }
     }],
 
     ['探索式登入：回應結構與密碼登入相同，登入紀錄記為 passkey', async () => {
@@ -137,21 +153,27 @@ module.exports = {
       assert.strictEqual(res.body.code, 'PASSKEY_CHALLENGE_INVALID');
     }],
 
-    ['來源、RP ID、使用者驗證或簽章不符時拒絕', async () => {
+    ['來源、RP ID、使用者驗證或簽章不符時拒絕，並在日誌記錄原因與驗證器旗標', async () => {
       const { authenticator } = await setup();
       const other = new h.Authenticator();
       const cases = [
-        { origin: 'https://savemybook.today.evil.example' },
-        { origin: 'https://api.savemybook.today.evil.example' },
-        { rpId: 'evil.example' },
-        { userVerified: false },
-        { signWith: other.privateKey }
+        [{ origin: 'https://savemybook.today.evil.example' }, 'PASSKEY_ORIGIN_NOT_ALLOWED', '來源不在 PASSKEY_ORIGINS'],
+        [{ origin: 'https://api.savemybook.today.evil.example' }, 'PASSKEY_ORIGIN_NOT_ALLOWED', '來源不在 PASSKEY_ORIGINS'],
+        [{ rpId: 'evil.example' }, 'PASSKEY_VERIFICATION_FAILED', 'RP ID'],
+        [{ userVerified: false }, 'PASSKEY_VERIFICATION_FAILED', 'UV=0'],
+        [{ signWith: other.privateKey }, 'PASSKEY_VERIFICATION_FAILED', '簽章不符']
       ];
-      for (const override of cases) {
+      for (const [override, code, logged] of cases) {
+        const name = Object.keys(override)[0];
         const options = (await loginOptions()).body.data.options;
-        const res = await login(authenticator.get(options, { ...override, counter: 100 }));
-        assert.strictEqual(res.status, 400, Object.keys(override)[0]);
-        assert.strictEqual(res.body.code, 'PASSKEY_VERIFICATION_FAILED', Object.keys(override)[0]);
+        let res;
+        const warnings = await h.captureWarnings(async () => {
+          res = await login(authenticator.get(options, { ...override, counter: 100 }));
+        });
+        assert.strictEqual(res.status, 400, name);
+        assert.strictEqual(res.body.code, code, name);
+        assert.strictEqual(warnings.length, 1, name);
+        assert.ok(warnings[0].includes('purpose=login passkey_id=') && warnings[0].includes(logged), warnings[0]);
       }
       assert.strictEqual(Number(prisma.rows('user_passkeys')[0].sign_count), 0, '失敗的驗證不更新計數');
       assert.strictEqual(prisma.rows('login_logs').length, 0);
@@ -188,25 +210,63 @@ module.exports = {
 
     ['偽造簽章不會觸發計數異常通知', async () => {
       const { authenticator } = await setup();
-      const res = await login(authenticator.get((await loginOptions()).body.data.options, {
-        counter: 0, signWith: new h.Authenticator().privateKey
-      }));
+      const options = (await loginOptions()).body.data.options;
+      let res;
+      await h.captureWarnings(async () => {
+        res = await login(authenticator.get(options, { counter: 0, signWith: new h.Authenticator().privateKey }));
+      });
       assert.strictEqual(res.body.code, 'PASSKEY_VERIFICATION_FAILED');
       assert.strictEqual(prisma.rows('notifications').length, 0);
     }],
 
-    ['已刪除的憑證、userHandle 不符都回 PASSKEY_NOT_RECOGNIZED', async () => {
+    ['只有伺服器查無憑證時才回 PASSKEY_NOT_RECOGNIZED（App 收到會要求系統刪除該通行密鑰）', async () => {
       const { authenticator } = await setup();
       const stranger = new h.Authenticator();
       stranger.userHandle = authenticator.userHandle;
       const unknown = await login(stranger.get((await loginOptions()).body.data.options));
       assert.strictEqual(unknown.body.code, 'PASSKEY_NOT_RECOGNIZED');
+    }],
 
+    ['userHandle 與伺服器推導的值不符時仍以憑證擁有者登入，只記錄警告', async () => {
+      const { user, authenticator } = await setup();
       const otherUser = h.signedIn();
-      const mismatch = await login(authenticator.get((await loginOptions()).body.data.options, {
-        userHandle: h.api('lib/webauthn').userHandleText(otherUser.user.user_id)
-      }));
-      assert.strictEqual(mismatch.body.code, 'PASSKEY_NOT_RECOGNIZED');
+      let res;
+      const warnings = await h.captureWarnings(async () => {
+        res = await login(authenticator.get((await loginOptions()).body.data.options, {
+          userHandle: h.api('lib/webauthn').userHandleText(otherUser.user.user_id)
+        }));
+      });
+      assert.strictEqual(res.status, 200, res.text);
+      assert.strictEqual(h.authToken.verify(res.body.data.token).userId, user.user_id, '擁有者以 credential_id 對應的資料列為準');
+      assert.ok(warnings.some((w) => w.includes('userHandle 不符')));
+    }],
+
+    ['Android 跨裝置登入回傳字串 "null" 的 userHandle 時照常登入', async () => {
+      const { authenticator } = await setup();
+      let res;
+      const warnings = await h.captureWarnings(async () => {
+        res = await login(authenticator.get((await loginOptions()).body.data.options, { userHandle: 'null' }));
+      });
+      assert.strictEqual(res.status, 200, res.text);
+      assert.deepStrictEqual(warnings, []);
+    }],
+
+    ['更換 JWT_SECRET 後，先前註冊的通行密鑰仍可登入', async () => {
+      const { user, authenticator } = await setup();
+      const { env } = h.api('config/env');
+      const secret = env.jwtSecret;
+      env.jwtSecret = 'rotated-secret-0123456789012345678901234567890';
+      try {
+        let res;
+        await h.captureWarnings(async () => {
+          res = await login(authenticator.get((await loginOptions()).body.data.options));
+        });
+        assert.strictEqual(res.status, 200, res.text);
+        assert.strictEqual(h.authToken.verify(res.body.data.token).userId, user.user_id);
+        assert.strictEqual(prisma.rows('user_passkeys').length, 1);
+      } finally {
+        env.jwtSecret = secret;
+      }
     }],
 
     ['停權帳號無法以通行密鑰登入', async () => {

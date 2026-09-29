@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../models/ai.dart';
+import '../../../models/ai_quality.dart';
 import '../../../services/api_service.dart';
 import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
@@ -13,6 +14,8 @@ import '../../../widgets/state_views.dart';
 import '../admin_layout.dart';
 import 'ai_cost_chart.dart';
 import 'ai_labels.dart';
+import 'ai_period_picker.dart';
+import 'ai_quality_card.dart';
 import '../../../i18n/strings.dart';
 
 class AiUsageTab extends StatefulWidget {
@@ -30,6 +33,7 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
   String _period = 'month';
   AiUsageReport? _report;
   AiCostChartData? _chart;
+  AiQualityReport? _quality;
   String? _error;
   bool _loading = true;
   int _seq = 0;
@@ -46,10 +50,13 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
   Future<void> _load({bool showLoading = true}) async {
     final seq = ++_seq;
     if (showLoading) setState(() => _loading = true);
+    final qualityFuture = _api.fetchAiQuality(_period);
     final result = await _api.fetchAiUsage(_period);
+    final quality = await qualityFuture;
     if (!mounted || seq != _seq) return;
     setState(() {
       _loading = false;
+      _quality = quality.data;
       if (result.isOk && result.data != null) {
         _report = result.data;
         _chart = AiCostChartData.from(result.data!.daily);
@@ -78,7 +85,7 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
         children: [
           Padding(
             padding: frame.inset(const EdgeInsets.fromLTRB(16, 14, 16, 4), maxWidth: 1200),
-            child: Align(alignment: Alignment.centerLeft, child: _periodPicker(c)),
+            child: Align(alignment: Alignment.centerLeft, child: AiPeriodPicker(period: _period, onChanged: _setPeriod)),
           ),
           Expanded(
             child: SwitchIn(
@@ -114,6 +121,7 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
   List<Widget> _sections(AppColors c, AiUsageReport report, AdminFrame frame) {
     final chart = AiCostChart(data: _chart!, height: frame.isWide ? 230 : 180);
     final pending = report.pendingReviews > 0 ? _pendingBanner(c, report.pendingReviews) : null;
+    final unreviewed = report.unreviewedListings > 0 ? _unreviewedBanner(c, report.unreviewedListings) : null;
     final widgets = <Widget>[];
     void add(Widget w) {
       widgets.add(Padding(
@@ -134,6 +142,7 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
         ),
       ));
       if (pending != null) add(pending);
+      if (unreviewed != null) add(unreviewed);
       add(chart);
       add(AdminColumns(gap: 14, spacing: 14, columns: [
         [_featureCard(c, report)],
@@ -143,65 +152,27 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
         [_topUsersCard(c, report)],
         [_errorsCard(c, report)],
       ]));
+      if (_quality != null) add(AiQualityCard(report: _quality!));
     } else {
       add(_budgetCard(c, report.summary));
       add(_statGrid(c, report.summary, columns: 2));
       if (pending != null) add(pending);
+      if (unreviewed != null) add(unreviewed);
       add(chart);
       add(_featureCard(c, report));
       add(_providerCard(c, report));
       add(_topUsersCard(c, report));
       add(_errorsCard(c, report));
+      if (_quality != null) add(AiQualityCard(report: _quality!));
     }
     return widgets;
-  }
-
-  Widget _periodPicker(AppColors c) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 440),
-      child: Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: c.categoryChip, borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          for (final p in AiLabels.periods)
-            Expanded(child: PressableScale(
-              scale: 0.95,
-              onTap: () => _setPeriod(p),
-              child: AnimatedContainer(
-                duration: Motion.base,
-                curve: Motion.standard,
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
-                decoration: BoxDecoration(
-                  color: _period == p ? c.card : Colors.transparent,
-                  borderRadius: BorderRadius.circular(9),
-                  boxShadow: _period == p ? [BoxShadow(color: c.shadow.withValues(alpha: 0.08), blurRadius: 4, offset: const Offset(0, 1))] : null,
-                ),
-                alignment: Alignment.center,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    AiLabels.period(p),
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: _period == p ? FontWeight.bold : FontWeight.w500,
-                      color: _period == p ? c.textPrimary : c.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-            )),
-        ],
-      ),
-    ),
-    );
   }
 
   Widget _budgetCard(AppColors c, AiUsageSummary s) {
     final hasBudget = s.monthlyBudgetUsd > 0;
     final ratio = hasBudget ? s.budgetUsedRatio : 0.0;
-    final tone = ratio >= 1 ? c.danger : (ratio >= 0.8 ? c.warning : c.accent);
+    final warnAt = s.hasReserve ? s.memberBudgetUsd / s.monthlyBudgetUsd : 0.8;
+    final tone = ratio >= 1 ? c.danger : (ratio >= warnAt ? c.warning : c.accent);
     final projectedOver = hasBudget && s.projectedMonthCostUsd > s.monthlyBudgetUsd;
 
     return AppCard(
@@ -256,6 +227,15 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
+                if (s.hasReserve) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    S.memberFeatureCapP0(formatUsd(s.memberBudgetUsd)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  ),
+                ],
                 const SizedBox(height: 2),
                 Row(
                   children: [
@@ -343,10 +323,8 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
             alignment: Alignment.centerLeft,
             child: Text(value, maxLines: 1, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary)),
           ),
-          if (detail != null) ...[
-            const SizedBox(height: 2),
-            Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.textHint)),
-          ],
+          const SizedBox(height: 2),
+          Text(detail ?? ' ', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: c.textHint)),
         ],
       ),
     );
@@ -374,6 +352,31 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
             ),
           ),
           Icon(Icons.chevron_right_rounded, color: c.iconInactive),
+        ],
+      ),
+    );
+  }
+
+  Widget _unreviewedBanner(AppColors c, int count) {
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(color: c.danger.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+            child: Icon(Icons.gpp_maybe_outlined, size: 18, color: c.danger),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              S.p0ListingsSaleNotReviewedOver(count),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary),
+            ),
+          ),
         ],
       ),
     );
@@ -407,6 +410,7 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
     required Color color,
     required String value,
     String? valueDetail,
+    double detailWidth = 64,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -452,9 +456,15 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
               ),
               if (valueDetail != null) ...[
                 const SizedBox(width: 10),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 64),
-                  child: Text(valueDetail, textAlign: TextAlign.end, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                SizedBox(
+                  width: detailWidth,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(valueDetail, maxLines: 1, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -522,11 +532,20 @@ class _AiUsageTabState extends State<AiUsageTab> with AutomaticKeepAliveClientMi
               ratio: maxCost > 0 ? p.costUsd / maxCost : (maxRequests > 0 ? p.requests / maxRequests : 0),
               color: AiLabels.providerColor(c, p.provider),
               value: formatUsd(p.costUsd),
-              valueDetail: S.p0CallsP1Ms(formatCount(p.requests), p.avgLatencyMs),
+              valueDetail: _latencyDetail(p),
+              detailWidth: 168,
             ),
         ],
       ),
     );
+  }
+
+  static String _latencyDetail(AiProviderUsage p) {
+    final calls = formatCount(p.requests);
+    final avg = p.avgLatencyMs;
+    final p95 = p.p95LatencyMs;
+    if (avg == null || p95 == null) return S.p0Calls(calls);
+    return S.p0CallsAvgP1MsP95(calls, avg, p95);
   }
 
   Widget _topUsersCard(AppColors c, AiUsageReport report) {

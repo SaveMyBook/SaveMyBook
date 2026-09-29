@@ -108,7 +108,7 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
     if (wallet.email.isEmpty) return;
     Clipboard.setData(ClipboardData(text: wallet.email));
     HapticFeedback.selectionClick();
-    showAppSnackBar(context, S.copied('Email'));
+    showAppSnackBar(context, S.copied(S.email));
   }
 
   @override
@@ -393,7 +393,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                 const SizedBox(height: 16),
                 AppTextField(
                   controller: amountController,
-                  hint: S.amountUp2Decimals,
+                  hint: S.amount2,
                   errorText: amountError,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
@@ -578,7 +578,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                           ? null
                           : () {
                               Clipboard.setData(ClipboardData(text: wallet.email));
-                              showAppSnackBar(context, S.copied('Email'));
+                              showAppSnackBar(context, S.copied(S.email));
                             },
                       child: Row(
                         children: [

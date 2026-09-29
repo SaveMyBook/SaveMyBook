@@ -6,10 +6,12 @@ const push = require('./push');
 const sessions = require('./sessions');
 const audit = require('./audit');
 const aiConsent = require('./ai/consent');
+const listingAdoption = require('./ai/listing-adoption');
+const recommendationEvents = require('./recommendation-events');
 const supportAttachments = require('./support-attachments');
+const deposits = require('./book-deposits');
 const { ORDER_UNSETTLED_STATUSES } = require('../constants/domain');
-
-const GRACE_DAYS = 30;
+const { ACCOUNT_DELETION_GRACE_DAYS: GRACE_DAYS } = require('../constants/policy');
 
 const graceDeadline = (requestedAt) =>
   new Date(new Date(requestedAt).getTime() + GRACE_DAYS * 86400000);
@@ -42,12 +44,15 @@ const anonymize = async (userId) => {
       where: { seller_id: userId, status: { in: ['on_sale', 'reserved'] } },
       data: { status: 'removed', updated_at: new Date() }
     });
+    await deposits.retainForDeletedSeller(tx, userId);
 
     await tx.shopping_cart.deleteMany({ where: { user_id: userId } });
     await tx.favorites.deleteMany({ where: { user_id: userId } });
     await tx.user_qr_codes.deleteMany({ where: { user_id: userId } });
     await tx.notifications.deleteMany({ where: { user_id: userId } });
     await aiConsent.purgeUser(tx, userId);
+    await recommendationEvents.purgeUser(tx, userId);
+    await listingAdoption.purgeUser(tx, userId);
     await tx.$executeRaw`DELETE FROM user_identities WHERE user_id = ${userId}`;
     // 密碼雜湊已換成隨機值，登入方式一併回到「僅密碼」的狀態。
     await tx.$executeRaw`UPDATE users SET password_set = 1 WHERE user_id = ${userId}`;
@@ -136,7 +141,6 @@ const exportPasskeys = async (userId) => {
   }));
 };
 
-// 附件以效期七天的簽章網址提供，使用者可在匯出後自行下載。
 const exportTickets = async (userId) => {
   const tickets = await prisma.support_tickets.findMany({
     where: { user_id: userId },
@@ -153,7 +157,7 @@ const exportTickets = async (userId) => {
 };
 
 const exportData = async (userId) => {
-  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai, identities, passkeys] =
+  const [user, books, boughtOrders, soldOrders, wallet, disputes, reports, tickets, ai, recommendations, listingAssist, identities, passkeys] =
     await Promise.all([
       prisma.users.findUnique({
         where: { user_id: userId },
@@ -182,6 +186,8 @@ const exportData = async (userId) => {
       prisma.reports.findMany({ where: { reporter_id: userId } }),
       exportTickets(userId),
       aiConsent.exportUser(userId),
+      recommendationEvents.exportUser(userId),
+      listingAdoption.exportUser(userId),
       exportIdentities(userId),
       exportPasskeys(userId)
     ]);
@@ -198,6 +204,8 @@ const exportData = async (userId) => {
     reports,
     support_tickets: tickets,
     ai,
+    recommendations,
+    listing_assist: listingAssist,
     sign_in_methods: identities,
     passkeys
   };
@@ -234,6 +242,10 @@ const requestDeletion = async (userId, plain) => {
   const openOrders = await unsettledOrderCount(user.user_id);
   if (openOrders > 0) {
     throw badRequest(`尚有 ${openOrders} 筆進行中的訂單，請先完成或取消後再申請刪除`, 'OPEN_ORDERS');
+  }
+  const stored = await deposits.countForSeller(prisma, user.user_id);
+  if (stored > 0) {
+    throw badRequest(`尚有 ${stored} 本書籍存放於書櫃，請先至書櫃以 App 掃描 QR Code 取回後再申請刪除`, 'BOOKS_IN_CABINET');
   }
 
   // 重複申請沿用第一次的時間，否則緩衝期會被重新計算。

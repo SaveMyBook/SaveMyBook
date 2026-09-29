@@ -278,7 +278,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 已開始還原，期間系統暫停服務，完成後會自動恢復 }
+                  message: { type: string, example: 已開始還原，期間系統暫停服務，完成後將自動恢復 }
                   data:
                     type: object
                     properties:

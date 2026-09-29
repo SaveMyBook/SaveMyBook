@@ -8,9 +8,11 @@ const MOUNTS = [
   ['/api/books', './books'],
   ['/api/categories', './categories'],
   ['/api/cabinets', './cabinets'],
+  ['/api/device/v1', './device'],
   ['/api/favorites', './favorites'],
   ['/api/cart', './cart'],
   ['/api/orders', './orders'],
+  ['/api/cabinet-sessions', './cabinet-sessions'],
   ['/api/notifications', './notifications'],
   ['/api/chat', './chat'],
   ['/api/wallet', './wallet'],
@@ -24,6 +26,7 @@ const MOUNTS = [
   ['/api/push', './push'],
   ['/api/status', './status'],
   ['/api/ai', './ai'],
+  ['/kiosk', './kiosk'],
   ['/.well-known', './well-known'],
   ['/', './public']
 ];

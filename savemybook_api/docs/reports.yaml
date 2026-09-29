@@ -85,7 +85,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 檢舉已送出，我們會盡快處理 }
+                  message: { type: string, example: 檢舉已送出 }
                   data: { $ref: '#/components/schemas/Report' }
         '400':
           description: 參數錯誤，或檢舉對象不符合限制。
@@ -108,7 +108,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 你已經檢舉過了，我們正在處理中 }
+              example: { success: false, message: 此項目已檢舉，目前處理中 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/reports/against-me:

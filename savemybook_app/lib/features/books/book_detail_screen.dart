@@ -14,6 +14,7 @@ import '../../services/share_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
+import '../../widgets/app_buttons.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/favorite_button.dart';
 import '../../widgets/app_dialogs.dart';
@@ -25,6 +26,8 @@ import '../../widgets/buyer/fly_to_cart.dart';
 import '../orders/cart_screen.dart';
 import '../orders/widgets/sticky_pane.dart';
 import '../chat/chat_room_screen.dart';
+import '../selling/book_deposit_actions.dart';
+import '../cabinet/cabinet_entry.dart';
 import '../selling/edit_book_screen.dart';
 import '../home/home_screen.dart';
 import '../home/search_screen.dart';
@@ -58,6 +61,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   double? _distance;
   bool _locating = false;
   bool _gone = false;
+  bool _depositing = false;
 
   List<String> get _images => _book.imageUrls;
 
@@ -176,7 +180,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   bool get _purchasable => _book.status == 'on_sale' && !_book.isReservedByOthers;
 
-  // 直接購買單本書：不經購物車，付款驗證會顯示金額與付款後餘額。
   Future<void> _buyNow() async {
     if (_isBuying || _isAddingToCart) return;
     if (ApiService.authToken == null) {
@@ -209,21 +212,31 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       return;
     }
 
+    if (_book.inCabinet) {
+      final proceed = await confirmInCabinetPurchase(context);
+      if (!mounted) return;
+      if (!proceed) {
+        setState(() => _isBuying = false);
+        return;
+      }
+    }
+
     VerificationService.paymentSummary = PaymentSummary(
       amount: price,
       detail:
           S.booksTotal(1, price.toStringAsFixed(0)) +
           (known ? S.balanceAfterPaymentCoins((wallet.balance - price).toStringAsFixed(0)) : ''),
     );
-    String? error;
+    final ({String? error, bool readyForPickup}) result;
     try {
-      error = await _api.buyNow(_book.bookId);
+      result = await _api.buyNow(_book.bookId);
     } finally {
       VerificationService.paymentSummary = null;
     }
     if (!mounted) return;
     setState(() => _isBuying = false);
 
+    final error = result.error;
     if (error != null) {
       if (error.isNotEmpty) showAppSnackBar(context, error, isError: true);
       _loadDetail();
@@ -232,7 +245,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
     HapticFeedback.heavyImpact();
     _loadDetail();
-    final viewOrders = await showPaymentSuccess(context, total: price);
+    final viewOrders = await showPaymentSuccess(context, total: price, readyForPickup: result.readyForPickup);
     if (!mounted || viewOrders != true) return;
     Navigator.push(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
   }
@@ -250,7 +263,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final roomId = await runBusy(context, () => _api.openChatRoom(userId: _book.sellerId, bookId: _book.bookId));
     if (!mounted) return;
     if (roomId == null) {
-      showAppSnackBar(context, S.signStartChat, isError: true);
+      showAppSnackBar(context, S.couldNotOpenChatPleaseTry, isError: true);
       return;
     }
     Navigator.push(
@@ -380,6 +393,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 icon: Icons.auto_awesome_motion_rounded,
                 books: books,
                 heroPrefix: 'similar_${_book.bookId}',
+                inset: inset ? 16 : 0,
               ),
             ),
     );
@@ -422,7 +436,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       children: [
                         _buildImageCarousel(c),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _buildDetails(c)),
                         ),
                         _buildSimilar(inset: true),
@@ -716,7 +730,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     Widget? banner;
     final until = _book.reservedUntil;
 
-    if (_book.status != 'on_sale' && !_isOwnBook) {
+    if (_isOwnBook && _book.isDepositPaused) {
+      banner = _banner(
+        c,
+        key: 'deposit_paused',
+        color: c.warning,
+        icon: Icons.inventory_2_outlined,
+        title: S.salesPausedPleaseRetrieveBookFrom,
+      );
+    } else if (_book.status != 'on_sale' && !_isOwnBook) {
       banner = _banner(
         c,
         key: 'status',
@@ -739,7 +761,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         color: c.success,
         icon: Icons.verified_rounded,
         title: S.sellerHoldingUntilP0(_formatDeadline(until)),
-        subtitle: S.checkOutBeforeHoldEndsOther,
       );
     }
 
@@ -759,7 +780,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     required Color color,
     required IconData icon,
     required String title,
-    String? subtitle,
   }) {
     return Container(
       key: ValueKey(key),
@@ -777,19 +797,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.35)),
-                ],
-              ],
+            child: Text(
+              title,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
             ),
           ),
         ],
@@ -799,18 +809,23 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildTitleRow(AppColors c) {
     const actionSize = 40.0;
+    final lineH = MediaQuery.textScalerOf(context).scale(24) * 1.25;
+    final topInset = math.max(0.0, (actionSize - lineH) / 2);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(
-            _book.title,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: c.textPrimary,
-              height: 1.25,
-              leadingDistribution: TextLeadingDistribution.even,
+          child: Padding(
+            padding: EdgeInsets.only(top: topInset),
+            child: Text(
+              _book.title,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: c.textPrimary,
+                height: 1.25,
+                leadingDistribution: TextLeadingDistribution.even,
+              ),
             ),
           ),
         ),
@@ -891,7 +906,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       ('ISBN', _book.isbn.trim(), true),
       (S.listed3, _book.createdAt.trim(), false),
     ].where((r) => r.$2.isNotEmpty).toList();
-    final autoFilled = _book.autoFilledFields.any((f) => f != 'description');
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -919,10 +933,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               ],
             ),
           ],
-          if (autoFilled) ...[
-            const SizedBox(height: 12),
-            Text(S.someDetailsWereFilledAutomaticallyFrom, style: TextStyle(fontSize: 12, color: c.textHint)),
-          ],
         ],
       ),
     );
@@ -935,28 +945,29 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Widget _buildDescription(AppColors c) {
-    final source = !_book.autoFilledFields.contains('description')
-        ? null
-        : _book.aiWrittenDescription
-            ? S.summarizedByAiFromBookRecords
-            : S.filledFromIsbnRecord;
+    final source = _book.autoFilledFields.contains('description') && _book.aiWrittenDescription
+        ? S.summarizedByAiFromBookRecords
+        : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           children: [
             Text(S.aboutBook, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
-            const Spacer(),
-            if (source != null)
-              Flexible(
+            if (source != null) ...[
+              const SizedBox(width: 12),
+              Expanded(
                 child: Text(
                   source,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                   style: TextStyle(fontSize: 12, color: c.textHint),
                 ),
               ),
+            ],
           ],
         ),
         const SizedBox(height: 8),
@@ -975,14 +986,24 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.storage_rounded, size: 18, color: c.accent),
-              const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  _book.cabinetName.isEmpty ? S.faqCatCabinet : _book.cabinetName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(Icons.storage_rounded, size: 18, color: c.accent),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _book.cabinetName.isEmpty ? S.faqCatCabinet : _book.cabinetName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               if (_hasCoordinates) ...[const SizedBox(width: 8), _buildDistanceChip(c)],
@@ -991,14 +1012,24 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
           if (_book.cabinetAddress.isNotEmpty) ...[
             const SizedBox(height: 8),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(Icons.location_on_outlined, size: 16, color: c.iconInactive),
-                const SizedBox(width: 6),
                 Flexible(
-                  child: Text(
-                    _book.cabinetAddress,
-                    style: TextStyle(fontSize: 13, height: 1.4, color: c.textSecondary),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 1),
+                        child: Icon(Icons.location_on_outlined, size: 16, color: c.iconInactive),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          _book.cabinetAddress,
+                          style: TextStyle(fontSize: 13, height: 1.4, color: c.textSecondary),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -1034,9 +1065,96 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               ],
             ),
           ],
+          if (!_isOwnBook && _book.inCabinet) ...[
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Icon(Icons.inventory_2_outlined, size: 16, color: c.success),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    S.bookLockerCanCollectedRightAfter,
+                    style: TextStyle(fontSize: 13, height: 1.4, fontWeight: FontWeight.w600, color: c.success),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (_isOwnBook && _book.depositKnown && (_book.isDeposited || _book.canRetrieve || _book.canRegisterDeposit)) _buildDepositRow(c),
         ],
       ),
     );
+  }
+
+  Widget _buildDepositRow(AppColors c) {
+    final deposit = _book.deposit;
+    final location = _book.cabinetLocation;
+    final retrieving = _book.isDeposited || _book.canRetrieve;
+    final pending = _book.hasPendingManualReport;
+    final door = location != null && location.door.isNotEmpty ? location.door : deposit?.door;
+    final stored = [
+      if (deposit != null) storedDaysText(deposit.daysStored) else if (location != null && location.cabinetName.isNotEmpty) location.cabinetName,
+      if (door != null && door.isNotEmpty) CabinetMessages.door(door),
+    ].join('・');
+    final text = pending ? S.manualReportAwaitingConfirmation : (stored.isNotEmpty ? stored : S.notYetLocker);
+    final label = retrieving
+        ? cabinetActionLabel(_book.retrievalAccess, CabinetAction.retrieve)
+        : cabinetActionLabel(_book.cabinetAccess, CabinetAction.preDeposit);
+    final button = SmallActionButton(label: label, filled: true, onTap: pending ? null : _depositAction);
+    final info = [
+      Icon(
+        pending ? Icons.hourglass_top_rounded : Icons.inventory_2_outlined,
+        size: 16,
+        color: pending ? c.warning : (retrieving ? c.accent : c.iconInactive),
+      ),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Text(
+          text,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 13, height: 1.4, color: c.textSecondary),
+        ),
+      ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        children: [
+          Divider(height: 1, color: c.divider),
+          const SizedBox(height: 10),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (SmallActionButton.widthOf(context, label) <= constraints.maxWidth * 0.45) {
+                return Row(children: [...info, const SizedBox(width: 8), button]);
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: info),
+                  const SizedBox(height: 8),
+                  Align(alignment: AlignmentDirectional.centerEnd, child: IntrinsicWidth(child: button)),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _depositAction() async {
+    if (_depositing) return;
+    _depositing = true;
+    final sent = _book.isDeposited || _book.canRetrieve
+        ? await confirmBookRetrieval(context, _book)
+        : await confirmBookDeposit(context, _book);
+    _depositing = false;
+    if (sent && mounted) _loadDetail();
   }
 
   Widget _buildDistanceChip(AppColors c) {
@@ -1129,6 +1247,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   Future<void> _openEdit() async {
+    if (!_book.depositKnown) {
+      await runBusy(context, _loadDetail);
+      if (!mounted || _gone) return;
+    }
     await Navigator.push(context, MaterialPageRoute(builder: (_) => EditBookScreen(book: _book)));
     if (mounted) _loadDetail();
   }
@@ -1165,7 +1287,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
 
     if (_isOwnBook) {
-      // 只有販售中（未被預約保留）與已下架的書可以編輯；已預訂、已售出、已完成的書改顯示目前狀態。
       final canEdit = _book.status == 'removed' || (_book.status == 'on_sale' && !_book.isHeld);
       final lockedStatus = _book.ownerStatusText;
       return Container(
@@ -1280,7 +1401,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       strong = false;
       onTap = _openCart;
     } else {
-      // 可直接購買時，加入購物車改為次要樣式，讓「直接購買」成為主要動作。
       key = 'add';
       label = S.addCart;
       icon = Icons.add_shopping_cart_rounded;

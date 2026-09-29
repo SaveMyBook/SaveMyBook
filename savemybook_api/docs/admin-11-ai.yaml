@@ -7,8 +7,8 @@ tags:
       | 端點 | 權限 |
       | --- | --- |
       | 設定、連線測試 | `can_manage_system` |
-      | 用量報表 | `can_view_stats` 或 `can_manage_system` |
-      | 上架審核 | `can_manage_content` |
+      | 用量報表、處理結果統計、品質報表 | `can_view_stats` 或 `can_manage_system` |
+      | 上架審核、ISBN 書目快取 | `can_manage_content` |
 
       API 金鑰只能在伺服器環境變數設定（`DEEPSEEK_API_KEY`、`GEMINI_API_KEY`、`OPENAI_API_KEY`），
       後台僅能看到 `key_configured`。服務商會更改模型名稱與價格，因此模型與單價可由管理員修改；
@@ -17,17 +17,69 @@ tags:
       **語意檢索**：書籍顧問、個人推薦與 AI 客服以「關鍵字（BM25）＋語意向量」混合檢索，兩份排名以 RRF 合併。
       向量模型依序使用 OpenAI `text-embedding-3-small`（512 維）或 Gemini `gemini-embedding-001`（768 維），
       取決於伺服器設定了哪一把金鑰，不受各功能選用的服務商影響。向量存於 `ai_embeddings`，
-      伺服器每 10 分鐘在背景補齊新增或變更的書籍與客服知識，少量新書也會在查詢時即時補算；更換向量模型時自動重建。
-      嵌入費用記入用量報表的 `embedding` 功能。
+      伺服器每 10 分鐘在背景補齊新增或變更的書籍與客服知識，少量新書也會在查詢時即時補算（書籍顧問與 AI 客服不等待，改在背景補齊）；
+      更換向量模型時自動重建。
+      嵌入費用記入用量報表的 `embedding` 功能。AI 總開關關閉、未設定上述金鑰或嵌入服務無法使用時，自動改用純關鍵字檢索。
+      嵌入服務發生系統性錯誤（`AUTH`、`QUOTA`、`SERVER`、`TIMEOUT`、`NETWORK`、`RATE_LIMITED`、`MODEL_NOT_FOUND`，
+      或回傳的向量筆數、維度不符）時暫停呼叫 5 分鐘；背景同步與使用者查詢分開計算，其中一邊暫停不影響另一邊。
+      其他錯誤（例如 `BAD_REQUEST`、個別文件得到零向量）只讓該次改用關鍵字檢索，同一邊連續 3 次才暫停；
+      使用者查詢的向量最多等待 2.5 秒，逾時只讓該次改用關鍵字檢索，不計入暫停；
+      背景同步失敗的那批文件 30 分鐘內不再重送，其餘文件照常同步。
 
       **書籍資料補齊**（`enrich`）：賣家未填簡介、作者、出版社或出版日期時，上架後在背景依 ISBN 查詢書目補上；
+      ISBN 格式或檢查碼錯誤時不查詢。書目來源只採用登錄的 ISBN（10 碼與 13 碼互通）屬於同一本書的結果，
+      書名也須與刊登相符（去除副標題與版次標示後，比對包含關係或相近程度，簡繁字形視為相同；
+      兩邊都標示集數、上中下冊或版次而數字不同時視為不符）；
+      所有來源的書名都不符時不寫入、不呼叫模型，也不上網查詢，記錄為不符。
       簡介在 AI 與「上架輔助」開啟時由上架輔助的服務商依書目來源整理成繁體中文，否則使用清理過的來源文字。
-      Google Books 與 Open Library 查無簡介（或暫時無法查詢）且上架輔助開啟網路搜尋時，改由模型依 ISBN 上網查詢；
-      模型須確認網頁上的 ISBN 相符並附上來源網頁才會採用，每本書計一次網路搜尋費用。
-      既有書籍由排程每 30 分鐘補齊一批（每批 20 本）；查無資料的書 30 天後再查一次，外部服務暫時無法使用時下一批重試。
+      Google Books 與 Open Library 查無簡介（或暫時無法查詢）且上架輔助開啟網路搜尋時，改由模型依 ISBN 上網查詢（不提供刊登的書名）；
+      模型須確認網頁上的 ISBN 相符、回報的書名與刊登相符並附上來源網頁才會採用，每本書計一次網路搜尋費用。
+      來源以服務商實際引用的網頁為準（Gemini 的引用網址為轉址連結，網域取自引用標題），沒有引用標註時才採用模型列出的網頁。
+      寫入書籍頁前，簡介中含手機或市話號碼、電子郵件、通訊軟體帳號或站外網址（含 cite.com.tw 這類不帶 http 的網域）的句子會被刪除，
+      並清除書店促銷、活動訊息與重複的書名；清理後少於 40 字或超過 1,000 字的簡介不採用，也不截斷。
+      作者與出版社含這類內容時不採用。只寫入仍然空白、書籍仍在販售中，且 ISBN 與書名在查詢期間沒有變更的欄位，交易中或已下架的書不會被更動。
+      賣家或管理員修改或清空過的欄位不再自動補齊；修改 ISBN 時，沒有修改過的自動補齊欄位會清空，並依新的 ISBN 重新補齊，
+      先前清空或修改過的自動補齊欄位（舊 ISBN 的資料）恢復補齊。同一本書 24 小時內只立即重新補齊一次，之後的變更由排程處理。
+      既有書籍由排程每 30 分鐘補齊一批（每批 20 本），先處理從未查過的書。查無資料或只補齊部分欄位的書依序在 1、7、30 天後重試，
+      最多重試 3 次，網路搜尋格式錯誤等已計費的失敗同樣計入；書名不符的書不重試，直到修改 ISBN 或書名。
+      外部服務暫時無法使用且沒有產生費用時不計入次數，1 小時後重試，並停止該批其餘書籍的處理。
+      簡介的簡體字比例偏高、含有書目來源沒有的數字，以及網路搜尋沒有引用標註等情況目前只記錄在補齊紀錄，不影響寫入。
+      補齊前先查 ISBN 共用快取（見下方）：快取有簡介時直接沿用，不再改寫或搜尋；快取記錄查無結果時 30 天內不再搜尋。
+      查到的書目、依來源整理的簡介，以及有引用來源的網路搜尋結果會寫回快取。
 
-      **爭議分析**（`admin_assist`）：`POST /api/admin/disputes/{id}/ai-analysis`，見該端點說明。AI 總開關關閉、未設定上述金鑰或嵌入服務失敗時，
-      自動改用純關鍵字檢索（失敗後暫停重試 5 分鐘）。
+      **ISBN 共用快取**：同一個 ISBN 的書目欄位、簡介、定價與來源，供上架輔助與書籍資料補齊共用，避免不同賣家上架同一本書時重複付費搜尋。
+      以 13 碼 ISBN 為鍵；簡介與定價都有時保存 180 天，只有部分資料時 30 天，查無結果 30 天（服務商確實執行了網路搜尋才記錄查無結果）。只保存可查證的結果：書目來源、
+      依來源整理的簡介，以及有服務商引用來源且書名與刊登相符的網路搜尋結果；上架輔助的請求附有書況說明或照片時，
+      模型整理的簡介與查到的定價不保存。書名與快取不符的書不沿用快取。
+      已存的內容不會被之後的結果覆寫，上架輔助或書目補齊的提示詞變更後舊快取一律失效；快取內容有誤時由管理員清除，下次查詢時重新產生。
+      過期的快取每日清除。
+
+      **爭議分析**（`admin_assist`）：`POST /api/admin/disputes/{id}/ai-analysis`，見該端點說明。
+
+      **備援服務商與暫停呼叫**：各功能可設定 `fallback_provider`（書籍顧問的第二段沿用書籍顧問的設定）。
+      主要服務商發生服務中斷或設定類錯誤（內容遭阻擋、輸出格式錯誤或截斷除外）時，同一次請求改由備援服務商處理；
+      需要辨識照片或網路搜尋時，不支援該能力的備援服務商不會使用。同一服務商連續 3 次發生服務商錯誤、逾時、連線失敗、限流、
+      金鑰或額度錯誤時暫停呼叫 60 秒（互動功能因剩餘時間不足 8 秒而逾時者不計入），期間有備援時直接改用備援，
+      否則立即失敗並改用各功能的降級內容；期滿後只放行一個探測請求，同時進來的其他請求仍視為暫停，探測成功才恢復，失敗就再暫停。
+      暫停狀態只存在伺服器記憶體，重新啟動即歸零；管理員的連線測試不受暫停影響，結果也不計入連續失敗。
+      備援服務商會列入使用者同意說明的資料接收者（`GET /api/ai/status` 的 `providers_in_use`）。
+
+      **互動功能的整體時限**：AI 客服與書籍顧問自收到請求起有 25 秒的整體時限，同步的上架審核（編輯書籍、新增照片）同樣以 25 秒為上限；
+      剩餘時間不足時不送出請求，用量報表記一筆零費用的 `TIMEOUT`（說明為「剩餘時間不足，未送出請求」）；
+      暫停呼叫期間的請求記為零費用的 `SERVER`（說明為「服務商連續失敗，暫停呼叫」）。
+
+      **呼叫追蹤**：每筆用量紀錄帶有請求識別碼（同一個使用者動作的多次呼叫、備援與重試共用）、提示詞版本
+      （系統提示詞與使用者提示詞中固定指示句的 SHA-256 前 12 碼，改版後即不同）與處理結果：`ok` 採用輸出、`repaired` 輸出經修復後採用
+      （JSON 前後夾帶其他文字、格式重試後成功）、`degraded` 有回應但改用降級內容、`empty` 輸出清理後沒有可用內容、
+      `refused` 服務商拒絕處理、`failed` 其他失敗（原因見 `error_code`）、`not_sent` 沒有送出請求（剩餘時間不足、暫停呼叫、上架審核因預算用盡而略過）。
+      有輸出規格的呼叫另記錄驗證時捨棄的清單項目數與因型別不符而改用預設值的欄位數。嵌入呼叫另記錄發起的功能，文件索引更新記為 `index`，不歸屬任何功能。
+      每次功能處理另寫入一筆決策紀錄（只含代號、計數與布林值，保存 90 天），後台只能查看彙總統計，不提供任何一筆對話或使用者的明細。
+
+      **預算保留**：`limits.reserve_ratio`（預設 0.2）為保留給上架審核（`moderation`）與管理輔助（`admin_assist`）的比例。
+      其他功能（含嵌入與書籍資料補齊）在本月費用達「每月預算 ×（1 − 保留比例）」時停止，會員端回傳 503 `AI_BUDGET_EXCEEDED`；
+      上架審核與管理輔助可用到完整預算。本月費用達每月預算的 80% 與 100% 時，伺服器每 10 分鐘檢查一次，
+      以站內通知（`related_type` 為 `ai_budget`）告知所有具 `can_manage_system` 權限的管理員；每個門檻每月只通知一次，
+      同一次檢查跨過兩個門檻時只通知 100%。
 
 paths:
   /api/admin/ai/settings:
@@ -59,10 +111,15 @@ paths:
 
         - 單價（`input_per_m`、`cached_input_per_m`、`output_per_m`、`search_price_per_k`）為 0 ~ 1000 的數值
         - `search_free_per_month` 為 0 ~ 1000000 的整數
-        - `limits.daily_per_user.*` 為 0 ~ 10000 的整數，0 代表不限制
+        - `limits.daily_per_user.*` 為 0 ~ 10000 的整數，0 代表不限制。只計成功的呼叫；書籍顧問以訊息數計算，
+          第二段選書的呼叫（`book_chat_pick`）不計入。另外，已計費但失敗的呼叫（例如內容遭阻擋、輸出被截斷或格式不正確）
+          每人每日每項功能最多 10 次，達上限同樣回傳 429 `AI_DAILY_LIMIT`；上限為 0 時兩者都不限制
         - `limits.monthly_budget_usd` 為 0 ~ 100000，0 代表不設上限
+        - `limits.reserve_ratio` 為 0 ~ 0.9 的數值，保留給上架審核與管理輔助的預算比例；0 代表所有功能共用完整預算
         - 模型名稱符合 `^[A-Za-z0-9._:\-/]{1,80}$`
         - `features.*.provider` 為 `deepseek`、`gemini`、`openai` 或 null（null 代表使用 `default_provider`）
+        - `features.*.fallback_provider` 為 `deepseek`、`gemini`、`openai` 或 null（null 代表不使用備援）；
+          與實際使用的服務商相同或未設定金鑰時不會生效
 
         需 `X-Verify-Token`（`admin` 範圍，只接受帳號的登入密碼或通行密鑰），並寫入管理員操作紀錄（列出變更的欄位）。
       security: [{ bearerAuth: [] }]
@@ -99,10 +156,20 @@ paths:
       operationId: adminTestAiProvider
       tags: [admin-ai]
       description: |
-        以目前設定的模型送出極短的請求（要求回覆「連線成功」），用量記錄為 `test`。
-        服務商失敗時仍回傳 200，`ok` 為 false，`error` 為可讀的原因，例如「金鑰無效或權限不足」
-        「模型名稱不存在」「額度不足」「連線逾時」「尚未設定 API 金鑰」。
-        每位管理員 10 分鐘最多 20 次。
+        同時送出三項極短的請求，用量記錄為 `test`（每項各一筆）：
+
+        | `checks[].name` | 內容 | 通過條件 |
+        | --- | --- | --- |
+        | `text` | 要求回覆「連線成功」 | 有回覆文字 |
+        | `json` | 要求輸出 `{"status":"ok"}` | 回傳可解析的 JSON 物件且內容相符 |
+        | `image` | 附上一張紅色方塊圖片，詢問顏色 | 回覆含「紅」或 red；服務商不支援照片辨識時為 `skipped` |
+
+        `model` 可帶入尚未儲存的模型名稱（例如管理員剛修改、尚未按儲存），規則與設定相同（`^[A-Za-z0-9._:\-/]{1,80}$`），
+        不符合時回傳 400；未提供時使用已儲存的模型。測試不會改動設定，費用依已儲存的單價計算。
+
+        服務商失敗時仍回傳 200：`ok` 為所有未略過的項目皆通過，`error` 為第一個失敗項目的名稱與原因
+        （例如「JSON：回應格式不正確」「純文字：模型名稱不存在」「圖片辨識：回覆與測試圖片不符」）。`latency_ms` 與 `reply` 為文字項目的結果。
+        未設定金鑰時不送出請求，`checks` 為空陣列。每位管理員 10 分鐘最多 20 次。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -113,6 +180,7 @@ paths:
               required: [provider]
               properties:
                 provider: { type: string, enum: [deepseek, gemini, openai] }
+                model: { type: string, maxLength: 80, description: 尚未儲存的模型名稱；未提供時使用已儲存的模型。, example: gemini-3.1-flash-lite }
       responses:
         '200':
           description: 測試完成。
@@ -130,7 +198,16 @@ paths:
                       model: { type: string, example: gemini-3.1-flash-lite }
                       latency_ms: { type: integer, example: 820 }
                       reply: { type: string, example: 連線成功 }
-                      error: { type: string, example: 模型名稱不存在 }
+                      error: { type: string, example: 圖片辨識：回覆與測試圖片不符 }
+                      checks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name: { type: string, enum: [text, json, image] }
+                            status: { type: string, enum: [ok, failed, skipped] }
+                            latency_ms: { type: integer, example: 820 }
+                            error: { type: string, nullable: true, example: 回應格式不正確 }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
@@ -145,8 +222,16 @@ paths:
         期間以伺服器當地時間計算：`today` 為今日、`7d` 與 `30d` 含今日往前推、`month` 為本月 1 日起。
 
         費用於呼叫當下依設定的單價計算並記錄；網路搜尋只計超出每月免費額度的次數。
+        服務商已計費的失敗（內容遭阻擋、輸出被截斷或格式不正確）也記錄用量與費用，所有錯誤都記錄實際等待的時間。
         `daily` 一定包含期間內每一天（無用量的日期為 0）。`top_users` 最多 5 位，只提供公開會員編號。
         `projected_month_cost_usd` 依本月已經過的時間比例推估整月費用。
+        `by_provider` 的 `avg_latency_ms` 與 `p95_latency_ms` 只計算成功的呼叫，期間內沒有成功的呼叫時為 `null`。
+        `member_budget_usd` 為會員使用的功能可用的額度（每月預算扣除保留比例），不設預算時為 0。
+        `unreviewed_listings` 為在售超過 1 小時仍未完成上架審核的書籍數：AI 失敗或預算用盡而暫時放行、等待補審的書，
+        以及 7 天內上架但沒有任何審核紀錄的書（AI 上架審核關閉期間上架的書也計入）。不受 `period` 影響。
+
+        書籍顧問每則訊息的第一段（理解需求）記為 `book_chat`，第二段（選書）記為 `book_chat_pick`。
+        格式錯誤的 `error_detail` 只記錄輸出長度與結束原因，不含模型輸出內容。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -167,14 +252,108 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '503': { $ref: '#/components/responses/AiUnavailable' }
 
+  /api/admin/ai/decisions:
+    get:
+      summary: AI 處理結果統計
+      operationId: adminGetAiDecisions
+      tags: [admin-ai]
+      description: |
+        依決策紀錄與用量紀錄彙總，期間的算法同用量報表。只提供彙總數字，不含使用者、對話內容或請求識別碼。
+
+        `features` 固定包含 `support`、`book_chat`、`recommend`、`listing_assist`（期間內沒有紀錄時各項為 0），
+        期間內有其他功能的決策紀錄時附加在後。各功能的 `paths`：
+        - `support`：`answer` 模型回答、`guarded` 回覆含站外聯絡資料而改為固定說明、`passage` 改用檢索到的說明原文。
+        - `book_chat`：`clarify` 釐清需求、`picked` 模型挑書、`declined` 模型判斷沒有合適的書、`retrieval` 改用檢索排序、`popular` 查無相關書籍而改列熱門書。
+        - `recommend`：`generated` 已產生、`none` 模型沒有挑選任何候選書、`no_candidates` 沒有候選書。
+        - `listing_assist`：`model` 採用模型輸出、`bibliographic` 模型失敗而只帶入書目資料；上架第二步的精簡模式為 `condition` 依帶入的定價判斷書況與售價、`price` 沒有定價而改以網路搜尋查詢定價（搜尋失敗改以不搜尋重試時只判斷書況，旗標 `search_retry`）。
+        - `admin_assist`（爭議分析，期間內有紀錄時才列出）：路徑為建議，`refund`、`dismiss`、`mediate`、`need_more_info`。
+        - 各功能遭拒絕或失敗而沒有回應時的路徑為 null。
+
+        `flags` 為旗標成立的次數（例如 `support` 的 `handoff` 建議轉接、`handoff_forced` 由伺服器強制轉接、
+        `insufficient` 依據不足（沒有引用參考段落、平台概要或本人資料，或模型表示無法確認；釐清問題與平台以外的問題不計）、`follow_ups` 附有追問建議；
+        `book_chat` 的 `continued` 模型判斷延續前一輪、`inherited` 沿用前一輪的關鍵字與分類、`invalid_picks` 書單含無效代號、
+        `reply_unknown_title` 回覆的書名與書卡不符、`reply_price` 回覆提及價格、`reply_denies_books` 有書卡但回覆稱無相關書籍、
+        `reply_replaced` 回覆因上述違規改為固定說明（目前只記錄、不替換）；
+        `recommend` 的 `salvaged` 輸出被截斷時保留已完整輸出的項目；
+        `admin_assist` 的 `photos_skipped` 有照片未送出、`evidence_unseen` 有佐證照片卻一張都沒送出、`photo_refs` 觀察重點引用照片），
+        `averages` 為數量欄位的平均值（例如 `support` 的 `docs` 檢索段落數與 `cited` 引用段落數、`book_chat` 的 `candidates` 候選書數與 `fillers` 補位數、
+        `recommend` 的 `invalid` 無效代號數、`basis_dropped` 不在關聯清單內的依據數與 `templated` 模板理由數、
+        `admin_assist` 的 `invalid_photo_refs` 無效照片編號數）。
+
+        `prompt_versions` 依功能與提示詞版本統計呼叫次數、錯誤、降級與修復次數，以及期間內第一次與最後一次使用的時間，用來比較改版前後。
+        `format_errors` 依功能與服務商統計呼叫次數、輸出格式錯誤（`INVALID_OUTPUT`，不含輸出清理後沒有內容這類非格式問題）、
+        輸出被截斷（`INCOMPLETE`）、修復後採用的次數，以及輸出可用但有清單項目因格式不符被捨棄（`dropped`）、
+        有欄位因型別不符改用預設值（`defaulted`）的呼叫次數；不含嵌入、連線測試與沒有送出請求的紀錄，格式錯誤後重試的那次另計為一次呼叫。
+        `embedding_by_origin` 為嵌入費用的歸屬：`origin` 為發起的功能（`book_search` 一般書籍搜尋、`similar_books` 相似書籍），`index` 為文件索引更新（含請求中當場補算的文件向量），`unknown` 為追蹤欄位上線前、沒有記錄來源的用量。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: period
+          schema: { type: string, enum: [today, 7d, 30d, month], default: month }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminAiDecisions' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+
+  /api/admin/ai/quality:
+    get:
+      summary: AI 品質報表
+      operationId: adminGetAiQuality
+      tags: [admin-ai]
+      description: |
+        期間的計算方式同 `GET /api/admin/ai/usage`。各比例在分母為 0 時為 null（沒有樣本），不是 0。
+        只提供統計數字，不含任何使用者的對話內容。
+
+        - `moderation`：管理員在上架審核清單的決定，以及管理員從書籍管理恢復上架被背景審核直接駁回的書。
+          推翻「駁回」判定（背景審核直接駁回，或 AI 判定為 reject 後送人工），或核准時標示送審原因不成立（`unfounded`）才算推翻；
+          AI 建議人工檢視後核准不算。管理員更正自己先前的核准或駁回、改回在售待審中的書、賣家修改後重新審核通過都不計入。`by_category` 依原判定的類別分組（一件可屬於多個類別，
+          沒有類別時為 `unspecified`），`by_origin` 區分 AI（`ai`）與即時規則（`rules`）送審。
+        - `support`：期間內建立的 AI 客服對話中轉由客服人員處理的比例，以及助理訊息的評價（依評價時間）。
+        - `book_chat`：未附書籍的回覆比例（含追問使用者需求的回覆）與評價。
+        - `dispute_assist`：期間內裁決的爭議中，裁決前最後一次 AI 分析的建議與裁決結果一致的比例
+          （建議退款對應手動或自動退款、建議駁回對應駁回、建議協調處理對應協調結案；建議需要更多資訊不計入），以及管理員評為有幫助的比例。
+        - `recommendations`：AI 推薦與規則式推薦的曝光、點擊與點擊率，以及標示不感興趣的次數。
+        - `listing_assist`：帶回上架輔助權杖建立的書籍中，各欄位採用建議值的比例（出版日期與 ISBN 只比對數字；
+          與賣家輸入的 ISBN、書名相同的值不算建議；售價等於建議價，或等於價格表中賣家所選書況的建議價，都算採用）。
+        - `faqs_from_tickets`：由 AI 客服轉接的工單建立的常見問題數。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: period
+          schema: { type: string, enum: [today, 7d, 30d, month], default: month }
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/AdminAiQuality' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+
   /api/admin/ai/reviews:
     get:
       summary: 上架審核列表
       operationId: adminListAiReviews
       tags: [admin-ai]
       description: |
-        AI 判定需人工確認的書籍。書籍在審核期間 `is_approved` 為 false，不會出現在公開列表；
+        即時規則或 AI 判定需人工確認的書籍。書籍在審核期間 `is_approved` 為 false，不會出現在公開列表；
         賣家端的書籍物件帶 `review_status: pending`。最多回傳 200 筆，依建立時間遞減。
+        AI 審核通過與暫時放行、等待補審的紀錄不屬於人工審核，任何 `status` 都不會列出。
+        已核准（`approved`）的書之後編輯或新增照片時 AI 審核失敗，紀錄改為等待補審，不再列於此清單。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: query
@@ -203,12 +382,18 @@ paths:
       operationId: adminDecideAiReview
       tags: [admin-ai]
       description: |
-        - `approve`：`is_approved` 設為 true 並通知賣家。先前駁回而下架的書籍一併恢復上架。
+        - `approve`：`is_approved` 設為 true 並通知賣家。先前駁回而下架的書籍一併恢復上架；
+          書籍登記存放於書櫃且已逾期時，存書天數自恢復上架時重新起算，不再提醒賣家取回（與管理員恢復上架相同）。
         - `reject`：`is_approved` 維持 false，販售中的書籍改為 `removed`，通知賣家並附上 `note`。
-          駁回視同違規，賣家無法自行重新上架，須由管理員恢復上架。
+          駁回視同違規，賣家無法自行重新上架，須由管理員恢復上架；存書的書取回後不會自動恢復上架。
 
-        透過「強制下架／恢復上架」恢復上架時，未結的審核會一併標記為通過。
-        重複相同的處理回傳 409。寫入管理員操作紀錄。
+        `category` 為駁回原因的類別（僅 `reject`），記錄於審核紀錄的 `decision_reason`。
+        `unfounded` 為 true 表示送審原因不成立（僅 `approve`），計入品質報表的推翻比例。
+        每次處理都寫入一筆只新增不修改的審核事件（執行者、原判定、類別與可信度），供品質報表計算推翻比例；
+        核准或駁回先前已由管理員處理過的紀錄屬於管理員之間的更正，不計入。
+
+        透過「強制下架／恢復上架」恢復上架時，未結的審核會一併標記為通過；恢復的是背景審核直接駁回的書時計為推翻駁回判定。
+        重複相同的處理回傳 409；書籍沒有人工審核紀錄（含 AI 審核通過或等待補審）時回傳 404。寫入管理員操作紀錄。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -225,6 +410,12 @@ paths:
               properties:
                 decision: { type: string, enum: [approve, reject] }
                 note: { type: string, maxLength: 500, example: 請勿於描述留下站外聯絡方式 }
+                category:
+                  type: string
+                  nullable: true
+                  enum: [not_book, prohibited, adult, contact, misleading, price, source, other, null]
+                  description: 駁回原因的類別，僅 `reject` 採用。
+                unfounded: { type: boolean, default: false, description: 送審原因不成立，僅 `approve` 採用。 }
       responses:
         '200':
           description: 已處理。
@@ -247,8 +438,98 @@ paths:
         '409': { $ref: '#/components/responses/Conflict' }
         '503': { $ref: '#/components/responses/AiUnavailable' }
 
+  /api/admin/ai/isbn-cache/{isbn}:
+    parameters:
+      - in: path
+        name: isbn
+        required: true
+        schema: { type: string }
+        description: 10 或 13 碼 ISBN，可含連字號；檢查碼錯誤時回傳 400。
+    get:
+      summary: 查看 ISBN 書目快取
+      operationId: adminGetIsbnCache
+      tags: [admin-ai]
+      description: 回傳該 ISBN 目前保存的快取；沒有快取時 `data` 為 null。`current` 為 false 表示已過期或提示詞已變更，查詢時不會沿用。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf: [{ $ref: '#/components/schemas/AdminIsbnCache' }]
+                    nullable: true
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+    delete:
+      summary: 清除 ISBN 書目快取
+      operationId: adminClearIsbnCache
+      tags: [admin-ai]
+      description: 刪除該 ISBN 的快取（10 碼與 13 碼視為同一本書），之後的上架輔助與書籍資料補齊會重新查詢。有刪除時寫入管理員操作紀錄。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功；沒有快取時 `removed` 為 false。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已清除此 ISBN 的書目快取 }
+                  data:
+                    type: object
+                    properties:
+                      isbn: { type: string, example: '9789573317241' }
+                      removed: { type: boolean, example: true }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+
 components:
   schemas:
+    AdminIsbnCache:
+      type: object
+      properties:
+        isbn: { type: string, example: '9789573317241' }
+        status: { type: string, enum: [found, none], description: '`none` 表示查詢與網路搜尋都沒有結果。' }
+        fields:
+          type: object
+          nullable: true
+          properties:
+            title: { type: string, example: 挪威的森林 }
+            subtitle: { type: string }
+            author: { type: string, example: 村上春樹 }
+            publisher: { type: string, example: 時報出版 }
+            publish_date: { type: string, example: '2003-08-01' }
+            page_count: { type: integer, nullable: true }
+            language: { type: string }
+        description: { type: string }
+        description_source: { type: string, enum: [sources, mixed, ai, ''] }
+        original_price: { type: integer, nullable: true, example: 380 }
+        sources:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              url: { type: string }
+              domain: { type: string }
+        missing:
+          type: array
+          items: { type: string, enum: [description, author, publisher, publish_date, original_price] }
+          description: 30 天內網路搜尋過仍查不到的欄位，期間不再為這些欄位搜尋。
+          example: [original_price]
+        hits: { type: integer, description: 被沿用的次數, example: 3 }
+        current: { type: boolean, description: 仍在有效期限內且提示詞未變更 }
+        created_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+
     AiProviderPrices:
       type: object
       properties:
@@ -258,6 +539,12 @@ components:
         output_per_m: { type: number, description: 每百萬輸出 token 的美元單價, example: 1.5 }
         search_price_per_k: { type: number, description: 每千次網路搜尋的美元單價, example: 14 }
         search_free_per_month: { type: integer, description: 每月免費搜尋次數, example: 5000 }
+
+    AiFallbackProvider:
+      type: string
+      nullable: true
+      enum: [deepseek, gemini, openai]
+      description: 主要服務商無法使用時改用的服務商；null 代表不使用備援。
 
     AiSettings:
       type: object
@@ -278,22 +565,26 @@ components:
               properties:
                 enabled: { type: boolean }
                 provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
+                fallback_provider: { $ref: '#/components/schemas/AiFallbackProvider' }
             listing_assist:
               type: object
               properties:
                 enabled: { type: boolean }
                 provider: { type: string, nullable: true, enum: [deepseek, gemini, openai], example: gemini }
+                fallback_provider: { $ref: '#/components/schemas/AiFallbackProvider' }
                 web_search: { type: boolean, example: true }
             recommend:
               type: object
               properties:
                 enabled: { type: boolean }
                 provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
+                fallback_provider: { $ref: '#/components/schemas/AiFallbackProvider' }
             moderation:
               type: object
               properties:
                 enabled: { type: boolean }
                 provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
+                fallback_provider: { $ref: '#/components/schemas/AiFallbackProvider' }
                 action:
                   type: string
                   enum: [review, block]
@@ -303,17 +594,19 @@ components:
               properties:
                 enabled: { type: boolean }
                 provider: { type: string, nullable: true, enum: [deepseek, gemini, openai] }
+                fallback_provider: { $ref: '#/components/schemas/AiFallbackProvider' }
         limits:
           type: object
           properties:
             monthly_budget_usd: { type: number, description: 0 代表不設上限, example: 10 }
+            reserve_ratio: { type: number, minimum: 0, maximum: 0.9, description: 保留給上架審核與管理輔助的預算比例, example: 0.2 }
             daily_per_user:
               type: object
               properties:
                 support: { type: integer, example: 30 }
                 listing_assist: { type: integer, example: 15 }
                 recommend: { type: integer, example: 5 }
-                book_chat: { type: integer, example: 30 }
+                book_chat: { type: integer, description: 以訊息數計算, example: 20 }
 
     AdminAiSettingsPayload:
       type: object
@@ -343,6 +636,33 @@ components:
               description: 目前向量模型已建立的向量數，依種類區分（`book` 書籍、`knowledge` 客服知識段落）。
               additionalProperties: { type: integer }
               example: { book: 1240, knowledge: 86 }
+            coverage:
+              type: object
+              description: |
+                最近一次同步或查詢時，已建立最新向量的文件數與應建立的文件數，依種類區分。
+                以下四個欄位為伺服器啟動後的狀態，重新啟動後清空。
+              additionalProperties:
+                type: object
+                properties:
+                  indexed: { type: integer, example: 1238 }
+                  total: { type: integer, example: 1240 }
+              example: { book: { indexed: 1238, total: 1240 }, knowledge: { indexed: 86, total: 86 } }
+            last_sync_at: { type: string, format: date-time, nullable: true, description: 最近一次背景同步順利完成的時間。 }
+            last_error:
+              type: object
+              nullable: true
+              description: 最近一次嵌入服務錯誤。
+              properties:
+                at: { type: string, format: date-time }
+                purpose: { type: string, enum: [sync, query], description: '`sync` 背景同步、`query` 使用者查詢' }
+                code: { type: string, example: TIMEOUT }
+                detail: { type: string, nullable: true, example: 連線逾時 }
+            cooldown_until:
+              type: object
+              description: 因系統性錯誤或連續錯誤暫停呼叫嵌入服務的到期時間；未暫停時為 null。
+              properties:
+                sync: { type: string, format: date-time, nullable: true }
+                query: { type: string, format: date-time, nullable: true }
 
     AdminAiUsage:
       type: object
@@ -361,6 +681,8 @@ components:
             cost_usd: { type: number }
             month_cost_usd: { type: number }
             monthly_budget_usd: { type: number }
+            reserve_ratio: { type: number, example: 0.2, description: 不設預算時為 0 }
+            member_budget_usd: { type: number, example: 8, description: 會員使用的功能可用的額度 }
             budget_used_ratio: { type: number, example: 0.42 }
             projected_month_cost_usd: { type: number }
         by_feature:
@@ -368,7 +690,7 @@ components:
           items:
             type: object
             properties:
-              feature: { type: string, enum: [support, listing_assist, recommend, moderation, book_chat, embedding, enrich, admin_assist, test] }
+              feature: { type: string, enum: [support, listing_assist, recommend, moderation, book_chat, book_chat_pick, embedding, enrich, admin_assist, test] }
               requests: { type: integer }
               cost_usd: { type: number }
               input_tokens: { type: integer }
@@ -383,7 +705,8 @@ components:
               model: { type: string }
               requests: { type: integer }
               cost_usd: { type: number }
-              avg_latency_ms: { type: integer }
+              avg_latency_ms: { type: integer, nullable: true, description: 成功呼叫的平均延遲（毫秒）；沒有成功的呼叫時為 null。 }
+              p95_latency_ms: { type: integer, nullable: true, description: 成功呼叫的第 95 百分位延遲（毫秒，最近排名法）；沒有成功的呼叫時為 null。 }
         daily:
           type: array
           items:
@@ -414,9 +737,180 @@ components:
               feature: { type: string }
               provider: { type: string }
               model: { type: string, nullable: true }
-              error_code: { type: string, example: QUOTA, description: 'AUTH、MODEL_NOT_FOUND、QUOTA、RATE_LIMITED、BAD_REQUEST、SERVER、TIMEOUT、NETWORK、INVALID_OUTPUT、INCOMPLETE、BLOCKED、NOT_CONFIGURED、INTERNAL' }
-              error_detail: { type: string, nullable: true, description: 服務商回傳的錯誤說明（已遮蔽金鑰，最多 400 字）。 }
+              error_code: { type: string, example: QUOTA, description: 'AUTH、MODEL_NOT_FOUND、QUOTA、RATE_LIMITED、BAD_REQUEST、SERVER、TIMEOUT、NETWORK、INVALID_OUTPUT、INCOMPLETE、BLOCKED、NOT_CONFIGURED、INTERNAL，以及上架審核因預算用盡而略過時的 BUDGET_EXCEEDED' }
+              error_detail: { type: string, nullable: true, description: 服務商回傳的錯誤說明（已遮蔽金鑰，最多 400 字）；格式錯誤與截斷只記錄輸出長度、結束原因或伺服器的判斷，不含輸出內容。 }
         pending_reviews: { type: integer }
+        unreviewed_listings: { type: integer, description: 在售超過 1 小時仍未完成上架審核的書籍數 }
+
+    AdminAiDecisions:
+      type: object
+      properties:
+        period: { type: string, enum: [today, 7d, 30d, month] }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        features:
+          type: array
+          items:
+            type: object
+            properties:
+              feature: { type: string, example: support }
+              total: { type: integer, example: 120 }
+              outcomes:
+                type: object
+                properties:
+                  ok: { type: integer }
+                  repaired: { type: integer }
+                  degraded: { type: integer }
+                  empty: { type: integer }
+                  refused: { type: integer }
+                  failed: { type: integer }
+              paths:
+                type: object
+                additionalProperties: { type: integer }
+                example: { answer: 100, guarded: 2, passage: 18 }
+              flags:
+                type: object
+                additionalProperties: { type: integer }
+                example: { handoff: 24, insufficient: 6, degraded: 18 }
+              averages:
+                type: object
+                additionalProperties: { type: number }
+                example: { docs: 4.2, history: 3.1 }
+        prompt_versions:
+          type: array
+          items:
+            type: object
+            properties:
+              feature: { type: string, example: book_chat }
+              prompt_version: { type: string, example: 3f9c2a7b41d8 }
+              requests: { type: integer }
+              errors: { type: integer }
+              degraded: { type: integer }
+              repaired: { type: integer }
+              first_at: { type: string, format: date-time }
+              last_at: { type: string, format: date-time }
+        embedding_by_origin:
+          type: array
+          items:
+            type: object
+            properties:
+              origin: { type: string, example: book_chat, description: 發起的功能；`index` 為文件索引更新，`unknown` 為未記錄來源 }
+              requests: { type: integer }
+              cost_usd: { type: number }
+        format_errors:
+          type: array
+          items:
+            type: object
+            properties:
+              feature: { type: string, example: book_chat }
+              provider: { type: string, example: deepseek }
+              requests: { type: integer, example: 120 }
+              invalid_output: { type: integer, example: 3 }
+              incomplete: { type: integer, example: 1 }
+              repaired: { type: integer, example: 2 }
+              dropped: { type: integer, example: 4, description: 有清單項目因格式不符被捨棄的呼叫次數 }
+              defaulted: { type: integer, example: 1, description: 有欄位因型別不符改用預設值的呼叫次數 }
+
+    AdminAiQualityRate:
+      type: object
+      properties:
+        decisions: { type: integer, example: 12 }
+        overturned: { type: integer, example: 2 }
+        rate: { type: number, nullable: true, example: 0.1667 }
+
+    AdminAiRatings:
+      type: object
+      properties:
+        rated: { type: integer, example: 40 }
+        unhelpful: { type: integer, example: 6 }
+        negative_rate: { type: number, nullable: true, example: 0.15 }
+        reasons:
+          type: object
+          additionalProperties: { type: integer }
+          description: 沒有幫助的原因代碼與次數。
+          example: { inaccurate: 3, off_topic: 2, other: 1 }
+
+    AdminAiRecommendationStats:
+      type: object
+      properties:
+        impressions: { type: integer, example: 1200 }
+        clicks: { type: integer, example: 48 }
+        ctr: { type: number, nullable: true, example: 0.04 }
+
+    AdminAiQuality:
+      type: object
+      properties:
+        period: { type: string, enum: [today, 7d, 30d, month] }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        moderation:
+          allOf:
+            - $ref: '#/components/schemas/AdminAiQualityRate'
+            - type: object
+              properties:
+                by_category:
+                  type: array
+                  items:
+                    allOf:
+                      - type: object
+                        properties:
+                          category: { type: string, example: source }
+                      - $ref: '#/components/schemas/AdminAiQualityRate'
+                by_origin:
+                  type: array
+                  items:
+                    allOf:
+                      - type: object
+                        properties:
+                          origin: { type: string, enum: [ai, rules] }
+                      - $ref: '#/components/schemas/AdminAiQualityRate'
+        support:
+          allOf:
+            - type: object
+              properties:
+                sessions: { type: integer, example: 80 }
+                escalated: { type: integer, example: 6 }
+                handoff_rate: { type: number, nullable: true, example: 0.075 }
+            - $ref: '#/components/schemas/AdminAiRatings'
+        book_chat:
+          allOf:
+            - type: object
+              properties:
+                replies: { type: integer, example: 150 }
+                without_books: { type: integer, example: 20 }
+                no_books_rate: { type: number, nullable: true, example: 0.1333 }
+            - $ref: '#/components/schemas/AdminAiRatings'
+        dispute_assist:
+          type: object
+          properties:
+            resolved: { type: integer, example: 5 }
+            agreed: { type: integer, example: 4 }
+            agreement_rate: { type: number, nullable: true, example: 0.8 }
+            rated: { type: integer, example: 5 }
+            helpful: { type: integer, example: 4 }
+            helpful_rate: { type: number, nullable: true, example: 0.8 }
+        recommendations:
+          type: object
+          properties:
+            ai: { $ref: '#/components/schemas/AdminAiRecommendationStats' }
+            rules: { $ref: '#/components/schemas/AdminAiRecommendationStats' }
+            not_interested: { type: integer, example: 3 }
+        listing_assist:
+          type: object
+          properties:
+            listings: { type: integer, example: 25 }
+            fields:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    enum: [title, author, publisher, publish_date, isbn, description, category_id, condition_level, price]
+                  suggested: { type: integer, example: 25 }
+                  adopted: { type: integer, example: 22 }
+                  rate: { type: number, nullable: true, example: 0.88 }
+        faqs_from_tickets: { type: integer, example: 1 }
 
     AdminAiReview:
       type: object
@@ -430,9 +924,35 @@ components:
           items: { type: string }
         categories:
           type: array
-          items: { type: string, enum: [not_book, prohibited, adult, contact, misleading, price] }
+          items: { type: string, enum: [not_book, prohibited, adult, contact, misleading, price, source] }
         status: { type: string, enum: [pending, approved, rejected] }
+        origin: { type: string, enum: [ai, rules], description: 送審來源：AI 判定或即時規則 }
+        confidence:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 1
+          description: AI 判定的可信度；即時規則送審，或服務商拒絕處理、多次無法完成而轉交人工時為 null
+          example: 0.72
+        decision_reason:
+          type: string
+          nullable: true
+          enum: [not_book, prohibited, adult, contact, misleading, price, source, other, null]
+          description: 管理員駁回時選擇的類別。
         provider: { type: string, nullable: true }
-        model: { type: string, nullable: true }
+        model: { type: string, nullable: true, description: 即時規則送審時為 `rules` }
         created_at: { type: string, format: date-time }
         reviewed_at: { type: string, format: date-time, nullable: true }
+        ai_opinion:
+          type: object
+          nullable: true
+          description: 即時規則送審的書在背景取得的 AI 判定，僅供參考，不影響送審狀態；AI 關閉、失敗或尚未完成時為 null。
+          properties:
+            verdict: { type: string, enum: [allow, review, reject] }
+            confidence: { type: number, nullable: true, description: 服務商拒絕處理內容時為 null, example: 0.8 }
+            categories:
+              type: array
+              items: { type: string, enum: [not_book, prohibited, adult, contact, misleading, price, source] }
+            reasons:
+              type: array
+              items: { type: string }

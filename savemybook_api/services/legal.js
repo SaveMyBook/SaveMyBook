@@ -19,6 +19,8 @@ const withMeta = async (docs) => {
   }));
 };
 
+const versionOf = async (docKey) => (await metaByKey()).get(docKey)?.version || 1;
+
 const bumpVersion = async (docKey) => {
   await prisma.$executeRaw`UPDATE legal_documents SET version = version + 1 WHERE doc_key = ${docKey}`;
   return (await metaByKey()).get(docKey)?.version ?? null;
@@ -107,8 +109,8 @@ const save = async (key, { title, content, major }, { adminId, req }) => {
     notified = await notifyActiveUsers({
       title: `${title}已更新`,
       content: requiresConsent
-        ? `我們已更新${title}，下次開啟 App 時須重新閱讀並同意才能繼續使用。`
-        : `我們已更新${title}，歡迎查看最新內容。`,
+        ? `${title}已更新，下次開啟 App 時須重新閱讀並同意後方可繼續使用。`
+        : '請查閱最新內容。',
       relatedId: saved.doc_id,
       relatedType: 'legal'
     });
@@ -132,5 +134,5 @@ const save = async (key, { title, content, major }, { adminId, req }) => {
 };
 
 module.exports = {
-  KEY_RE, pendingDocs, acceptVersion, acceptAllCurrent, listSummaries, listFull, findByKey, publishedDocs, save
+  KEY_RE, versionOf, pendingDocs, acceptVersion, acceptAllCurrent, listSummaries, listFull, findByKey, publishedDocs, save
 };

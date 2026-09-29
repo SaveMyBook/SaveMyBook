@@ -277,7 +277,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     await _load();
   }
 
-  // 群組暱稱所有成員共用：自己可改自己的，管理員可改所有人的。
   Future<void> _editGroupNickname(ChatMember member) async {
     final isMe = member.userId == _myId;
     final value = await showTextInputDialog(
@@ -538,7 +537,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
             ],
           ),
           title: info.name,
-          titleSuffix: '($count)',
           onEditTitle: _renameGroup,
         ),
       ),
@@ -550,10 +548,11 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
           title: S.inviteMembers,
           color: c.accent,
           chevron: false,
+          leadingWidth: 36,
           onTap: _invite,
         ),
         for (final member in members) _memberRow(c, member),
-      ]),
+      ], indent: 64),
       _section(c, index++, null, [
         _row(c, icon: Icons.logout_rounded, title: S.leaveGroup, color: c.danger, chevron: false, onTap: _leaveGroup),
       ]),
@@ -581,7 +580,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     AppColors c, {
     required Widget avatar,
     required String title,
-    String? titleSuffix,
     String? subtitle,
     VoidCallback? onEditTitle,
   }) {
@@ -598,6 +596,8 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
                 children: [
                   Flexible(
                     child: Text(
@@ -608,13 +608,6 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
                     ),
                   ),
-                  if (titleSuffix != null) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      titleSuffix,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: c.textSecondary),
-                    ),
-                  ],
                   if (onEditTitle != null) ...[
                     const SizedBox(width: 6),
                     Icon(Icons.edit_outlined, size: 18, color: c.iconInactive),
@@ -637,7 +630,7 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     );
   }
 
-  Widget _section(AppColors c, int index, String? title, List<Widget> rows) {
+  Widget _section(AppColors c, int index, String? title, List<Widget> rows, {double indent = 56}) {
     return FadeSlideIn(
       index: index,
       child: Padding(
@@ -660,7 +653,7 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
                 child: Column(
                   children: [
                     for (var i = 0; i < rows.length; i++) ...[
-                      if (i > 0) Divider(height: 1, thickness: 1, indent: 56, color: c.divider),
+                      if (i > 0) Divider(height: 1, thickness: 1, indent: indent, color: c.divider),
                       rows[i],
                     ],
                   ],
@@ -681,10 +674,12 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
     Color? color,
     bool chevron = true,
     bool busy = false,
+    double leadingWidth = 24,
     VoidCallback? onTap,
   }) {
     return _SettingsTile(
       leading: Icon(icon, size: 22, color: color ?? c.textPrimary),
+      leadingWidth: leadingWidth,
       title: title,
       titleColor: color,
       onTap: busy ? null : onTap,

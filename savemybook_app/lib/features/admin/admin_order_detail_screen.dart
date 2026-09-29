@@ -244,23 +244,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onLongPress: () => _copy(order.orderNo, S.orderNumberCopied),
-                  child: Text(
-                    order.orderNo,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
-            ],
-          ),
+          StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
           const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -452,7 +436,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeading(title: S.items3, trailing: Text('${items.length}', style: TextStyle(fontSize: 12, color: c.textHint))),
+          SectionHeading(title: S.items3),
           const SizedBox(height: 4),
           for (var i = 0; i < items.length; i++) ...[
             if (i > 0) Divider(color: c.divider, height: 20),
@@ -497,7 +481,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
           const SizedBox(height: 4),
           _kv(S.faqCatCabinet, order.cabinetName.isEmpty ? '—' : order.cabinetName, c),
           if (detail.cabinetAddress.isNotEmpty) _kv(S.address, detail.cabinetAddress, c),
-          _kv(S.slot, detail.slotNumber ?? S.notAssignedYet2, c),
+          _kv(detail.doors.isNotEmpty ? S.door : S.slot, detail.doorLabel ?? S.notAssignedYet2, c),
         ],
       ),
     );
@@ -694,7 +678,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
   Widget _buildBottomBar(AdminOrderDetail detail, AppColors c, AdminFrame frame) {
     return Container(
       padding: frame.inset(
-        EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+        EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
         maxWidth: frame.isExpanded ? 1120 : Breakpoints.readingMaxWidth,
       ),
       decoration: BoxDecoration(
@@ -705,15 +689,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              S.createdP0(formatDateTime(detail.order.createdAt)),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11, color: c.textHint),
-            ),
-          ),
-          const SizedBox(width: 8),
+          const Spacer(),
           SizedBox(
             height: 42,
             child: ElevatedButton.icon(

@@ -17,6 +17,7 @@ import 'purchase_history_screen.dart';
 import 'widgets/payment_success_dialog.dart';
 import 'widgets/sticky_pane.dart';
 import '../books/seller_screen.dart';
+import '../selling/book_deposit_actions.dart';
 import '../account/wallet_screen.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
@@ -90,7 +91,6 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
-  // 其他買家預約保留中的書結帳會被伺服器擋下，不讓使用者勾選。
   bool _isAvailable(CartItem item) {
     final myId = ApiService.currentUser?.userId;
     return item.book.status == 'on_sale' &&
@@ -181,6 +181,17 @@ class _CartScreenState extends State<CartScreen> {
     if (mounted) _load();
   }
 
+  // 伺服器依賣家拆單；同一賣家的書全存於同一書櫃時，該訂單成立後即可取書且無法取消。
+  bool _hasImmediatePickup(List<CartItem> items) {
+    final groups = <int, List<CartItem>>{};
+    for (final item in items) {
+      groups.putIfAbsent(item.book.sellerId, () => []).add(item);
+    }
+    return groups.values.any(
+      (group) => group.every((i) => i.book.inCabinet && i.book.cabinetId == group.first.book.cabinetId),
+    );
+  }
+
   Future<void> _checkout() async {
     if (_isCheckingOut) return;
     final selected = _selectedItems;
@@ -199,6 +210,13 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
+    if (_hasImmediatePickup(selected)) {
+      _isCheckingOut = true;
+      final proceed = await confirmInCabinetPurchase(context, fromCart: true);
+      _isCheckingOut = false;
+      if (!proceed || !mounted) return;
+    }
+
     HapticFeedback.lightImpact();
     setState(() => _isCheckingOut = true);
     VerificationService.paymentSummary = PaymentSummary(
@@ -206,15 +224,16 @@ class _CartScreenState extends State<CartScreen> {
       detail: S.booksTotal(selected.length, total.toStringAsFixed(0)) +
           S.balanceAfterPaymentCoins((_balance - total).toStringAsFixed(0)),
     );
-    String? error;
+    final ({String? error, bool readyForPickup}) result;
     try {
-      error = await _api.checkout(selected.map((i) => i.cartId).toList());
+      result = await _api.checkout(selected.map((i) => i.cartId).toList());
     } finally {
       VerificationService.paymentSummary = null;
     }
     if (!mounted) return;
     setState(() => _isCheckingOut = false);
 
+    final error = result.error;
     if (error != null) {
       if (error.isNotEmpty) {
         showAppSnackBar(context, error, isError: true);
@@ -226,7 +245,13 @@ class _CartScreenState extends State<CartScreen> {
     HapticFeedback.heavyImpact();
     final sellerCount = selected.map((i) => i.book.sellerId).toSet().length;
     _load();
-    final viewOrders = await showPaymentSuccess(context, total: total, count: selected.length, sellerCount: sellerCount);
+    final viewOrders = await showPaymentSuccess(
+      context,
+      total: total,
+      count: selected.length,
+      sellerCount: sellerCount,
+      readyForPickup: result.readyForPickup,
+    );
     if (!mounted) return;
     if (viewOrders == true) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
@@ -390,8 +415,6 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _buildSelectAllRow(AppColors c, {required EdgeInsets padding}) {
     final available = _availableItems;
-    final sellers = available.map((i) => i.book.sellerId).toSet().length;
-    final sellersLabel = S.p0Sellers(sellers);
 
     return Padding(
       padding: padding,
@@ -414,7 +437,7 @@ class _CartScreenState extends State<CartScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              sellers > 1 ? '${S.items(available.length)} · $sellersLabel' : S.items(available.length),
+              S.items(available.length),
               textAlign: TextAlign.end,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -629,10 +652,7 @@ class _CartScreenState extends State<CartScreen> {
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
                     ),
                     const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                    Row(
                       children: [
                         if (!available)
                           StatusBadge(label: _unavailableReason(item), color: c.danger)
@@ -652,9 +672,9 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                             ),
                           ),
-                        if (book.cabinetName.isNotEmpty)
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 150),
+                        if (book.cabinetName.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Flexible(
                             child: Text(
                               book.cabinetName,
                               maxLines: 1,
@@ -662,6 +682,7 @@ class _CartScreenState extends State<CartScreen> {
                               style: TextStyle(fontSize: 11, color: c.textHint),
                             ),
                           ),
+                        ],
                       ],
                     ),
                     if (book.cabinetAddress.isNotEmpty) ...[
@@ -698,6 +719,7 @@ class _CartScreenState extends State<CartScreen> {
               IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                 icon: Icon(Icons.delete_outline_rounded, size: 20, color: c.iconInactive),
                 onPressed: () => _removeWithUndo([item]),
               ),
@@ -899,7 +921,7 @@ class _CartScreenState extends State<CartScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final side = responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 20).left;
+        final side = responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth).left;
         return Container(
           padding: EdgeInsets.only(
             left: side,

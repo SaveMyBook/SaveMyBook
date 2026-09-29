@@ -11,9 +11,10 @@ import 'widgets/order_card.dart';
 import '../../widgets/state_views.dart';
 import 'order_detail_screen.dart';
 import 'dispute_screen.dart';
-import 'pickup_success_screen.dart';
 import '../../i18n/strings.dart';
 import '../books/book_detail_screen.dart';
+import '../cabinet/cabinet_entry.dart';
+import '../selling/book_deposit_actions.dart';
 
 bool canCollectOrder(Order order) => order.canCollect;
 
@@ -41,6 +42,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
   final Map<String, List<Object>> _cache = {};
   final Map<String, int> _requests = {};
   final Set<String> _loadingTabs = {};
+  bool _collecting = false;
 
   @override
   void initState() {
@@ -107,26 +109,11 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
   }
 
   Future<void> _confirmPickup(Order order) async {
-    final confirmed = await showConfirmDialog(
-      context,
-      title: S.iCollected,
-      message: S.confirmVeTakenBookFromLocker,
-      confirmLabel: S.confirm,
-      icon: Icons.inventory_2_outlined,
-    );
-
-    if (!confirmed || !mounted) return;
-
-    final error = await runBusy(context, () => _api.updateOrderStatus(order.orderId, 'picked_up'));
-    if (!mounted) return;
-
-    if (error != null) {
-      showAppSnackBar(context, error, isError: true);
-      _load();
-      return;
-    }
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => PickupSuccessScreen(order: order)));
-    if (!mounted) return;
+    if (_collecting) return;
+    _collecting = true;
+    final changed = await confirmOrderPickup(context, order);
+    _collecting = false;
+    if (!changed || !mounted) return;
     _load();
     _load('completed');
   }
@@ -193,7 +180,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
   }
 
   Future<void> _openDispute(Order order) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => DisputeScreen(orderId: order.orderId)));
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => DisputeScreen(orderNo: order.orderNo)));
     if (mounted) _load();
   }
 
@@ -272,8 +259,12 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
           order: order,
           onTap: () => _openDetail(order),
           showPickupWindow: true,
-          actionLabel: collectable ? S.iCollected : (order.isCancellable ? S.cancelOrder : null),
-          onAction: () => collectable ? _confirmPickup(order) : _cancelOrder(order),
+          actionLabel: collectable
+              ? cabinetActionLabel(order.cabinetAccess, CabinetAction.pickup)
+              : (order.isCancellable ? S.cancelOrder : null),
+          onAction: collectable && order.hasPendingManualReport
+              ? null
+              : () => collectable ? _confirmPickup(order) : _cancelOrder(order),
         );
       case 'completed':
         final awaiting = order.awaitingConfirmation;
@@ -305,7 +296,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> with Sing
       status: holding ? S.heldUntilP02(until) : S.awaitingReply,
       address: '',
       openHours: '',
-      slotNumber: '',
+      placement: '',
       onTap: () => _openReservedBook(r),
       actionLabel: holding ? S.buyNow : null,
       onAction: () => _openReservedBook(r),

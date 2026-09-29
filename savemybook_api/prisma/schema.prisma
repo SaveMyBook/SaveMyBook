@@ -90,38 +90,44 @@ model book_images {
 }
 
 model books {
-  book_id             Int                   @id @default(autoincrement()) @db.UnsignedInt
-  seller_id           Int                   @db.UnsignedInt
-  isbn                String?               @db.VarChar(13)
-  title               String                @db.VarChar(255)
-  author              String?               @db.VarChar(255)
-  publisher           String?               @db.VarChar(255)
-  publish_date        String?               @db.VarChar(20)
-  category_id         Int?                  @db.UnsignedInt
-  condition_level     books_condition_level @default(good)
-  condition_note      String?               @db.Text
-  price               Decimal               @db.Decimal(10, 2)
-  quantity            Int                   @default(1) @db.UnsignedInt
-  description         String?               @db.Text
-  cabinet_id          Int?                  @db.UnsignedInt
-  status              books_status          @default(on_sale)
-  view_count          Int                   @default(0) @db.UnsignedInt
-  is_approved         Boolean               @default(true)
-  share_token         String?               @unique(map: "uk_book_share_token") @db.Char(32)
-  created_at          DateTime              @default(now()) @db.DateTime(0)
-  updated_at          DateTime              @default(now()) @db.DateTime(0)
-  ai_book_reviews     ai_book_reviews?
-  ai_book_enrichments ai_book_enrichments?
-  book_images         book_images[]
-  smart_cabinets      smart_cabinets?       @relation(fields: [cabinet_id], references: [cabinet_id], onUpdate: NoAction, map: "fk_book_cabinet")
-  book_categories     book_categories?      @relation(fields: [category_id], references: [category_id], onUpdate: NoAction, map: "fk_book_category")
-  users               users                 @relation(fields: [seller_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_book_seller")
-  chat_rooms          chat_rooms[]
-  favorites           favorites[]
-  order_items         order_items[]
-  recommendation_logs recommendation_logs[]
-  reservations        reservations[]
-  shopping_cart       shopping_cart[]
+  book_id                   Int                         @id @default(autoincrement()) @db.UnsignedInt
+  seller_id                 Int                         @db.UnsignedInt
+  isbn                      String?                     @db.VarChar(13)
+  title                     String                      @db.VarChar(255)
+  author                    String?                     @db.VarChar(255)
+  publisher                 String?                     @db.VarChar(255)
+  publish_date              String?                     @db.VarChar(20)
+  category_id               Int?                        @db.UnsignedInt
+  condition_level           books_condition_level       @default(good)
+  condition_note            String?                     @db.Text
+  price                     Decimal                     @db.Decimal(10, 2)
+  quantity                  Int                         @default(1) @db.UnsignedInt
+  description               String?                     @db.Text
+  cabinet_id                Int?                        @db.UnsignedInt
+  status                    books_status                @default(on_sale)
+  view_count                Int                         @default(0) @db.UnsignedInt
+  is_approved               Boolean                     @default(true)
+  share_token               String?                     @unique(map: "uk_book_share_token") @db.Char(32)
+  created_at                DateTime                    @default(now()) @db.DateTime(0)
+  updated_at                DateTime                    @default(now()) @db.DateTime(0)
+  ai_book_reviews           ai_book_reviews?
+  ai_review_events          ai_review_events[]
+  ai_book_enrichments       ai_book_enrichments?
+  book_deposits             book_deposits?
+  cabinet_slot_items        cabinet_slot_items?
+  cabinet_session_items     cabinet_session_items[]
+  cabinet_manual_reports    cabinet_manual_reports[]
+  book_images               book_images[]
+  smart_cabinets            smart_cabinets?             @relation(fields: [cabinet_id], references: [cabinet_id], onUpdate: NoAction, map: "fk_book_cabinet")
+  book_categories           book_categories?            @relation(fields: [category_id], references: [category_id], onUpdate: NoAction, map: "fk_book_category")
+  users                     users                       @relation(fields: [seller_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_book_seller")
+  chat_rooms                chat_rooms[]
+  favorites                 favorites[]
+  order_items               order_items[]
+  recommendation_logs       recommendation_logs[]
+  recommendation_dismissals recommendation_dismissals[]
+  reservations              reservations[]
+  shopping_cart             shopping_cart[]
 
   @@index([cabinet_id], map: "idx_cabinet")
   @@index([category_id], map: "idx_category")
@@ -133,17 +139,30 @@ model books {
 }
 
 model cabinet_slots {
-  slot_id          Int                  @id @default(autoincrement()) @db.UnsignedInt
-  cabinet_id       Int                  @db.UnsignedInt
-  slot_number      String               @db.VarChar(10)
-  status           cabinet_slots_status @default(empty)
-  current_book_id  Int?                 @db.UnsignedInt
-  current_order_id Int?                 @db.UnsignedInt
-  updated_at       DateTime             @default(now()) @db.DateTime(0)
-  smart_cabinets   smart_cabinets       @relation(fields: [cabinet_id], references: [cabinet_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_slot_cabinet")
-  orders           orders[]
+  slot_id               Int                     @id @default(autoincrement()) @db.UnsignedInt
+  cabinet_id            Int                     @db.UnsignedInt
+  slot_number           String                  @db.VarChar(10)
+  status                cabinet_slots_status    @default(empty)
+  current_book_id       Int?                    @db.UnsignedInt
+  current_order_id      Int?                    @db.UnsignedInt
+  updated_at            DateTime                @default(now()) @db.DateTime(0)
+  lock_channel          Int?                    @db.UnsignedTinyInt
+  fault_code            String?                 @db.VarChar(40)
+  // 待確認櫃門：門內實際內容可能與紀錄不符；與硬體故障 fault_code 分開，裝置的 fault_cleared 不會清除它。
+  check_required_at     DateTime?               @db.DateTime(0)
+  check_session_id      Int?                    @db.UnsignedInt
+  check_reason          String?                 @db.VarChar(40)
+  // 門磁感測器最近一次回報的狀態（open／closed）；沒有門磁的裝置維持 NULL，伺服器不依此判斷任何流程。
+  sensor_state          String?                 @db.VarChar(10)
+  sensor_at             DateTime?               @db.DateTime(3)
+  smart_cabinets        smart_cabinets          @relation(fields: [cabinet_id], references: [cabinet_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_slot_cabinet")
+  orders                orders[]
+  cabinet_slot_items    cabinet_slot_items[]
+  cabinet_session_items cabinet_session_items[]
+  cabinet_session_doors cabinet_session_doors[]
 
   @@unique([cabinet_id, slot_number], map: "uk_cabinet_slot")
+  @@unique([cabinet_id, lock_channel], map: "uk_slot_channel")
   @@index([status], map: "idx_status")
 }
 
@@ -259,48 +278,51 @@ model notifications {
 }
 
 model order_items {
-  item_id    Int     @id @default(autoincrement()) @db.UnsignedInt
-  order_id   Int     @db.UnsignedInt
-  book_id    Int     @db.UnsignedInt
-  quantity   Int     @default(1) @db.UnsignedInt
-  unit_price Decimal @db.Decimal(10, 2)
-  subtotal   Decimal @db.Decimal(10, 2)
-  books      books   @relation(fields: [book_id], references: [book_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item_book")
-  orders     orders  @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_item_order")
+  item_id       Int     @id @default(autoincrement()) @db.UnsignedInt
+  order_id      Int     @db.UnsignedInt
+  book_id       Int     @db.UnsignedInt
+  quantity      Int     @default(1) @db.UnsignedInt
+  unit_price    Decimal @db.Decimal(10, 2)
+  subtotal      Decimal @db.Decimal(10, 2)
+  pre_deposited Boolean @default(false)
+  books         books   @relation(fields: [book_id], references: [book_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item_book")
+  orders        orders  @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_item_order")
 
   @@index([book_id], map: "idx_book")
   @@index([order_id], map: "idx_order")
 }
 
 model orders {
-  order_id                      Int                    @id @default(autoincrement()) @db.UnsignedInt
-  order_no                      String                 @unique(map: "uk_order_no") @db.VarChar(30)
-  buyer_id                      Int                    @db.UnsignedInt
-  seller_id                     Int                    @db.UnsignedInt
-  total_amount                  Decimal                @db.Decimal(10, 2)
-  cabinet_id                    Int?                   @db.UnsignedInt
-  slot_id                       Int?                   @db.UnsignedInt
-  pickup_code                   String?                @db.VarChar(20)
-  pickup_qr_code                String?                @db.VarChar(500)
-  status                        orders_status          @default(pending_payment)
+  order_id                      Int                      @id @default(autoincrement()) @db.UnsignedInt
+  order_no                      String                   @unique(map: "uk_order_no") @db.VarChar(30)
+  buyer_id                      Int                      @db.UnsignedInt
+  seller_id                     Int                      @db.UnsignedInt
+  total_amount                  Decimal                  @db.Decimal(10, 2)
+  cabinet_id                    Int?                     @db.UnsignedInt
+  slot_id                       Int?                     @db.UnsignedInt
+  pickup_code                   String?                  @db.VarChar(20)
+  pickup_qr_code                String?                  @db.VarChar(500)
+  status                        orders_status            @default(pending_payment)
   payment_method                orders_payment_method?
-  payment_at                    DateTime?              @db.DateTime(0)
-  deposited_at                  DateTime?              @db.DateTime(0)
-  picked_up_at                  DateTime?              @db.DateTime(0)
-  completed_at                  DateTime?              @db.DateTime(0)
-  cancelled_at                  DateTime?              @db.DateTime(0)
-  cancel_reason                 String?                @db.Text
-  note                          String?                @db.Text
-  created_at                    DateTime               @default(now()) @db.DateTime(0)
-  updated_at                    DateTime               @default(now()) @db.DateTime(0)
+  payment_at                    DateTime?                @db.DateTime(0)
+  deposited_at                  DateTime?                @db.DateTime(0)
+  picked_up_at                  DateTime?                @db.DateTime(0)
+  completed_at                  DateTime?                @db.DateTime(0)
+  cancelled_at                  DateTime?                @db.DateTime(0)
+  cancel_reason                 String?                  @db.Text
+  note                          String?                  @db.Text
+  created_at                    DateTime                 @default(now()) @db.DateTime(0)
+  updated_at                    DateTime                 @default(now()) @db.DateTime(0)
   order_items                   order_items[]
-  users_orders_buyer_idTousers  users                  @relation("orders_buyer_idTousers", fields: [buyer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order_buyer")
-  smart_cabinets                smart_cabinets?        @relation(fields: [cabinet_id], references: [cabinet_id], onUpdate: NoAction, map: "fk_order_cabinet")
-  users_orders_seller_idTousers users                  @relation("orders_seller_idTousers", fields: [seller_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order_seller")
-  cabinet_slots                 cabinet_slots?         @relation(fields: [slot_id], references: [slot_id], onUpdate: NoAction, map: "fk_order_slot")
+  users_orders_buyer_idTousers  users                    @relation("orders_buyer_idTousers", fields: [buyer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order_buyer")
+  smart_cabinets                smart_cabinets?          @relation(fields: [cabinet_id], references: [cabinet_id], onUpdate: NoAction, map: "fk_order_cabinet")
+  users_orders_seller_idTousers users                    @relation("orders_seller_idTousers", fields: [seller_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order_seller")
+  cabinet_slots                 cabinet_slots?           @relation(fields: [slot_id], references: [slot_id], onUpdate: NoAction, map: "fk_order_slot")
   refund_records                refund_records[]
   transaction_disputes          transaction_disputes[]
   wallet_transactions           wallet_transactions[]
+  cabinet_session_items         cabinet_session_items[]
+  cabinet_manual_reports        cabinet_manual_reports[]
 
   @@index([slot_id], map: "fk_order_slot")
   @@index([buyer_id], map: "idx_buyer")
@@ -310,12 +332,16 @@ model orders {
   @@index([status], map: "idx_status")
 }
 
+/// 推薦書籍的曝光紀錄：同一本書在同一來源的推薦中，每 6 小時只記一次。source 為 ai（AI 推薦）或 rules（規則式推薦）。
+/// 保存 90 日，並納入個資匯出與刪除。
 model recommendation_logs {
   rec_id     Int                          @id @default(autoincrement()) @db.UnsignedInt
   user_id    Int                          @db.UnsignedInt
   book_id    Int                          @db.UnsignedInt
   rec_type   recommendation_logs_rec_type
+  source     String                       @default("rules") @db.VarChar(10)
   is_clicked Boolean                      @default(false)
+  clicked_at DateTime?                    @db.DateTime(0)
   created_at DateTime                     @default(now()) @db.DateTime(0)
   books      books                        @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_rec_book")
   users      users                        @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_rec_user")
@@ -323,6 +349,19 @@ model recommendation_logs {
   @@index([book_id], map: "fk_rec_book")
   @@index([rec_type, created_at], map: "idx_type_time")
   @@index([user_id], map: "idx_user")
+  @@index([user_id, book_id, created_at], map: "idx_rec_user_book")
+}
+
+/// 使用者對推薦書籍標示「不感興趣」，之後的推薦排除這些書。
+model recommendation_dismissals {
+  user_id    Int      @db.UnsignedInt
+  book_id    Int      @db.UnsignedInt
+  created_at DateTime @db.DateTime(0)
+  users      users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_rec_dismiss_user")
+  books      books    @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_rec_dismiss_book")
+
+  @@id([user_id, book_id])
+  @@index([book_id], map: "fk_rec_dismiss_book")
 }
 
 model referral_records {
@@ -417,23 +456,28 @@ model shopping_cart {
 }
 
 model smart_cabinets {
-  cabinet_id      Int             @id @default(autoincrement()) @db.UnsignedInt
-  cabinet_name    String          @db.VarChar(100)
-  address         String          @db.VarChar(500)
-  latitude        Decimal         @db.Decimal(10, 7)
-  longitude       Decimal         @db.Decimal(10, 7)
-  total_slots     Int             @default(20) @db.UnsignedInt
-  available_slots Int             @default(20) @db.UnsignedInt
-  is_active       Boolean         @default(true)
-  is_maintenance  Boolean         @default(false)
-  open_time       DateTime?       @db.Time(0)
-  close_time      DateTime?       @db.Time(0)
-  created_at      DateTime        @default(now()) @db.DateTime(0)
-  updated_at      DateTime        @default(now()) @db.DateTime(0)
-  books           books[]
-  cabinet_slots   cabinet_slots[]
-  orders          orders[]
-  reservations    reservations[]
+  cabinet_id             Int                      @id @default(autoincrement()) @db.UnsignedInt
+  cabinet_name           String                   @db.VarChar(100)
+  address                String                   @db.VarChar(500)
+  latitude               Decimal                  @db.Decimal(10, 7)
+  longitude              Decimal                  @db.Decimal(10, 7)
+  total_slots            Int                      @default(20) @db.UnsignedInt
+  available_slots        Int                      @default(20) @db.UnsignedInt
+  is_active              Boolean                  @default(true)
+  is_maintenance         Boolean                  @default(false)
+  open_time              DateTime?                @db.Time(0)
+  close_time             DateTime?                @db.Time(0)
+  created_at             DateTime                 @default(now()) @db.DateTime(0)
+  updated_at             DateTime                 @default(now()) @db.DateTime(0)
+  books                  books[]
+  cabinet_slots          cabinet_slots[]
+  orders                 orders[]
+  reservations           reservations[]
+  book_deposits          book_deposits[]
+  cabinet_devices        cabinet_devices[]
+  cabinet_pair_requests  cabinet_pair_requests[]
+  cabinet_sessions       cabinet_sessions[]
+  cabinet_manual_reports cabinet_manual_reports[]
 
   @@index([is_active], map: "idx_active")
   @@index([latitude, longitude], map: "idx_location")
@@ -469,6 +513,7 @@ model transaction_disputes {
   created_at                                     DateTime                     @default(now()) @db.DateTime(0)
   resolved_at                                    DateTime?                    @db.DateTime(0)
   refund_records                                 refund_records[]
+  ai_dispute_analyses                            ai_dispute_analyses[]
   users_transaction_disputes_admin_idTousers     users?                       @relation("transaction_disputes_admin_idTousers", fields: [admin_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_dispute_admin")
   users_transaction_disputes_applicant_idTousers users                        @relation("transaction_disputes_applicant_idTousers", fields: [applicant_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_dispute_applicant")
   orders                                         orders                       @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_dispute_order")
@@ -540,7 +585,11 @@ model users {
   admin_permissions                                             admin_permissions?
   ai_chat_sessions                                              ai_chat_sessions[]
   ai_consents                                                   ai_consents?
+  ai_decision_logs                                              ai_decision_logs[]
+  ai_listing_tokens                                             ai_listing_tokens[]
+  ai_message_requests                                           ai_message_requests[]
   ai_recommendation_cache                                       ai_recommendation_cache?
+  ai_listing_suggestions                                        ai_listing_suggestions[]
   ai_support_sessions                                           ai_support_sessions[]
   bankbooks                                                     bankbooks[]
   books                                                         books[]
@@ -565,6 +614,7 @@ model users {
   orders_orders_seller_idTousers                                orders[]                     @relation("orders_seller_idTousers")
   push_devices                                                  push_devices[]
   recommendation_logs                                           recommendation_logs[]
+  recommendation_dismissals                                     recommendation_dismissals[]
   referral_records_referral_records_invitee_idTousers           referral_records[]           @relation("referral_records_invitee_idTousers")
   referral_records_referral_records_inviter_idTousers           referral_records[]           @relation("referral_records_inviter_idTousers")
   refund_records                                                refund_records[]
@@ -590,6 +640,8 @@ model users {
   user_sessions                                                 user_sessions[]
   user_settings                                                 user_settings?
   wallets                                                       wallets?
+  cabinet_sessions                                              cabinet_sessions[]
+  cabinet_manual_reports                                        cabinet_manual_reports[]
 
   @@index([role], map: "idx_role")
   @@index([deletion_requested_at], map: "idx_deletion_requested")
@@ -641,31 +693,34 @@ model legal_documents {
 }
 
 /// 幫助中心的常見問題。
+/// source_ticket_id：由 AI 客服轉接的工單建立時記下該工單，用來統計由對話回流的常見問題數量。
 model faqs {
-  faq_id     Int      @id @default(autoincrement()) @db.UnsignedInt
-  category   String   @default("general") @db.VarChar(50)
-  question   String   @db.VarChar(255)
-  answer     String   @db.Text
-  sort_order Int      @default(0)
-  is_visible Boolean  @default(true)
-  created_at DateTime @default(now()) @db.DateTime(0)
-  updated_at DateTime @default(now()) @db.DateTime(0)
+  faq_id           Int      @id @default(autoincrement()) @db.UnsignedInt
+  category         String   @default("general") @db.VarChar(50)
+  question         String   @db.VarChar(255)
+  answer           String   @db.Text
+  sort_order       Int      @default(0)
+  is_visible       Boolean  @default(true)
+  source_ticket_id Int?     @db.UnsignedInt
+  created_at       DateTime @default(now()) @db.DateTime(0)
+  updated_at       DateTime @default(now()) @db.DateTime(0)
 
   @@index([category, sort_order], map: "idx_faq_order")
 }
 
-/// App 內客服工單。
+/// App 內客服工單。from_ai_support：由 AI 客服轉接建立；AI 對話過了保存期限或使用者撤回同意而刪除後仍保留。
 model support_tickets {
-  ticket_id  Int                       @id @default(autoincrement()) @db.UnsignedInt
-  user_id    Int                       @db.UnsignedInt
-  subject    String                    @db.VarChar(255)
-  category   String                    @default("other") @db.VarChar(50)
-  status     support_tickets_status    @default(open)
-  created_at DateTime                  @default(now()) @db.DateTime(0)
-  updated_at DateTime                  @default(now()) @db.DateTime(0)
-  closed_at  DateTime?                 @db.DateTime(0)
-  messages   support_ticket_messages[]
-  users      users                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ticket_user")
+  ticket_id       Int                       @id @default(autoincrement()) @db.UnsignedInt
+  user_id         Int                       @db.UnsignedInt
+  subject         String                    @db.VarChar(255)
+  category        String                    @default("other") @db.VarChar(50)
+  status          support_tickets_status    @default(open)
+  from_ai_support Boolean                   @default(false)
+  created_at      DateTime                  @default(now()) @db.DateTime(0)
+  updated_at      DateTime                  @default(now()) @db.DateTime(0)
+  closed_at       DateTime?                 @db.DateTime(0)
+  messages        support_ticket_messages[]
+  users           users                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ticket_user")
 
   @@index([user_id, updated_at], map: "idx_ticket_user")
   @@index([status, updated_at], map: "idx_ticket_status")
@@ -837,32 +892,105 @@ model user_sessions {
   @@index([user_id, revoked_at], map: "idx_session_user")
 }
 
+/// passed：AI 已審核通過；skipped：AI 失敗或預算用盡而暫時放行，等待排程補審。skip_reason 為 budget、invalid_output
+/// 或小寫的錯誤代碼；attempts 只累計與書籍內容有關的失敗，created_at 為上次嘗試時間。
+/// 這兩種狀態不屬於人工待審，後台審核清單不列出。ai_opinion 為規則送審的書在背景取得的 AI 判定（JSON）。
+/// confidence 為 AI 判定的把握度（規則送審與轉交人工為 null）；decision_reason 為管理員駁回時選擇的類別。
 model ai_book_reviews {
-  book_id     Int                    @id @db.UnsignedInt
-  verdict     String                 @db.VarChar(10)
-  reasons     String?                @db.Text
-  categories  String?                @db.Text
-  status      ai_book_reviews_status @default(pending)
-  provider    String?                @db.VarChar(20)
-  model       String?                @db.VarChar(80)
-  created_at  DateTime               @db.DateTime(0)
-  reviewed_by Int?                   @db.UnsignedInt
-  reviewed_at DateTime?              @db.DateTime(0)
-  books       books                  @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_review_book")
+  book_id         Int                    @id @db.UnsignedInt
+  verdict         String                 @db.VarChar(10)
+  reasons         String?                @db.Text
+  categories      String?                @db.Text
+  status          ai_book_reviews_status @default(pending)
+  provider        String?                @db.VarChar(20)
+  model           String?                @db.VarChar(80)
+  created_at      DateTime               @db.DateTime(0)
+  reviewed_by     Int?                   @db.UnsignedInt
+  reviewed_at     DateTime?              @db.DateTime(0)
+  skip_reason     String?                @db.VarChar(20)
+  attempts        Int                    @default(0) @db.UnsignedTinyInt
+  ai_opinion      String?                @db.Text
+  confidence      Decimal?               @db.Decimal(4, 3)
+  decision_reason String?                @db.VarChar(20)
+  books           books                  @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_review_book")
 
   @@index([status, created_at], map: "idx_ai_review_status")
 }
 
+/// 上架審核狀態變更的事件，只新增不修改。actor：admin（管理員在審核清單的決定）、seller_edit（賣家修改內容或照片後重新審核）、
+/// relist（管理員改回在售）、system（自動審核、規則送審與補審）。verdict、origin、categories、confidence 為變更前的判定；
+/// misjudged 在 admin 事件填寫（推翻自動審核的駁回，或核准時標示送審類別不成立為 true），relist 事件只在恢復背景審核駁回的書時填 true。
+/// 誤判率只計 misjudged 不為 null 的 admin 與 relist 事件。
+model ai_review_events {
+  event_id   BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  book_id    Int      @db.UnsignedInt
+  actor      String   @db.VarChar(12)
+  prior      String?  @db.VarChar(10)
+  status     String   @db.VarChar(10)
+  verdict    String   @db.VarChar(10)
+  origin     String   @db.VarChar(10)
+  categories String   @default("[]") @db.VarChar(255)
+  confidence Decimal? @db.Decimal(4, 3)
+  category   String?  @db.VarChar(20)
+  misjudged  Boolean?
+  created_at DateTime @db.DateTime(0)
+  books      books    @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_review_event_book")
+
+  @@index([book_id], map: "fk_ai_review_event_book")
+  @@index([actor, created_at], map: "idx_ai_review_event_actor")
+}
+
+/// 交易爭議的 AI 分析結果。result 為分析輸出（JSON，不含服務商資訊）；listing_images、evidence_images 為實際送出的照片數；
+/// prompt_version 為系統提示詞的雜湊。agreed 於裁決時寫入：建議與裁決一致為 true，建議需要更多資訊時為 null。
+model ai_dispute_analyses {
+  analysis_id          Int                  @id @default(autoincrement()) @db.UnsignedInt
+  dispute_id           Int                  @db.UnsignedInt
+  admin_id             Int?                 @db.UnsignedInt
+  result               String               @db.Text
+  suggestion           String               @db.VarChar(20)
+  listing_images       Int                  @default(0) @db.UnsignedTinyInt
+  evidence_images      Int                  @default(0) @db.UnsignedTinyInt
+  provider             String               @db.VarChar(20)
+  model                String               @db.VarChar(80)
+  prompt_version       String               @db.Char(12)
+  helpful              Boolean?
+  resolved_result      String?              @db.VarChar(20)
+  agreed               Boolean?
+  resolved_at          DateTime?            @db.DateTime(0)
+  created_at           DateTime             @db.DateTime(0)
+  transaction_disputes transaction_disputes @relation(fields: [dispute_id], references: [dispute_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_dispute_analysis")
+
+  @@index([dispute_id, analysis_id], map: "idx_ai_dispute_analysis")
+  @@index([created_at], map: "idx_ai_dispute_analysis_created")
+}
+
+/// 每月 AI 費用達預算門檻（threshold 為百分比）時的通知紀錄，同一門檻每月只通知一次。
+model ai_budget_alerts {
+  month      String   @db.Char(7)
+  threshold  Int      @db.UnsignedTinyInt
+  cost_usd   Decimal  @db.Decimal(12, 6)
+  created_at DateTime @db.DateTime(0)
+
+  @@id([month, threshold])
+}
+
+/// feedback 為使用者對助理訊息的評價（helpful、unhelpful），feedback_reason 為沒有幫助的原因代碼。
 model ai_chat_messages {
   message_id       Int                   @id @default(autoincrement()) @db.UnsignedInt
   session_id       Int                   @db.UnsignedInt
   role             ai_chat_messages_role
   content          String                @db.Text
   book_ids         String?               @db.VarChar(255)
+  meta             String?               @db.Text
+  feedback         String?               @db.VarChar(10)
+  feedback_reason  String?               @db.VarChar(20)
+  feedback_at      DateTime?             @db.DateTime(0)
   created_at       DateTime              @db.DateTime(0)
   ai_chat_sessions ai_chat_sessions      @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_chat_message_session")
 
   @@index([session_id, message_id], map: "idx_ai_chat_message_session")
+  @@index([created_at], map: "idx_ai_chat_message_created")
+  @@index([feedback_at], map: "idx_ai_chat_message_feedback")
 }
 
 model ai_chat_sessions {
@@ -877,11 +1005,48 @@ model ai_chat_sessions {
   @@index([user_id, status], map: "idx_ai_chat_session_user")
 }
 
+/// policy_version 為同意當時隱私權政策的版本；低於目前版本時視為未同意。
+/// notice_version 為同意時用戶端顯示的同意說明版本（0 表示未記錄）；AI 客服只送出該版說明已列出的資料類別。
 model ai_consents {
-  user_id    Int      @id @db.UnsignedInt
-  granted    Boolean
-  updated_at DateTime @db.DateTime(0)
-  users      users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_consent_user")
+  user_id        Int      @id @db.UnsignedInt
+  granted        Boolean
+  policy_version Int      @default(0) @db.UnsignedInt
+  notice_version Int      @default(0) @db.UnsignedTinyInt
+  updated_at     DateTime @db.DateTime(0)
+  users          users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_consent_user")
+}
+
+/// App 訊息識別碼的登記：重送同一則訊息時回傳第一次的結果，不重複呼叫模型與寫入對話。只存訊息編號，不存內容；建立滿 24 小時後由每日排程刪除。
+model ai_message_requests {
+  request_id       Int                        @id @default(autoincrement()) @db.UnsignedInt
+  user_id          Int                        @db.UnsignedInt
+  feature          String                     @db.VarChar(20)
+  client_id        String                     @db.VarChar(64)
+  status           ai_message_requests_status @default(processing)
+  user_message_id  Int?                       @db.UnsignedInt
+  reply_message_id Int?                       @db.UnsignedInt
+  meta             String?                    @db.Text
+  created_at       DateTime                   @db.DateTime(0)
+  updated_at       DateTime                   @db.DateTime(0)
+  users            users                      @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_message_request_user")
+
+  @@unique([user_id, feature, client_id], map: "uk_ai_message_request")
+  @@index([created_at], map: "idx_ai_message_request_created")
+}
+
+/// 上架輔助回應時發出的權杖與建議值，建立書籍時帶回，用來計算各欄位的採用率。fields 為建議值（簡介只存雜湊），
+/// adopted 為建立書籍後各欄位是否採用（同一本書帶回多個權杖時只記在第一個）。未使用的權杖 1 日後刪除，其餘保存 90 日。
+model ai_listing_suggestions {
+  token      String    @id @db.Char(32)
+  user_id    Int       @db.UnsignedInt
+  fields     String    @db.Text
+  adopted    String?   @db.VarChar(400)
+  used_at    DateTime? @db.DateTime(0)
+  created_at DateTime  @db.DateTime(0)
+  users      users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_listing_suggestion_user")
+
+  @@index([user_id, created_at], map: "idx_ai_listing_suggestion_user")
+  @@index([used_at], map: "idx_ai_listing_suggestion_used")
 }
 
 model ai_recommendation_cache {
@@ -898,15 +1063,22 @@ model ai_settings {
   updated_at DateTime @db.DateTime(0)
 }
 
+/// feedback 為使用者對助理訊息的評價（helpful、unhelpful），feedback_reason 為沒有幫助的原因代碼。
 model ai_support_messages {
   message_id          Int                      @id @default(autoincrement()) @db.UnsignedInt
   session_id          Int                      @db.UnsignedInt
   role                ai_support_messages_role
   content             String                   @db.Text
+  meta                String?                  @db.Text
+  feedback            String?                  @db.VarChar(10)
+  feedback_reason     String?                  @db.VarChar(20)
+  feedback_at         DateTime?                @db.DateTime(0)
   created_at          DateTime                 @db.DateTime(0)
   ai_support_sessions ai_support_sessions      @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_message_session")
 
   @@index([session_id, message_id], map: "idx_ai_message_session")
+  @@index([created_at], map: "idx_ai_message_created")
+  @@index([feedback_at], map: "idx_ai_message_feedback")
 }
 
 model ai_support_sessions {
@@ -920,28 +1092,36 @@ model ai_support_sessions {
   users               users                      @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_session_user")
 
   @@index([user_id, status], map: "idx_ai_session_user")
+  @@index([ticket_id], map: "idx_ai_session_ticket")
 }
 
 model ai_usage_logs {
-  usage_id      BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
-  feature       String               @db.VarChar(30)
-  provider      String               @db.VarChar(20)
-  model         String               @db.VarChar(80)
-  user_id       Int?                 @db.UnsignedInt
-  input_tokens  Int                  @default(0) @db.UnsignedInt
-  cached_tokens Int                  @default(0) @db.UnsignedInt
-  output_tokens Int                  @default(0) @db.UnsignedInt
-  search_calls  Int                  @default(0) @db.UnsignedInt
-  cost_usd      Decimal              @default(0.000000) @db.Decimal(12, 6)
-  latency_ms    Int                  @default(0) @db.UnsignedInt
-  status        ai_usage_logs_status
-  error_code    String?              @db.VarChar(60)
-  error_detail  String?              @db.VarChar(400)
-  created_at    DateTime             @db.DateTime(0)
+  usage_id         BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  feature          String               @db.VarChar(30)
+  provider         String               @db.VarChar(20)
+  model            String               @db.VarChar(80)
+  user_id          Int?                 @db.UnsignedInt
+  input_tokens     Int                  @default(0) @db.UnsignedInt
+  cached_tokens    Int                  @default(0) @db.UnsignedInt
+  output_tokens    Int                  @default(0) @db.UnsignedInt
+  search_calls     Int                  @default(0) @db.UnsignedInt
+  cost_usd         Decimal              @default(0.000000) @db.Decimal(12, 6)
+  latency_ms       Int                  @default(0) @db.UnsignedInt
+  status           ai_usage_logs_status
+  error_code       String?              @db.VarChar(60)
+  error_detail     String?              @db.VarChar(400)
+  request_id       String?              @db.VarChar(32)
+  prompt_version   String?              @db.VarChar(16)
+  outcome          String?              @db.VarChar(20)
+  origin           String?              @db.VarChar(30)
+  format_dropped   Int                  @default(0) @db.UnsignedSmallInt
+  format_defaulted Int                  @default(0) @db.UnsignedSmallInt
+  created_at       DateTime             @db.DateTime(0)
 
   @@index([created_at], map: "idx_ai_usage_created")
   @@index([feature, created_at], map: "idx_ai_usage_feature")
   @@index([user_id, feature, created_at], map: "idx_ai_usage_user")
+  @@index([request_id], map: "idx_ai_usage_request")
 }
 
 model auth_settings {
@@ -1036,6 +1216,23 @@ model support_ticket_attachments {
   @@index([uploader_id, message_id, created_at], map: "idx_support_attachment_pending")
 }
 
+model ai_decision_logs {
+  log_id     BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  request_id String   @db.VarChar(32)
+  feature    String   @db.VarChar(30)
+  user_id    Int?     @db.UnsignedInt
+  outcome    String   @db.VarChar(20)
+  path       String?  @db.VarChar(30)
+  stats      String?  @db.Text
+  created_at DateTime @db.DateTime(0)
+  users      users?   @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_decision_user")
+
+  @@index([feature, created_at], map: "idx_ai_decision_feature")
+  @@index([created_at], map: "idx_ai_decision_created")
+  @@index([request_id], map: "idx_ai_decision_request")
+  @@index([user_id], map: "fk_ai_decision_user")
+}
+
 model ai_embeddings {
   kind         String   @db.VarChar(20)
   ref_id       String   @db.VarChar(64)
@@ -1048,15 +1245,62 @@ model ai_embeddings {
   @@index([kind, model], map: "idx_ai_embedding_model")
 }
 
+/// status：done、partial（部分補齊）、none（查無可用資料）、mismatch（書目或網路搜尋結果的書名與刊登不符）。
+/// seller_fields 為賣家修改或清空過、不再自動補齊的欄位，rejected_fields 為其中原本由系統補齊的欄位；換 ISBN 時 rejected_fields 的欄位恢復補齊。
+/// next_attempt_at 為 null 時不再重試。observations 只供觀察，不影響寫入：simplified、unsourced_numbers、uncited。
+/// generation 在換 ISBN（或書名不符的書改書名）而重新補齊時加一，進行中的舊補齊據此放棄寫入紀錄；restarted_at 為上次立即重新補齊的時間。
 model ai_book_enrichments {
-  book_id      Int      @id @db.UnsignedInt
-  status       String   @db.VarChar(10)
-  fields       String   @default("") @db.VarChar(200)
-  ai_written   Boolean  @default(false)
-  attempted_at DateTime @db.DateTime(0)
-  books        books    @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_enrichment_book")
+  book_id         Int       @id @db.UnsignedInt
+  status          String    @db.VarChar(10)
+  fields          String    @default("") @db.VarChar(200)
+  ai_written      Boolean   @default(false)
+  attempted_at    DateTime  @db.DateTime(0)
+  attempts        Int       @default(0) @db.UnsignedTinyInt
+  next_attempt_at DateTime? @db.DateTime(0)
+  seller_fields   String    @default("") @db.VarChar(100)
+  rejected_fields String    @default("") @db.VarChar(100)
+  sources         String?   @db.Text
+  observations    String    @default("") @db.VarChar(100)
+  generation      Int       @default(0) @db.UnsignedInt
+  restarted_at    DateTime? @db.DateTime(0)
+  books           books     @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_enrichment_book")
 
   @@index([status, attempted_at], map: "idx_enrichment_status")
+  @@index([next_attempt_at], map: "idx_enrichment_retry")
+}
+
+/// 同一個 ISBN 的書目、簡介與定價，供不同賣家上架與書目補齊共用，避免重複付費搜尋。只存通過書名比對與來源驗證的結果。
+/// status：found（有資料）、none（查詢與網路搜尋都沒有結果）。fields、sources 為 JSON。
+/// description_source：sources（來源原文）、mixed（依來源整理）、ai（依網路搜尋撰寫）。prompt_version 與目前的提示詞不同時視為未命中。
+/// missing：網路搜尋過仍查不到的欄位與搜尋時間（JSON），30 天內同一欄位不再搜尋。
+model ai_isbn_cache {
+  isbn               String   @id @db.Char(13)
+  status             String   @db.VarChar(10)
+  fields             String?  @db.Text
+  description        String?  @db.Text
+  description_source String   @default("") @db.VarChar(10)
+  original_price     Int?     @db.UnsignedInt
+  sources            String?  @db.Text
+  missing            String?  @db.VarChar(255)
+  prompt_version     String   @db.VarChar(20)
+  hits               Int      @default(0) @db.UnsignedInt
+  created_at         DateTime @db.DateTime(0)
+  updated_at         DateTime @db.DateTime(0)
+  expires_at         DateTime @db.DateTime(0)
+
+  @@index([expires_at], map: "idx_isbn_cache_expiry")
+}
+
+/// 上架輔助第一步發給 App 的權杖（只存雜湊），第二步帶回時該次書況判斷不另計每日次數；每個權杖只能折抵一次。
+model ai_listing_tokens {
+  token_hash  String    @id @db.Char(64)
+  user_id     Int       @db.UnsignedInt
+  created_at  DateTime  @db.DateTime(0)
+  redeemed_at DateTime? @db.DateTime(0)
+  users       users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ai_listing_token_user")
+
+  @@index([user_id, redeemed_at], map: "idx_ai_listing_token_user")
+  @@index([created_at], map: "idx_ai_listing_token_created")
 }
 
 model chat_message_risks {
@@ -1086,6 +1330,352 @@ model chat_risk_alerts {
 
   @@index([status, last_at], map: "idx_alert_status")
   @@index([user_id, status], map: "idx_alert_user")
+}
+
+model book_deposits {
+  book_id        Int            @id @db.UnsignedInt
+  cabinet_id     Int            @db.UnsignedInt
+  deposited_at   DateTime       @db.DateTime(0)
+  paused_at      DateTime?      @db.DateTime(0)
+  auto_paused    Boolean        @default(false)
+  reminded_at    DateTime?      @db.DateTime(0)
+  escalated_at   DateTime?      @db.DateTime(0)
+  books          books          @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_deposit_book")
+  smart_cabinets smart_cabinets @relation(fields: [cabinet_id], references: [cabinet_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_deposit_cabinet")
+
+  @@index([cabinet_id, deposited_at], map: "idx_deposit_cabinet")
+  @@index([deposited_at], map: "idx_deposit_time")
+  @@index([paused_at, deposited_at], map: "idx_deposit_pause")
+  @@index([reminded_at], map: "idx_deposit_remind")
+  @@index([escalated_at, deposited_at], map: "idx_deposit_escalate")
+}
+
+model cabinet_devices {
+  device_id          Int                    @id @default(autoincrement()) @db.UnsignedInt
+  cabinet_id         Int                    @db.UnsignedInt
+  // 有效裝置時等於 cabinet_id、其餘為 NULL：以唯一索引保證一台書櫃同時只有一台有效裝置（MySQL 沒有部分索引）。
+  active_cabinet_id  Int?                   @unique(map: "uk_device_active_cabinet") @db.UnsignedInt
+  // 進行中的作業；以條件更新占用，保證一台裝置同時只有一個作業。
+  active_session_id  Int?                   @unique(map: "uk_device_active_session") @db.UnsignedInt
+  kind               cabinet_devices_kind   @default(esp32)
+  status             cabinet_devices_status @default(pending)
+  token_hash         String?                @unique(map: "uk_device_token") @db.Char(64)
+  door_count         Int                    @default(4) @db.UnsignedTinyInt
+  has_door_sensor    Boolean                @default(false)
+  unlock_pulse_ms    Int                    @default(800) @db.UnsignedSmallInt
+  firmware           String?                @db.VarChar(40)
+  fault_code         String?                @db.VarChar(40)
+  fault_since        DateTime?              @db.DateTime(0)
+  qr_seq             Int                    @default(0) @db.UnsignedInt
+  current_boot_id    String?                @db.VarChar(16)
+  previous_boot_id   String?                @db.VarChar(16)
+  boot_switched_at   DateTime?              @db.DateTime(3)
+  last_seen_at       DateTime?              @db.DateTime(3)
+  last_ip            String?                @db.VarChar(45)
+  offline_since      DateTime?              @db.DateTime(0)
+  offline_notified   Boolean                @default(false)
+  created_by         Int?                   @db.UnsignedInt
+  paired_at          DateTime?              @db.DateTime(0)
+  revoked_at         DateTime?              @db.DateTime(0)
+  revoked_by         Int?                   @db.UnsignedInt
+  revoke_reason      String?                @db.VarChar(20)
+  created_at         DateTime               @default(now()) @db.DateTime(0)
+  updated_at         DateTime               @default(now()) @db.DateTime(0)
+  smart_cabinets     smart_cabinets         @relation(fields: [cabinet_id], references: [cabinet_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_device_cabinet")
+  cabinet_challenges cabinet_challenges[]
+  cabinet_sessions   cabinet_sessions[]
+
+  @@index([cabinet_id, status], map: "idx_device_cabinet")
+}
+
+// 裝置申請的配對碼：管理員輸入配對碼後寫入 cabinet_id 與 device_id，裝置以輪詢權杖領取裝置憑證（只交付一次）。
+model cabinet_pair_requests {
+  request_id      Int                  @id @default(autoincrement()) @db.UnsignedInt
+  code_hash       String               @unique(map: "uk_pairreq_code") @db.Char(64)
+  poll_token_hash String               @unique(map: "uk_pairreq_poll") @db.Char(64)
+  kind            cabinet_devices_kind
+  door_count      Int                  @db.UnsignedTinyInt
+  has_door_sensor Boolean              @default(false)
+  unlock_pulse_ms Int                  @db.UnsignedSmallInt
+  firmware        String               @db.VarChar(40)
+  boot_id         String               @db.VarChar(16)
+  ip              String?              @db.VarChar(45)
+  cabinet_id      Int?                 @db.UnsignedInt
+  device_id       Int?                 @db.UnsignedInt
+  claimed_by      Int?                 @db.UnsignedInt
+  claimed_at      DateTime?            @db.DateTime(3)
+  delivered_at    DateTime?            @db.DateTime(3)
+  expires_at      DateTime             @db.DateTime(3)
+  created_at      DateTime             @default(now()) @db.DateTime(3)
+  smart_cabinets  smart_cabinets?      @relation(fields: [cabinet_id], references: [cabinet_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_pairreq_cabinet")
+
+  @@index([expires_at], map: "idx_pairreq_expiry")
+  @@index([cabinet_id], map: "idx_pairreq_cabinet")
+}
+
+model cabinet_challenges {
+  challenge_id    Int             @id @default(autoincrement()) @db.UnsignedInt
+  device_id       Int             @db.UnsignedInt
+  token_hash      String          @unique(map: "uk_challenge_token") @db.Char(64)
+  qr_seq          Int             @db.UnsignedInt
+  epoch           Int             @db.UnsignedInt
+  expires_at      DateTime        @db.DateTime(3)
+  used_at         DateTime?       @db.DateTime(3)
+  used_by         Int?            @db.UnsignedInt
+  created_at      DateTime        @default(now()) @db.DateTime(3)
+  cabinet_devices cabinet_devices @relation(fields: [device_id], references: [device_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_challenge_device")
+
+  @@unique([device_id, qr_seq, epoch], map: "uk_challenge_window")
+  @@index([expires_at], map: "idx_challenge_expiry")
+}
+
+model cabinet_sessions {
+  session_id            Int                        @id @default(autoincrement()) @db.UnsignedInt
+  cabinet_id            Int                        @db.UnsignedInt
+  device_id             Int                        @db.UnsignedInt
+  user_id               Int                        @db.UnsignedInt
+  kind                  cabinet_sessions_kind      @default(user)
+  status                cabinet_sessions_status    @default(selecting)
+  version               Int                        @default(1) @db.UnsignedInt
+  // 建立作業時兌換的挑戰碼；App 重送建立請求時，以此找回同一個作業（5.2 第 1 步）。
+  challenge_id          Int?                       @unique(map: "uk_csession_challenge") @db.UnsignedInt
+  result_code           String?                    @db.VarChar(40)
+  context_type          String?                    @db.VarChar(10)
+  context_id            Int?                       @db.UnsignedInt
+  location_status       cabinet_sessions_location?
+  distance_m            Int?                       @db.UnsignedInt
+  accuracy_m            Int?                       @db.UnsignedInt
+  match_code            Int?                       @db.UnsignedTinyInt
+  open_ms               Int?                       @db.UnsignedInt
+  phase_deadline        DateTime?                  @db.DateTime(3)
+  admin_reason          String?                    @db.VarChar(255)
+  admin_force           Boolean                    @default(false)
+  // 搶下 closed_at 的那一次關門結果（completed 或 cancelled）；提交中斷後由 commitSession 依此續做。
+  close_outcome         String?                    @db.VarChar(12)
+  close_reason          String?                    @db.VarChar(20)
+  close_request         String?                    @db.VarChar(12)
+  // 裝置的 close 指令 id 取自此欄位的毫秒；精度降為秒時，同一秒內重送的請求會被裝置視為同一指令而略過。
+  close_requested_at    DateTime?                  @db.DateTime(3)
+  close_refused_at      DateTime?                  @db.DateTime(3)
+  created_at            DateTime                   @default(now()) @db.DateTime(3)
+  started_at            DateTime?                  @db.DateTime(3)
+  matched_at            DateTime?                  @db.DateTime(3)
+  opened_at             DateTime?                  @db.DateTime(3)
+  closed_at             DateTime?                  @db.DateTime(3)
+  finished_at           DateTime?                  @db.DateTime(3)
+  reviewed_by           Int?                       @db.UnsignedInt
+  reviewed_at           DateTime?                  @db.DateTime(0)
+  review_note           String?                    @db.VarChar(500)
+  smart_cabinets        smart_cabinets             @relation(fields: [cabinet_id], references: [cabinet_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_csession_cabinet")
+  cabinet_devices       cabinet_devices            @relation(fields: [device_id], references: [device_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_csession_device")
+  users                 users                      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_csession_user")
+  cabinet_session_items cabinet_session_items[]
+  cabinet_session_doors cabinet_session_doors[]
+  cabinet_slot_items    cabinet_slot_items[]
+
+  @@index([device_id, status], map: "idx_csession_device")
+  @@index([user_id, status], map: "idx_csession_user")
+  @@index([status, phase_deadline], map: "idx_csession_deadline")
+  @@index([cabinet_id, created_at], map: "idx_csession_cabinet")
+}
+
+model cabinet_session_items {
+  item_id          Int                          @id @default(autoincrement()) @db.UnsignedInt
+  session_id       Int                          @db.UnsignedInt
+  kind             cabinet_session_items_kind
+  order_id         Int?                         @db.UnsignedInt
+  book_id          Int                          @db.UnsignedInt
+  slot_id          Int?                         @db.UnsignedInt
+  selected         Boolean                      @default(false)
+  // 取回開始時由 on_sale 暫改為 removed 的書；作業進入終態時還原（3.8.2）。
+  held_on_sale     Boolean                      @default(false)
+  blocked_code     String?                      @db.VarChar(40)
+  note_code        String?                      @db.VarChar(40)
+  result           cabinet_session_items_result @default(pending)
+  error_code       String?                      @db.VarChar(40)
+  cabinet_sessions cabinet_sessions             @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_csitem_session")
+  orders           orders?                      @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_csitem_order")
+  books            books                        @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_csitem_book")
+  cabinet_slots    cabinet_slots?               @relation(fields: [slot_id], references: [slot_id], onDelete: SetNull, onUpdate: NoAction, map: "fk_csitem_slot")
+
+  @@index([session_id], map: "idx_csitem_session")
+  @@index([order_id], map: "idx_csitem_order")
+  @@index([book_id], map: "idx_csitem_book")
+  @@index([slot_id], map: "idx_csitem_slot")
+}
+
+model cabinet_session_doors {
+  session_id        Int                         @db.UnsignedInt
+  slot_id           Int                         @db.UnsignedInt
+  lock_channel      Int                         @db.UnsignedTinyInt
+  state             cabinet_session_doors_state @default(pending)
+  // 開鎖指令第一次出現在 /state 或 /events 回應的時間；用來區分「指令沒送到」與「已送到但開門回報遺失」。
+  command_served_at DateTime?                   @db.DateTime(3)
+  opened_at         DateTime?                   @db.DateTime(3)
+  closed_at         DateTime?                   @db.DateTime(3)
+  close_reason      String?                     @db.VarChar(20)
+  cabinet_sessions  cabinet_sessions            @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_csdoor_session")
+  cabinet_slots     cabinet_slots               @relation(fields: [slot_id], references: [slot_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_csdoor_slot")
+
+  @@id([session_id, slot_id])
+  @@index([slot_id], map: "idx_csdoor_slot")
+}
+
+// 實體位置：一本書目前放在哪一扇櫃門。唯一的事實來源，存書登記與訂單狀態都不能代替它。
+model cabinet_slot_items {
+  book_id          Int                       @id @db.UnsignedInt
+  slot_id          Int                       @db.UnsignedInt
+  cabinet_id       Int                       @db.UnsignedInt
+  session_id       Int?                      @db.UnsignedInt
+  placed_by        cabinet_slot_items_source @default(session)
+  placed_at        DateTime                  @db.DateTime(0)
+  books            books                     @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_slotitem_book")
+  cabinet_slots    cabinet_slots             @relation(fields: [slot_id], references: [slot_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_slotitem_slot")
+  cabinet_sessions cabinet_sessions?         @relation(fields: [session_id], references: [session_id], onDelete: SetNull, onUpdate: NoAction, map: "fk_slotitem_session")
+
+  @@index([slot_id], map: "idx_slotitem_slot")
+  @@index([cabinet_id], map: "idx_slotitem_cabinet")
+  @@index([session_id], map: "idx_slotitem_session")
+}
+
+model cabinet_events {
+  event_id     Int                   @id @default(autoincrement()) @db.UnsignedInt
+  cabinet_id   Int                   @db.UnsignedInt
+  device_id    Int?                  @db.UnsignedInt
+  session_id   Int?                  @db.UnsignedInt
+  order_id     Int?                  @db.UnsignedInt
+  book_id      Int?                  @db.UnsignedInt
+  event_key    String?               @db.VarChar(64)
+  source       cabinet_events_source
+  type         String                @db.VarChar(32)
+  lock_channel Int?                  @db.UnsignedTinyInt
+  actor_id     Int?                  @db.UnsignedInt
+  detail       String?               @db.Text
+  result       String?               @db.VarChar(40)
+  occurred_at  DateTime              @db.DateTime(3)
+  received_at  DateTime              @default(now()) @db.DateTime(3)
+  claimed_at   DateTime?             @db.DateTime(3)
+  processed_at DateTime?             @db.DateTime(3)
+
+  @@unique([device_id, event_key], map: "uk_event_key")
+  @@index([cabinet_id, occurred_at], map: "idx_event_cabinet")
+  @@index([session_id], map: "idx_event_session")
+  @@index([order_id, type], map: "idx_event_order")
+  @@index([book_id, type], map: "idx_event_book")
+}
+
+// 故障備援的手動回報：不立即變更訂單或存書狀態，須由管理員確認後才生效。
+model cabinet_manual_reports {
+  report_id      Int                           @id @default(autoincrement()) @db.UnsignedInt
+  cabinet_id     Int                           @db.UnsignedInt
+  user_id        Int                           @db.UnsignedInt
+  kind           cabinet_manual_reports_kind
+  order_id       Int?                          @db.UnsignedInt
+  book_id        Int?                          @db.UnsignedInt
+  // 訂單回報時使用者要求的狀態（deposited、picked_up 或 completed）；確認時依此套用。
+  target_status  String?                       @db.VarChar(20)
+  reason         String?                       @db.VarChar(20)
+  status         cabinet_manual_reports_status @default(pending)
+  // 待確認時為 `<kind>:<order_id 或 book_id>`，其餘為 NULL：以唯一索引保證同一項目同時只有一筆待確認的回報。
+  pending_key    String?                       @unique(map: "uk_mreport_pending") @db.VarChar(40)
+  // 取回回報送出時由 on_sale 暫改為 removed 的書；回報結束時還原，避免待確認期間被買走。
+  held_on_sale   Boolean                       @default(false)
+  reviewed_by    Int?                          @db.UnsignedInt
+  reviewed_at    DateTime?                     @db.DateTime(0)
+  review_note    String?                       @db.VarChar(500)
+  created_at     DateTime                      @default(now()) @db.DateTime(0)
+  updated_at     DateTime                      @default(now()) @db.DateTime(0)
+  smart_cabinets smart_cabinets                @relation(fields: [cabinet_id], references: [cabinet_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mreport_cabinet")
+  users          users                         @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mreport_user")
+  orders         orders?                       @relation(fields: [order_id], references: [order_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mreport_order")
+  books          books?                        @relation(fields: [book_id], references: [book_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_mreport_book")
+
+  @@index([status, created_at], map: "idx_mreport_status")
+  @@index([cabinet_id, status], map: "idx_mreport_cabinet")
+  @@index([user_id], map: "idx_mreport_user")
+  @@index([order_id], map: "idx_mreport_order")
+  @@index([book_id], map: "idx_mreport_book")
+}
+
+enum cabinet_devices_kind {
+  simulator
+  esp32
+}
+
+enum cabinet_devices_status {
+  pending
+  active
+  revoked
+}
+
+enum cabinet_sessions_kind {
+  user
+  admin
+}
+
+enum cabinet_sessions_status {
+  selecting
+  matching
+  opening
+  open
+  completed
+  partial
+  cancelled
+  failed
+  expired
+  needs_review
+}
+
+enum cabinet_sessions_location {
+  granted
+  denied
+  unavailable
+}
+
+enum cabinet_session_items_kind {
+  pickup
+  order_deposit
+  pre_deposit
+  retrieval
+}
+
+enum cabinet_session_items_result {
+  pending
+  done
+  failed
+  skipped
+}
+
+enum cabinet_session_doors_state {
+  pending
+  open
+  closed
+  failed
+}
+
+enum cabinet_slot_items_source {
+  session
+  admin
+}
+
+enum cabinet_events_source {
+  device
+  server
+  admin
+  user
+}
+
+enum cabinet_manual_reports_kind {
+  deposit
+  pickup
+  retrieve
+}
+
+enum cabinet_manual_reports_status {
+  pending
+  confirmed
+  rejected
+  cancelled
 }
 
 enum content_reviews_content_type {
@@ -1330,11 +1920,18 @@ enum ai_book_reviews_status {
   pending
   approved
   rejected
+  passed
+  skipped
 }
 
 enum ai_usage_logs_status {
   ok
   error
+}
+
+enum ai_message_requests_status {
+  processing
+  done
 }
 
 enum webauthn_challenges_purpose {

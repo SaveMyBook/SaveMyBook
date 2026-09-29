@@ -32,39 +32,6 @@ entity "users" as users {
   {field} share_token : char(32)
   {field} password_set : tinyint(1)
 }
-entity "user_identities" as user_identities {
-  {field} <&key> identity_id : int
-  --
-  {field} user_id : int
-  {field} provider : enum
-  {field} subject : varchar
-  {field} email : varchar(255)
-  {field} phone : varchar(20)
-  {field} display_name : varchar(100)
-  {field} created_at : datetime
-  {field} last_login_at : datetime
-}
-entity "user_passkeys" as user_passkeys {
-  {field} <&key> passkey_id : int
-  --
-  {field} user_id : int
-  {field} credential_id : varchar(255)
-  {field} public_key : text
-  {field} sign_count : int
-  {field} transports : varchar(100)
-  {field} aaguid : char(36)
-  {field} backed_up : tinyint(1)
-  {field} device_label : varchar(50)
-  {field} created_at : datetime
-  {field} last_used_at : datetime
-}
-entity "webauthn_challenges" as webauthn_challenges {
-  {field} <&key> challenge : char(64)
-  --
-  {field} user_id : int
-  {field} purpose : enum
-  {field} created_at : datetime
-}
 entity "user_sessions" as user_sessions {
   {field} <&key> session_id : int
   --
@@ -89,20 +56,6 @@ entity "login_logs" as login_logs {
   {field} device_info : varchar(255)
   {field} login_method : varchar(20)
 }
-entity "oauth_states" as oauth_states {
-  {field} <&key> state : char(32)
-  --
-  {field} provider : varchar(20)
-  {field} mode : enum
-  {field} user_id : int
-  {field} created_at : datetime
-}
-entity "oauth_results" as oauth_results {
-  {field} <&key> code : char(32)
-  --
-  {field} payload : text
-  {field} created_at : datetime
-}
 entity "push_devices" as push_devices {
   {field} <&key> device_id : int
   --
@@ -114,10 +67,7 @@ entity "push_devices" as push_devices {
   {field} last_seen_at : datetime
   {field} session_sid : char(32)
 }
-users ||--o{ user_identities
-users ||--o{ user_passkeys
 users ||--o{ user_sessions
 users ||--o{ login_logs
 users ||--o{ push_devices
-user_identities -[hidden]down- push_devices
 @enduml

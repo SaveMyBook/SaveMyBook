@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../models/ai.dart';
 import '../../services/ai_status.dart';
 import '../../services/api_service.dart';
+import '../../services/locale_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
@@ -14,7 +15,10 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
+import '../chat/ai/ai_feedback_bar.dart';
 import '../chat/widgets/chat_bubbles.dart';
+import '../chat/widgets/chat_input_accessories.dart';
+import '../orders/order_detail_screen.dart';
 import 'ai_consent_sheet.dart';
 import 'support_ticket_screen.dart';
 import '../../i18n/strings.dart';
@@ -25,22 +29,32 @@ class AiChatItem {
   final String id;
   final bool isUser;
   final String content;
+  final String clientId;
   AiChatState state;
   String? error;
   bool blocked;
   bool suggestHandoff;
+  List<String> suggestions;
   final bool animate;
+  final List<String> orderNos;
+  final String? messageNo;
+  AiMessageFeedback? feedback;
 
   AiChatItem({
     required this.id,
     required this.isUser,
     required this.content,
+    String? clientId,
     this.state = AiChatState.sent,
     this.error,
     this.blocked = false,
     this.suggestHandoff = false,
+    this.suggestions = const [],
     this.animate = true,
-  });
+    this.orderNos = const [],
+    this.messageNo,
+    this.feedback,
+  }) : clientId = clientId ?? newAiClientId();
 }
 
 class AiSupportScreen extends StatefulWidget {
@@ -52,7 +66,7 @@ class AiSupportScreen extends StatefulWidget {
   State<AiSupportScreen> createState() => _AiSupportScreenState();
 }
 
-class _AiSupportScreenState extends State<AiSupportScreen> {
+class _AiSupportScreenState extends State<AiSupportScreen> with WidgetsBindingObserver {
   final ApiService _api = ApiService();
   final TextEditingController _input = TextEditingController();
   final ScrollController _scroll = ScrollController();
@@ -65,12 +79,20 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
   String? _loadError;
   String? _blockedMessage;
   int _localSeq = 0;
+  DateTime? _lastActivity;
 
   List<String> get _suggestions => [S.howDoIListBook, S.howDoIPickUpFrom, S.howDoIRequestRefund, S.howDoWalletCoinsWork];
+
+  List<String> get _followUps {
+    if (_waiting || _blockedMessage != null || _items.isEmpty) return const [];
+    final last = _items.last;
+    return last.isUser ? const [] : last.suggestions;
+  }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final preset = widget.initialItems;
     if (preset == null) {
       _load();
@@ -82,9 +104,22 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _input.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _reloadIfIdle();
+  }
+
+  Future<void> _reloadIfIdle() async {
+    final last = _lastActivity;
+    if (last == null || _loading || _waiting || _busy) return;
+    if (DateTime.now().difference(last) < aiSupportIdleLimit) return;
+    await _load();
   }
 
   Future<void> _load() async {
@@ -104,11 +139,23 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
         }
         return;
       }
+      final messages = result.data?.messages ?? const <AiSupportMessage>[];
+      _lastActivity = messages.isEmpty ? null : (messages.last.createdAt?.toLocal() ?? DateTime.now());
       _items
         ..clear()
         ..addAll([
-          for (final m in result.data?.messages ?? const <AiSupportMessage>[])
-            AiChatItem(id: 'm${m.messageId}', isUser: m.isUser, content: m.content, animate: false),
+          for (final (i, m) in messages.indexed)
+            AiChatItem(
+              id: 'm${m.messageId}',
+              isUser: m.isUser,
+              content: m.content,
+              suggestHandoff: i == messages.length - 1 && m.suggestHandoff,
+              suggestions: i == messages.length - 1 ? m.suggestions : const [],
+              animate: false,
+              orderNos: m.orderNos,
+              messageNo: m.messageNo,
+              feedback: m.feedback,
+            ),
         ]);
     });
     _scrollToEnd(jump: true);
@@ -130,11 +177,14 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
     final text = (preset ?? _input.text).trim();
     if (text.isEmpty || _waiting) return;
     if (!await _ensureConsent()) return;
+    await _reloadIfIdle();
+    if (!mounted || _loadError != null || _blockedMessage != null) return;
     if (preset == null) _input.clear();
     final item = AiChatItem(id: 'l${++_localSeq}', isUser: true, content: text, state: AiChatState.sending);
     setState(() {
       for (final i in _items) {
         i.suggestHandoff = false;
+        i.suggestions = const [];
       }
       _items.add(item);
     });
@@ -152,6 +202,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
   }
 
   Future<void> _deliver(AiChatItem item) async {
+    final locale = LocaleProvider.tagOf(Localizations.localeOf(context)).replaceAll('_', '-');
     if (!await _ensureConsent()) return;
     setState(() {
       _waiting = true;
@@ -159,10 +210,12 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
       item.error = null;
     });
     _scrollToEnd();
-    final result = await _api.sendAiSupportMessage(item.content);
+    final result = await _post(item, locale);
     if (!mounted) return;
+    if (result.inProgress && await _recover(item)) return;
     if (result.needsConsent) {
-      AiStatus.markConsentRevoked();
+      await AiStatus.markConsentRevoked();
+      if (!mounted) return;
       setState(() {
         _waiting = false;
         item.state = AiChatState.failed;
@@ -176,16 +229,20 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
       if (!result.isOk || result.data == null) {
         item.state = AiChatState.failed;
         item.error = result.error;
-        item.blocked = result.isQuotaOrDisabled;
+        item.blocked = !result.canRetry;
         return;
       }
       item.state = AiChatState.sent;
+      _lastActivity = DateTime.now();
       final reply = result.data!;
       _items.add(AiChatItem(
         id: 'm${reply.reply.messageId}_${++_localSeq}',
         isUser: false,
         content: reply.reply.content,
         suggestHandoff: reply.suggestHandoff,
+        suggestions: reply.reply.suggestions,
+        orderNos: reply.reply.orderNos,
+        messageNo: reply.reply.messageNo,
       ));
     });
     if (item.state == AiChatState.failed) {
@@ -194,8 +251,47 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
     _scrollToEnd();
   }
 
+  // 逾時不代表伺服器沒有處理：須以同一個識別碼重送，伺服器才會回傳第一次的回應而不重複扣次。
+  Future<AiResult<AiSupportReply>> _post(AiChatItem item, String locale) async {
+    final result = await _api.sendAiSupportMessage(item.content, clientId: item.clientId, locale: locale);
+    if (!result.timedOut || !mounted) return result;
+    return _api.sendAiSupportMessage(item.content, clientId: item.clientId, locale: locale);
+  }
+
+  Future<bool> _recover(AiChatItem item) async {
+    final session = await _api.fetchAiSupportSession();
+    if (!mounted || !session.isOk) return false;
+    final messages = session.data?.messages ?? const <AiSupportMessage>[];
+    final at = messages.indexWhere((m) => m.isUser && m.clientId == item.clientId);
+    if (at < 0 || at + 1 >= messages.length || messages[at + 1].isUser) return false;
+    final reply = messages[at + 1];
+    setState(() {
+      _waiting = false;
+      item.state = AiChatState.sent;
+      item.error = null;
+      _lastActivity = DateTime.now();
+      _items.insert(
+        _items.indexOf(item) + 1,
+        AiChatItem(
+          id: 'm${reply.messageId}_${++_localSeq}',
+          isUser: false,
+          content: reply.content,
+          suggestHandoff: reply.suggestHandoff && _items.last == item,
+          suggestions: _items.last == item ? reply.suggestions : const [],
+          orderNos: reply.orderNos,
+          messageNo: reply.messageNo,
+          feedback: reply.feedback,
+        ),
+      );
+    });
+    _scrollToEnd();
+    return true;
+  }
+
   Future<void> _escalate() async {
     if (_busy) return;
+    await _reloadIfIdle();
+    if (!mounted || _loadError != null) return;
     final hasConversation = _items.any((i) => i.isUser && i.state == AiChatState.sent);
     if (!hasConversation) {
       await Navigator.push(context, MaterialPageRoute(builder: (_) => const NewTicketScreen()));
@@ -225,6 +321,22 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
     );
   }
 
+  Future<void> _openOrder(String orderNo) async {
+    if (_busy) return;
+    _busy = true;
+    final order = await runBusy(context, () => _api.fetchOrderDetailByNo(orderNo));
+    _busy = false;
+    if (!mounted) return;
+    if (order == null) {
+      showAppSnackBar(context, S.loadFailed, isError: true);
+      return;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order, asSeller: order.sellerId == ApiService.currentUser?.userId)),
+    );
+  }
+
   Future<void> _newConversation() async {
     if (_busy || _waiting) return;
     if (_items.isEmpty) return;
@@ -245,7 +357,10 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
       return;
     }
     HapticFeedback.selectionClick();
-    setState(() => _items.clear());
+    setState(() {
+      _items.clear();
+      _lastActivity = null;
+    });
   }
 
   void _copy(String text) {
@@ -271,9 +386,10 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
           ),
           ResponsiveListPadding(
             maxWidth: Breakpoints.readingMaxWidth,
+            horizontal: 14,
             top: 8,
             bottom: 0,
-            builder: (context, padding) => Padding(padding: padding, child: _toolbar(c)),
+            builder: (context, padding) => Padding(padding: padding.copyWith(right: padding.right - 8), child: _toolbar(c)),
           ),
           Expanded(
             child: GestureDetector(
@@ -290,7 +406,11 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
               ),
             ),
           ),
-          if (!_loading && _loadError == null) _bottom(c),
+          if (!_loading && _loadError == null) ...[
+            if (_followUps.isNotEmpty)
+              ChatSuggestionStrip(chips: [for (final s in _followUps) ChatSuggestionChip(label: s, onTap: () => _send(s))]),
+            _bottom(c),
+          ],
         ],
       ),
     );
@@ -303,7 +423,11 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
         Flexible(
           child: TextButton.icon(
             onPressed: _escalate,
-            style: TextButton.styleFrom(foregroundColor: c.accent, visualDensity: VisualDensity.compact),
+            style: TextButton.styleFrom(
+              foregroundColor: c.accent,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
             icon: const Icon(Icons.support_agent_rounded, size: 18),
             label: Text(S.talkPerson, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
@@ -448,7 +572,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
         ),
         if (failed)
           Padding(
-            padding: const EdgeInsets.only(top: 4, right: 4),
+            padding: EdgeInsets.only(top: 4, right: item.blocked ? 0 : 4),
             child: item.blocked
                 ? _inlineNotice(c, item.error ?? '', icon: Icons.block_rounded, color: c.warning, maxWidth: maxWidth)
                 : Text(item.error?.isNotEmpty == true ? item.error! : S.failedSend,
@@ -484,6 +608,28 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
             ),
           ],
         ),
+        if (item.orderNos.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 38, top: 6),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [for (final no in item.orderNos) _orderLink(c, no)],
+              ),
+            ),
+          ),
+        if (item.messageNo != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, top: 2),
+            child: AiFeedbackBar(
+              feature: 'support',
+              messageNo: item.messageNo!,
+              initial: item.feedback,
+              onChanged: (value) => item.feedback = value,
+            ),
+          ),
         AnimatedSize(
           duration: Motion.base,
           curve: Motion.emphasized,
@@ -496,6 +642,39 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
               : const SizedBox(width: double.infinity),
         ),
       ],
+    );
+  }
+
+  Widget _orderLink(AppColors c, String orderNo) {
+    return PressableScale(
+      scale: 0.97,
+      onTap: () => _openOrder(orderNo),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: c.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.accent.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.receipt_long_outlined, size: 15, color: c.accent),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text.rich(
+                TextSpan(children: [
+                  TextSpan(text: S.viewOrder, style: TextStyle(fontWeight: FontWeight.w600, color: c.accent)),
+                  TextSpan(text: '  $orderNo', style: TextStyle(color: c.textSecondary)),
+                ]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12.5),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -543,9 +722,9 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 15, color: color),
+            Padding(padding: const EdgeInsets.only(top: 2), child: Icon(icon, size: 15, color: color)),
             const SizedBox(width: 6),
-            Flexible(child: Text(text, style: TextStyle(fontSize: 12.5, height: 1.4, color: c.textPrimary))),
+            Flexible(child: Text(text, textWidthBasis: TextWidthBasis.longestLine, style: TextStyle(fontSize: 12.5, height: 1.4, color: c.textPrimary))),
           ],
         ),
       ),
@@ -573,49 +752,66 @@ class _AiSupportScreenState extends State<AiSupportScreen> {
                   ),
                 ],
               )
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+            : Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: AppTextField(
-                      controller: _input,
-                      hint: S.typeQuestion,
-                      minLines: 1,
-                      maxLines: 4,
-                      maxLength: 1000,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      S.aiRepliesReferenceOnlyOrderPage,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11.5, height: 1.35, color: c.textSecondary),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _input,
-                    builder: (_, value, _) {
-                      final ready = value.text.trim().isNotEmpty && !_waiting;
-                      return PressableScale(
-                        onTap: ready ? _send : null,
-                        child: AnimatedContainer(
-                          duration: Motion.micro,
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: ready ? c.accent : c.accent.withValues(alpha: 0.4),
-                            shape: BoxShape.circle,
-                          ),
-                          child: _waiting
-                              ? const Padding(
-                                  padding: EdgeInsets.all(12),
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 22),
-                        ),
-                      );
-                    },
-                  ),
+                  _composer(c),
                 ],
               ),
       ),
+    );
+  }
+
+  Widget _composer(AppColors c) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: AppTextField(
+            controller: _input,
+            hint: S.typeQuestion,
+            minLines: 1,
+            maxLines: 4,
+            maxLength: 1000,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.send,
+            onSubmitted: (_) => _send(),
+          ),
+        ),
+        const SizedBox(width: 10),
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _input,
+          builder: (_, value, _) {
+            final ready = value.text.trim().isNotEmpty && !_waiting;
+            return PressableScale(
+              onTap: ready ? _send : null,
+              child: AnimatedContainer(
+                duration: Motion.micro,
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: ready ? c.accent : c.accent.withValues(alpha: 0.4),
+                  shape: BoxShape.circle,
+                ),
+                child: _waiting
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 22),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -690,8 +886,9 @@ class AiMarkdownText extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: numbered != null ? 20 : 14,
-                child: Text(numbered != null ? '${numbered.group(1)}.' : '•', style: style),
+                width: 22,
+                child: Text(numbered != null ? '${numbered.group(1)}.' : '•',
+                    style: style, textAlign: numbered != null ? TextAlign.start : TextAlign.center),
               ),
               Expanded(child: Text.rich(TextSpan(children: _inline(body, style)), style: style)),
             ],

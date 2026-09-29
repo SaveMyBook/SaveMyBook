@@ -8,8 +8,11 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
+import 'admin_cabinet_deposit_screen.dart';
+import 'admin_cabinet_device_screen.dart';
 import 'admin_cabinet_edit_screen.dart';
 import '../../utils/app_labels.dart';
+import '../../utils/cabinet_labels.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
 
@@ -74,6 +77,32 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => AdminCabinetEditScreen(cabinet: cabinet)),
+      );
+    } finally {
+      _navigating = false;
+    }
+    if (mounted) _load();
+  }
+
+  Future<void> _openDeposits() async {
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminCabinetDepositScreen()));
+    } finally {
+      _navigating = false;
+    }
+  }
+
+  Future<void> _openDevice(Cabinet cabinet) async {
+    if (_navigating) return;
+    _navigating = true;
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdminCabinetDeviceScreen(cabinetId: cabinet.cabinetId, cabinetName: cabinet.cabinetName),
+        ),
       );
     } finally {
       _navigating = false;
@@ -237,6 +266,10 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               icon: Icons.storage_rounded,
               actions: [
                 HeaderIconButton(
+                  icon: Icons.inventory_2_outlined,
+                  onTap: _openDeposits,
+                ),
+                HeaderIconButton(
                   icon: Icons.add_rounded,
                   onTap: () => _openEditor(),
                 ),
@@ -333,6 +366,8 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     final available = cabinet.slotSummary['empty'] ?? cabinet.availableSlots;
     final total = cabinet.totalSlots == 0 ? 1 : cabinet.totalSlots;
     final ratio = (available / total).clamp(0.0, 1.0);
+    final device = cabinet.device;
+    final slots = device != null && cabinet.doors.isNotEmpty ? cabinet.doors : cabinet.slots;
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -342,21 +377,18 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
           Row(
             children: [
               Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      cabinet.cabinetName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-                    ),
-                    if (!cabinet.isActive) StatusBadge(label: S.disabled, color: c.warning, fontSize: 10),
-                    if (cabinet.isMaintenance) StatusBadge(label: S.slotMaintenance, color: c.danger, fontSize: 10),
-                  ],
+                child: Text(
+                  cabinet.cabinetName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: S.lockerDevice,
+                icon: Icon(Icons.router_outlined, size: 20, color: c.iconInactive),
+                onPressed: () => _openDevice(cabinet),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
@@ -385,6 +417,24 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               ),
             ],
           ),
+          if (!cabinet.isActive || cabinet.isMaintenance || device != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  if (device != null)
+                    StatusBadge(
+                      label: CabinetLabels.deviceState(status: device.status, online: device.online),
+                      color: device.isPending ? c.warning : (device.online ? c.success : c.danger),
+                      fontSize: 10,
+                    ),
+                  if (!cabinet.isActive) StatusBadge(label: S.disabled, color: c.warning, fontSize: 10),
+                  if (cabinet.isMaintenance) StatusBadge(label: S.slotMaintenance, color: c.danger, fontSize: 10),
+                ],
+              ),
+            ),
           const SizedBox(height: 4),
           Row(
             children: [
@@ -441,14 +491,14 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
               ],
             ),
           ],
-          if (cabinet.slots.isNotEmpty) ...[
+          if (slots.isNotEmpty) ...[
             const SizedBox(height: 12),
             Divider(height: 1, color: c.divider),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: cabinet.slots.map((slot) => _buildSlotChip(cabinet, slot, c)).toList(),
+              children: slots.map((slot) => _buildSlotChip(cabinet, slot, c)).toList(),
             ),
           ],
         ],
@@ -472,10 +522,12 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       default:
         color = c.iconInactive;
     }
+    if (slot.needsCheck) color = c.warning;
+    final managedByDevice = cabinet.device != null && slot.isDoor;
 
     return PressableScale(
       scale: 0.92,
-      onTap: () => _editSlot(cabinet, slot),
+      onTap: () => managedByDevice ? _openDevice(cabinet) : _editSlot(cabinet, slot),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
@@ -486,7 +538,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
           border: Border.all(color: color.withValues(alpha: 0.4)),
         ),
         child: Text(
-          '${slot.slotNumber}・${slot.statusText}',
+          [slot.slotNumber, slot.statusText, if (slot.needsCheck) S.contentsNeedChecking].join('・'),
           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
         ),
       ),

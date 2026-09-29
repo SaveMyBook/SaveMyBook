@@ -6,6 +6,7 @@ const {
 
 const orders = api('services/orders');
 const reservations = api('services/reservations');
+const timeline = api('services/orders/timeline');
 
 const hoursAgo = (h) => new Date(Date.now() - h * 60 * 60 * 1000);
 
@@ -43,7 +44,7 @@ const tests = [
     assert.deepStrictEqual(await tabIds(sellerToken, 'seller', 'deposited'), []);
   }],
 
-  ['排程：取書滿 24 小時且未申訴自動完成並撥款，申訴中的訂單不處理', async () => {
+  ['排程：取書滿 24 小時且未申請爭議自動完成並撥款，爭議處理中的訂單不處理', async () => {
     const { buyer, seller, book } = scene({ price: 150 });
     const due = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'deposited', amount: 150 });
     Object.assign(due, { deposited_at: hoursAgo(30), picked_up_at: hoursAgo(25) });
@@ -87,7 +88,51 @@ const tests = [
     assert.strictEqual(result.uncollected, 1);
     assert.strictEqual(orderOf(order.order_id).status, 'cancelled');
     assert.strictEqual(orderOf(recent.order_id).status, 'deposited');
-    assert.ok(notificationsOf(seller.user_id).some((n) => n.content.includes('請至書櫃取回書籍')));
+    assert.ok(notificationsOf(seller.user_id).some((n) => n.content.includes('請至書櫃以 App 掃描 QR Code 取回書籍')));
+  }],
+
+  ['AI 客服轉述的期限與排程、爭議受理一致：期限前不處理，期限一過才自動取消或完成', async () => {
+    const { buyer, seller, book } = scene();
+    const now = new Date();
+    const minutes = (m) => new Date(now.getTime() + m * 60 * 1000);
+    const make = (status, fields) => Object.assign(
+      addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status }),
+      fields
+    );
+    const depositDue = make('pending_deposit', { created_at: hoursAgo(7 * 24) });
+    depositDue.created_at = new Date(depositDue.created_at.getTime() - 60 * 1000);
+    const depositOk = make('pending_deposit', { created_at: new Date(hoursAgo(7 * 24).getTime() + 60 * 1000) });
+    const pickupDue = make('deposited', { created_at: hoursAgo(200), deposited_at: new Date(hoursAgo(7 * 24).getTime() - 60 * 1000) });
+    const pickupOk = make('deposited', { created_at: hoursAgo(200), deposited_at: new Date(hoursAgo(7 * 24).getTime() + 60 * 1000) });
+    const completeDue = make('deposited', { deposited_at: hoursAgo(48), picked_up_at: new Date(hoursAgo(24).getTime() - 60 * 1000) });
+    const completeOk = make('deposited', { deposited_at: hoursAgo(48), picked_up_at: new Date(hoursAgo(24).getTime() + 60 * 1000) });
+
+    for (const [order, deadline, due] of [
+      [depositDue, timeline.depositDeadline, true], [depositOk, timeline.depositDeadline, false],
+      [pickupDue, timeline.pickupDeadline, true], [pickupOk, timeline.pickupDeadline, false],
+      [completeDue, timeline.autoCompleteAt, true], [completeOk, timeline.autoCompleteAt, false]
+    ]) {
+      assert.strictEqual(deadline(order) <= now, due, order.order_no);
+    }
+    assert.strictEqual(timeline.disputeState(completeDue, now).reason, 'expired');
+    assert.strictEqual(timeline.disputeState(completeOk, now).open, true);
+    assert.ok(Math.abs(timeline.disputeState(completeOk, now).deadline - minutes(1)) < 1000);
+
+    await orders.runAutomation(now);
+    assert.deepStrictEqual(
+      [depositDue, depositOk, pickupDue, pickupOk, completeDue, completeOk].map((o) => orderOf(o.order_id).status),
+      ['cancelled', 'pending_deposit', 'cancelled', 'deposited', 'completed', 'deposited']
+    );
+
+    const dispute = (order) => request('POST', '/api/disputes', { token: tokenFor(buyer), body: { order_id: order.order_id, reason: '書況與描述不符' } });
+    const late = make('deposited', { deposited_at: hoursAgo(48), picked_up_at: new Date(hoursAgo(24).getTime() - 60 * 1000) });
+    assert.strictEqual(timeline.disputeState(late).open, false);
+    assert.strictEqual((await dispute(late)).body.code, 'DISPUTE_WINDOW_PASSED');
+    assert.strictEqual(timeline.disputeState(completeOk).open, true);
+    assert.strictEqual((await dispute(completeOk)).status, 201);
+    const early = make('completed', { deposited_at: hoursAgo(3), picked_up_at: hoursAgo(2), completed_at: hoursAgo(1) });
+    assert.strictEqual(timeline.disputeState(early).reason, 'completed', '提早完成訂單即不可再提出爭議');
+    assert.strictEqual((await dispute(early)).status, 400);
   }],
 
   ['預約保留中的書賣家不可編輯或下架', async () => {
@@ -120,7 +165,7 @@ const tests = [
 
     await reservations.expireDue();
     const notice = notificationsOf(fan.user_id).find((n) => n.title === '收藏的書籍已可購買');
-    assert.strictEqual(notice.content, '《小王子》的預約保留已結束，現在可以購買。');
+    assert.strictEqual(notice.content, '《小王子》的預約保留已結束，現已開放購買。');
     assert.strictEqual(notice.related_type, 'book');
     assert.ok(!notificationsOf(buyer.user_id).some((n) => n.title === '收藏的書籍已可購買'));
 
@@ -130,7 +175,7 @@ const tests = [
     const held = addReservation({ bookId: other.book_id, buyerId: buyer.user_id, sellerId: seller.user_id, status: 'confirmed' });
     const res = await request('PATCH', `/api/chat/reservations/${held.reservation_id}`, { token: tokenFor(buyer), body: { action: 'cancel' } });
     assert.strictEqual(res.status, 200);
-    assert.ok(notificationsOf(fan.user_id).some((n) => n.content === '《夜間飛行》的預約保留已結束，現在可以購買。'));
+    assert.ok(notificationsOf(fan.user_id).some((n) => n.content === '《夜間飛行》的預約保留已結束，現已開放購買。'));
   }],
 
   ['購買紀錄已預訂：列出等待回覆與保留中的預約，不含已到期或已取消', async () => {

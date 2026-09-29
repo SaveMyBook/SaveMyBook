@@ -91,7 +91,7 @@ const tests = [
 
     const denied = await request('GET', `/api/chat/rooms/${roomId}`, { token: outsider.token });
     assert.strictEqual(denied.status, 403);
-    assert.strictEqual(denied.body.message, '存取被拒');
+    assert.strictEqual(denied.body.message, '無權限執行此操作');
 
     const missing = await request('GET', '/api/chat/rooms/999999', { token: me.token });
     assert.strictEqual(missing.status, 404);
@@ -181,7 +181,6 @@ const tests = [
     assert.strictEqual(pinned.message, '已釘選聊天室');
     assert.strictEqual(pinned.data.pinned, true);
 
-    // 重複釘選維持原本的釘選時間，排序不會被打亂。
     const again = ok(await request('PUT', `/api/chat/rooms/${roomId}/pin`, { token: me.token, body: { pinned: true } }));
     assert.strictEqual(new Date(again.data.pinned_at).getTime(), new Date(pinned.data.pinned_at).getTime());
     assert.strictEqual(prisma.rows('chat_room_pins').length, 1);
@@ -193,7 +192,7 @@ const tests = [
 
     const bad = await request('PUT', `/api/chat/rooms/${roomId}/pin`, { token: me.token, body: { pinned: 'yes' } });
     assert.strictEqual(bad.status, 400);
-    assert.strictEqual(bad.body.message, 'pinned 必須為布林值');
+    assert.strictEqual(bad.body.message, '設定值不正確');
   }],
 
   ['釘選數量上限為 10', async () => {

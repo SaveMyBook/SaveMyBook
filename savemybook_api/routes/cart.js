@@ -37,7 +37,7 @@ router.get('/book-ids', async (req, res) => {
 router.patch('/:cartId', async (req, res) => {
   const cartId = v.id(req.params.cartId, '購物車項目編號');
   const quantity = v.toInt(req.body.quantity);
-  if (!Number.isSafeInteger(quantity) || quantity < 1) throw badRequest('quantity 必須大於 0');
+  if (!Number.isSafeInteger(quantity) || quantity < 1) throw badRequest('數量必須大於 0');
 
   const updated = await cart.setQuantity(req.user.userId, cartId, quantity);
   res.status(200).json({ success: true, message: '已更新數量', data: updated });

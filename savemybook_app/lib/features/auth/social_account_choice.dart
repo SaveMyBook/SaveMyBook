@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../models/auth_social.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import 'social_sign_in.dart';
 import '../../i18n/strings.dart';
 
-/// 第三方身分尚未綁定帳號時，使用者可以做的三個決定。
 enum SocialAccountChoice { linkExisting, createNew }
 
-/// 伺服器回 NO_ACCOUNT_FOR_PROVIDER 時詢問後續處理方式；取消時回傳 null。
 Future<SocialAccountChoice?> showSocialAccountChoice(BuildContext context, String provider) {
   final c = AppColors.of(context);
-  final name = AuthProviders.labelOf(provider);
 
   return showGeneralDialog<SocialAccountChoice>(
     context: context,
@@ -20,7 +16,7 @@ Future<SocialAccountChoice?> showSocialAccountChoice(BuildContext context, Strin
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     barrierColor: c.scrim,
     transitionDuration: Motion.base,
-    pageBuilder: (ctx, _, _) => _ChoiceDialog(provider: provider, name: name),
+    pageBuilder: (ctx, _, _) => _ChoiceDialog(provider: provider),
     transitionBuilder: (ctx, animation, _, child) {
       final curved = CurvedAnimation(
         parent: animation,
@@ -40,9 +36,8 @@ Future<SocialAccountChoice?> showSocialAccountChoice(BuildContext context, Strin
 
 class _ChoiceDialog extends StatelessWidget {
   final String provider;
-  final String name;
 
-  const _ChoiceDialog({required this.provider, required this.name});
+  const _ChoiceDialog({required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -76,12 +71,6 @@ class _ChoiceDialog extends StatelessWidget {
               S.signMethodNotLinkedAccount,
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold, color: c.textPrimary, fontSize: 17),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              S.p0AccountNotLinkedAnySavemybook(name),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: c.textSecondary, fontSize: 13.5, height: 1.6),
             ),
           ],
         ),

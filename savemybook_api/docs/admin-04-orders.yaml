@@ -58,7 +58,7 @@ paths:
       description: |
         單筆訂單的完整樣貌。列表為求輕量只帶摘要，這裡補上客服在處理一筆
         爭議時真正需要的細節：錢什麼時候扣的、書放進哪一格、退過款沒有、
-        對方申訴了什麼。
+        爭議的內容。
 
         `timeline` 的每個欄位對應流程中的一個節點，`null` 表示尚未走到，
         可用來判斷訂單卡在哪一步。
@@ -125,7 +125,7 @@ paths:
                                 processed_at: { type: string, format: date-time, nullable: true }
                           disputes:
                             type: array
-                            description: 這筆訂單的申訴案件，新的在前。
+                            description: 這筆訂單的爭議案件，新的在前。
                             items:
                               type: object
                               properties:
@@ -151,11 +151,11 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404':
-          description: 找不到這筆訂單。
+          description: 找不到此訂單。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這筆訂單 }
+              example: { success: false, message: 找不到此訂單 }
         '500': { $ref: '#/components/responses/ServerError' }
 
     patch:
@@ -171,7 +171,7 @@ paths:
         | 目標狀態 | 金流 | 書籍 |
         | --- | --- | --- |
         | `completed` | 賣家尚未收到的貨款撥入賣家錢包 | 改為 `sold` |
-        | `cancelled`、`refunded` | 賣家已收到的貨款先收回（餘額可為負），再把買家實付金額退回 | 保留中的改回 `on_sale` |
+        | `cancelled`、`refunded` | 賣家已收到的貨款先收回（餘額可為負），再把買家實付金額退回 | 保留中的改回 `on_sale`；尚未取書時，仍在櫃中的書恢復存書登記：原為 `deposited`、`pending_pickup`（爭議處理中則為已有 `deposited_at`）時為訂單的每本書（登記於訂單書櫃，書籍的書櫃一併改為訂單書櫃），其餘為下單前已存書（`pre_deposited`）的書；原為 `refunding` 時恢復登記的書改為下架，待賣家至書櫃以 App 掃描 QR Code 取回；`cancelled`、`refunded` 互改時不再恢復存書登記；通知賣家時一併說明 |
         | 其他（進行中） | 不動 | 不動 |
 
         不允許的變更（回傳 400）：
@@ -230,7 +230,7 @@ paths:
                 狀態值錯誤:
                   value: { success: false, message: 不支援的訂單狀態 }
                 款項已退回:
-                  value: { success: false, message: 這筆訂單的款項已經退回買家，不能再改回進行中或已完成 }
+                  value: { success: false, message: 此訂單款項已退回買家，無法改回進行中或已完成 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }

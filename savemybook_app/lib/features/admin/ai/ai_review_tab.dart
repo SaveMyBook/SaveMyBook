@@ -5,10 +5,12 @@ import '../../../models/ai.dart';
 import '../../../services/api_service.dart';
 import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
+import '../../../utils/app_labels.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
 import '../../../widgets/app_dialogs.dart';
 import '../../../widgets/app_tiles.dart';
+import '../../../widgets/image_viewer.dart';
 import '../../../widgets/state_views.dart';
 import '../admin_layout.dart';
 import 'ai_labels.dart';
@@ -28,6 +30,10 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
   List<AiReviewItem> _items = [];
   final Set<int> _busy = {};
   final Map<int, bool> _leaving = {};
+  final Set<int> _expanded = {};
+  final Set<int> _unfounded = {};
+
+  static const _rejectCategories = ['not_book', 'prohibited', 'adult', 'contact', 'misleading', 'price', 'source', 'other'];
   String? _error;
   bool _loading = true;
 
@@ -56,10 +62,26 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
     if (result.isOk) widget.onCountChanged?.call(_items.length);
   }
 
+  Future<String?> _pickRejectCategory(AiReviewItem item) {
+    final ordered = [
+      ...item.categories.where(_rejectCategories.contains),
+      ..._rejectCategories.where((c) => !item.categories.contains(c)),
+    ];
+    return showOptionSheet<String>(
+      context,
+      title: S.rejectionReason,
+      subtitle: item.title,
+      options: [for (final id in ordered) SheetOption(value: id, label: AiLabels.reviewCategory(id))],
+    );
+  }
+
   Future<void> _decide(AiReviewItem item, {required bool approve}) async {
     if (_busy.contains(item.bookId)) return;
     String? note;
+    String? category;
     if (!approve) {
+      category = await _pickRejectCategory(item);
+      if (category == null || !mounted) return;
       note = await showTextInputDialog(
         context,
         title: S.rejectListing,
@@ -73,7 +95,13 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
       if (note == null || !mounted) return;
     }
     setState(() => _busy.add(item.bookId));
-    final error = await _api.decideAiReview(item.bookId, approve: approve, note: note);
+    final error = await _api.decideAiReview(
+      item.bookId,
+      approve: approve,
+      note: note,
+      category: category,
+      unfounded: _unfounded.contains(item.bookId),
+    );
     if (!mounted) return;
     setState(() => _busy.remove(item.bookId));
     if (error != null) {
@@ -89,6 +117,8 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
     setState(() {
       _items.removeWhere((i) => i.bookId == item.bookId);
       _leaving.remove(item.bookId);
+      _expanded.remove(item.bookId);
+      _unfounded.remove(item.bookId);
     });
     widget.onCountChanged?.call(_items.length);
   }
@@ -161,10 +191,107 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
     );
   }
 
+  Widget _opinion(AppColors c, AiReviewOpinion opinion) {
+    final tone = switch (opinion.verdict) {
+      'allow' => c.success,
+      'reject' => c.danger,
+      _ => c.warning,
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.auto_awesome_rounded, size: 14, color: tone),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                S.aiAssessmentP0(AiLabels.opinion(opinion.verdict)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: tone),
+              ),
+            ),
+          ],
+        ),
+        for (final reason in opinion.reasons)
+          Padding(
+            padding: const EdgeInsets.only(left: 20, top: 3),
+            child: Text(reason, style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary)),
+          ),
+      ],
+    );
+  }
+
+  static String _percent(double value) => '${(value * 100).round()}%';
+
+  Widget _detailLine(AppColors c, String label, String value) => Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: c.textSecondary)),
+            const SizedBox(height: 2),
+            SelectableText(value, style: TextStyle(fontSize: 12.5, height: 1.5, color: c.textPrimary)),
+          ],
+        ),
+      );
+
+  Widget _details(AppColors c, AiReviewItem item) {
+    final opinion = item.aiOpinion;
+    final flags = [
+      item.byRules ? S.sourceInstantRules : S.sourceAiAssessment,
+      if (item.confidence != null) S.confidenceP0(_percent(item.confidence!)),
+      if (opinion?.confidence != null) S.aiAssessmentConfidenceP0(_percent(opinion!.confidence!)),
+    ].join('・');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (item.imageUrls.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 120,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: item.imageUrls.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, i) => GestureDetector(
+                onTap: () => ImageViewer.openGallery(context, imageUrls: item.imageUrls, initialIndex: i, title: item.title, allowSave: false),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: AppNetworkImage(url: item.imageUrls[i], width: 90, height: 120, fallbackIconSize: 22),
+                ),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 4),
+        _detailLine(c, S.assessment, flags),
+        if (item.conditionLevel.isNotEmpty || item.conditionNote.isNotEmpty)
+          _detailLine(c, S.condition, [
+            if (item.conditionLevel.isNotEmpty) AppLabels.conditionOf(item.conditionLevel),
+            if (item.conditionNote.isNotEmpty) item.conditionNote,
+          ].join('：')),
+        _detailLine(c, S.description3, item.description.isEmpty ? S.notFilled : item.description),
+        if (item.status == 'pending')
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: c.accent,
+            value: _unfounded.contains(item.bookId),
+            onChanged: (value) => setState(() => value == true ? _unfounded.add(item.bookId) : _unfounded.remove(item.bookId)),
+            title: Text(S.markReviewReasonAsUnfoundedWhen, style: TextStyle(fontSize: 13, color: c.textPrimary)),
+          ),
+      ],
+    );
+  }
+
   Widget _card(AppColors c, AiReviewItem item) {
     final busy = _busy.contains(item.bookId);
     final leaving = _leaving[item.bookId];
     final reject = item.verdict == 'reject';
+    final expanded = _expanded.contains(item.bookId);
 
     return AppCard(
       padding: const EdgeInsets.all(14),
@@ -257,7 +384,34 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          if (item.aiOpinion != null) ...[
+            const SizedBox(height: 10),
+            _opinion(c, item.aiOpinion!),
+          ],
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.standard,
+            alignment: Alignment.topCenter,
+            child: expanded ? _details(c, item) : const SizedBox(width: double.infinity),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => setState(() => expanded ? _expanded.remove(item.bookId) : _expanded.add(item.bookId)),
+              style: TextButton.styleFrom(
+                foregroundColor: c.accent,
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+              ),
+              icon: AnimatedRotation(
+                turns: expanded ? 0.5 : 0,
+                duration: Motion.base,
+                child: const Icon(Icons.expand_more_rounded, size: 18),
+              ),
+              label: Text(expanded ? S.collapse : S.showPhotosFullDetails, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ),
+          ),
+          const SizedBox(height: 4),
           AnimatedSwitcher(
             duration: Motion.base,
             child: leaving != null

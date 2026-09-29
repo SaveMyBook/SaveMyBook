@@ -11,6 +11,39 @@ tags:
       書籍 `is_approved` 為 false，或有任一檢舉審核結果為 `resolved`（違規成立）時，
       賣家無法自行將狀態改回 `on_sale`，將收到 403 `BOOK_NOT_APPROVED`。
 
+      ## Pre-order Deposit
+
+      書籍上架後，賣家不必等訂單成立即可將書存入該書指定的書櫃。存入與取回都在書櫃前以 App 掃描 QR Code 辦理（見「書櫃作業」）；
+      書櫃無法掃碼時（沒有有效裝置，或裝置離線、故障持續 2 分鐘以上），才以 `POST /api/books/{id}/deposit`、`POST /api/books/{id}/retrieve`
+      送出待客服確認的手動回報，管理員確認後生效。每位賣家在同一台書櫃最多 1 本先行存書。
+
+      | 階段 | 處理 |
+      | --- | --- |
+      | 存書期間有人下單 | 訂單中每本書都已存於該訂單的書櫃（且書櫃啟用中）時，訂單直接成立為 `deposited`，買家即可取書，取書期限自下單起算 7 天，雙方即無法自行取消；其餘情況維持 `pending_deposit`：部分書未存書時請賣家存入其餘書籍，存於其他書櫃時請賣家移至訂單書櫃，並至書櫃以 App 掃描 QR Code 辦理訂單存書。已存書紀錄都會移除，訂單項目以 `pre_deposited` 標示下單時已在櫃中的書 |
+      | 訂單在取書前取消或退款 | 書仍在櫃中者恢復存書登記（存書時間自取消時重新起算），買家可再下單直接取書：訂單已存書（`deposited`、`pending_pickup`，爭議處理中則為已有 `deposited_at`）時訂單的每本書都恢復登記於訂單書櫃，書籍的書櫃一併改為訂單書櫃；尚未存書時僅 `pre_deposited` 的書恢復登記。逾期未存書或未取書自動取消時書籍改為下架；訂單原為爭議處理中（`refunding`）時恢復登記的書改為下架；兩者賣家皆須至書櫃以 App 掃描 QR Code 取回 |
+      | 存書滿 7 天仍未售出 | 上架中的書改為 `removed`（暫停販售），通知賣家至書櫃取回；賣家自行下架的書只通知取回。聊天室預約保留中的書待保留結束後才暫停 |
+      | 暫停後每 3 天 | 再次提醒賣家取回 |
+      | 存書滿 14 天仍未取回 | 通知具書櫃管理權限的管理員（僅一次），由人員取出後於後台登記 |
+
+      書櫃維修中時不暫停販售、不提醒取回、不通知管理員（維修結束後仍逾期者於下次排程通知），`in_cabinet` 為 false（維修中無法購買）；有存書的書櫃無法停用。
+
+      存書期間的限制：
+
+      - 不可變更書櫃（`cabinet_id`），回傳 409 `BOOK_DEPOSITED`；管理員也無法刪除書籍
+      - 賣家可自行下架（`DELETE /api/books/{id}`），存書紀錄保留，逾期提醒照常進行
+      - 書仍登記存放於書櫃時，賣家須先至書櫃以 App 掃描 QR Code 取回才能重新上架（書櫃無法掃碼時改以手動回報，經客服確認後生效），
+        否則回傳 409 `RETRIEVAL_REQUIRED`（不論是否已滿 7 天）。
+        取回後，因逾期而由系統暫停販售的書自動恢復上架（等待 AI 審核中的書恢復為上架中，審核通過後公開）；
+        因違規、檢舉成立、管理員下架或賣家自行下架的書維持下架，需自行重新上架
+      - 管理員恢復上架（變更書籍狀態、編輯書籍、核准先前駁回的 AI 審核，或還原下架操作）已逾期的存書時，存書天數自恢復上架時重新起算，不再提醒賣家取回；
+        管理員下架（含還原上架操作）後，取回時不會自動恢復上架
+      - 賣家申請刪除帳號前須先取回，否則回傳 400 `BOOKS_IN_CABINET`
+
+      書籍列表與詳情（含推薦、相似書籍、分享連結）、購物車與收藏清單的書籍物件附 `in_cabinet`，
+      為 true 表示書已存放於書櫃且可購買，下單後即可取書；
+      賣家本人取得的書籍物件另附 `deposit`（存書時間、是否已滿 7 天、已存放天數、櫃門）、`cabinet_access`（指定書櫃的存取方式）、
+      `location`（書目前所在的書櫃與櫃門）與 `manual_report`（待客服確認的手動回報）。
+
 paths:
   /api/books:
     get:
@@ -26,7 +59,8 @@ paths:
         2. 帶入的 `seller_id` 為請求者本人（須帶 Bearer Token）時不套用 `is_approved` 條件，
            賣家方能查得自身待審核或已下架的書籍；其餘情況僅回傳 `is_approved` 為 true
            且狀態不為 `removed` 的書籍，帶入 `status=removed` 回傳 400。
-           查詢自己的書籍時，預約保留中的書另附 `reservation.reserved_until`，書籍管理據此列入「已預定」。
+           查詢自己的書籍時，預約保留中的書另附 `reservation.reserved_until`，書籍管理據此列入「已預定」；
+           每本書另附 `deposit`（未登記存書時為 null）。
 
         ## Popular Ranking
 
@@ -56,7 +90,9 @@ paths:
         - in: query
           name: keyword
           schema: { type: string }
-          description: 關鍵字，同時對書名、作者、出版社進行模糊比對。
+          description: |
+            關鍵字，同時對書名、作者、出版社進行模糊比對。關鍵字含 ISBN（可含連字號、空白、全形數字或「ISBN」前綴）時，
+            另比對 ISBN 欄位（10 碼與 13 碼互通），適用所有排序方式。
           example: 村上春樹
         - in: query
           name: status
@@ -75,6 +111,8 @@ paths:
             `newest` 依上架時間遞減、`price_asc` 價格遞增、`price_desc` 價格遞減、`popular` 依推薦分數排序（見上方說明）。
             `relevance` 需搭配 `keyword`、未帶 `seller_id` 且狀態為 `on_sale`：以關鍵字（BM25）與語意向量混合檢索排序，
             再補上書名、作者或出版社字面包含關鍵字的其餘書籍，最多 200 本；AI 關閉或未建立語意索引時只用關鍵字排序。
+            關鍵字會送往嵌入服務商（OpenAI 或 Google Gemini）計算語意向量，已揭露於隱私權政策，不以 AI 資料處理同意為前提。
+            關鍵字含 ISBN（可含連字號、全形數字或「ISBN」前綴，10 碼與 13 碼互通）時，ISBN 相符的書排在最前面。
             條件不符時同 `newest`。
         - in: query
           name: seller_id
@@ -127,17 +165,37 @@ paths:
         | 條件 | 說明 |
         | --- | --- |
         | 售價異常 | 站上有同 ISBN 的其他書籍時，售價 ≥ 其售價中位數的 3 倍且高出 300 代幣以上；無同書資料時售價 ≥ 3,000 代幣 |
-        | 非正規來源 | 書名或描述提及圖書館、館藏、借閱、索書號、公播、非賣品、贈閱、樣書、影印本、盜版、電子檔等 |
+        | 非正規來源 | 描述或書況說明提及館藏章、館藏條碼等館藏標記、索書號、除籍、影印本，或圖書館淘汰、報廢。只出現在書名、前面緊接「無」「非」「沒有」「不是」「未」等否定詞（例如「無館藏章、索書號」「正版，非影印本」；除籍不適用），或只提及圖書館、借閱、PDF、非賣品、贈閱、樣書、盜版、電子檔等一般字詞時改由 AI 判斷，並在送交 AI 的內容附上規則提示；AI 上架審核關閉、未設定金鑰或預算用盡時仍依此規則送審 |
+        | 站外交易或聯絡資訊 | 書名、作者、出版社、描述或書況說明含實際的聯絡或付款資訊（手機或市話號碼、電子郵件、「LINE：@id」等通訊軟體帳號、匯款帳號或銀行代碼）、站外網址（含帶路徑或 .com.tw 等網域）或可疑連結，或提及面交、私下交易；只提及「IG 帳號」「存款帳戶」等字詞不算。比對前會先正規化，可辨識全形、拆字與插入空白或標點的寫法 |
 
-        **AI 上架審核**：管理員開啟時於回應之後在背景執行，不延長上架等待時間。以書名、作者、描述、分類、售價與前 2 張照片判斷：
+        **AI 上架審核**：管理員開啟時於回應之後在背景執行，不延長上架等待時間。以書名、作者、出版社、ISBN、分類、書況與書況說明、
+        售價、站上同 ISBN 書籍的售價中位數、描述與前 4 張照片判斷（Gemini 與 OpenAI 以高解析度判讀照片）：
 
         | 結果 | 處理 |
         | --- | --- |
         | 通過 | 維持上架 |
         | 需人工確認（含照片可見館藏章、索書號標籤等非正規來源跡象） | 書籍改為不公開並送審，通知賣家與管理員 |
         | 明確違規（管理員設定為直接拒絕且信心 ≥ 0.85） | 書籍下架、審核紀錄為 `rejected`，通知賣家原因 |
+        | 服務商拒絕處理此內容 | 視同需人工確認 |
 
-        已由即時規則送審的書籍不再執行 AI 審核。AI 服務失敗、逾時或本月預算用盡時維持上架。
+        每次審核的結果都會留下紀錄：通過記為已審核；服務商錯誤、逾時、輸出格式錯誤或本月預算用盡時書籍維持上架，
+        記為「暫時放行」並註記原因，由排程補審。背景審核遇到輸出格式錯誤時會先重送一次。上架審核可使用管理員保留的預算額度，
+        會員使用的 AI 功能因預算停用時仍會審核。已由即時規則送審的書籍在背景仍執行 AI 審核，判定只附在審核紀錄上供管理員參考，
+        不改變送審狀態。
+
+        **補審**：伺服器每 10 分鐘補審一批（最多 20 本）仍在販售中的書：7 天內上架、超過 15 分鐘仍沒有任何審核紀錄的書
+        （例如背景審核進行中伺服器重新啟動）優先，其次為暫時放行且距離上次嘗試超過 10 分鐘的書，依上次嘗試時間由舊到新。
+        已下架、交易中或已售出的書不補審。補審以書籍資料、封面與最新加入的 3 張照片判斷，結果的處理與上架時相同。
+        服務商無法使用或預算用盡時該批停止，下一輪再試；輸出格式錯誤或服務商不接受該書的請求時略過該書繼續，
+        同一本書因此連續 3 次無法完成時改送人工審核。審核期間賣家修改了書籍或新增照片而留下較新的審核紀錄時，以較新的紀錄為準。
+        AI 上架審核關閉或未設定金鑰時不補審。
+
+        審核狀態每次變更（送審、駁回、核准）都寫入一筆只新增不修改的審核事件，記錄執行者（系統、賣家修改、管理員、重新上架）、
+        原判定與類別，供後台品質報表計算管理員推翻的比例。
+
+        **上架輔助採用率**：使用上架輔助時，把 `POST /api/ai/listing-assist` 回傳的 `suggestion_token` 以 `ai_suggestion_tokens`
+        帶回（兩步驟各有權杖時以逗號分隔，最多 3 個）。建立後在背景比對各欄位是否採用建議值，不影響回應；
+        權杖無效、逾期、已使用或不屬於請求者時直接忽略。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -176,6 +234,10 @@ paths:
                   type: array
                   items: { type: string, format: binary }
                   description: 選填照片，上限 7 張。
+                ai_suggestion_tokens:
+                  type: string
+                  description: 上架輔助回傳的 `suggestion_token`，多個以逗號分隔，最多採用 3 個。
+                  example: 3f9a0c1e5b7d42a8961e0f2c4b6d8a10
       responses:
         '201':
           description: 上架成功。`data` 僅含書籍本體，不包含照片。送交審核時另帶 `moderation`。
@@ -195,11 +257,11 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 缺少欄位:
-                  value: { success: false, message: '缺少必要欄位：書名(title) 或 價格(price)' }
+                  value: { success: false, message: 請填寫書名與售價 }
                 售價為零:
                   value: { success: false, message: 售價必須大於 0 }
                 售價過高:
-                  value: { success: false, message: 售價不可超過 99,999 代幣 }
+                  value: { success: false, message: '售價不可超過 99,999 代幣' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -219,11 +281,13 @@ paths:
         | 購物車 | 1 |
         | 最近瀏覽 | 1 |
 
+        購買紀錄不含已取消或已退款的訂單；`viewed_ids` 中已下架或未核准的書不列入訊號。
+
         候選書籍須同時符合：
 
         1. 狀態為 `on_sale` 且 `is_approved` 為 true。
         2. 分類屬於偏好分類，或作者屬於偏好作者。
-        3. 不是請求者自己上架的書，也不是上述訊號中已收藏、購買、加入購物車或瀏覽過的書。
+        3. 不是請求者自己上架的書，也不是上述訊號中已收藏、購買、加入購物車或瀏覽過的書；已取消或已退款訂單中的書同樣不列入。
 
         分數以 `sort=popular` 的熱門分數為基礎，再乘上分類比重與作者比重，並套用相同的賣家分散規則。
 
@@ -231,6 +295,9 @@ paths:
         由用戶端改為顯示熱門書籍，不以熱門排序結果補位。
 
         不要求登入，Token 無效時視同未登入，僅依 `viewed_ids` 推薦。結果不快取，收藏或加入購物車後重新整理即反映。
+
+        已登入時，請求者標示「不感興趣」的書（`POST /api/ai/recommendations/dismissals`）不列入；
+        回傳的書籍記為規則式推薦的曝光，同一本書 6 小時內只記一次，保存 90 天。
       security: []
       parameters:
         - in: query
@@ -376,13 +443,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 書籍編號不正確 }
+              example: { success: false, message: 書籍編號格式不正確 }
         '404':
-          description: 找不到這本書。
+          description: 找不到此書籍。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這本書 }
+              example: { success: false, message: 找不到此書籍 }
         '409':
           description: |
             書籍已下架。公開頁不會顯示下架的書，發出去的連結只會得到 404，
@@ -390,7 +457,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 這本書已下架，無法分享 }
+              example: { success: false, message: 此書籍已下架，無法分享 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/books/{id}:
@@ -415,6 +482,8 @@ paths:
         不阻塞回應，因此回傳的 `view_count` 為遞增前的數值。
 
         書籍正由買家透過聊天室預約保留時，`reservation` 帶保留期限；否則為 null。
+
+        `in_cabinet` 為 true 表示書已存放於書櫃且販售中，下單後即可取書。請求者為賣家本人時另附 `deposit`。
 
         `is_approved` 為 false 的書籍僅賣家本人可查詢，其他請求者回傳 404。
       security: []
@@ -456,16 +525,27 @@ paths:
         `code: BOOK_NOT_APPROVED`。管理員不受此限，且管理員將 `status` 設為 `on_sale` 時
         會一併將 `is_approved` 設為 true。
 
+        書籍已登記存放於書櫃時（見 Pre-order Deposit），變更 `cabinet_id` 回傳 409 `BOOK_DEPOSITED`；
+        賣家將下架中的書改回 `on_sale` 前須先至書櫃以 App 掃描 QR Code 取回（書櫃無法掃碼時改以手動回報，經客服確認後生效），
+        否則回傳 409 `RETRIEVAL_REQUIRED`。
+        系統因逾期暫停販售的書取回後自動恢復上架；賣家自行下架者取回後不會自動上架，需再以本端點改回 `on_sale`。
+        管理員將 `status` 改為 `on_sale` 時，已逾期的存書重新起算存書天數；改為其他狀態時，取回後不會自動恢復上架。
+
+        修改 ISBN（10 碼與 13 碼互換不算修改）時，系統依舊 ISBN 自動補齊、且賣家未在同一次請求中修改的簡介、作者、出版社或出版日期會清空，
+        並在背景依新的 ISBN 重新補齊（同一本書 24 小時內只立即重新補齊一次，其餘由排程處理）；賣家修改或清空過的這些欄位之後不再自動補齊，
+        但先前清空或修改過的舊 ISBN 自動補齊欄位會恢復補齊。交易中或已完成的書籍不清空。
+
         照片不透過此端點處理，請使用 `POST /api/books/{id}/images` 與
         `DELETE /api/books/{id}/images/{imageId}`。
 
         調降售價且書籍狀態為 `on_sale` 時，伺服器以 `promotion` 類型的站內通知告知收藏此書的使用者
         （賣家本人除外），通知的 `related_type` 為 `book`。
 
-        賣家修改售價、書名或描述時先套用即時規則審核（規則同 `POST /api/books`），符合時送審；
-        修改書名或描述且未觸發規則時，同步執行 AI 上架審核：明確違規回傳 422 `LISTING_REJECTED` 且不套用任何變更；
-        需人工確認時書籍改為不公開並送審，回應附帶 `moderation`；審核中的書籍修改後判定通過則恢復公開。
-        因違規下架的書籍不會轉為審核中。等待審核（`review_status: pending`）不視為違規，賣家仍可自行下架與重新上架，
+        賣家修改售價、書名、作者、出版社、描述或書況說明時先套用即時規則審核（規則同 `POST /api/books`），符合時送審；
+        修改售價以外的欄位且未觸發規則時，同步執行 AI 上架審核：明確違規回傳 422 `LISTING_REJECTED` 且不套用任何變更；
+        需人工確認時書籍改為不公開並送審，回應附帶 `moderation`；審核中的書籍修改後判定通過則恢復公開，
+        AI 服務失敗時維持審核中。AI 服務失敗、逾時、輸出格式錯誤或預算用盡時公開中的書維持公開，由排程補審（見 `POST /api/books`）。
+        同步審核的總時限約 25 秒，輸出格式錯誤時不重送。因違規下架的書籍不會轉為審核中。等待審核（`review_status: pending`）不視為違規，賣家仍可自行下架與重新上架，
         但審核通過前不會公開；審核駁回（`review_status: rejected`）視為違規。管理員編輯不執行審核。
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -514,10 +594,24 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 他人的書:
-                  value: { success: false, message: 存取被拒，您無權限修改他人的商品 }
+                  value: { success: false, message: 無權限修改此書籍 }
                 違規下架:
                   value: { success: false, code: BOOK_NOT_APPROVED, message: 此書籍因違規遭下架，無法自行重新上架，請聯絡客服 }
         '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 書籍預約保留中、訂單已成立或已完成，或存書期間變更書櫃、未取回即重新上架。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                存書期間變更書櫃:
+                  value: { success: false, code: BOOK_DEPOSITED, message: 此書籍已存放於書櫃，無法變更書櫃；請先至書櫃取回書籍後再變更 }
+                須先取回:
+                  value: { success: false, code: RETRIEVAL_REQUIRED, message: 此書籍仍存放於書櫃，請先至書櫃以 App 掃描 QR Code 取回後再重新上架 }
+                預約保留中:
+                  value: { success: false, code: BOOK_HELD, message: 此書籍預約保留中，保留期間無法編輯或下架 }
+                訂單已成立:
+                  value: { success: false, code: BOOK_LOCKED, message: 此書籍已售出，無法編輯 }
         '422': { $ref: '#/components/responses/ListingRejected' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -528,6 +622,9 @@ paths:
       description: |
         軟刪除：僅將 `status` 改為 `removed`，資料與照片均予保留，
         以維持已成立訂單的關聯完整性。後續可再改回 `on_sale`。
+
+        書籍已登記存放於書櫃時仍可下架，存書紀錄保留，逾期提醒照常進行；請至書櫃以 App 掃描 QR Code 取回
+        （書櫃無法掃碼時改以 `POST /api/books/{id}/retrieve` 手動回報，經客服確認後生效）。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -542,8 +639,186 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 存取被拒，您無權限刪除他人的書籍 }
+              example: { success: false, message: 無權限刪除此書籍 }
         '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/{id}/deposit:
+    post:
+      summary: 回報先行存書（故障備援，待客服確認）
+      operationId: depositBook
+      tags: [books]
+      description: |
+        賣家將上架中的書存入該書指定的書櫃後呼叫，不需等訂單成立。本端點只在書櫃無法掃碼時作為故障備援：
+        回報一律成為待客服確認的手動回報（HTTP 202），管理員確認並指定櫃門後才登記存書。
+        存書期間的訂單、逾期提醒與限制見本組說明的 Pre-order Deposit 一節。
+
+        僅賣家本人可呼叫，且須同時符合：
+
+        | 條件 | 不符合時 |
+        | --- | --- |
+        | 狀態為 `on_sale` 且 `is_approved` 為 true | 409 `DEPOSIT_NOT_ALLOWED` |
+        | 沒有進行中的訂單（狀態不是 `completed`、`cancelled`、`refunded` 的訂單） | 409 `DEPOSIT_NOT_ALLOWED` |
+        | 已指定書櫃 | 400 `CABINET_REQUIRED` |
+        | 書櫃未停用 | 400 `CABINET_UNAVAILABLE` |
+        | 書櫃未維修中 | 400 `CABINET_MAINTENANCE` |
+        | 尚未登記存書 | 409 `BOOK_DEPOSITED` |
+        | 同一本書沒有待確認的回報 | 409 `MANUAL_REPORT_PENDING` |
+        | 賣家在此書櫃的先行存書未達上限（計入已登記、待確認回報與進行中作業） | 409 `PREDEPOSIT_LIMIT` |
+        | 書櫃已配對裝置時，可用櫃門扣除保留給依訂單存書的櫃門後仍有空門 | 409 `CABINET_FULL` |
+
+        聊天室預約保留中的書仍可存書。
+
+        **書櫃掃碼存取**：書櫃為掃碼模式時（含裝置離線或故障未滿 2 分鐘，及裝置自行解除配對或疑遭複製而撤銷後 2 分鐘內），
+        存書、取書與取回須至書櫃以 App 掃描 QR Code 辦理（見「書櫃作業」），呼叫本端點回 409 `CABINET_SCAN_REQUIRED`。
+        書櫃停用或維修中時依上表回 400。
+        書櫃沒有有效裝置（含從未配對），或裝置離線、故障持續 2 分鐘以上時，本端點建立待客服確認的手動回報，回 202 並附 `manual_report`。
+        App 須把 202 顯示為「待客服確認」，存書登記要到管理員確認後才成立。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 書籍編號。
+          example: 101
+      responses:
+        '202':
+          description: 已送出待客服確認的手動回報，狀態尚未變更。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已送出手動回報，待客服確認後生效 }
+                  data:
+                    type: object
+                    properties:
+                      book_id: { type: integer, example: 101 }
+                      in_cabinet: { type: boolean, example: false }
+                      cabinet: { $ref: '#/components/schemas/CabinetBrief' }
+                      deposit: { type: object, nullable: true, example: null }
+                      manual_report: { $ref: '#/components/schemas/CabinetManualReport' }
+        '400':
+          description: 未指定書櫃，或書櫃停用、維修中。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未指定書櫃:
+                  value: { success: false, code: CABINET_REQUIRED, message: 請先於書籍資料中指定存放的書櫃 }
+                書櫃停用:
+                  value: { success: false, code: CABINET_UNAVAILABLE, message: 此書櫃已停用，請先變更存放的書櫃 }
+                書櫃維修中:
+                  value: { success: false, code: CABINET_MAINTENANCE, message: 此書櫃維修中，暫時無法存書 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 非本人上架的書籍。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅賣家本人可登記存書 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 書籍狀態不允許存書、已登記存書、已有待確認回報，或超過先行存書的容量限制。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                先行存書上限:
+                  value: { success: false, code: PREDEPOSIT_LIMIT, message: 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 }
+                櫃門保留給依訂單存書:
+                  value: { success: false, code: CABINET_FULL, message: 此書櫃可用的櫃門不足，請減少存書項目或稍後再試, available_doors: 1, required_doors: 2 }
+                未上架:
+                  value: { success: false, code: DEPOSIT_NOT_ALLOWED, message: 書籍須為上架中且已公開販售，才能存入書櫃 }
+                已有訂單:
+                  value: { success: false, code: DEPOSIT_NOT_ALLOWED, message: 此書籍已有進行中的訂單，請依訂單流程存書 }
+                已登記:
+                  value: { success: false, code: BOOK_DEPOSITED, message: 此書籍已登記存放於書櫃 }
+                須掃碼辦理:
+                  value: { success: false, code: CABINET_SCAN_REQUIRED, message: 此書櫃已啟用掃碼存取，請至書櫃以 App 掃描 QR Code 辦理, cabinet_id: 3 }
+                已有待確認回報:
+                  value: { success: false, code: MANUAL_REPORT_PENDING, message: 此項目已有待客服確認的手動回報 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/books/{id}/retrieve:
+    post:
+      summary: 回報取回書籍（故障備援，待客服確認）
+      operationId: retrieveBook
+      tags: [books]
+      description: |
+        賣家自書櫃取回尚未售出的書後呼叫。僅賣家本人可呼叫。本端點只在書櫃無法掃碼時作為故障備援：
+        回報一律成為待客服確認的手動回報（HTTP 202），管理員確認後才移除存書紀錄。
+
+        待確認期間，上架中的書暫停販售（回應的 `status` 為 `removed`），避免被當成仍在書櫃而售出；
+        駁回或回報失效時恢復上架，確認後依下列規則處理：上架中的書取回後維持上架；
+        因存書逾期而由系統暫停販售、且未因違規、檢舉成立或管理員下架而下架的書恢復上架；其餘維持原狀態。
+        待確認期間被管理員、檢舉或審核下架的書，不會因回報結束而恢復上架。
+
+        書籍已售出並轉入進行中的訂單時回傳 409 `BOOK_SOLD_IN_CABINET`，
+        書須留在書櫃（或放回書櫃）由買家取書，或由賣家以書櫃作業辦理訂單存書；書存放的書櫃與訂單書櫃不同時，
+        `message` 請賣家取回後存入訂單書櫃。訂單爭議處理中（`refunding`）而書仍在櫃中
+        （訂單已有 `deposited_at`，或此書為 `pre_deposited`）時同樣回傳 409 `BOOK_SOLD_IN_CABINET`，請賣家勿取回。
+
+        **書櫃掃碼存取**：書櫃為掃碼模式時（含裝置離線或故障未滿 2 分鐘，及裝置自行解除配對或疑遭複製而撤銷後 2 分鐘內），
+        取回須至書櫃以 App 掃描 QR Code 辦理（見「書櫃作業」），呼叫本端點回 409 `CABINET_SCAN_REQUIRED`；
+        已配對裝置的書櫃停用或維修中時回 409 `CABINET_UNAVAILABLE`、`CABINET_MAINTENANCE`。
+        書櫃沒有有效裝置（含從未配對），或裝置離線、故障持續 2 分鐘以上時，本端點建立待客服確認的手動回報，回 202 並附 `manual_report`；
+        同一項目已有待確認的回報時回 409 `MANUAL_REPORT_PENDING`。App 須把 202 顯示為「待客服確認」。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: 書籍編號。
+          example: 101
+      responses:
+        '202':
+          description: 已送出待客服確認的手動回報，狀態尚未變更。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已送出手動回報，待客服確認後生效 }
+                  data:
+                    type: object
+                    properties:
+                      book_id: { type: integer, example: 101 }
+                      status: { type: string, enum: [on_sale, reserved, sold, removed], description: 目前的書籍狀態；上架中的書於待確認期間為 removed, example: removed }
+                      restored: { type: boolean, example: false }
+                      manual_report: { $ref: '#/components/schemas/CabinetManualReport' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: 非本人上架的書籍。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 僅賣家本人可回報取回書籍 }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 書籍目前未登記存書、已售出轉入訂單，或已有待確認的回報。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                未登記存書:
+                  value: { success: false, code: NOT_DEPOSITED, message: 此書籍目前未登記存放於書櫃 }
+                已售出待買家取書:
+                  value: { success: false, code: BOOK_SOLD_IN_CABINET, message: 此書籍已售出（訂單 SMB20250911143012517384），買家將至書櫃取書，請勿取回；如已取出，請儘速放回書櫃 }
+                已售出待辦理存書:
+                  value: { success: false, code: BOOK_SOLD_IN_CABINET, message: 此書籍已售出（訂單 SMB20250911143012517384），請將書籍留在書櫃，並以 App 掃描 QR Code 辦理訂單存書 }
+                已售出須移至訂單書櫃:
+                  value: { success: false, code: BOOK_SOLD_IN_CABINET, message: 此書籍已售出（訂單 SMB20250911143012517384），請至書櫃以 App 掃描 QR Code 取回，再存入「台大書櫃」 }
+                訂單爭議處理中:
+                  value: { success: false, code: BOOK_SOLD_IN_CABINET, message: 此書籍已售出（訂單 SMB20250911143012517384），訂單爭議處理中，請勿取回；如已取出，請儘速放回書櫃 }
+                須掃碼辦理:
+                  value: { success: false, code: CABINET_SCAN_REQUIRED, message: 此書櫃已啟用掃碼存取，請至書櫃以 App 掃描 QR Code 辦理, cabinet_id: 3 }
+                已有待確認回報:
+                  value: { success: false, code: MANUAL_REPORT_PENDING, message: 此項目已有待客服確認的手動回報 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/books/{id}/images:
@@ -556,7 +831,9 @@ paths:
         回應包含該書籍的全部照片，含既有照片。
 
         賣家新增照片時以新照片執行上架審核（規則同 `POST /api/books`）：明確違規回傳 422 且照片不儲存；
-        需人工確認時照片照常新增、書籍改為不公開並送審，回應附帶 `moderation`。
+        需人工確認時照片照常新增、書籍改為不公開並送審，回應附帶 `moderation`；AI 服務失敗、逾時、輸出格式錯誤或預算用盡時
+        照片照常新增，由排程補審。同步審核的總時限約 25 秒，輸出格式錯誤時不重送。
+        新照片通過審核不代表整本書已完成審核：原本等待補審或沒有審核紀錄的書仍由排程補審。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -655,6 +932,7 @@ paths:
       description: |
         同時查詢 Google Books API 與 Open Library，逐欄位採用第一個有值的來源（Google Books 優先），供上架流程自動帶入書名、作者等欄位。
         Open Library 會一併以對應的 10 碼與 13 碼 ISBN 查詢；兩者皆未提供簡介時，再向 Open Library 查詢版本與作品簡介。
+        兩個來源都只採用登錄的 ISBN（10 碼與 13 碼互通）屬於同一本書的結果；Google Books 回傳多筆時略過 ISBN 不符的項目，而非直接採用第一筆。
 
         此端點不寫入資料庫。伺服器若已設定 `GOOGLE_BOOKS_API_KEY`，查詢 Google Books 時會一併帶入。
       security: [{ bearerAuth: [] }]

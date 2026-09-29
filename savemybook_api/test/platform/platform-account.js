@@ -26,7 +26,7 @@ const addOrder = (userId, status) => prisma.rows('orders').push({
 module.exports = {
   name: '平台：帳號隱私',
   tests: [
-    ['資料匯出：涵蓋個人檔案、書籍、訂單、錢包、申訴與登入方式', async () => {
+    ['資料匯出：涵蓋個人檔案、書籍、訂單、錢包、爭議與登入方式', async () => {
       const ctx = signedIn();
       const userId = ctx.user.user_id;
       prisma.rows('books').push({ book_id: 1, seller_id: userId, title: '我的書', status: 'on_sale' });
@@ -50,7 +50,6 @@ module.exports = {
       assert.strictEqual(data.format_version, 1);
       assert.ok(data.exported_at);
       assert.strictEqual(data.profile.email, ctx.user.email);
-      // 匯出內容不得包含密碼雜湊。
       assert.strictEqual('password_hash' in data.profile, false);
       assert.strictEqual(data.books.length, 1);
       assert.strictEqual(data.orders_as_buyer.length, 1);
@@ -100,6 +99,23 @@ module.exports = {
       assert.strictEqual(res.status, 400);
       assert.strictEqual(res.body.code, 'OPEN_ORDERS');
       assert.strictEqual(res.body.message, '尚有 2 筆進行中的訂單，請先完成或取消後再申請刪除');
+    }],
+
+    ['刪除帳號：仍有書籍存放於書櫃時不受理', async () => {
+      const ctx = signedIn();
+      prisma.rows('books').push({ book_id: 1, seller_id: ctx.user.user_id, title: '小王子', status: 'on_sale', cabinet_id: 1 });
+      prisma.rows('books').push({ book_id: 2, seller_id: 999, title: '夜間飛行', status: 'on_sale', cabinet_id: 1 });
+      for (const bookId of [1, 2]) {
+        prisma.rows('book_deposits').push({
+          book_id: bookId, cabinet_id: 1, deposited_at: new Date(), paused_at: null, auto_paused: false, reminded_at: null, escalated_at: null
+        });
+      }
+
+      const res = await request('POST', '/api/users/me/deletion', { token: ctx.token, body: { password: 'Passw0rd123' } });
+      assert.strictEqual(res.status, 400);
+      assert.strictEqual(res.body.code, 'BOOKS_IN_CABINET');
+      assert.strictEqual(res.body.message, '尚有 1 本書籍存放於書櫃，請先至書櫃以 App 掃描 QR Code 取回後再申請刪除');
+      assert.strictEqual(ctx.user.deletion_requested_at, null);
     }],
 
     ['刪除帳號：受理後有 30 天緩衝期，重複申請不會延長', async () => {
@@ -184,6 +200,35 @@ module.exports = {
       assert.ok(prisma.rows('user_sessions')[0].revoked_at);
     }],
 
+    ['匿名化：書仍存放於書櫃時保留存書紀錄並立即通知書櫃管理員', async () => {
+      const user = h.addUser({ nickname: '王小明' });
+      user.deletion_requested_at = new Date(Date.now() - 31 * 86400000);
+      const admin = h.addAdmin();
+      prisma.rows('smart_cabinets').push({ cabinet_id: 1, cabinet_name: '台大書櫃', is_active: true });
+      prisma.rows('books').push({ book_id: 1, seller_id: user.user_id, title: '小王子', status: 'on_sale', cabinet_id: 1 });
+      prisma.rows('books').push({ book_id: 2, seller_id: user.user_id, title: '夜間飛行', status: 'on_sale', cabinet_id: 1 });
+      const depositedAt = new Date(Date.now() - 2 * 86400000);
+      prisma.rows('book_deposits').push({
+        book_id: 1, cabinet_id: 1, deposited_at: depositedAt, paused_at: null, auto_paused: false, reminded_at: null, escalated_at: null
+      });
+
+      assert.strictEqual(await account.processDueDeletions(), 1);
+
+      assert.strictEqual(prisma.rows('books').find((b) => b.book_id === 1).status, 'removed');
+      const [row] = prisma.rows('book_deposits');
+      assert.strictEqual(row.book_id, 1);
+      assert.strictEqual(row.deposited_at, depositedAt);
+      assert.ok(row.paused_at && row.reminded_at && row.escalated_at);
+      assert.strictEqual(row.auto_paused, false);
+
+      const alerts = prisma.rows('notifications').filter((n) => n.user_id === admin.user_id);
+      assert.strictEqual(alerts.length, 1);
+      assert.strictEqual(alerts[0].title, '書櫃書籍待人員取出');
+      assert.strictEqual(alerts[0].content, '賣家帳號已刪除，《小王子》仍存放於「台大書櫃」，請安排人員取出。');
+      assert.strictEqual(alerts[0].related_type, 'cabinet_deposit');
+      assert.strictEqual(alerts[0].related_id, 1);
+    }],
+
     ['匿名化：緩衝期內或仍有進行中訂單時不執行', async () => {
       const soon = h.addUser();
       soon.deletion_requested_at = new Date(Date.now() - 1 * 86400000);
@@ -236,7 +281,6 @@ module.exports = {
       assert.strictEqual(ctx.session.revoked_at, null);
       assert.deepStrictEqual(prisma.rows('push_devices'), []);
 
-      // 新的 Token 可用，舊的立即失效。
       assert.strictEqual((await request('GET', '/api/security', { token: res.body.data.token })).status, 200);
       assert.strictEqual((await request('GET', '/api/security', { token: ctx.token })).body.code, 'TOKEN_REVOKED');
     }],
@@ -262,7 +306,7 @@ module.exports = {
       const ctx = signedIn();
       const bad = await request('PUT', '/api/users/me/notification-settings', { token: ctx.token, body: { order: 'off' } });
       assert.strictEqual(bad.status, 400);
-      assert.strictEqual(bad.body.message, 'order 必須是 true 或 false');
+      assert.strictEqual(bad.body.message, '設定值不正確');
 
       const empty = await request('PUT', '/api/users/me/notification-settings', { token: ctx.token, body: {} });
       assert.strictEqual(empty.status, 400);
@@ -284,7 +328,6 @@ module.exports = {
       assert.strictEqual(ok.status, 200);
       assert.strictEqual(ok.body.data.nickname, '小明');
       assert.strictEqual(ok.body.data.gender, 'male');
-      // 回傳的個人檔案不得包含密碼雜湊。
       assert.strictEqual('password_hash' in ok.body.data, false);
     }]
   ]

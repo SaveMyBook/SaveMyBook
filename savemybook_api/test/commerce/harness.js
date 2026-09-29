@@ -1,5 +1,3 @@
-// 交易相關測試的共用設定：假 Prisma（見 ./fake-prisma）、假的 AI 服務商與外部書庫回應，
-// 以及各測試共用的資料建構函式。
 process.env.DEEPSEEK_API_KEY = 'test-deepseek-key';
 process.env.GEMINI_API_KEY = '';
 process.env.OPENAI_API_KEY = '';
@@ -34,14 +32,19 @@ registerModels({
     support_ticket_messages: 'message_id',
     chat_rooms: 'room_id',
     chat_messages: 'message_id',
-    recommendation_logs: 'log_id'
+    recommendation_logs: 'rec_id',
+    book_deposits: 'book_id',
+    cabinet_manual_reports: 'report_id',
+    cabinet_events: 'event_id'
   },
   uniqueKeys: {
     books: [['book_id']],
     orders: [['order_id'], ['order_no']],
     wallets: [['user_id']],
     shopping_cart: [['user_id', 'book_id']],
-    favorites: [['user_id', 'book_id']]
+    favorites: [['user_id', 'book_id']],
+    book_deposits: [['book_id']],
+    ai_book_reviews: [['book_id']]
   },
   defaults: {
     books: {
@@ -63,11 +66,18 @@ registerModels({
     support_tickets: { status: 'open', closed_at: null },
     support_ticket_messages: { is_staff: false },
     notifications: { is_read: false, related_id: null, related_type: null },
-    chat_rooms: { book_id: null, room_type: 'direct' }
+    chat_rooms: { book_id: null, room_type: 'direct' },
+    book_deposits: { paused_at: null, auto_paused: false, reminded_at: null, escalated_at: null },
+    cabinet_manual_reports: {
+      order_id: null, book_id: null, target_status: null, reason: null, status: 'pending', pending_key: null,
+      held_on_sale: false, reviewed_by: null, reviewed_at: null, review_note: null
+    },
+    cabinet_events: {
+      device_id: null, session_id: null, order_id: null, book_id: null, event_key: null, lock_channel: null,
+      actor_id: null, detail: null, result: null, claimed_at: null, processed_at: null
+    }
   }
 });
-
-// ---------- 資料庫狀態 ----------
 
 const TABLES = [
   'users', 'admin_permissions', 'admin_operation_logs', 'notifications', 'login_logs',
@@ -75,7 +85,7 @@ const TABLES = [
   'orders', 'order_items', 'shopping_cart', 'favorites', 'reservations', 'recommendation_logs',
   'wallets', 'wallet_transactions', 'refund_records', 'transaction_disputes', 'reports',
   'support_tickets', 'support_ticket_messages', 'chat_rooms', 'chat_room_members', 'chat_messages',
-  'ai_settings', 'ai_usage_logs', 'ai_book_reviews'
+  'ai_settings', 'ai_usage_logs', 'ai_book_reviews', 'book_deposits', 'cabinet_manual_reports', 'cabinet_events'
 ];
 
 const aiSettings = api('services/ai/settings');
@@ -84,7 +94,7 @@ const authToken = api('lib/auth-token');
 
 // 迷你 SQL 直譯器會把 NULL 與 'pending' 當成字串搬進資料列，審核佇列改用自訂處理器寫入。
 prisma.onSql(/^INSERT INTO ai_book_reviews/i, (sql, values) => {
-  const [bookId, verdict, reasons, categories, provider, model, createdAt] = values;
+  const [bookId, verdict, reasons, categories, provider, model, confidence, createdAt] = values;
   const rows = prisma.rows('ai_book_reviews');
   const row = rows.find((r) => Number(r.book_id) === Number(bookId));
   const data = {
@@ -95,16 +105,20 @@ prisma.onSql(/^INSERT INTO ai_book_reviews/i, (sql, values) => {
     status: 'pending',
     provider,
     model,
+    confidence,
     created_at: createdAt,
     reviewed_by: null,
-    reviewed_at: null
+    reviewed_at: null,
+    skip_reason: null,
+    attempts: 0,
+    ai_opinion: null,
+    decision_reason: null
   };
   if (row) Object.assign(row, data);
   else rows.push(data);
   return 1;
 });
 
-// 聊天室權限以 LEFT JOIN 取回成員身分，迷你直譯器不支援。
 prisma.onSql(/LEFT JOIN chat_room_members m ON m\.room_id = r\.room_id/, (sql, [userId, roomId]) => {
   const room = prisma.rows('chat_rooms').find((r) => Number(r.room_id) === Number(roomId));
   if (!room) return [];
@@ -133,21 +147,29 @@ server.setDefaultReset(() => {
   reset();
   moderationReply = null;
   moderationFailure = null;
+  moderationGate = null;
 });
 
 onReset(() => {
   aiSettings.clearCache();
   aiRunner.clearCache();
+  api('services/ai/breaker').reset();
 });
-
-// ---------- 假的 AI 服務商 ----------
 
 let moderationReply = null;
 let moderationFailure = null;
+let moderationGate = null;
 
 // 審核走 DeepSeek（唯一設定金鑰的服務商），以攔截到的請求回覆預錄的判斷結果。
-onFetch('https://api.deepseek.com', () => {
-  if (moderationFailure) return jsonResponse({ error: { message: '模型暫時無法使用' } }, { status: moderationFailure });
+// moderationFailure 可為狀態碼，或依請求內容決定狀態碼的函式（回傳 null 代表正常回覆）。
+onFetch('https://api.deepseek.com', async (url, init) => {
+  if (moderationGate) {
+    const gate = moderationGate;
+    moderationGate = null;
+    await gate;
+  }
+  const failure = typeof moderationFailure === 'function' ? moderationFailure(String(init?.body ?? '')) : moderationFailure;
+  if (failure) return jsonResponse({ error: { message: '模型暫時無法使用' } }, { status: failure });
   return jsonResponse({
     choices: [{ message: { content: JSON.stringify(moderationReply ?? { verdict: 'allow', confidence: 1 }) } }],
     usage: { prompt_tokens: 10, completion_tokens: 5 }
@@ -179,7 +201,14 @@ const failModeration = (status = 401) => {
   moderationFailure = status;
 };
 
-// ---------- 假的外部書庫 ----------
+// 下一個審核請求停在服務商端，直到呼叫回傳的函式才回覆，用來模擬審核進行中發生的其他操作。
+const pauseModeration = () => {
+  let release;
+  moderationGate = new Promise((resolve) => {
+    release = resolve;
+  });
+  return release;
+};
 
 const GOOGLE_BOOKS = 'https://www.googleapis.com/books/v1/volumes';
 const OPEN_LIBRARY = 'https://openlibrary.org';
@@ -197,8 +226,6 @@ const stubGoogleBooks = (handler) => {
 const stubOpenLibrary = (handler) => {
   openLibraryHandler = handler;
 };
-
-// ---------- 資料建構 ----------
 
 // 使用者編號不隨測試重置，讓以使用者計數的限流器不會跨測試累積。
 let userSeq = 0;
@@ -234,6 +261,14 @@ const addAdmin = (permissions = null) => {
   const admin = addUser({ nickname: '客服人員', role: 'admin' });
   if (permissions) prisma.rows('admin_permissions').push({ user_id: admin.user_id, ...permissions });
   return admin;
+};
+
+const confirmManual = async (res, { slotId = null } = {}) => {
+  if (res.status !== 202) throw new Error(`預期為待確認的手動回報：${res.status} ${res.text}`);
+  const admin = addAdmin();
+  return request('POST', `/api/admin/cabinet-manual-reports/${res.body.data.manual_report.report_no}/confirm`, {
+    token: tokenFor(admin), body: slotId ? { slot_id: slotId } : {}
+  });
 };
 
 const addWallet = (userId, balance = 0) => {
@@ -427,8 +462,6 @@ const addTicket = ({ userId, subject = '無法登入', status = 'open', category
   return row;
 };
 
-// ---------- 查詢輔助 ----------
-
 const walletOf = (userId) => prisma.rows('wallets').find((w) => w.user_id === userId);
 const balanceOf = (userId) => Number(walletOf(userId)?.balance ?? 0);
 const bookOf = (bookId) => prisma.rows('books').find((b) => b.book_id === bookId);
@@ -443,7 +476,6 @@ const reviewOf = (bookId) => prisma.rows('ai_book_reviews').find((r) => Number(r
 
 const tokenFor = (user) => authToken.signToken(user, undefined);
 
-// 驗證權杖由 services/security 簽發，測試直接以同樣的內容簽一份：付款以交易密碼、其餘以登入密碼驗證。
 const verifyHeaders = (token, scope) => {
   const { userId, sid = null } = authToken.verify(token);
   const method = scope === 'payment' ? 'pin' : 'password';
@@ -458,8 +490,9 @@ const flush = async (rounds = 5) => {
 
 module.exports = {
   prisma, api, request, listen, close, runSuite, reset, fetchLog, jsonResponse,
-  enableModeration, stubModeration, failModeration, stubGoogleBooks, stubOpenLibrary, GOOGLE_BOOKS, OPEN_LIBRARY,
+  enableModeration, stubModeration, failModeration, pauseModeration, stubGoogleBooks, stubOpenLibrary, GOOGLE_BOOKS, OPEN_LIBRARY,
   addUser, addAdmin, addWallet, addCategory, addCabinet, addBook, addImage, addCartItem, addReservation,
   addRoom, addOrder, addPaidOrder, addTicket,
-  walletOf, balanceOf, bookOf, orderOf, notificationsOf, transactionsOf, logs, reviewOf, tokenFor, verifyHeaders, flush
+  walletOf, balanceOf, bookOf, orderOf, notificationsOf, transactionsOf, logs, reviewOf, tokenFor, verifyHeaders, flush,
+  confirmManual
 };

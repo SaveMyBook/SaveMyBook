@@ -97,7 +97,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 請提供 email 與密碼 }
+              example: { success: false, message: 請輸入電子郵件與密碼 }
         '401':
           description: 密碼錯誤。
           content:
@@ -115,11 +115,11 @@ paths:
                 列入黑名單:
                   value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已被停用，請聯絡客服 }
         '404':
-          description: 該 Email 尚未註冊。
+          description: 該電子郵件尚未註冊。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: ACCOUNT_NOT_FOUND, message: 此 Email 尚未註冊 }
+              example: { success: false, code: ACCOUNT_NOT_FOUND, message: 此電子郵件尚未註冊 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -164,7 +164,7 @@ paths:
                 無法換發:
                   value: { success: false, code: REFRESH_FAILED, message: 登入已失效，請重新登入 }
                 密碼已變更:
-                  value: { success: false, code: TOKEN_REVOKED, message: 密碼已經變更，請重新登入 }
+                  value: { success: false, code: TOKEN_REVOKED, message: 密碼已變更，請重新登入 }
                 帳號已停權:
                   value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已被停權，如有疑問請聯絡客服 }
         '429': { $ref: '#/components/responses/TooManyRequests' }

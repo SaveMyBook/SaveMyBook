@@ -80,22 +80,9 @@ const main = async () => {
       : '未設定 OAUTH_REDIRECT_BASE 或 PUBLIC_WEB_URL，LINE 與 Discord 無法使用');
   }
 
-  const origins = env.passkeyOrigins;
-  const badOrigins = origins.filter((o) => !/^https:\/\/[^/]+$/.test(o) && !/^android:apk-key-hash:[A-Za-z0-9_-]{43}$/.test(o));
-  report(Boolean(env.passkeyRpId) && origins.length > 0 && badOrigins.length === 0, '通行密鑰 RP ID 與來源',
-    badOrigins.length
-      ? `PASSKEY_ORIGINS 格式不正確：${badOrigins.join('、')}`
-      : `RP ID ${env.passkeyRpId || '（未設定）'}，來源 ${origins.length} 組`);
-  if (!origins.includes(`https://${env.passkeyRpId}`)) {
-    report(false, '通行密鑰 iOS 來源', `PASSKEY_ORIGINS 須包含 https://${env.passkeyRpId}`);
-  }
-  report(true, '通行密鑰 Android 來源', origins.some((o) => o.startsWith('android:apk-key-hash:'))
-    ? '已設定'
-    : 'PASSKEY_ORIGINS 未包含 android:apk-key-hash:<指紋>，Android 將無法使用通行密鑰');
-  report(true, '/.well-known 關聯檔案', [
-    env.appleTeamId && env.iosBundleId ? 'apple-app-site-association 由 API 提供' : 'apple-app-site-association 未由 API 提供（須由 nginx 提供靜態檔案）',
-    env.androidPackageName && env.androidCertFingerprints.length ? 'assetlinks.json 由 API 提供' : 'assetlinks.json 未由 API 提供（須由 nginx 提供靜態檔案）'
-  ].join('；'));
+  await require('./passkey-deploy-check').checkPasskeys(env, report);
+
+  report(true, '模擬書櫃', env.cabinetSimulator ? '已開啟（/kiosk）' : '未開啟');
 
   const uploads = path.join(__dirname, '../uploads');
   const UPLOAD_FOLDERS = ['avatars', 'books', 'chat', 'evidence', 'voice'];

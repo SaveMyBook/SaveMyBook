@@ -11,7 +11,7 @@ tags:
       | --- | --- | --- |
       | RP ID | `savemybook.today` | `PASSKEY_RP_ID` |
       | RP 名稱 | `救「舊」我的書` | `PASSKEY_RP_NAME` |
-      | 允許的來源 | `https://savemybook.today`、`https://api.savemybook.today`，Android 另需 `android:apk-key-hash:<簽署金鑰指紋>` | `PASSKEY_ORIGINS`（逗號分隔） |
+      | 允許的來源 | `https://savemybook.today`，Android 另需 `android:apk-key-hash:<簽署金鑰指紋>` | `PASSKEY_ORIGINS`（逗號分隔） |
 
       RP ID 一經使用不可更換，否則既有的通行密鑰全部失效。iOS 須在
       `https://savemybook.today/.well-known/apple-app-site-association` 宣告 `webcredentials`，
@@ -45,6 +45,16 @@ tags:
       - 挑戰值綁定用途（登入、註冊、身分驗證）、驗證範圍與使用者，不能跨用途或跨範圍使用，
         例如以 `sensitive` 取得的挑戰值無法換發 `admin` 權杖。
       - 一律要求使用者驗證（`userVerification: required`），並檢查來源與 RP ID。
+        來源不在 `PASSKEY_ORIGINS` 時回 400 `PASSKEY_ORIGIN_NOT_ALLOWED`（設定問題，重試不會成功）；
+        其餘驗證未通過回 400 `PASSKEY_VERIFICATION_FAILED`。兩者都會在伺服器日誌記錄 `[通行密鑰驗證未通過]`，
+        內容包含實際收到的來源、失敗原因與驗證器旗標（UP、UV、BE、BS），Android 可直接照日誌中的
+        `android:apk-key-hash:…` 補進 `PASSKEY_ORIGINS`。
+      - options 中每組憑證一律帶 `transports` 陣列，驗證器未回報時為空陣列（iOS 註冊時不回報）。
+      - `userHandle` 僅供參考：憑證的擁有者以憑證編號對應的資料為準。`userHandle` 與伺服器推導的值不符
+        （例如更換過 `JWT_SECRET`，或 Android 跨裝置登入時回傳字串 `"null"`）仍照常驗證，只記錄於伺服器日誌。
+        `PASSKEY_NOT_RECOGNIZED` 只代表伺服器查無該憑證，App 可據此透過系統的 Signal API 移除裝置上的通行密鑰。
+      - `user.id`（使用者代號）由 `JWT_SECRET` 推導。更換 `JWT_SECRET` 後既有通行密鑰仍可使用，
+        但之後新增的通行密鑰會帶新的代號，同一帳號在系統鑰匙圈中可能出現兩組。
       - 驗證器回報的簽章計數倒退時拒絕驗證（400 `PASSKEY_COUNTER_REGRESSED`），
         記錄於伺服器日誌並以站內通知告知本人。
       - 以 Email 取得登入 options 時，查無帳號或帳號沒有通行密鑰都回傳一組固定的假憑證，
@@ -52,12 +62,15 @@ tags:
       - 通行密鑰與登入密碼視為同等強度：以通行密鑰簽發的 `verify_token` 可用於 `sensitive` 與 `admin` 範圍；
         付款（`payment`）仍只接受交易密碼與生物辨識付款。
       - 每個帳號最多 10 組通行密鑰。刪除帳號（匿名化）時一併刪除；個人資料匯出包含 `passkeys` 欄位。
+      - 新增、刪除通行密鑰與解除社群綁定會鎖定同一位使用者，併發請求不會突破 10 組上限，
+        也不會讓帳號同時失去最後兩種登入方式。
 
       ## Availability
 
       伺服器未設定 RP ID 與來源時，
       `GET /api/auth/passkeys/status` 回傳 `enabled: false`，其餘端點回傳 503 `PASSKEY_UNAVAILABLE`，
-      App 不應顯示通行密鑰相關入口。
+      App 不應顯示通行密鑰相關入口。`platforms.android` 為 `false`（`PASSKEY_ORIGINS` 沒有 Android 簽署金鑰）時，
+      Android App 同樣不應顯示入口。部署時以 `npm run verify` 實際抓取兩個關聯檔，並比對 `PASSKEY_ORIGINS`。
 
       | `code` | HTTP | 意義 |
       | --- | --- | --- |
@@ -65,8 +78,9 @@ tags:
       | `PASSKEY_INVALID_RESPONSE` | 400 | 送出的憑證資料格式不正確 |
       | `PASSKEY_CHALLENGE_INVALID` | 400 | 挑戰值不存在、已使用，或用途、範圍、使用者不符 |
       | `PASSKEY_CHALLENGE_EXPIRED` | 400 | 挑戰值已超過 10 分鐘 |
-      | `PASSKEY_VERIFICATION_FAILED` | 400 | 簽章、來源、RP ID 或使用者驗證未通過 |
-      | `PASSKEY_NOT_RECOGNIZED` | 400 | 伺服器沒有這組憑證（可能已刪除），或不屬於目前使用者 |
+      | `PASSKEY_VERIFICATION_FAILED` | 400 | 簽章、RP ID 或使用者驗證未通過 |
+      | `PASSKEY_ORIGIN_NOT_ALLOWED` | 400 | 來源不在 `PASSKEY_ORIGINS`，通常是 Android 簽署金鑰指紋未加入 |
+      | `PASSKEY_NOT_RECOGNIZED` | 400 | 伺服器查無這組憑證（已刪除，或帳號已不存在）；身分驗證時憑證不屬於目前使用者亦同 |
       | `PASSKEY_COUNTER_REGRESSED` | 400 | 簽章計數倒退，疑似憑證遭複製 |
       | `PASSKEY_NOT_REGISTERED` | 400 | 帳號尚未註冊通行密鑰，無法以通行密鑰驗證身分 |
       | `PASSKEY_ALREADY_REGISTERED` | 409 | 這組憑證已經註冊 |
@@ -84,6 +98,10 @@ x-passkey-schemas: &passkeyItem
   type: object
   properties:
     passkey_id: { type: string, description: 加密編號，用於重新命名與刪除。, example: PK3M7Q2XA }
+    credential_id:
+      type: string
+      description: WebAuthn 憑證編號（base64url）。刪除後 App 以此呼叫系統的 Signal API（`signalUnknownCredential`），移除裝置上的通行密鑰。
+      example: 7iaWc3hJ1l0Qv1mJ6Qp8m3dYyTzq0r9sXGk5bFJv2cA
     device_label: { type: string, nullable: true, maxLength: 50, example: iPhone 17 Pro }
     authenticator:
       type: string
@@ -101,7 +119,9 @@ paths:
       summary: 查詢伺服器是否啟用通行密鑰
       operationId: passkeyStatus
       tags: [passkeys]
-      description: 登入頁用來決定是否顯示「使用通行密鑰登入」。無須 Token。
+      description: |
+        App 用來決定是否顯示通行密鑰的登入與新增入口。無須 Token。
+        `enabled` 為 `true` 但目前平台在 `platforms` 中為 `false` 時，該平台同樣不應顯示入口。
       security: []
       responses:
         '200':
@@ -116,6 +136,17 @@ paths:
                     type: object
                     properties:
                       enabled: { type: boolean, example: true }
+                      rp_id:
+                        type: string
+                        nullable: true
+                        description: RP ID；未啟用時為 `null`。刪除通行密鑰後呼叫系統 Signal API 時使用。
+                        example: savemybook.today
+                      platforms:
+                        type: object
+                        description: 依 `PASSKEY_ORIGINS` 判斷各平台的 App 是否可用。只反映伺服器設定，不代表關聯檔內容正確。
+                        properties:
+                          ios: { type: boolean, example: true }
+                          android: { type: boolean, example: true }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/auth/passkeys/login/options:
@@ -220,6 +251,8 @@ paths:
                   value: { success: false, code: PASSKEY_CHALLENGE_INVALID, message: 驗證要求已失效，請重新操作 }
                 無法辨識:
                   value: { success: false, code: PASSKEY_NOT_RECOGNIZED, message: 無法辨識此通行密鑰，可能已從帳號中刪除 }
+                來源不允許:
+                  value: { success: false, code: PASSKEY_ORIGIN_NOT_ALLOWED, message: 此裝置目前無法使用通行密鑰，請改用其他方式 }
                 計數倒退:
                   value: { success: false, code: PASSKEY_COUNTER_REGRESSED, message: 此通行密鑰的驗證紀錄異常，已拒絕本次驗證 }
         '403':
@@ -272,7 +305,8 @@ paths:
         需 `sensitive` 範圍的身分驗證。送出 `POST /api/users/me/passkeys/options` 取得的 options
         經系統建立後的結果，成功時回傳最新清單並以站內通知告知本人。
 
-        每位使用者 15 分鐘內最多 20 次（與取得 options 合計）。
+        此端點不限流：系統此時已建立憑證，回 429 會在使用者的鑰匙圈留下伺服器不認得的通行密鑰。
+        挑戰值只能使用一次，嘗試次數由 `POST /api/users/me/passkeys/options` 限制。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/VerifyToken'
@@ -306,7 +340,9 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 驗證失敗:
-                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作 }
+                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作或改用其他方式 }
+                來源不允許:
+                  value: { success: false, code: PASSKEY_ORIGIN_NOT_ALLOWED, message: 此裝置目前無法使用通行密鑰，請改用其他方式 }
                 已達上限:
                   value: { success: false, code: PASSKEY_LIMIT, message: 每個帳號最多註冊 10 組通行密鑰，請先刪除不再使用的裝置 }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -333,6 +369,8 @@ paths:
       description: |
         回傳 WebAuthn `PublicKeyCredentialCreationOptionsJSON`：要求可探索憑證與使用者驗證，
         並以 `excludeCredentials` 排除已註冊的憑證。`user.id` 為伺服器推導的不透明值，不含會員編號。
+
+        每位使用者 15 分鐘內最多 20 次。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -369,7 +407,7 @@ paths:
       operationId: renamePasskey
       tags: [passkeys]
       description: |
-        更新清單中顯示的名稱，不需身分驗證。與新增通行密鑰合計，每位使用者 15 分鐘內最多 20 次。
+        更新清單中顯示的名稱，不需身分驗證。每位使用者 15 分鐘內最多 30 次，與新增通行密鑰分開計數。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -413,7 +451,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到此通行密鑰，可能已經刪除 }
+              example: { success: false, message: 找不到此通行密鑰，可能已刪除 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '500': { $ref: '#/components/responses/ServerError' }
         '503':
@@ -430,7 +468,9 @@ paths:
         需 `sensitive` 範圍的身分驗證。刪除後帳號若沒有任何登入方式（未設定密碼、未綁定社群登入、
         也沒有其他通行密鑰）則拒絕，回傳 400 `LAST_SIGN_IN_METHOD`。成功時回傳最新清單並以站內通知告知本人。
 
-        系統鑰匙圈中的通行密鑰不會因此刪除，App 應提示使用者自行至系統設定移除。
+        系統鑰匙圈中的通行密鑰不會因此刪除。成功後 App 以刪除前清單中該項的 `credential_id` 與 `GET /api/auth/passkeys/status`
+        的 `rp_id` 呼叫系統的 Signal API（`signalUnknownCredential`）；系統不支援時（例如 iOS 26.2 以前）
+        請使用者自行至系統設定移除。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -466,7 +506,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到此通行密鑰，可能已經刪除 }
+              example: { success: false, message: 找不到此通行密鑰，可能已刪除 }
         '500': { $ref: '#/components/responses/ServerError' }
         '503':
           description: 伺服器尚未啟用通行密鑰。
@@ -483,7 +523,7 @@ paths:
         挑戰值綁定此處指定的 `scope`，之後必須以相同的 `scope` 呼叫 `POST /api/security/verify`。
         僅 `sensitive` 與 `admin` 範圍可使用通行密鑰。
 
-        與 `POST /api/security/verify` 合計，每位使用者 15 分鐘內最多 30 次。
+        每位使用者 15 分鐘內最多 30 次，與 `POST /api/security/verify` 分開計數。
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -514,7 +554,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 範圍不支援:
-                  value: { success: false, message: 'scope 僅接受：sensitive, admin' }
+                  value: { success: false, message: 驗證範圍不正確 }
                 尚未註冊:
                   value: { success: false, code: PASSKEY_NOT_REGISTERED, message: 此帳號尚未註冊通行密鑰 }
         '401': { $ref: '#/components/responses/Unauthorized' }

@@ -45,7 +45,7 @@ class TicketAttachmentController extends ChangeNotifier {
       _preparer = preparer ?? _defaultPrepare,
       _sizeOf = sizeOf ?? _fileSize;
 
-  // HEIC 等格式在部分裝置無法顯示，且超過門檻的照片先縮小，行為與 AI 上傳一致。
+  // HEIC 等格式在部分裝置無法顯示，上傳前須先轉成 JPEG。
   static Future<String?> _defaultPrepare(String path) => AiImagePrep.prepare(path, reencodeAbove: 8 * 1024 * 1024);
 
   List<TicketAttachment> get items => List.unmodifiable(_items);

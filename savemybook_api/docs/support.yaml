@@ -91,7 +91,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這份文件 }
+              example: { success: false, message: 找不到此文件 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/support/tickets:
@@ -178,9 +178,9 @@ paths:
                 主旨太長:
                   value: { success: false, message: 主旨不可超過 100 字 }
                 未填內容:
-                  value: { success: false, message: 請描述你遇到的問題 }
+                  value: { success: false, message: 請描述您遇到的問題 }
                 工單數達上限:
-                  value: { success: false, message: 你已有 5 張處理中的工單，請等客服回覆後再開新的 }
+                  value: { success: false, message: 您已有 5 則處理中的提問，請待客服回覆後再提出新問題 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 
@@ -194,6 +194,7 @@ paths:
         僅開單者本人或管理員可查詢。
 
         各則訊息的 `is_staff` 用於區分發送方為客服或使用者。
+        客服人員查詢時另附 `from_ai_support`，表示工單是否由 AI 客服轉接（AI 對話刪除後仍保留），可用 `GET /api/admin/tickets/{id}/faq-draft` 預填常見問題。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -219,6 +220,7 @@ paths:
                             type: array
                             description: 對話內容，由舊至新排序。
                             items: { $ref: '#/components/schemas/SupportTicketMessage' }
+                          from_ai_support: { type: boolean, description: 僅客服人員查詢時提供，工單是否由 AI 客服轉接 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -278,7 +280,7 @@ paths:
                 內容為空白:
                   value: { success: false, message: 請輸入內容 }
                 已結案:
-                  value: { success: false, message: 這張工單已結案，請開立新的工單 }
+                  value: { success: false, message: 此提問已結案，請提出新問題 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }

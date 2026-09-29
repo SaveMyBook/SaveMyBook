@@ -16,7 +16,7 @@ const accountProblem = (user, decoded) => {
   if (decoded.pwv !== undefined && decoded.pwv !== passwordVersion(user.password_hash)) {
     return [401, '密碼已變更，請重新登入', 'TOKEN_REVOKED'];
   }
-  if (user.is_blacklisted) return [401, '此帳號已被列入黑名單，如有疑問請聯絡客服', 'ACCOUNT_BLACKLISTED'];
+  if (user.is_blacklisted) return [401, '此帳號已停用，如有疑問請聯絡客服', 'ACCOUNT_BLACKLISTED'];
   if (!user.is_active) return [401, '此帳號已被停權，如有疑問請聯絡客服', 'ACCOUNT_INACTIVE'];
   return null;
 };
@@ -48,7 +48,6 @@ const logLogin = async (userId, device, method) => {
     VALUES (${userId}, ${ip}, ${label}, ${new Date()}, ${method})`;
 };
 
-// 密碼登入與社群登入共用：建立工作階段、簽發 Token、寫登入紀錄、提醒新裝置。
 const issueLogin = async (user, device, method = 'password') => {
   const session = await sessions.create(user.user_id, device);
   const token = signToken(user, session.sid);
@@ -72,7 +71,7 @@ const issueLogin = async (user, device, method = 'password') => {
 const verifyPassword = async (email, plain) => {
   const user = await prisma.users.findUnique({ where: { email } });
 
-  if (!user) throw notFound('此 Email 尚未註冊', 'ACCOUNT_NOT_FOUND');
+  if (!user) throw notFound('此電子郵件尚未註冊', 'ACCOUNT_NOT_FOUND');
   if (!(await password.verify(plain, user.password_hash))) throw unauthorized('密碼錯誤', 'INVALID_PASSWORD');
   assertLoginAllowed(user);
   return user;

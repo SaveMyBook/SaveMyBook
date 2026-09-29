@@ -29,7 +29,8 @@ const fetchEditionByIsbn = async (isbns) => {
     authors: (book.authors ?? []).map((a) => a?.name).filter(Boolean),
     publisher: (book.publishers ?? []).map((p) => p?.name).filter(Boolean).join(', '),
     publishDate: book.publish_date || '',
-    isbn: key.slice('ISBN:'.length)
+    isbn: key.slice('ISBN:'.length),
+    isbns: [...(book.identifiers?.isbn_13 ?? []), ...(book.identifiers?.isbn_10 ?? [])].map(String)
   };
 };
 

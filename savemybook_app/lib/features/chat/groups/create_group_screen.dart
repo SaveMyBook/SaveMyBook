@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -231,17 +232,24 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 ),
                 AppCard(
                   padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
-                  child: Wrap(
-                    spacing: 4,
-                    runSpacing: 10,
-                    children: [
-                      _memberCell(c, name: ApiService.currentUser?.nickname ?? '', avatarUrl: ApiService.currentUser?.avatarUrl),
-                      for (final (i, p) in _selected.indexed)
-                        FadeSlideIn(
-                          index: i + 1,
-                          child: _memberCell(c, name: p.displayName, avatarUrl: p.avatarUrl, onRemove: () => _remove(p)),
-                        ),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      const cell = 68.0;
+                      final perRow = math.max(1, ((box.maxWidth + 4) / (cell + 4)).floor());
+                      final spacing = perRow > 1 ? (box.maxWidth - perRow * cell) / (perRow - 1) : 0.0;
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: 10,
+                        children: [
+                          _memberCell(c, name: ApiService.currentUser?.nickname ?? '', avatarUrl: ApiService.currentUser?.avatarUrl),
+                          for (final (i, p) in _selected.indexed)
+                            FadeSlideIn(
+                              index: i + 1,
+                              child: _memberCell(c, name: p.displayName, avatarUrl: p.avatarUrl, onRemove: () => _remove(p)),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

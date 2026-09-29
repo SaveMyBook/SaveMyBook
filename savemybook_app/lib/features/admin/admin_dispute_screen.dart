@@ -345,11 +345,24 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      dispute.bookTitle.isEmpty ? dispute.orderNo : dispute.bookTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            dispute.bookTitle.isEmpty ? dispute.orderNo : dispute.bookTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: c.textPrimary),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '\$${dispute.totalAmount.toStringAsFixed(0)}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.accent),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -384,18 +397,6 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 90),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.topRight,
-                  child: Text(
-                    '\$${dispute.totalAmount.toStringAsFixed(0)}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.accent),
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -422,7 +423,8 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   onTap: _isBusy ? null : () => _arbitrate(dispute),
                 )
               else
-                Flexible(
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 180),
                   child: StatusBadge(
                     label: dispute.resultText.isEmpty ? dispute.statusText : dispute.resultText,
                     color: c.accent,

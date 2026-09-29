@@ -98,7 +98,7 @@ class _PendingIncomeScreenState extends State<PendingIncomeScreen> {
                             child: FadeSlideIn(
                               child: _buildTotalCard(
                                 c,
-                                responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20).left,
+                                responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth).left,
                               ),
                             ),
                           ),

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show File;
-import 'package:flutter/foundation.dart' show ValueChanged, ValueNotifier;
+import 'package:flutter/foundation.dart' show ValueChanged, ValueNotifier, defaultTargetPlatform;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/category.dart';
@@ -18,17 +18,22 @@ import '../models/wallet.dart';
 import '../models/member_level.dart';
 import '../models/admin_models.dart';
 import '../models/ai.dart';
+import '../models/ai_quality.dart';
 import '../utils/api_helpers.dart';
 import '../models/security.dart';
 import '../models/auth_social.dart';
 import '../models/passkey.dart';
+import '../models/cabinet.dart';
 import '../i18n/strings.dart';
 import 'ai_image_prep.dart';
+import 'cabinet_code.dart';
 import 'device_identity.dart';
+import 'location_service.dart';
 import 'payment_key_store.dart';
 import 'recently_viewed.dart';
 
 part 'api/admin_cabinets_api.dart';
+part 'api/admin_cabinet_devices_api.dart';
 part 'api/admin_commerce_api.dart';
 part 'api/admin_members_api.dart';
 part 'api/admin_support_api.dart';
@@ -38,6 +43,7 @@ part 'api/announcements_api.dart';
 part 'api/auth_api.dart';
 part 'api/auth_social_api.dart';
 part 'api/books_api.dart';
+part 'api/cabinet_api.dart';
 part 'api/cart_api.dart';
 part 'api/chat_api.dart';
 part 'api/favorites_api.dart';
@@ -101,7 +107,6 @@ class ApiService {
     notifier.value = value < 0 ? 0 : value;
   }
 
-  // 書籍被刪除或下架後，本機仍保留的收藏、購物車與最近瀏覽紀錄會讓畫面操作到不存在的書。
   static void forgetBook(int bookId) {
     if (favoriteBookIds.value.contains(bookId)) {
       favoriteBookIds.value = {...favoriteBookIds.value}..remove(bookId);
@@ -296,6 +301,9 @@ class ApiService {
         retry: (extra, nextHandled) => _send(method, path,
             query: query, body: body, extraHeaders: {...?extraHeaders, ...extra}, handled: nextHandled),
       );
+    } on TimeoutException {
+      // 逾時與連不上伺服器不同：請求可能已送達並仍在處理，呼叫端須先確認結果再決定是否重送。
+      return {'success': false, 'code': 'NETWORK', 'timeout': true, 'message': S.networkError};
     } catch (e) {
       return {'success': false, 'code': 'NETWORK', 'message': S.networkError};
     }

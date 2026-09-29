@@ -29,8 +29,8 @@ module.exports = {
 
     ['整數與數值的範圍檢查各有訊息', () => {
       assert.strictEqual(v.int('5', { min: 0, max: 10 }), 5);
-      assert.throws(() => v.int('11', { label: '排序', min: 0, max: 10 }), badRequest('排序必須是 0 ~ 10 之間的整數'));
-      assert.throws(() => v.int('2.5', { label: '排序', min: 0, max: 10 }), badRequest('排序必須是 0 ~ 10 之間的整數'));
+      assert.throws(() => v.int('11', { label: '排序', min: 0, max: 10 }), badRequest('排序須為 0 至 10 之間的整數'));
+      assert.throws(() => v.int('2.5', { label: '排序', min: 0, max: 10 }), badRequest('排序須為 0 至 10 之間的整數'));
 
       assert.strictEqual(v.number('12.5', { min: 0 }), 12.5);
       assert.throws(() => v.number('abc', { label: '金額' }), badRequest('金額格式不正確'));

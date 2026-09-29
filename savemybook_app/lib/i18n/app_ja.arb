@@ -136,7 +136,7 @@
   "exportedChooseWhereSave": "エクスポートしました。保存先を選んでください。",
   "exportedButSharingCouldNotOpen": "エクスポートしましたが、共有を開けませんでした",
   "regenerateShareLink": "共有リンクを再生成",
-  "oldLinkQrCodeStopWorking": "古いリンクと QR コードはすぐに無効になり、すでに共有した相手は開けなくなります。再生成しますか？",
+  "oldLinkQrCodeStopWorking": "現在のリンクと QR コードはすぐに無効になります。",
   "regenerate": "再生成",
   "newLinkCreatedOldOneNo": "新しいリンクを作成しました。古いリンクは無効です。",
   "deleteAccount": "アカウントを削除",
@@ -189,7 +189,6 @@
   "addedCart": "カートに追加しました",
   "sellerInformationNotFound": "出品者情報が見つかりません",
   "signContactSeller": "出品者に連絡するにはログインしてください",
-  "signStartChat": "出品者に連絡するにはログインしてください",
   "signReport": "報告するにはログインしてください",
   "cannotReportOwnListing": "自分の出品は報告できません",
   "reportListing": "この商品を報告",
@@ -208,15 +207,14 @@
   "addCart": "カートに追加",
   "bookBeenReportedUnderReviewStays": "この本は報告を受け、審査中です。",
   "violationWasConfirmedBookPleaseCheck": "この本は違反が確認されました。出品内容を修正してください。",
-  "delist": "出品を取り消す",
-  "removedFromShopBuyersNoLonger": "「{p0}」はショップから外され、購入者には表示されなくなります。",
+  "delist": "出品取消",
+  "removedFromShopBuyersNoLonger": "出品を取り消すと、「{p0}」はショップに表示されなくなります。",
   "@removedFromShopBuyersNoLonger": {
     "placeholders": {
       "p0": {}
     }
   },
-  "delist2": "出品停止",
-  "couldNotDelistPleaseTryAgain": "出品停止に失敗しました。しばらくしてからお試しください。",
+  "couldNotDelistPleaseTryAgain": "出品の取り消しに失敗しました。しばらくしてからお試しください。",
   "listedAgain": "「{p0}」を再出品しました",
   "@listedAgain": {
     "placeholders": {
@@ -236,7 +234,7 @@
       "p1": {}
     }
   },
-  "booksTotal": "{p0} 冊、合計 {p1}。\n",
+  "booksTotal": "{p0} 冊、合計 {p1} コイン。\n",
   "@booksTotal": {
     "placeholders": {
       "p0": {},
@@ -249,7 +247,7 @@
       "p0": {}
     }
   },
-  "orderPlacedSellerDropBookOff": "ご注文が完了しました。出品者の預け入れをお待ちください。",
+  "orderPlacedSellerDropBookOff": "出品者の預け入れをお待ちください。",
   "cart": "カート",
   "cartEmpty": "カートは空です",
   "selectAll": "すべて選択",
@@ -336,18 +334,10 @@
   "useLeast10CharactersSoSupport": "説明は 10 文字以上必要です",
   "submitDispute": "異議を申し立てる",
   "orderEntersDisputeProcessPaymentSeller": "注文は異議申立の手続きに入り、サポートが判断するまで出品者への支払いは保留されます。",
-  "paymentHoldRequested": "[支払い保留の申請] {p0}",
-  "@paymentHoldRequested": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "disputeSubmittedSupportContact": "異議を申し立てました。サポートからご連絡します。",
   "dispute": "異議申立",
-  "requestPaymentHold": "支払い保留を申請",
-  "submitDispute2": "異議を申し立てる",
   "orderNumber": "注文番号",
-  "eGSmb20260910123456789": "例：SMB20260910123456789",
+  "eGSmb20260910123456789": "例：SMB20260910143015123456",
   "whatHappened": "異議の内容",
   "describeProblemEGConditionDoes": "発生した問題を入力してください",
   "submit": "申請を送信",
@@ -372,7 +362,7 @@
   "bookUpdated": "書籍を更新しました",
   "editBook": "書籍を編集",
   "condition": "状態",
-  "customPrice": "価格を指定",
+  "customPrice": "販売価格",
   "enterPrice2": "販売価格を入力",
   "lockerLocation": "保管場所",
   "chooseLocker": "ロッカーを選択",
@@ -421,7 +411,6 @@
   "popular": "人気順",
   "priceLowHigh": "価格の安い順",
   "priceHighLow": "価格の高い順",
-  "reachedEnd": "これ以上はありません",
   "guest": "ゲスト",
   "hi": "こんにちは、{p0} さん",
   "@hi": {
@@ -460,7 +449,7 @@
   "emailAddressNotValid": "メールアドレスの形式が正しくありません",
   "enterPassword": "パスワードを入力してください",
   "noAccountWithEmail": "このアカウントは登録されていません",
-  "noAccountCreateOneNow": "「{p0}」のアカウントが見つかりません。今すぐ作成しますか？",
+  "noAccountCreateOneNow": "「{p0}」で新しいアカウントを作成しますか？",
   "@noAccountCreateOneNow": {
     "placeholders": {
       "p0": {}
@@ -578,14 +567,11 @@
   "pendingPayouts": "保留中の収益",
   "noPendingPayouts": "保留中の収益はありません",
   "pendingAmount": "保留中の金額",
-  "coinsArriveOnceBuyerCollectsBook": "購入者の受け取り後に自動入金",
-  "scanned": "スキャン完了",
-  "scanAgain": "もう一度スキャン",
+  "coinsArriveOnceBuyerCollectsBook": "購入者が注文を完了するか、受け取りから 24 時間後に入金",
   "collectBook": "本を受け取る",
   "pointPickupQrCode": "受け取り用 QR コードに合わせてください",
-  "holdSteady": "手ぶれにご注意ください",
   "bookCollected": "受け取り完了",
-  "collected": "「{p0}」を受け取りました",
+  "collected": "「{p0}」",
   "@collected": {
     "placeholders": {
       "p0": {}
@@ -599,7 +585,6 @@
   },
   "signingOut": "ログアウト中…",
   "myAccount": "マイページ",
-  "personNotWrittenBioYet": "自己紹介は未入力です",
   "topTierReached": "最高ランク達成",
   "morePointsReach": "あと {p0} ポイントで「{p1}」へ",
   "@morePointsReach": {
@@ -630,13 +615,10 @@
   "iReadAccept": "同意します：",
   "and": " と ",
   "createAccount": "アカウントを作成",
-  "joinSavemybook": "アカウント登録",
   "displayName": "表示名",
-  "emailSignWith": "メールアドレス",
   "least8CharactersWithLettersNumbers": "8 文字以上、英字と数字を含む",
   "confirmPassword": "パスワード（確認）",
   "enterPasswordAgain2": "パスワードをもう一度",
-  "alreadyAccountGoBackSign": "すでにアカウントをお持ちですか？戻ってログイン",
   "markAsDroppedOff": "預け入れ完了",
   "droppedOff": "預け入れ済み",
   "markedAsDroppedOff": "預け入れ完了にしました",
@@ -854,7 +836,6 @@
   "announcementTitle": "お知らせのタイトル",
   "writeAnnouncement": "お知らせの本文を入力",
   "publishNow": "すぐに公開",
-  "leaveOffSaveAsDraft": "オフのままなら下書きとして保存",
   "saveDraft": "下書きを保存",
   "deleteAnnouncement": "お知らせを削除",
   "deleteP0CannotUndone": "「{p0}」を削除しますか？元に戻せません。",
@@ -869,7 +850,6 @@
   "noAnnouncementsYetTapAddOne": "お知らせはありません",
   "published": "公開中",
   "draft": "下書き",
-  "audienceEveryone": "対象：全ユーザー",
   "backUpNow": "今すぐバックアップ",
   "wholeDatabaseExportedCompressedWithLot": "データベース全体を書き出して圧縮します。データ量が多いと数十秒かかることがあります。完了するまでこの画面を離れないでください。",
   "startBackup": "バックアップを開始",
@@ -883,7 +863,7 @@
       "p0": {}
     }
   },
-  "olderBackupsBeyondCountRemovedAutomatically": "保持件数を超えた古いバックアップは自動的に削除されます。バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。",
+  "olderBackupsBeyondCountRemovedAutomatically": "バックアップにはサイト全体の個人情報が含まれるため、ダウンロードしたファイルは厳重に管理してください。ダウンロードはすべて操作ログに記録されます。",
   "noBackupsYetSchedulerRunsOnce": "バックアップはありません",
   "deleteBackup": "バックアップを削除",
   "p0NNtheFileItsRecord": "{p0}\n\nファイルと記録の両方が削除されます。元に戻せません。",
@@ -1123,7 +1103,7 @@
       "p1": {}
     }
   },
-  "reasonP0": "申し立て理由：{p0}",
+  "reasonP0": "異議の内容：{p0}",
   "@reasonP0": {
     "placeholders": {
       "p0": {}
@@ -1133,7 +1113,7 @@
   "submitDecision": "裁定を送信",
   "decisionRecorded": "裁定を記録しました",
   "resolveDispute": "取引を裁定",
-  "noDisputesKind": "この種類の申し立てはありません",
+  "noDisputesKind": "この種類の異議申立はありません",
   "orderNumberP0": "注文番号：{p0}",
   "@orderNumberP0": {
     "placeholders": {
@@ -1244,7 +1224,7 @@
       "p0": {}
     }
   },
-  "p0GainsAccessAdminAreaWith": "{p0}、既定ではすべての権限を持ちます。あとから個別に調整できます。",
+  "p0GainsAccessAdminAreaWith": "{p0} は管理画面にアクセスできるようになり、既定では「システム運用」以外のすべての権限を持ちます。あとから個別に調整できます。",
   "@p0GainsAccessAdminAreaWith": {
     "placeholders": {
       "p0": {}
@@ -1313,7 +1293,6 @@
   "suspendedSignedOutImmediatelyAfterSigning": "利用停止中。ログインしても直ちにログアウトされます",
   "blocked": "ブロック中",
   "blockedNoFeaturesAvailable": "ブロック済み。いかなる機能も利用できません",
-  "notBlocked": "ブロックなし",
   "role": "役割",
   "p0PointsAutomaticP1P2": "{p0}（自動 {p1}{p2}）",
   "@p0PointsAutomaticP1P2": {
@@ -1323,7 +1302,6 @@
       "p2": {}
     }
   },
-  "memberSTierBeenAdjustedBy": "この会員のランクは手動で調整されており、取引だけで自動計算されてはいません。",
   "adjustTier": "ランクを調整",
   "adminPermissions": "管理権限",
   "all": "すべて有効",
@@ -1343,7 +1321,6 @@
       "p0": {}
     }
   },
-  "fullSettingsTierPermissions": "詳細設定（ランク・権限）",
   "members3": "会員一覧",
   "searchDisplayNameEmail": "表示名・メールアドレスで検索",
   "noMembersMatch": "該当する会員がいません",
@@ -1397,7 +1374,7 @@
       "p1": {}
     }
   },
-  "reasonP02": "違反理由：{p0}",
+  "reasonP02": "通報理由：{p0}",
   "@reasonP02": {
     "placeholders": {
       "p0": {}
@@ -1486,14 +1463,14 @@
   "reportReview": "報告の審査",
   "handleListingReports2": "商品の報告に対応",
   "lookUpChangeOrderStatus": "注文の検索とステータス変更",
-  "decideDisputeCases": "申し立て案件の裁定",
+  "decideDisputeCases": "異議申立案件の裁定",
   "checkAdjustCoinBalances": "コインの確認と増減",
   "hardware": "ハードウェア保守",
   "lockersSlots": "ロッカーと棚",
   "announcementsDocuments": "お知らせと文書",
   "announcementsFaqLegalDocuments": "お知らせ・よくある質問・規約",
   "replyUserQuestions": "ユーザーの質問に回答",
-  "databaseBackupDownloadOffByDefault": "データベースのバックアップとダウンロード（既定では無効）",
+  "databaseBackupDownloadOffByDefault": "データベースのバックアップとダウンロード",
   "p0Locker": "ロッカーを{p0}",
   "@p0Locker": {
     "placeholders": {
@@ -1519,7 +1496,7 @@
   "titleRequired": "タイトルは必須です",
   "nothingChanged": "変更はありません",
   "resetPassword": "パスワードをリセット",
-  "p0SCurrentPasswordStopsWorking": "{p0}の現在のパスワードは直ちに使えなくなり、次に発行される仮パスワードでログインすることになります。\n\nパスワードはシステムが生成します。指定はできません。",
+  "p0SCurrentPasswordStopsWorking": "{p0}の現在のパスワードは直ちに使えなくなり、次に発行される仮パスワードでログインすることになります。",
   "@p0SCurrentPasswordStopsWorking": {
     "placeholders": {
       "p0": {}
@@ -1569,7 +1546,7 @@
       "p0": {}
     }
   },
-  "disputes": "申し立て",
+  "disputes": "異議申立",
   "filedP0": "{p0}に申請",
   "@filedP0": {
     "placeholders": {
@@ -1578,12 +1555,6 @@
   },
   "decidedP0": "{p0}に裁定",
   "@decidedP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "createdP0": "{p0}に作成",
-  "@createdP0": {
     "placeholders": {
       "p0": {}
     }
@@ -1619,9 +1590,9 @@
   "lookingUpBook": "書籍情報を検索中",
   "scan": "スキャン",
   "buyerSPaymentGoesBackTheir": "買い手の支払いはウォレットに返金されます。売り手に代金が支払い済みの場合は先に回収します。",
-  "orderReturnsWhereWasBeforeDispute": "注文は申し立て前の状態に戻り、取引を続けます。受け取り済みだった場合は売り手に代金を支払います。",
+  "orderReturnsWhereWasBeforeDispute": "注文は異議申立前の状態に戻り、取引を続けます。受け取り済みだった場合は売り手に代金を支払います。",
   "orderWasAlreadyRefundedBuyerCannot": "この注文は買い手に返金済みのため、進行中や完了には戻せません",
-  "completedOrderCanOnlyChangedRefund": "完了した注文は「返金処理中」か「返金済み」にしか変更できません",
+  "completedOrderCanOnlyChangedRefund": "完了した注文は「審査中」か「返金済み」にしか変更できません",
   "confirmingPaysP0TokensSellerMarks": "確定すると売り手に {p0} トークンを支払い、本を売却済みにします。",
   "@confirmingPaysP0TokensSellerMarks": {
     "placeholders": {
@@ -1647,7 +1618,7 @@
   "sendTestNotification": "テスト通知を送信",
   "arrives10SecondsGoHomeScreen": "10秒後に届きます。送信後はホーム画面に戻るか、端末をロックしてください。",
   "systemNotificationSettings": "システムの通知設定",
-  "pushNotificationsNotSetUpBuild": "このビルドではプッシュ通知が設定されていません。Firebaseの設定ファイルを追加して再ビルドしてください。",
+  "pushNotificationsNotSetUpBuild": "このバージョンのアプリではプッシュ通知が有効になっていません。",
   "notificationsTurnedOffAllowAppSend": "通知がオフになっています。システム設定でこのアプリの通知を許可してください。",
   "restoreBackup": "このバックアップに復元しますか？",
   "wholeDatabaseGoBackP0Orders": "データベース全体が {p0} の状態に戻ります。それ以降の注文、メッセージ、会員データ、操作履歴はすべて失われます。\n\n復元前に現在の状態が自動でバックアップされるので、誤った場合はそのバックアップに戻せます。復元中はサービスが停止し、通常は数十秒から数分かかります。\n\n確認のためログインパスワードを入力してください：",
@@ -1697,7 +1668,6 @@
   },
   "undo": "取り消す",
   "undone": "取り消し済み",
-  "searchActionsEGNicknameBook": "操作内容を検索（例：会員名や書名）",
   "viewP0Changes": "{p0} 件の変更を表示",
   "@viewP0Changes": {
     "placeholders": {
@@ -1806,7 +1776,6 @@
       "p0": {}
     }
   },
-  "amountUp2Decimals": "金額（小数点以下2桁まで）",
   "p0NbalanceAfterP1": "{p0}\n調整後の残高：{p1}",
   "@p0NbalanceAfterP1": {
     "placeholders": {
@@ -1837,7 +1806,6 @@
       "p0": {}
     }
   },
-  "checkOutBeforeHoldEndsOther": "保留期限内に購入手続きを完了してください",
   "copyAddress": "住所をコピー",
   "p0Away": "ここから {p0}",
   "@p0Away": {
@@ -1851,7 +1819,7 @@
   "goCheckout": "購入手続きへ",
   "cart2": "カートに追加済み",
   "buyNow": "今すぐ購入",
-  "p0Delisted": "『{p0}』を出品停止しました",
+  "p0Delisted": "「{p0}」の出品を取り消しました",
   "@p0Delisted": {
     "placeholders": {
       "p0": {}
@@ -1894,12 +1862,6 @@
   "keepBrowsing": "買い物を続ける",
   "reload": "再読み込み",
   "browseBooks": "本を探す",
-  "p0Sellers": "出品者 {p0} 人",
-  "@p0Sellers": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "unavailableP0": "購入できません（{p0}）",
   "@unavailableP0": {
     "placeholders": {
@@ -1963,7 +1925,6 @@
   "couldnTLoadConversationPleaseTry": "会話を読み込めません。しばらくしてから再度お試しください",
   "accountCanTReceiveMessagesRight": "相手のアカウントは現在メッセージを受け取れません",
   "holdMicTalkReleaseSend": "録音が短すぎます",
-  "startConversation": "ここから会話が始まります",
   "p0New": "新着 {p0} 件",
   "@p0New": {
     "placeholders": {
@@ -2003,7 +1964,6 @@
   "pleasePutBookAssignedLockerSoon": "できるだけ早く指定のロッカーに本を入れてください",
   "weLlLetKnowWhenSeller": "出品者が本を入れたら受け取りをお知らせします",
   "waitingBuyerCollect": "購入者の受け取り待ち",
-  "transactionCompleteThank": "取引完了",
   "confirmVeTakenBookFromLocker": "ロッカーから書籍を取り出したことを確認してください。状態に問題がなければ、購入履歴で注文を完了してください。",
   "p0Orders2": "注文 {p0} 件",
   "@p0Orders2": {
@@ -2077,16 +2037,9 @@
   "verifyingIdentity": "本人確認中…",
   "enterAgainConfirm": "確認のためもう一度入力",
   "set6DigitPaymentPin": "6 桁の取引パスワードを設定",
-  "enterSamePinAgain": "もう一度同じパスワードを入力してください",
   "avoidRepeatedSequentialPatternedDigits": "同じ数字・連続・繰り返しは使えません",
   "resetPaymentPin": "取引パスワードを再設定",
   "paymentPin": "取引パスワード",
-  "stepP02": "ステップ {p0} / 2",
-  "@stepP02": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "setPaymentPinFirst": "先に取引パスワードを設定してください",
   "setPaymentPinFirstSoFallback": "先に取引パスワードを設定してください。認証に失敗したときの代わりになります",
   "setUpNow": "今すぐ設定",
@@ -2107,7 +2060,6 @@
   },
   "accountWellProtected": "アカウントはしっかり保護されています",
   "accountCouldSafer": "セキュリティを強化できます",
-  "setPaymentPinTurnBiometricPayment": "取引パスワードが未設定です",
   "tooManyAttemptsLockedUntilP0": "失敗回数が多すぎます。{p0} までロック中",
   "@tooManyAttemptsLockedUntilP0": {
     "placeholders": {
@@ -2167,20 +2119,6 @@
   },
   "p0Km": "{p0} km",
   "@p0Km": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "iphoneDidnTReceiveApnsToken": "iPhone が APNs トークンを取得できませんでした。Xcode の Signing & Capabilities に Push Notifications が追加されているか確認し、同じ Apple デベロッパーアカウントでアプリを再インストールしてください。",
-  "firebaseDidnTIssuePushToken": "Firebase がプッシュトークンを発行しませんでした。GoogleService-Info.plist とアプリの Bundle ID が一致しているか確認してください",
-  "couldnTGetPushTokenP0": "プッシュトークンを取得できませんでした：{p0}",
-  "@couldnTGetPushTokenP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "couldnTRegisterPushTokenWith": "プッシュトークンをサーバーに登録できませんでした：{p0}",
-  "@couldnTRegisterPushTokenWith": {
     "placeholders": {
       "p0": {}
     }
@@ -2284,31 +2222,15 @@
       "p1": {}
     }
   },
-  "buildSProvisioningProfileDoesnT": "このビルドのプロビジョニングプロファイルにプッシュ通知の権限がありません。Xcode の Runner › Signing & Capabilities に Push Notifications があるか確認し、アプリを削除して再インストールしてください。",
-  "checkPhoneOnlinePushNotificationsAdded": "端末がネットワークに接続されていること、Xcode の Runner › Signing & Capabilities に Push Notifications があることを確認してください。",
-  "iphoneFailedRegisterPushNotificationsWith": "iPhone の Apple へのプッシュ通知登録に失敗しました：{p0}\n{p1}",
-  "@iphoneFailedRegisterPushNotificationsWith": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "serverNotBeenUpdatedSupportFeature": "この機能は一時的に利用できません。しばらくしてからお試しください。",
   "someFeaturesTemporarilyUnavailableWhileServer": "一部の機能は一時的に利用できません",
-  "serverRunningOutdatedApiRevisionP0": "サーバーの API バージョンが古すぎます（現在 {p0}、アプリには {p1} が必要）。サーバーのコードを更新し、API を再起動してください。",
+  "serverRunningOutdatedApiRevisionP0": "サーバーの API バージョンが古すぎます（現在 {p0}、必要 {p1}）。",
   "@serverRunningOutdatedApiRevisionP0": {
     "placeholders": {
       "p0": {},
       "p1": {}
     }
   },
-  "serverVersionP0": "サーバーの現在のバージョン：{p0}",
-  "@serverVersionP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
-  "runNpmRunVerifyApiDirectory": "サーバーの API ディレクトリで npm run verify を実行すると、デプロイ状況をすべて確認できます。",
   "serverUpdateRequired": "サーバーの更新が必要です",
   "versionP0": "バージョン {p0}",
   "@versionP0": {
@@ -3012,13 +2934,6 @@
     }
   },
   "byModel": "モデル別",
-  "p0CallsP1Ms": "{p0} 回・{p1} ms",
-  "@p0CallsP1Ms": {
-    "placeholders": {
-      "p0": {},
-      "p1": {}
-    }
-  },
   "topMembers": "利用の多い会員",
   "p0Uses": "{p0} 回利用",
   "@p0Uses": {
@@ -3094,17 +3009,13 @@
   "aiDataProcessingEnabled": "AI によるデータ処理に同意しました",
   "aiDataProcessingTurnedOff": "AI によるデータ処理を停止しました",
   "aiDataProcessing": "AI によるデータ処理",
-  "messagesEnterStatusOrdersReservations": "入力したメッセージ、ご自身の注文と予約の状況",
-  "isbnTitleConditionNotesPhotosSelect": "ISBN、書名、状態の説明、選択した写真",
-  "bookDetailsFromFavoritesPurchaseHistory": "お気に入りと購入履歴に含まれる書籍情報",
+  "isbnTitleConditionNotesPhotosSelect": "ISBN、書名、状態の説明、選択した写真、入力した著者・出版社・出版日・カテゴリ・定価",
   "aiDataProcessing2": "AI によるデータ処理について",
   "whenUseAiFeaturesWeShare": "AI 機能をご利用の際、以下のデータを第三者の AI サービス事業者に提供して処理します。",
   "dataShared": "提供するデータ",
   "recipients": "提供先",
   "purpose": "利用目的",
-  "usedOnlyGenerateSupportRepliesPrepare": "サポートの回答、出品情報の整理、書籍のおすすめにのみ使用し、広告やトラッキングには使用しません。",
   "withdrawingConsent": "同意の撤回",
-  "canTurnOffAiDataProcessing": "「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなります。",
   "agreeContinue": "同意する",
   "insufficientQuotaPlanNotEnabled": "クォータ不足またはプラン未有効",
   "modelNotFound": "モデル名が存在しません",
@@ -3118,9 +3029,7 @@
   "programmingBooksBeginners": "入門者向けのプログラミング書",
   "booksUnder200Coins": "200 コイン以内の本",
   "popularLiteraryFictionRightNow": "最近人気の文芸小説",
-  "tellMeWhatBookLooking": "お探しの本の内容を入力してください",
   "describeBookLooking": "お探しの本を入力してください",
-  "tellMeWhatWantReadI": "ご希望に合わせて本をおすすめします",
   "subtitle": "サブタイトル",
   "monthOnly": "月まで確認",
   "yearOnly": "年まで確認",
@@ -3166,13 +3075,11 @@
   "couldNotSendCodePleaseTry": "認証コードを送信できませんでした。しばらくしてからお試しください。",
   "linkMobileNumber": "携帯電話番号を連携",
   "signWithMobileNumber": "携帯電話番号でログイン",
-  "k6DigitCodeSentNumberMessage": "この番号に 6 桁の認証コードを送信します。",
   "mobileNumber": "携帯電話番号",
   "sendCode": "認証コードを送信",
   "codeIncorrectPleaseEnterAgain": "認証コードが正しくありません。もう一度入力してください。",
   "codeBeenSentAgain": "認証コードを再送しました",
   "enterCode": "認証コードを入力",
-  "enterSmsCode": "SMS の認証コードを入力",
   "codeWasSentP0": "認証コードを {p0} に送信しました",
   "@codeWasSentP0": {
     "placeholders": {
@@ -3187,7 +3094,6 @@
   },
   "resendCode": "認証コードを再送",
   "completeAccountDetails": "アカウント情報の入力",
-  "p0DidNotProvideEmailAddress": "登録を完了するにはメールアドレスを入力してください。",
   "signWithP0": "{p0} でログイン",
   "@signWithP0": {
     "placeholders": {
@@ -3259,7 +3165,6 @@
   "smsVerificationNotSetUpDevice": "この端末では SMS 認証を利用できません。別のログイン方法をご利用ください。",
   "couldNotCompleteSmsVerificationPlease": "SMS 認証を完了できませんでした。しばらくしてからお試しください。",
   "allowSigningLinkingWithMethod": "この方法でのログインと連携を許可",
-  "appNeverStoresPasswordUsedOnly": "このアプリはパスワードを保存しません。今回の認証にのみ使用します。",
   "verifyWithBiometricsInstead": "生体認証で確認する",
   "accountWasCreatedWithSocialPhone": "このアカウントはログインパスワードが未設定です。先に設定してください。",
   "setSignPassword": "ログインパスワードを設定",
@@ -3272,22 +3177,9 @@
     }
   },
   "masterSwitchOffSoEveryMethod": "総合スイッチがオフのため、すべての方法が無効です",
-  "signLinkingDirectSignUpAllowed": "ログイン・連携・新規登録が可能",
-  "credentialsNotSetPleaseConfigureP0": "認証情報が未設定です。サーバーで {p0} を設定してください",
-  "@credentialsNotSetPleaseConfigureP0": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "whenOffMethodHiddenFromSign": "オフにするとログイン画面とアカウントセキュリティに表示されません",
   "whenOffOnlyAccountsAlreadyLinked": "オフにすると連携済みのアカウントのみ利用できます",
   "signMethodNotLinkedAccount": "このログイン方法はアカウントに連携されていません",
-  "p0AccountNotLinkedAnySavemybook": "この {p0} アカウントは SaveMyBook アカウントと連携されていません。",
-  "@p0AccountNotLinkedAnySavemybook": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "iAlreadyAccountSignFirst": "既存のアカウントにログインして連携",
   "createNewAccountWithIdentity": "新しいアカウントを作成",
   "signExistingAccountFirstThenLink": "先に既存のアカウントでログインし、「アカウントセキュリティ › ログイン方法」で {p0} を連携してください。",
@@ -3300,7 +3192,6 @@
   "verifyIdentityWithPasskeyContinue": "続行するにはパスキーで本人確認を行ってください",
   "verifyWithPasskeyInstead": "パスキーで確認する",
   "passkeys": "パスキー",
-  "verifyWithFaceIdFingerprintScreen": "このデバイスの Face ID、指紋、画面ロックで確認します。パスワードは不要です。",
   "verifyWithPasskey": "パスキーで確認",
   "useSignPasswordInstead": "ログインパスワードで確認する",
   "signWithPasskey": "パスキーでログイン",
@@ -3313,9 +3204,9 @@
     }
   },
   "deletePasskey": "パスキーを削除",
-  "noLongerAbleSignVerifyIdentity": "削除すると、このパスキーでログインや本人確認ができなくなります。デバイスに保存されたパスキーは削除されないため、システムのパスワード設定から削除してください。",
+  "noLongerAbleSignVerifyIdentity": "削除すると、このパスキーでログインや本人確認ができなくなります。デバイスにパスキーが残っている場合は、システムのパスワード設定から削除してください。",
   "passkeyDeleted": "パスキーを削除しました",
-  "signVerifyIdentityWithFaceId": "パスワードの代わりに Face ID、指紋、画面ロックでログインと本人確認ができます。パスキーはお使いのデバイスとパスワード マネージャーにのみ保存されます。",
+  "signVerifyIdentityWithFaceId": "パスワードの代わりに Face ID、指紋、画面ロックでログインと本人確認ができます。",
   "addPasskey": "パスキーを追加",
   "notUsedYet": "未使用",
   "lastUsedFormatdateItemLastusedat": "最終使用 {p0}",
@@ -3452,12 +3343,6 @@
     }
   },
   "tierOrderUpdated": "ランクの順序を更新しました",
-  "p0Members": "会員 {p0} 人",
-  "@p0Members": {
-    "placeholders": {
-      "p0": {}
-    }
-  },
   "tiers": "ランク",
   "members4": "人の会員",
   "memberDistribution": "会員の分布",
@@ -3572,9 +3457,9 @@
   "hybridSearchKeywordSemantic": "ハイブリッド検索（キーワード＋意味）",
   "keywordSearchOnly": "キーワード検索のみ",
   "paymentReleasedWalletWhenBuyerCompletes": "購入者が注文を完了するか、受け取りから 24 時間後に代金がウォレットに入金されます",
-  "completeOrderAfterCheckingBookCompletes": "書籍の状態を確認したら注文を完了してください。受け取りから 24 時間以内に申し立てがなければ自動的に完了します",
+  "completeOrderAfterCheckingBookCompletes": "書籍の状態を確認したら注文を完了してください。受け取りから 24 時間以内に異議申立がなければ自動的に完了します",
   "completeOrder": "注文を完了",
-  "onceCompleteOrderPaymentReleasedSeller": "注文を完了すると代金が出品者に支払われ、以後は紛争を申し立てられません。",
+  "onceCompleteOrderPaymentReleasedSeller": "注文を完了すると代金が出品者に支払われ、以後は異議を申し立てられません。",
   "orderCompleted2": "注文が完了しました",
   "noReservedBooks": "予約中の書籍はありません",
   "heldUntilP02": "{p0} まで確保中",
@@ -3665,7 +3550,6 @@
   "editMessage2": "修正する",
   "suspectedScamMessage": "詐欺の疑いがあるメッセージ",
   "listed3": "出品日",
-  "someDetailsWereFilledAutomaticallyFrom": "一部の情報は ISBN の書誌データから自動入力されています。",
   "summarizedByAiFromBookRecords": "AI が書誌情報から要約",
   "filledFromIsbnRecord": "ISBN の書誌データから入力",
   "aboutBook": "内容紹介",
@@ -3699,5 +3583,757 @@
       "p0": {}
     }
   },
-  "morePicks": "その他のおすすめ"
+  "morePicks": "その他のおすすめ",
+  "passkeyRequestWasInterruptedPleaseTry": "パスキーの操作が中断されました。もう一度お試しください。",
+  "couldNotVerifyWithPasskeyDevice": "このデバイスのパスキーで確認できませんでした。別の方法をご利用ください。",
+  "iosVersionAddingPasskeyAgainReplaces": "この iOS バージョンで再度追加すると、iCloud キーチェーン内の既存のパスキーが置き換えられます。追加が完了しなかった場合、既存のパスキーは復元できません。事前に iOS 17.4 以降へのアップデートをおすすめします。",
+  "cannotAddPasskeyDevice": "現在、このデバイスではパスキーを追加できません。",
+  "recordRemoval": "取り出しを登録",
+  "confirmStaffRemovedP1FromP0": "担当者が「{p0}」から「{p1}」を取り出したことを確認してください。登録後、本は出品停止になります。",
+  "@confirmStaffRemovedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "removalRecorded": "取り出しを登録しました",
+  "booksLockers": "ロッカー保管中の本",
+  "overdue": "期限超過",
+  "noOverdueBooks": "期限超過の本はありません",
+  "noBooksCurrentlyStoredLockers": "現在ロッカーに保管中の本はありません",
+  "salesPaused": "販売一時停止",
+  "adminsNotified": "管理者に通知済み",
+  "confirmPurchase": "購入の確認",
+  "bookAlreadyLockerOrderReadyPickup": "この本はすでにロッカーに保管されています。注文成立後すぐに受け取れますが、注文はキャンセルできません。",
+  "salesPausedPleaseRetrieveBookFrom": "販売を一時停止しました。ロッカーから本を回収してください。",
+  "bookLockerCanCollectedRightAfter": "この本はロッカーに保管済みで、注文後すぐに受け取れます。",
+  "notYetLocker": "まだロッカーに預け入れていません",
+  "retrieve": "回収報告",
+  "dropOff": "預け入れ",
+  "ordersBooksAlreadyLockerReadyPickup": "ロッカーに保管済みの本の注文は、成立後すぐに受け取れますが、キャンセルできません。",
+  "placedLockerToday": "本日ロッカーに預け入れ",
+  "lockerP0Days": "保管期間 {p0} 日",
+  "@lockerP0Days": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmRetrievedP1FromP0": "「{p0}」から「{p1}」を回収したことを確認してください。",
+  "@confirmRetrievedP1FromP0": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "allLockers": "すべてのロッカー",
+  "lockerCannotChangedWhileBookStored": "保管中はロッカーを変更できません。",
+  "removedFromShopDepositedRetrieveBeforeRelisting": "出品を取り消すと、「{p0}」はショップに表示されなくなり、購入者は閲覧できなくなります。ロッカー保管中に出品を取り消した場合、再出品するには本を回収して回収報告を行う必要があります。",
+  "@removedFromShopDepositedRetrieveBeforeRelisting": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "orderPlacedBookLockerReadyPickup": "本はロッカーに保管済みで、すぐに受け取れます。",
+  "confirmStaffRemovedBookFromLocker": "担当者が「{p0}」から「{p1}」を取り出したことを確認してください。",
+  "@confirmStaffRemovedBookFromLocker": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "inLocker": "ロッカー保管済み",
+  "inAnotherLocker": "別のロッカーに保管中",
+  "confirmPutAllP0BooksOrder": "この注文の本 {p0} 冊をすべてロッカーに預け入れましたか？",
+  "@confirmPutAllP0BooksOrder": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "awaitingRetrieval": "回収待ち",
+  "bookAdvisorSelection": "ブックアドバイザーの選書",
+  "bookInfoAutoFill": "書籍情報の自動補完",
+  "disputeAnalysis": "異議申立の分析",
+  "monthlyBudgetUsedUp": "今月の予算を使い切りました",
+  "coverageBooksP0HelpArticlesP1": "カバー率：書籍 {p0}、サポート情報 {p1}",
+  "@coverageBooksP0HelpArticlesP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "lastSyncP0": "最終同期：{p0}",
+  "@lastSyncP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backgroundSyncPausedUntilP0": "バックグラウンド同期は {p0} まで停止中",
+  "@backgroundSyncPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "semanticQueriesPausedUntilP0": "セマンティック検索は {p0} まで停止中",
+  "@semanticQueriesPausedUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lastErrorP0": "直近のエラー：{p0}",
+  "@lastErrorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0CallsAvgP1MsP95": "{p0} 回・平均 {p1} ms・p95 {p2} ms",
+  "@p0CallsAvgP1MsP95": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "turnOffAiDataProcessing": "AI によるデータ処理をオフにする",
+  "aiFeaturesStopAiSupportBook": "AI 機能の利用が停止され、AI サポートとブックアドバイザーの会話履歴が削除されます。この操作は元に戻せません。",
+  "turnOff": "オフにする",
+  "messagesConversationHistoryEnterPlusOwn": "入力したメッセージと会話の内容、ご自身の注文（預け入れ・受け取り・完了の日時を含む）、予約、出品（審査理由を含む）、異議申立の処理状況と結果、ウォレット残高と最近の取引履歴、最近のお問い合わせ",
+  "requestsConversationHistoryEnter": "入力したご希望と会話の内容",
+  "bookDetailsFromSavedItemsPurchase": "お気に入り、購入履歴、カート、最近見た本に含まれる書籍情報",
+  "aiDataProcessingNoticeBeenUpdated": "AI によるデータ処理についての説明が更新されました。内容をご確認のうえ、改めて同意してください。",
+  "questionsRequestsBookDetailsAlsoConverted": "質問、ご希望、書籍情報は、関連する内容を検索するため {p0} によってセマンティックベクトルにも変換されます。",
+  "@questionsRequestsBookDetailsAlsoConverted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "usedOnlyGenerateSupportRepliesRecommend": "サポートの回答、書籍のおすすめと検索、出品情報の整理にのみ使用し、広告やトラッキングには使用しません。",
+  "retentionPeriod": "保存期間",
+  "aiSupportBookAdvisorConversationsKept": "AI サポートとブックアドバイザーの会話履歴（回答への評価を含む）は、最後の会話から 90 日間保存され、その後自動的に削除されます。AI 機能の処理記録は 90 日間保存され、会話内容や写真は含まれません。",
+  "canTurnOffAiDataProcessing": "「設定 › アカウント設定」の「AI によるデータ処理」はいつでもオフにできます。オフにすると上記のデータは提供されなくなり、AI サポートとブックアドバイザーの会話履歴は削除されます。",
+  "usersMustAlsoAgreeAiData": "ユーザーは AI 機能を引き続き利用するため、AI によるデータ処理に改めて同意する必要があります。",
+  "consentRequiredAgain": "再同意が必要です",
+  "aiBookAdvisorUsageCountedBy": "AI ブックアドバイザーの回数は、ユーザーが送信したメッセージ数で数えます。",
+  "noObviousIssuesFound": "明らかな問題は見つかりませんでした",
+  "aiAssessmentP0": "AI 判定：{p0}",
+  "@aiAssessmentP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reservedModerationAdminTools": "審査・管理支援用の確保分（%）",
+  "memberFeaturesCanUseP0Budget": "会員向け機能は予算の {p0}% まで使用できます",
+  "@memberFeaturesCanUseP0Budget": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "memberFeatureCapP0": "会員向け機能の上限 {p0}",
+  "@memberFeatureCapP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "p0ListingsSaleNotReviewedOver": "販売中の書籍 {p0} 冊が 1 時間以上審査未完了です",
+  "@p0ListingsSaleNotReviewedOver": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "backupProvider": "バックアップ用プロバイダー",
+  "none": "使用しない",
+  "sameAsCurrentProvider": "現在のプロバイダーと同じです",
+  "sameAsCurrentProviderSoNo": "現在のプロバイダーと同じため、バックアップは使用されません",
+  "outcomes": "処理結果",
+  "processingPaths": "処理経路",
+  "indicators": "指標",
+  "promptVersions": "プロンプトのバージョン",
+  "embeddingCostsBySource": "ベクトル費用の内訳",
+  "succeeded": "成功",
+  "repaired": "修復後に採用",
+  "degraded": "代替処理",
+  "emptyAfterCleanup": "クリーンアップ後に空",
+  "refusedByProvider": "プロバイダーが拒否",
+  "scanLockerQrCode": "ロッカーの QR コードをスキャン",
+  "flashlight": "ライト",
+  "pasteQrContent": "QR の内容を貼り付け",
+  "pointQrCodeLockerScreen": "ロッカー画面の QR コードに合わせてください",
+  "checkingLocker": "ロッカーを確認しています",
+  "confirmLockerTask": "ロッカー手続きの確認",
+  "retrieveBooks": "本の回収",
+  "booksSameDoorRetrievedTogether": "同じ扉の本はまとめて回収されます。",
+  "confirmWithinP0": "{p0} 以内に確認してください",
+  "@confirmWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "openDoor": "扉を開ける",
+  "openingDoor": "扉を開いています",
+  "placeTheseBooksDoorP0": "次の本を扉 {p0} に入れてください",
+  "@placeTheseBooksDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "takeBooksFromDoorP0": "扉 {p0} の本を取り出してください",
+  "@takeBooksFromDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "retrieveBooksFromDoorP0": "扉 {p0} の本を回収してください",
+  "@retrieveBooksFromDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "rescan": "再スキャン",
+  "openMap": "地図を開く",
+  "reportManually": "手動で報告",
+  "continueTask": "手続きを続ける",
+  "cancelTask": "手続きを取り消す",
+  "reportSubmittedTakesEffectAfterSupport": "報告を送信しました。サポートの確認後に反映されます。",
+  "manualReportAwaitingConfirmation": "手動報告の確認待ち",
+  "onceDelistedP0NoLongerAppear": "出品を取り消すと、「{p0}」はショップに表示されなくなります。この本はロッカーに保管されているため、再出品するにはロッカーでアプリから QR コードをスキャンして本を回収する必要があります。",
+  "@onceDelistedP0NoLongerAppear": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerDevice": "ロッカー端末",
+  "deviceId": "端末番号",
+  "deviceType": "端末の種類",
+  "firmware": "ファームウェア",
+  "lastSeen": "最終接続",
+  "pairingTime": "ペアリング日時",
+  "doorSensors": "扉センサー",
+  "installed": "設置済み",
+  "notInstalled": "未設置",
+  "numberDoors": "扉の数",
+  "simulatorUrl": "シミュレーターの URL",
+  "revokeDevice": "端末を無効化",
+  "onceRevokedDeviceCanNoLonger": "無効化すると、この端末は「{p0}」を操作できなくなり、ロッカーは手動報告に切り替わります。",
+  "@onceRevokedDeviceCanNoLonger": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "faultP0": "故障：{p0}",
+  "@faultP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "clearFault": "故障を解除",
+  "faultCleared": "故障を解除しました",
+  "doors": "扉",
+  "noContentsRecorded": "保管記録なし",
+  "openDoorRemotely": "扉を遠隔で開ける",
+  "openingReason": "開ける理由",
+  "describeReasonRecordedOperationLog": "理由を入力してください。操作ログに記録されます。",
+  "openCommandSent": "開錠指示を送信しました",
+  "staffRetrievalOverdueBooks": "保管期限を過ぎた本の係員による取り出し",
+  "openWithoutNumberConfirmation": "数字の確認なしで開ける",
+  "onlyDoorsWithNoRecordedContents": "保管記録のない扉のみ、電磁ロックのテスト用です。現地で誰も確認しないまま扉が開きます。",
+  "contentsNeedChecking": "保管内容の確認待ち",
+  "confirmContents": "内容を確認済みにする",
+  "contentsConfirmed": "保管内容を確認しました",
+  "booksMayInside": "保管されている可能性のある本",
+  "recordContents": "保管内容を登録",
+  "selectItemsActuallyStoredDoor": "この扉に実際に保管されている項目を選択してください。",
+  "clearContentsRecord": "保管記録を消去",
+  "booksRemoved": "本を取り出し済み",
+  "correctRecordOnly": "記録のみ訂正",
+  "confirmStaffRemovedBooksFromDoor": "係員が扉 {p0} から本を取り出したことを確認してください。預け入れ登録は削除され、本は出品停止となり、出品者に通知されます。",
+  "@confirmStaffRemovedBooksFromDoor": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmTheseBooksNotActuallyDoor": "扉 {p0} に実際にはこれらの本がないことを確認してください。扉の記録のみ削除し、注文や預け入れの状態は変更しません。",
+  "@confirmTheseBooksNotActuallyDoor": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "describeReasonClearing": "消去する理由を入力してください。",
+  "itemsWithoutDoorRecord": "扉の記録がない項目",
+  "tasksConfirm": "確認待ちの手続き",
+  "markAsCompleted": "完了として確認",
+  "markAsNotCompleted": "未完了として確認",
+  "resolutionNote": "対応メモ",
+  "ordersDropOffsUpdatedAccordingTask": "この手続きの内容に従って注文と預け入れの状態が更新されます。",
+  "ordersDropOffsStayUnchanged": "注文と預け入れの状態は変更されません。",
+  "recentTasks": "最近の手続き",
+  "taskDetails": "手続きの詳細",
+  "noTasksYet": "手続きの記録はまだありません",
+  "eventLog": "イベント記録",
+  "noEventsYet": "イベントの記録はまだありません",
+  "closedBy": "閉扉の方法",
+  "itemsConfirmed": "項目の確認",
+  "taskItems": "手続きの項目",
+  "resolutionRecord": "対応記録",
+  "taskProgressP0": "進行中の手続き：{p0}",
+  "@taskProgressP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "checkContentsDoorP0": "扉 {p0} の保管内容を確認してください。",
+  "@checkContentsDoorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "manualReportsConfirm": "確認待ちの手動報告",
+  "confirmReport": "報告を承認",
+  "rejectReport": "報告を却下",
+  "manualReportConfirmed": "手動報告を承認しました",
+  "manualReportRejected": "手動報告を却下しました",
+  "ordersDropOffsUpdatedAsReported": "承認すると報告内容に従って注文または預け入れの状態が更新され、関係する利用者に通知されます。",
+  "statusStaysUnchangedReporterNotified": "却下すると状態は変更されず、報告者に通知されます。",
+  "noManualReportsConfirm": "確認待ちの手動報告はありません",
+  "reporter": "報告者",
+  "scanLockerCollect": "スキャンして受取",
+  "scanLockerDropOff": "スキャンして預入",
+  "scanLockerRetrieve": "スキャンして回収",
+  "lockerClosedNowOpeningHoursP0": "現在はロッカーの営業時間外です。営業時間：{p0}",
+  "@lockerClosedNowOpeningHoursP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "lockerUnderMaintenance": "このロッカーはメンテナンス中です。",
+  "lockerOutService": "このロッカーは現在休止中です。",
+  "noDoorsAvailableMoment": "現在利用できる扉がありません。",
+  "lockerOfflineSoDoorCannotOpened": "ロッカーがオフラインのため、スキャンで扉を開けられません。サポートの案内に従って本を入れるか取り出した後に報告してください。報告はサポートの確認後に反映されます。",
+  "lockerOutOrderSoDoorCannot": "ロッカーが故障しているため、スキャンで扉を開けられません。サポートの案内に従って本を入れるか取り出した後に報告してください。報告はサポートの確認後に反映されます。",
+  "manualReportsTakeEffectAfterSupport": "手動の報告はサポートの確認後に反映されます。",
+  "notSavemybookLockerQrCode": "この QR コードは SaveMyBook のロッカー用ではありません。",
+  "lockerQrCodeChangedScanCode": "ロッカーの QR コードが更新されました。ロッカー画面の QR コードを再度スキャンしてください。",
+  "lockerUsePleaseWaitScanAgain": "ロッカーは使用中です。しばらくしてから再度スキャンしてください。",
+  "lockerOfflineTemporarilyUnavailable": "ロッカーがオフラインのため、現在ご利用いただけません。",
+  "itemChangedRefreshTryAgain": "項目の状態が変更されました。更新してから再度お試しください。",
+  "noItemsHandleLocker": "このロッカーでお手続きが必要な項目はありません。",
+  "lockerTaskProgressFinishCancelFirst": "進行中のロッカー手続きがあります。先に完了するか取り消してください。",
+  "selectLeastOneItem": "項目を 1 つ以上選択してください。",
+  "notEnoughDoorsAvailableSelectFewer": "利用できる扉が不足しています。預け入れる項目を減らすか、しばらくしてから再度お試しください。",
+  "someItemsChangedPleaseConfirmAgain": "一部の項目の状態が変更されました。再度ご確認ください。",
+  "lockerTaskWasNotFound": "このロッカー手続きは見つかりません。",
+  "actionNotAvailableRightNow": "現在この操作は実行できません。",
+  "lockerRequiresScanningScanQrCode": "このロッカーはスキャンでのご利用が必要です。ロッカーで QR コードをスキャンしてください。",
+  "orderBeingHandledLockerPleaseTry": "この注文はロッカーで手続き中です。しばらくしてから再度お試しください。",
+  "manualReportItemAlreadyAwaitingConfirmation": "この項目には確認待ちの手動報告がすでにあります。",
+  "aboutP0FromLockerPleaseUse": "現在地はロッカーから約 {p0} 離れています。ロッカーの前で操作してください。",
+  "@aboutP0FromLockerPleaseUse": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "itemAssignedP0PleaseUseLocker": "この項目の指定ロッカーは「{p0}」です。そちらのロッカーでお手続きください。",
+  "@itemAssignedP0PleaseUseLocker": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "severalTasksLockerWereNotCompleted": "このロッカーでの手続きが複数回完了しなかったため、{p0} 分後に再度お試しください。",
+  "@severalTasksLockerWereNotCompleted": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "itemsP0": "お手続きが必要な項目の場所：{p0}",
+  "@itemsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "taskComplete": "手続きが完了しました",
+  "someItemsWereNotCompleted": "一部の項目が完了していません",
+  "numberDidNotMatchTaskBeen": "数字が一致しなかったため、この手続きは取り消されました。",
+  "numberWasNotConfirmedTimeTask": "時間内に数字が確認されなかったため、この手続きは取り消されました。",
+  "itemsWereNotConfirmedTimeTask": "時間内に項目が確認されなかったため、この手続きは取り消されました。",
+  "lockerDidNotRespondDoorWas": "ロッカーが応答しなかったため、扉は開きませんでした。しばらくしてから再度お試しください。",
+  "taskBeenCancelled": "この手続きは取り消されました。",
+  "lockerDidNotConfirmDoorOpened": "ロッカーから扉が開いた報告がないため、この手続きはサポートの確認待ちです。",
+  "thereWasLockerConnectionProblemSupport": "ロッカーの接続に問題が発生したため、この手続きはサポートの確認待ちです。",
+  "lockerRestartedSupportConfirmTask": "ロッカーが再起動したため、この手続きはサポートの確認待ちです。",
+  "supportConfirmedTaskComplete": "この手続きはサポートにより完了が確認されました。",
+  "supportConfirmedTaskWasNotCompleted": "この手続きはサポートにより未完了と確認されました。状態は変更されていません。",
+  "supportEndedTask": "この手続きはサポートにより終了しました。",
+  "dropOffCompleteBuyerBeenNotified": "預け入れが完了し、購入者に通知しました。",
+  "dropOffComplete": "預け入れが完了しました",
+  "retrievalComplete": "回収が完了しました",
+  "doorCouldNotIdentifiedPleaseContact": "扉を特定できません。サポートにお問い合わせください。",
+  "doorFaultyPleaseContactSupport": "扉が故障しています。サポートにお問い合わせください。",
+  "doorAwaitingCheckBySupportPlease": "扉はサポートの確認待ちです。サポートにお問い合わせください。",
+  "reachedPreSaleDropOffLimit": "このロッカーでの販売前の預け入れが上限に達しました。売却または回収後に預け入れてください。",
+  "itemChanged": "項目の状態が変更されました",
+  "doorDidNotOpen": "扉が開きませんでした",
+  "doorOpeningNotConfirmedSupportCheck": "扉が開いた報告がないため、サポートの確認待ちです",
+  "anotherItemDoorSupportCheck": "扉内に別の項目があるため、サポートの確認待ちです",
+  "notCompletedP0": "未完了：{p0}",
+  "@notCompletedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookBeenSoldAfterRetrievingDrop": "この本は売却済みです。回収後、「{p0}」に預け入れてください。",
+  "@bookBeenSoldAfterRetrievingDrop": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doorP0": "扉 {p0}",
+  "@doorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmingItems": "項目を確認中",
+  "confirmingNumber": "数字を確認中",
+  "opening": "開扉中",
+  "doorOpened": "扉が開きました",
+  "partlyCompleted": "一部完了",
+  "failed": "失敗",
+  "modelAnswer": "モデルの回答",
+  "replacedWithStandardNotice": "定型文に置き換え",
+  "clarifyingQuestion": "要望の確認",
+  "noSuitableBooks": "該当する本なし",
+  "fellBackSearchRanking": "検索順位に切り替え",
+  "fellBackPopularBooks": "人気の本に切り替え",
+  "recommendationsGenerated": "おすすめを生成",
+  "noSuitableCandidates": "該当する候補なし",
+  "noCandidates": "候補なし",
+  "modelSuggestionsUsed": "モデルの提案を採用",
+  "bibliographicDataOnly": "書誌情報のみ",
+  "handoffSuggested": "担当者への引き継ぎを提案",
+  "insufficientGrounding": "根拠不足",
+  "continuedPreviousCriteria": "前回の条件を継続",
+  "reusedPreviousTopic": "前回のテーマを引き継ぎ",
+  "noSearchMatch": "検索該当なし",
+  "invalidBookCodesReturned": "無効な書籍コードを含む",
+  "webSearchUsed": "ウェブ検索を使用",
+  "retriedWithoutSearch": "検索なしで再試行",
+  "backupProviderUsed": "バックアップ用プロバイダーを使用",
+  "conditionAdjustedFromNotes": "説明に基づき状態を調整",
+  "avgPassagesRetrieved": "平均検索段落数",
+  "avgCandidates": "平均候補数",
+  "avgFillerBooks": "平均補充書籍数",
+  "avgBooksRecommended": "平均おすすめ数",
+  "avgBooksSelected": "平均採用数",
+  "avgInvalidCodes": "平均無効コード数",
+  "avgPhotos": "平均写真枚数",
+  "avgSources": "平均参照元数",
+  "bookSearch": "書籍検索",
+  "fellBackReferencePassage": "参考段落に切り替え",
+  "booksSelectedByModel": "モデルが選んだ書籍",
+  "indexUpdates": "インデックス更新",
+  "sourceNotRecorded": "発生元の記録なし",
+  "outputFormatErrors": "出力形式エラー",
+  "suggestMediation": "調整による解決を提案",
+  "handoffEnforcedBySystem": "システムが担当者へ引き継ぎ",
+  "followUpSuggestionsProvided": "フォローアップ候補あり",
+  "replyTitleNotBookCards": "回答の書名が書籍カードと不一致",
+  "replyMentionsPrice": "回答に価格の記載あり",
+  "replyDeniesResultsDespiteBookCards": "書籍カードがあるのに該当なしと回答",
+  "completeItemsKeptAfterTruncation": "出力の途切れ後に完全な項目を保持",
+  "somePhotosNotSent": "未送信の写真あり",
+  "noEvidencePhotosSent": "証拠写真を送信できず",
+  "findingsCitePhotos": "所見が写真を参照",
+  "avgPassagesCited": "平均引用段落数",
+  "avgInvalidRecommendationBases": "平均無効推薦根拠数",
+  "avgSystemGeneratedReasons": "平均システム生成理由数",
+  "avgInvalidPhotoReferences": "平均無効写真番号数",
+  "favorsBuyer": "購入者に有利",
+  "favorsSeller": "出品者に有利",
+  "insidePage": "本文ページ",
+  "photoP0Evidence": "写真 {p0}（証拠）",
+  "@photoP0Evidence": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "photoP0P1P2": "写真 {p0}（『{p1}』{p2}）",
+  "@photoP0P1P2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "photoP0P1": "写真 {p0}（{p1}）",
+  "@photoP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "aiReviewedP0ListingP1Evidence": "AI 参照：出品写真 {p0} 枚、証拠写真 {p1} 枚（未送信 {p2} 枚）",
+  "@aiReviewedP0ListingP1Evidence": {
+    "placeholders": {
+      "p0": {},
+      "p1": {},
+      "p2": {}
+    }
+  },
+  "aiReviewedP0ListingP1Evidence2": "AI 参照：出品写真 {p0} 枚、証拠写真 {p1} 枚",
+  "@aiReviewedP0ListingP1Evidence2": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "someItemsMalformedP0": "一部の項目が形式不一致 {p0}",
+  "@someItemsMalformedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fieldsDefaultedP0": "既定値で補完 {p0}",
+  "@fieldsDefaultedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "highConfidence": "確信度：高",
+  "mediumConfidence": "確信度：中",
+  "lowConfidence": "確信度：低",
+  "writtenByAi": "AI 作成",
+  "clearBibliographyCache": "書誌キャッシュを削除",
+  "bookDetailsLookedUpAgainNext": "次にこの ISBN が出品されたときに書誌情報を再取得します。",
+  "bibliographyCacheIsbnCleared": "この ISBN の書誌キャッシュを削除しました",
+  "noBibliographyCacheIsbn": "この ISBN の書誌キャッシュはありません",
+  "lookUpListPrice": "定価を確認",
+  "assessConditionPrice": "状態と価格を判定",
+  "aiRepliesReferenceOnlyOrderPage": "AI の回答は参考情報です。実際の内容は注文ページとサポート担当者の案内をご確認ください。",
+  "preFilledFromSupportEnquiryReview": "お問い合わせの内容を入力済みです。内容を確認してから保存してください。",
+  "noData": "データなし",
+  "sellingPrice": "販売価格",
+  "aiQuality": "AI 品質",
+  "overturnedByAdmins": "管理者による判定の変更率",
+  "flaggedByInstantRules": "即時ルールによる審査依頼",
+  "flaggedByAi": "AI による審査依頼",
+  "transferredSupportAgents": "サポート担当者への引き継ぎ",
+  "ratedNotHelpful": "「役に立たなかった」の評価",
+  "repliesWithoutBooks": "書籍を含まない回答",
+  "disputeAnalysis2": "取引の異議申立分析",
+  "suggestionMatchedDecision": "提案と裁定の一致",
+  "ratedHelpful": "「役に立った」の評価",
+  "bookRecommendations": "書籍のおすすめ",
+  "aiRecommendationClickThroughRate": "AI おすすめのクリック率",
+  "standardRecommendationClickThroughRate": "通常のおすすめのクリック率",
+  "markedNotInterested": "「興味なし」の件数",
+  "listingAssistantAdoptionRate": "出品アシストの採用率",
+  "listingsUsingAssistant": "出品アシストを利用した書籍",
+  "createdFromSupportEnquiries": "お問い合わせから作成",
+  "rejectionReason": "却下理由の種類",
+  "sourceInstantRules": "判定元：即時ルール",
+  "sourceAiAssessment": "判定元：AI 判定",
+  "confidenceP0": "確信度 {p0}",
+  "@confidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aiAssessmentConfidenceP0": "AI 判定の確信度 {p0}",
+  "@aiAssessmentConfidenceP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "assessment": "判定",
+  "description3": "説明",
+  "markReviewReasonAsUnfoundedWhen": "承認時に審査理由を不成立として記録する",
+  "showPhotosFullDetails": "写真と詳細を表示",
+  "analysedP0": "分析日時：{p0}",
+  "@analysedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "wasAnalysisHelpful": "この分析は役に立ちましたか",
+  "helpful": "役に立った",
+  "notHelpful": "役に立たなかった",
+  "recommendedBooksDoNotMatchMy": "推薦された本が要望に合っていない",
+  "inaccurateInformation": "内容が正しくない",
+  "didNotAnswerQuestion": "質問に回答していない",
+  "insufficientInformation": "情報が不十分",
+  "selectReason": "理由を選択してください",
+  "notInterested": "興味なし",
+  "bookNoLongerRecommended": "この本は今後おすすめに表示されません",
+  "cachedBibliographicDataUsed": "キャッシュの書誌情報を使用",
+  "cachedDescriptionUsed": "キャッシュの紹介文を使用",
+  "isbnTitleDoNotMatch": "ISBN と書名が一致しない",
+  "awaitingReview": "確認待ち",
+  "orderDropOff": "注文分の預け入れ",
+  "preSaleDropOff": "販売前の預け入れ",
+  "retrieval": "回収",
+  "adminOpening": "管理者による開扉",
+  "countdownEnded": "カウントダウン終了",
+  "doorSensor": "扉センサー検知",
+  "deviceRestarted": "端末の再起動",
+  "resolvedBySupport": "サポートが対応",
+  "deviceStarted": "端末の起動",
+  "doorClosed": "扉が閉まりました",
+  "taskCloseReported": "手続き終了の報告",
+  "fault": "故障",
+  "faultResolved": "故障の解消",
+  "unexpectedDoorOpening": "扉の異常開放",
+  "connectionLost": "接続切断",
+  "connectionRestored": "接続復旧",
+  "paired": "ペアリング完了",
+  "deviceRevoked": "端末を無効化しました",
+  "taskCreated": "手続きの作成",
+  "taskFinished": "手続きの終了",
+  "scanRejected": "スキャン拒否",
+  "remoteOpening": "遠隔開扉",
+  "contentsRecorded": "保管内容を登録しました",
+  "contentsRecordCleared": "保管記録を消去しました",
+  "credentialPossiblyCopied": "認証情報の複製の疑い",
+  "sourceIpChanged": "接続元 IP の変更",
+  "doorNeedsChecking": "扉の確認待ち",
+  "doorChecked": "扉の確認完了",
+  "itemBlocked": "項目の手続き不可",
+  "manualReport": "手動報告",
+  "manualReportReviewed": "手動報告の対応",
+  "overdueOrderHeld": "期限切れ注文の対応待ち",
+  "doorOpenedAfterTask": "手続き終了後の開扉",
+  "lockDidNotRelease": "電磁ロックが解除されない",
+  "doorLeftOpen": "扉が閉まっていない",
+  "doorForcedOpen": "扉がこじ開けられた",
+  "sensorError": "センサー異常",
+  "powerProblem": "電源異常",
+  "screenProblem": "画面の異常",
+  "dropOffCancelledAfterDoorOpened": "扉が開いた後に預け入れが取り消されました",
+  "dropOffMarkedAsNotCompleted": "サポートが未完了と確認した預け入れ",
+  "anotherItemWasAlreadyDoor": "預け入れ時に扉内に別の項目がありました",
+  "doorOpeningNotReported": "扉が開いた報告なし",
+  "doorReportedOpenAfterTaskEnded": "手続き終了後に扉が開いたと報告",
+  "manualReportDuringFault": "故障中の手動報告",
+  "openedByStaff": "管理担当者が開けた扉",
+  "orderCompletedBySupportBeforePickup": "受け取り前にサポートが注文を完了にしました",
+  "noDevice": "端末未ペアリング",
+  "deviceOffline": "端末オフライン",
+  "deviceFault": "端末の故障",
+  "underMaintenance": "メンテナンス中",
+  "scanningRequired": "スキャン必須",
+  "manualReportingAllowedP0": "手動報告可（{p0}）",
+  "@manualReportingAllowedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "userAccessSuspendedP0": "利用者のアクセス停止（{p0}）",
+  "@userAccessSuspendedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "simulator": "シミュレーター",
+  "physicalLocker": "実機ロッカー",
+  "noDevicePaired": "端末未ペアリング",
+  "awaitingPairing": "ペアリング待ち",
+  "online": "オンライン",
+  "offline": "オフライン",
+  "locationNotPermitted": "位置情報の許可なし",
+  "locationUnavailable": "位置情報を取得できません",
+  "aboutP0Away": "約 {p0}",
+  "@aboutP0Away": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dropOffReport": "預け入れの報告",
+  "pickupReport": "受け取りの報告",
+  "retrievalReport": "回収の報告",
+  "confirmed": "承認済み",
+  "noLongerValid": "無効",
+  "lockerInactive": "ロッカー停止中",
+  "selectDoorWhereBooksActuallyStored": "本が実際に保管されている扉を選択してください",
+  "offlineP0": "オフライン時間 {p0}",
+  "@offlineP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "collectionRetrievalNotCompletedAfterDoor": "扉が開いた後に受け取りまたは回収が完了しませんでした",
+  "unpairedByDevice": "端末側でペアリング解除",
+  "replacedByNewDevice": "新しい端末に置き換え",
+  "revokedByAdministrator": "管理者が無効化",
+  "simulatorTurnedOff": "シミュレーター機能の停止",
+  "tooManyRequestsPleaseTryAgain": "操作が頻繁すぎます。しばらくしてから再度お試しください。",
+  "viewPurchases": "購入履歴を見る",
+  "viewSales": "販売履歴を見る",
+  "retrievalNotAvailableLockerRightNow": "現在このロッカーでは回収の手続きができません。サポートにお問い合わせください。",
+  "itemsCouldNotCompleted": "項目を完了できませんでした",
+  "onceDelistedP0NoLongerAppear2": "出品を取り消すと、「{p0}」はショップに表示されなくなります。この本はロッカーに保管されているため、再出品するには先に本を回収する必要があります。",
+  "@onceDelistedP0NoLongerAppear2": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "confirmP0BeenPlacedP1": "「{p0}」を「{p1}」に預け入れたことを確認してください。",
+  "@confirmP0BeenPlacedP1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "confirmTakenBookFromLocker": "ロッカーから書籍を取り出したことを確認してください。",
+  "finish": "完了",
+  "door": "扉",
+  "enterNumberShownLockerScreen": "ロッカー画面に表示されている数字を入力してください",
+  "ifSomeoneTellsNumberAsksEnter": "他の人から数字を伝えられて入力を求められた場合は、操作しないでください。",
+  "enterTwoDigits": "2桁の数字を入力してください",
+  "closeDoorFirst": "先に扉を閉めてください",
+  "onceDoorClosedTaskEndAutomatically": "扉を閉めると、選択した内容で手続きが自動的に終了します。",
+  "taskCompleteAutomaticallyOnceDoorClosed": "扉を閉めると手続きが自動的に完了します。",
+  "taskBeenCancelledNothingChanged": "この手続きは取り消されました。状態は変更されていません。",
+  "locationAccessRequiredUseLockerTurn": "ロッカーを利用するには位置情報へのアクセスを許可する必要があります。システム設定で許可してから再度お試しください。",
+  "locationCouldNotConfirmedTurnLocation": "現在地を確認できません。位置情報サービスをオンにしてから再度お試しください。",
+  "doorOpenActionNotAvailable": "扉が開いているため、この操作は実行できません。",
+  "taskBeingProcessedPleaseWait": "この手続きは処理中です。しばらくお待ちください。",
+  "numberConfirmationWasNotCompletedSeveral": "数字の確認が複数回完了しなかったため、{p0} 分後に再度お試しください。",
+  "@numberConfirmationWasNotCompletedSeveral": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "doorRecordedContentsAwaitingCheckComplete": "この扉には保管記録があるか確認待ちのため、数字の確認を完了してから開けてください。",
+  "lockerBeenAskedEndTask": "ロッカーに手続きの終了を要求しました。",
+  "endTask": "手続きを終了",
+  "pairDevice": "端末をペアリング",
+  "enterPairingCodeShownLockerScreen": "ロッカー画面に表示されているペアリングコードを入力してください",
+  "enter8DigitPairingCode": "8桁のペアリングコードを入力してください",
+  "pairingCodeInvalidExpired": "ペアリングコードが無効か、有効期限が切れています。",
+  "waitingDeviceConnect": "端末の接続を待っています",
+  "pairingWasNotCompletedEnterNew": "ペアリングが完了しませんでした。ロッカー画面に表示されている新しいペアリングコードを入力してください。",
+  "donePhone": "スマートフォンで完了",
+  "cancelledPhone": "スマートフォンで取り消し",
+  "matchCodeEntered": "照合番号の入力",
+  "lockerRefusedEndDoorOpen": "ロッカーが終了を拒否（扉が開いたまま）",
+  "numberMatched": "数字が一致",
+  "numberDidNotMatch": "数字が不一致",
+  "cancelTapCancelBeforeClosingDoor": "取り消す場合は、扉を閉める前に「キャンセル」をタップしてください。カウントダウン終了時に自動的に完了します。",
+  "preciseLocationRequiredUseLockerTurn": "ロッカーを利用するには正確な位置情報をオンにする必要があります。システム設定でオンにしてから再度お試しください。",
+  "enterTitle3": "タイトルを入力してください",
+  "credentialsNotSet": "認証情報が未設定です",
+  "searchActions": "操作内容を検索",
+  "undoneP0": "{p0} に取り消し済み",
+  "@undoneP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "delistListing": "出品を取り下げる",
+  "amount2": "金額",
+  "couldNotOpenChatPleaseTry": "チャットを開けませんでした。しばらくしてからもう一度お試しください。",
+  "publishedP0": "公開日：{p0}",
+  "@publishedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "pushNotificationRegistrationFailedPleaseTry": "プッシュ通知の登録に失敗しました。しばらくしてからもう一度お試しください。"
 }

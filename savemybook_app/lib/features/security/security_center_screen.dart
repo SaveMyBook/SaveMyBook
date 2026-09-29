@@ -46,6 +46,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
   bool _passwordSet = true;
   int _identitiesTick = 0;
   bool _passkeySupported = false;
+  bool _passkeyUsable = false;
   int _passkeysTick = 0;
   Future<void>? _loadingFuture;
 
@@ -64,6 +65,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       BiometricService.isAvailable(),
       _api.fetchLoginSessions(),
       PasskeyService.isSupported(),
+      PasskeyService.isUsable(),
       if (userId != null) PaymentKeyStore.read(userId) else Future.value(null),
     ]);
     final available = results[1] as bool;
@@ -75,7 +77,8 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
       _biometricLabel = label;
       _deviceCount = (results[2] as List<LoginSession>?)?.length;
       _passkeySupported = results[3] as bool;
-      _hasLocalKey = results.length > 4 && results[4] != null;
+      _passkeyUsable = results[4] as bool;
+      _hasLocalKey = results.length > 5 && results[5] != null;
       _loading = false;
     });
   }
@@ -90,7 +93,6 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
     if (changed == true) _load();
   }
 
-  // 設定或變更密碼後要立刻反映在本頁與「登入方式」卡片，不能等使用者離開再回來。
   Future<void> _openPasswordScreen() async {
     final done = await Navigator.push<bool>(
       context,
@@ -181,9 +183,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
           Expanded(
             child: SwitchIn(
               child: _loading
-                  ? context.isWide
-                      ? const ResponsiveCenter(maxWidth: Breakpoints.formMaxWidth, child: LoadingView.menu())
-                      : const LoadingView.menu()
+                  ? const LoadingView.menu()
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: () {
@@ -192,7 +192,7 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                       },
                       child: LayoutBuilder(builder: (context, constraints) => ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, bottom: 40),
+                        padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
                         children: [
                           if (!_status.available) ...[
                             FadeSlideIn(child: _unavailableCard(c)),
@@ -208,7 +208,10 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                           const SizedBox(height: 24),
                           if (_status.passkeyAvailable && _passkeySupported) ...[
                             _sectionTitle(c, S.passkeys),
-                            FadeSlideIn(index: 4, child: PasskeysCard(onChanged: _load, refreshTick: _passkeysTick)),
+                            FadeSlideIn(
+                              index: 4,
+                              child: PasskeysCard(onChanged: _load, refreshTick: _passkeysTick, canAdd: _passkeyUsable),
+                            ),
                             const SizedBox(height: 24),
                           ],
                           _sectionTitle(c, S.signMethod),
@@ -323,21 +326,9 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      good ? S.accountWellProtected : S.accountCouldSafer,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
-                    ),
-                    if (!good) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        S.setPaymentPinTurnBiometricPayment,
-                        style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.45),
-                      ),
-                    ],
-                  ],
+                child: Text(
+                  good ? S.accountWellProtected : S.accountCouldSafer,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
               ),
             ],

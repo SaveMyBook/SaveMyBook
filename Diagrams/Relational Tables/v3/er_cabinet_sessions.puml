@@ -1,0 +1,114 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  ...
+}
+entity "cabinet_devices" as cabinet_devices {
+  {field} <&key> device_id : int
+  --
+  ...
+}
+entity "users" as users {
+  {field} <&key> user_id : int
+  --
+  ...
+}
+entity "orders" as orders {
+  {field} <&key> order_id : int
+  --
+  ...
+}
+entity "books" as books {
+  {field} <&key> book_id : int
+  --
+  ...
+}
+entity "cabinet_slots" as cabinet_slots {
+  {field} <&key> slot_id : int
+  --
+  ...
+}
+entity "cabinet_sessions" as cabinet_sessions {
+  {field} <&key> session_id : int
+  --
+  {field} cabinet_id : int
+  {field} device_id : int
+  {field} user_id : int
+  {field} kind : enum
+  {field} status : enum
+  {field} version : int
+  {field} challenge_id : int
+  {field} result_code : varchar(40)
+  {field} context_type : varchar(10)
+  {field} context_id : int
+  {field} location_status : enum
+  {field} distance_m : int
+  {field} accuracy_m : int
+  {field} match_code : tinyint
+  {field} open_ms : int
+  {field} phase_deadline : datetime
+  {field} admin_reason : varchar(255)
+  {field} admin_force : tinyint(1)
+  {field} close_outcome : varchar(12)
+  {field} close_reason : varchar(20)
+  {field} close_request : varchar(12)
+  {field} close_requested_at : datetime
+  {field} close_refused_at : datetime
+  {field} created_at : datetime
+  {field} started_at : datetime
+  {field} matched_at : datetime
+  {field} opened_at : datetime
+  {field} closed_at : datetime
+  {field} finished_at : datetime
+  {field} reviewed_by : int
+  {field} reviewed_at : datetime
+  {field} review_note : varchar(500)
+}
+entity "cabinet_session_items" as cabinet_session_items {
+  {field} <&key> item_id : int
+  --
+  {field} session_id : int
+  {field} kind : enum
+  {field} order_id : int
+  {field} book_id : int
+  {field} slot_id : int
+  {field} selected : tinyint(1)
+  {field} held_on_sale : tinyint(1)
+  {field} blocked_code : varchar(40)
+  {field} note_code : varchar(40)
+  {field} result : enum
+  {field} error_code : varchar(40)
+}
+entity "cabinet_session_doors" as cabinet_session_doors {
+  {field} <&key> session_id : int
+  {field} <&key> slot_id : int
+  --
+  {field} lock_channel : tinyint
+  {field} state : enum
+  {field} command_served_at : datetime
+  {field} opened_at : datetime
+  {field} closed_at : datetime
+  {field} close_reason : varchar(20)
+}
+smart_cabinets ||--o{ cabinet_sessions
+cabinet_devices ||--o{ cabinet_sessions
+users ||--o{ cabinet_sessions
+cabinet_sessions ||--o{ cabinet_session_items
+orders ||--o{ cabinet_session_items
+books ||--o{ cabinet_session_items
+cabinet_session_items }o--|| cabinet_slots
+cabinet_sessions ||--o{ cabinet_session_doors
+cabinet_session_doors }o--|| cabinet_slots
+@enduml

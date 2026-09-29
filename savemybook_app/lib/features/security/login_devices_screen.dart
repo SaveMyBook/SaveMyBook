@@ -142,9 +142,7 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
 
     final Widget body;
     if (_loading) {
-      body = context.isWide
-          ? const ResponsiveCenter(key: ValueKey('loading'), child: LoadingView.menu())
-          : const LoadingView.menu(key: ValueKey('loading'));
+      body = const LoadingView.menu(key: ValueKey('loading'));
     } else if (sessions == null) {
       body = RefreshableCenter(
         key: const ValueKey('error'),
@@ -162,7 +160,7 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
         onRefresh: _load,
         child: LayoutBuilder(builder: (context, constraints) => ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: responsiveListPadding(constraints, bottom: 40),
+          padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
           children: [
             if (current.isNotEmpty) ...[
               _sectionTitle(c, S.device),
@@ -238,7 +236,6 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
       if (s.ipAddress != null && s.ipAddress!.isNotEmpty) 'IP ${s.ipAddress}',
       if (s.createdAt != null) S.signedP0(formatDate(s.createdAt)),
     ].join(' · ');
-    final version = s.appVersion;
 
     return Reveal(
       visible: !_leaving.contains(s.sessionId),
@@ -262,32 +259,11 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            _nameOf(s),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-                          ),
-                        ),
-                        if (s.isCurrent) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: c.success.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              S.device,
-                              maxLines: 1,
-                              style: TextStyle(fontSize: 11, color: c.success, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      _nameOf(s),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -296,30 +272,20 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
                     ),
-                    if (s.biometricPay || (version != null && version.isNotEmpty)) ...[
+                    if (s.biometricPay) ...[
                       const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 4,
+                      Row(
                         children: [
-                          if (s.biometricPay)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.fingerprint_rounded, size: 14, color: c.textHint),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    S.biometricPayment,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 11.5, color: c.textHint),
-                                  ),
-                                ),
-                              ],
+                          Icon(Icons.fingerprint_rounded, size: 14, color: c.textHint),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              S.biometricPayment,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 11.5, color: c.textHint),
                             ),
-                          if (version != null && version.isNotEmpty)
-                            Text('App v$version', style: TextStyle(fontSize: 11.5, color: c.textHint)),
+                          ),
                         ],
                       ),
                     ],

@@ -7,7 +7,6 @@ const {
 const ticketBody = (overrides = {}) => ({ subject: '無法登入', content: '密碼一直錯誤', ...overrides });
 
 const tests = [
-  // ---------- 客服工單 ----------
   ['建立工單的欄位驗證', async () => {
     const token = tokenFor(addUser());
 
@@ -129,11 +128,21 @@ const tests = [
 
     const byStaff = await request('GET', `/api/support/tickets/${ticket.ticket_id}`, { token: tokenFor(staff) });
     assert.strictEqual(byStaff.status, 200);
+    assert.strictEqual(byStaff.body.data.from_ai_support, false);
+    assert.strictEqual(mine.body.data.from_ai_support, undefined, '使用者端不提供工單來源');
+    prisma.rows('ai_support_sessions').push({ session_id: 1, user_id: user.user_id, status: 'escalated', ticket_id: ticket.ticket_id });
+    const escalated = await request('GET', `/api/support/tickets/${ticket.ticket_id}`, { token: tokenFor(staff) });
+    assert.strictEqual(escalated.body.data.from_ai_support, true);
+
+    const handoff = addTicket({ userId: user.user_id, subject: 'AI 客服轉接：取書期限' });
+    prisma.rows('support_tickets').find((t) => t.ticket_id === handoff.ticket_id).from_ai_support = true;
+    const afterPurge = await request('GET', `/api/support/tickets/${handoff.ticket_id}`, { token: tokenFor(staff) });
+    assert.strictEqual(afterPurge.body.data.from_ai_support, true, 'AI 對話刪除後仍依工單標記判斷');
 
     for (const user2 of [stranger, noSupport]) {
       const res = await request('GET', `/api/support/tickets/${ticket.ticket_id}`, { token: tokenFor(user2) });
       assert.strictEqual(res.status, 403);
-      assert.strictEqual(res.body.message, '存取被拒');
+      assert.strictEqual(res.body.message, '無權限執行此操作');
     }
 
     const missing = await request('GET', '/api/support/tickets/9999', { token: tokenFor(user) });
@@ -179,7 +188,6 @@ const tests = [
     assert.strictEqual(all.body.data[0].user.user_id, user.user_id);
   }],
 
-  // ---------- 檢舉 ----------
   ['檢舉的欄位驗證', async () => {
     const user = addUser();
     const token = tokenFor(user);
@@ -236,21 +244,20 @@ const tests = [
 
     const res = await request('POST', '/api/reports', { token, body });
     assert.strictEqual(res.status, 201);
-    assert.strictEqual(res.body.message, '檢舉已送出，我們將盡快處理');
+    assert.strictEqual(res.body.message, '檢舉已送出');
     assert.strictEqual(res.body.data.status, 'pending');
 
     const notice = notificationsOf(seller.user_id)[0];
     assert.strictEqual(notice.title, '您的商品遭到檢舉');
     assert.strictEqual(
       notice.content,
-      '我們已收到一則檢舉並開始審核，審核期間商品仍可正常販售。若違規成立將另行通知您。'
+      '此商品已被檢舉，審核期間仍可正常販售；如違規成立將另行通知。'
     );
-    // 審核期間商品不受影響。
     assert.strictEqual(bookOf(book.book_id).status, 'on_sale');
 
     const again = await request('POST', '/api/reports', { token, body });
     assert.strictEqual(again.status, 409);
-    assert.strictEqual(again.body.message, '您已檢舉過此項目，我們正在處理中');
+    assert.strictEqual(again.body.message, '此項目已檢舉，目前處理中');
 
     const mine = await request('GET', '/api/reports', { token });
     assert.strictEqual(mine.body.data.length, 1);
@@ -283,7 +290,7 @@ const tests = [
 
     const reporterNotice = notificationsOf(reporter.user_id)[0];
     assert.strictEqual(reporterNotice.title, '您的檢舉已處理');
-    assert.strictEqual(reporterNotice.content, '感謝您的回報，我們已完成處理。');
+    assert.strictEqual(reporterNotice.content, '檢舉已處理完成。');
 
     const sellerNotice = notificationsOf(seller.user_id)[0];
     assert.strictEqual(sellerNotice.title, '檢舉審核結果：違規成立');
@@ -315,8 +322,9 @@ const tests = [
     });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(bookOf(book.book_id).status, 'on_sale');
-    assert.strictEqual(notificationsOf(reporter.user_id)[0].content, '經審核未違反社群規範，感謝您的回報。');
+    assert.strictEqual(notificationsOf(reporter.user_id)[0].content, '經審核未違反社群規範。');
     assert.strictEqual(notificationsOf(seller.user_id)[0].title, '檢舉審核結果：未違規');
+    assert.strictEqual(notificationsOf(seller.user_id)[0].content, '經審核未違反社群規範，此商品不受影響。');
 
     const list = await request('GET', '/api/admin/reports?status=dismissed', { token: tokenFor(admin) });
     assert.strictEqual(list.status, 200);
@@ -324,7 +332,27 @@ const tests = [
     assert.strictEqual(list.body.data[0].target.book_id, book.book_id);
   }],
 
-  // ---------- 交易爭議 ----------
+  ['檢舉帳號時，被檢舉者收到的通知以帳號描述', async () => {
+    const reporter = addUser();
+    const target = addUser();
+    const admin = addAdmin();
+
+    const res = await request('POST', '/api/reports', {
+      token: tokenFor(reporter), body: { target_type: 'user', target_id: target.user_id, reason: '騷擾' }
+    });
+    assert.strictEqual(res.status, 201);
+    const [created] = notificationsOf(target.user_id);
+    assert.strictEqual(created.title, '您的帳號遭到檢舉');
+    assert.strictEqual(created.content, '此帳號已被檢舉，目前審核中；如違規成立將另行通知。');
+
+    const reviewed = await request('PATCH', `/api/admin/reports/${res.body.data.report_id}`, {
+      token: tokenFor(admin), body: { status: 'dismissed' }
+    });
+    assert.strictEqual(reviewed.status, 200);
+    const dismissed = notificationsOf(target.user_id).find((n) => n.title === '檢舉審核結果：未違規');
+    assert.strictEqual(dismissed.content, '經審核未違反社群規範，此帳號不受影響。');
+  }],
+
   ['提出爭議的權限與狀態限制', async () => {
     const buyer = addUser({ balance: 500 });
     const seller = addUser({ balance: 0 });
@@ -356,7 +384,32 @@ const tests = [
       token: tokenFor(buyer), body: { order_id: cancelled.order_id, reason: '沒收到書' }
     });
     assert.strictEqual(closed.status, 400);
-    assert.strictEqual(closed.body.message, '此訂單已取消或已退款，無法提出爭議');
+    assert.strictEqual(closed.body.message, '此訂單已取消或已退款，無法申請爭議');
+  }],
+
+  ['以訂單編號提出爭議，編號不分大小寫並忽略空白', async () => {
+    const buyer = addUser({ balance: 500 });
+    const seller = addUser({ balance: 0 });
+    const stranger = addUser();
+    const book = addBook({ sellerId: seller.user_id });
+    const order = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'deposited' });
+    const file = (token, body) => request('POST', '/api/disputes', { token, body: { reason: '書況與描述不符', ...body } });
+
+    const none = await file(tokenFor(buyer), {});
+    assert.strictEqual(none.status, 400);
+    assert.strictEqual(none.body.message, '請指定訂單');
+
+    const unknown = await file(tokenFor(buyer), { order_no: 'SMB999999' });
+    assert.strictEqual(unknown.status, 404);
+    assert.strictEqual(unknown.body.message, '找不到該訂單');
+
+    const denied = await file(tokenFor(stranger), { order_no: order.order_no });
+    assert.strictEqual(denied.status, 403);
+
+    const res = await file(tokenFor(buyer), { order_no: ` ${order.order_no.toLowerCase()} ` });
+    assert.strictEqual(res.status, 201);
+    assert.strictEqual(res.body.data.order_id, order.order_id);
+    assert.strictEqual(orderOf(order.order_id).status, 'refunding');
   }],
 
   ['取書後超過 24 小時或訂單已完成不可提出爭議，期限內與取書前皆可', async () => {
@@ -373,20 +426,19 @@ const tests = [
     const expired = await dispute(late);
     assert.strictEqual(expired.status, 400);
     assert.strictEqual(expired.body.code, 'DISPUTE_WINDOW_PASSED');
-    assert.strictEqual(expired.body.message, '已超過取書後 24 小時的申訴期限');
+    assert.strictEqual(expired.body.message, '已超過取書後 24 小時的爭議申請期限');
     assert.strictEqual(late.status, 'deposited', '被拒絕時不得變更訂單狀態');
 
     const done = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'completed' });
     Object.assign(done, { picked_up_at: hoursAgo(1), completed_at: hoursAgo(1) });
     const completed = await dispute(done);
     assert.strictEqual(completed.status, 400);
-    assert.strictEqual(completed.body.message, '訂單已完成，無法再提出申訴');
+    assert.strictEqual(completed.body.message, '訂單已完成，無法再申請爭議');
 
     const recent = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'deposited' });
     Object.assign(recent, { picked_up_at: hoursAgo(23) });
     assert.strictEqual((await dispute(recent)).status, 201);
 
-    // 取書前（例如賣家遲遲未放書）不受 24 小時限制。
     const waiting = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status: 'pending_deposit' });
     assert.strictEqual((await dispute(waiting, '賣家尚未放書')).status, 201);
   }],
@@ -425,7 +477,7 @@ const tests = [
     assert.strictEqual(orderOf(order.order_id).status, 'refunding');
 
     const notice = notificationsOf(seller.user_id)[0];
-    assert.strictEqual(notice.title, '買家對訂單提出爭議');
+    assert.strictEqual(notice.title, '買家已對訂單申請爭議');
     assert.strictEqual(
       notice.content,
       `訂單 ${order.order_no} 有一筆爭議申請，客服將協助處理，處理期間訂單暫停進行。`
@@ -434,6 +486,10 @@ const tests = [
     const again = await request('POST', '/api/disputes', { token: tokenFor(buyer), body });
     assert.strictEqual(again.status, 409);
     assert.strictEqual(again.body.message, '此訂單已有處理中的爭議申請');
+
+    const other = await request('POST', '/api/disputes', { token: tokenFor(seller), body });
+    assert.strictEqual(other.status, 409);
+    assert.strictEqual(other.body.message, '此訂單已有處理中的爭議申請');
 
     const mine = await request('GET', '/api/disputes', { token: tokenFor(buyer) });
     assert.strictEqual(mine.body.data.length, 1);
@@ -506,7 +562,6 @@ const tests = [
       token: tokenFor(admin), body: { result: 'dismissed', admin_note: '證據不足' }
     });
     assert.strictEqual(res.status, 200);
-    // 尚未取書的訂單不可直接判定完成，否則會替未取書的訂單撥款。
     assert.strictEqual(orderOf(order.order_id).status, 'deposited');
     assert.strictEqual(balanceOf(seller.user_id), 0);
     assert.strictEqual(prisma.rows('refund_records').length, 0);
@@ -529,13 +584,34 @@ const tests = [
       token: tokenFor(admin), body: { result: 'refund_all' }
     });
     assert.strictEqual(res.status, 400);
-    assert.strictEqual(res.body.message, 'result 僅接受：refund_manual, refund_auto, dismissed, mediated');
+    assert.strictEqual(res.body.message, '裁決結果不正確');
 
     const missing = await request('PATCH', '/api/admin/disputes/999', {
       token: tokenFor(admin), body: { result: 'dismissed' }
     });
     assert.strictEqual(missing.status, 404);
     assert.strictEqual(missing.body.message, '找不到該爭議案件');
+  }],
+
+  ['裁決時記錄最後一次 AI 分析的建議是否與結果一致', async () => {
+    const buyer = addUser({ balance: 500 });
+    const seller = addUser({ balance: 0 });
+    const admin = addAdmin();
+    const book = addBook({ sellerId: seller.user_id });
+    const order = addPaidOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, amount: 200, status: 'deposited' });
+    await request('POST', '/api/disputes', { token: tokenFor(buyer), body: { order_id: order.order_id, reason: '書況不符' } });
+    prisma.store.ai_dispute_analyses = [
+      { analysis_id: 1, dispute_id: 1, suggestion: 'refund', agreed: null, created_at: new Date() },
+      { analysis_id: 2, dispute_id: 1, suggestion: 'dismiss', agreed: null, created_at: new Date() }
+    ];
+
+    const res = await request('PATCH', '/api/admin/disputes/1', { token: tokenFor(admin), body: { result: 'refund_manual' } });
+    assert.strictEqual(res.status, 200);
+    const [first, last] = prisma.rows('ai_dispute_analyses');
+    assert.strictEqual(first.agreed, null);
+    assert.strictEqual(last.agreed, false);
+    assert.strictEqual(last.resolved_result, 'refund_manual');
+    assert.ok(last.resolved_at instanceof Date);
   }]
 ];
 

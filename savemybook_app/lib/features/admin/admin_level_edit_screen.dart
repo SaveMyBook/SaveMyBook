@@ -140,7 +140,6 @@ class _AdminLevelEditScreenState extends State<AdminLevelEditScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => row.dispose());
   }
 
-  // 換行或貼上多行文字時拆成多筆福利，讓 Enter 直接成為「新增下一筆」。
   void _onBenefitChanged(_BenefitRow row, String value) {
     if (!value.contains(RegExp(r'[\r\n]'))) return;
     final parts = value.split(RegExp(r'\r?\n|\r')).map((e) => e.trim()).toList();
@@ -346,9 +345,12 @@ class _AdminLevelEditScreenState extends State<AdminLevelEditScreen> {
         ),
         if (ladder != null && ladder.length > 1) ...[
           const SizedBox(height: 16),
-          Text(
-            S.tierOrder,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textSecondary),
+          Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: Text(
+              S.tierOrder,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textSecondary),
+            ),
           ),
           const SizedBox(height: 6),
           LevelLadder(slots: ladder, embedded: true),
@@ -399,7 +401,7 @@ class _AdminLevelEditScreenState extends State<AdminLevelEditScreen> {
       children: [
         SizedBox(
           width: 28,
-          height: 46,
+          height: 40,
           child: canDrag
               ? ReorderableDragStartListener(
                   index: index,
@@ -437,7 +439,7 @@ class _AdminLevelEditScreenState extends State<AdminLevelEditScreen> {
         ),
         const SizedBox(width: 2),
         SizedBox(
-          height: 46,
+          height: 40,
           child: IconButton(
             tooltip: S.remove,
             onPressed: _isSaving ? null : () => _removeBenefit(row),
@@ -712,33 +714,35 @@ class LevelLadder extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 border: slot.isDraft ? Border.all(color: c.accent.withValues(alpha: 0.5)) : null,
               ),
-              child: Row(
-                children: [
-                  Icon(LevelStyle.at(i).icon, size: 18, color: LevelStyle.at(i).accent),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      slot.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: slot.isDraft ? FontWeight.w700 : FontWeight.w500,
-                        color: c.textPrimary,
+              child: LayoutBuilder(
+                builder: (context, box) => Row(
+                  children: [
+                    Icon(LevelStyle.at(i).icon, size: 18, color: LevelStyle.at(i).accent),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        slot.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: slot.isDraft ? FontWeight.w700 : FontWeight.w500,
+                          color: c.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      LevelRules.rangeLabel(slot.minPoints, slot.maxPoints),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: (box.maxWidth - 36).clamp(0.0, double.infinity) * 0.6),
+                      child: Text(
+                        LevelRules.rangeLabel(slot.minPoints, slot.maxPoints),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
         ],

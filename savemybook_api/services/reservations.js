@@ -5,10 +5,11 @@ const { notify, notifyMany } = require('./notify');
 const realtime = require('./realtime');
 const codec = require('./chat/codec');
 const rooms = require('./chat/rooms');
+const policy = require('../constants/policy');
 
-const HOURS = [24, 48, 72];
-const PENDING_TTL_MS = 24 * 60 * 60 * 1000;
-const MAX_ACTIVE_PER_BUYER = 5;
+const HOURS = policy.RESERVATION_HOLD_HOURS;
+const PENDING_TTL_MS = policy.RESERVATION_RESPONSE_HOURS * 60 * 60 * 1000;
+const MAX_ACTIVE_PER_BUYER = policy.RESERVATION_MAX_ACTIVE;
 
 const bookSelect = {
   book_id: true, title: true, price: true, status: true, seller_id: true, is_approved: true,
@@ -62,6 +63,14 @@ const activeHoldsFor = (bookIds, now = new Date()) => prisma.reservations.findMa
   select: { book_id: true, buyer_id: true, pickup_deadline: true }
 });
 
+const heldByOthers = async (viewerId = null, now = new Date()) => {
+  const rows = await prisma.reservations.findMany({
+    where: { status: 'confirmed', pickup_deadline: { gt: now }, ...(viewerId != null && { buyer_id: { not: viewerId } }) },
+    select: { book_id: true }
+  });
+  return new Set(rows.map((r) => Number(r.book_id)));
+};
+
 const deadlineFormat = new Intl.DateTimeFormat('zh-TW', {
   timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false
 });
@@ -70,12 +79,10 @@ const formatDeadline = (date) => deadlineFormat.format(new Date(date));
 
 const heldError = () => conflict('此書籍預約保留中，保留期間無法編輯或下架', 'BOOK_HELD');
 
-// 賣家同意預約後到保留期滿前，書籍不可編輯或下架，避免買家看到的內容或售價被改動。
 const assertNotHeld = async (bookId) => {
   if (await activeHold(null, bookId)) throw heldError();
 };
 
-// 保留結束且書仍在販售中時，通知收藏此書的人（不含預約的買家與賣家）。
 const notifyAvailable = async (db, row) => {
   if (row.books?.status !== 'on_sale' || !row.books?.is_approved) return 0;
   const fans = await (db ?? prisma).favorites.findMany({
@@ -85,7 +92,7 @@ const notifyAvailable = async (db, row) => {
   if (fans.length === 0) return 0;
   return notifyMany(db, fans.map((f) => f.user_id), {
     title: '收藏的書籍已可購買',
-    content: `《${row.books.title}》的預約保留已結束，現在可以購買。`,
+    content: `《${row.books.title}》的預約保留已結束，現已開放購買。`,
     relatedId: row.book_id,
     relatedType: 'book'
   });
@@ -148,7 +155,7 @@ const request = async ({ room, buyerId, bookId, hours, message }) => {
       userId: sellerId,
       type: 'reservation',
       title: '您的書籍收到預約申請',
-      content: `對方申請預約《${book.title}》，保留 ${hours} 小時。請至聊天室回覆。`,
+      content: `買家申請預約《${book.title}》，保留 ${hours} 小時，請至聊天室回覆。`,
       relatedId: room.room_id,
       relatedType: 'chat_room'
     });
@@ -268,7 +275,6 @@ const forUsers = async (a, b) => {
   return new Map(rows.map((r) => [r.reservation_id, shape(r)]));
 };
 
-// 購買紀錄「已預訂」：等待賣家回覆與保留中的預約。
 const mine = async (buyerId, now = new Date()) => {
   const rows = await prisma.reservations.findMany({
     where: {
@@ -316,7 +322,7 @@ const expireDue = async () => {
       userId: row.buyer_id,
       type: 'reservation',
       title: wasPending ? '預約未獲回覆' : '預約已到期',
-      content: wasPending ? `賣家未於 24 小時內回覆《${title}》的預約。` : `《${title}》的保留期限已屆滿，其他買家現已可購買。`,
+      content: wasPending ? `賣家未於 ${policy.RESERVATION_RESPONSE_HOURS} 小時內回覆《${title}》的預約。` : `《${title}》的保留期限已屆滿，其他買家現已可購買。`,
       relatedId: row.book_id,
       relatedType: 'book'
     }).catch(() => {});
@@ -325,5 +331,5 @@ const expireDue = async () => {
 };
 
 module.exports = {
-  activeHoldsFor, assertNotHeldByOthers, assertNotHeld, notifyAvailable, request, respond, forUsers, mine, holdForViewer, expireDue
+  activeHoldsFor, heldByOthers, assertNotHeldByOthers, assertNotHeld, notifyAvailable, request, respond, forUsers, mine, holdForViewer, expireDue
 };

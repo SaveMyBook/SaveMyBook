@@ -12,41 +12,56 @@ actor 賣家
 participant UI
 participant API
 database DB
-participant 排程
+participant IoT
 actor 買家
 
-alt 賣家於下單後 7 天內存書
-  賣家 -> 賣家 : 依訂單指定書櫃放入書籍
-  activate 賣家
-  賣家 -> UI : 點擊「已放入書櫃」並確認
-  activate UI
-  UI -> API : PATCH /api/orders/:id/status\n(deposited)
-  activate API
-  API -> DB : 驗證賣家身分與訂單狀態
-  activate DB
-  DB --> API : 回傳驗證結果
-  deactivate DB
-  alt 訂單為「待存書」
-    API -> DB : 訂單設為「已存書」，記錄存書時間
-    API -> 買家 : 推播「書籍已存入書櫃」
-    API --> UI : 200 OK
-    UI --> 賣家 : 顯示「已標記存書」
-  else 狀態不符或已被變更
-    API --> UI : 400／409 錯誤訊息
-    UI --> 賣家 : 顯示錯誤訊息
+賣家 -> UI : 掃描書櫃螢幕上的 QR Code
+activate 賣家
+activate UI
+UI -> API : POST /api/cabinet-sessions
+activate API
+API -> DB : 驗證 QR 與定位，列出存書項目
+API --> UI : 201 項目清單
+deactivate API
+賣家 -> UI : 勾選項目，點擊「開啟櫃門」
+UI -> API : POST /api/cabinet-sessions/:no/start
+activate API
+API -> DB : 分配空櫃門，產生比對碼
+API --> UI : 200 等待輸入比對碼
+deactivate API
+IoT -> API : GET /api/device/v1/state
+activate IoT
+API --> IoT : 顯示兩位數比對碼
+deactivate IoT
+賣家 -> UI : 輸入螢幕上的兩位數字
+UI -> API : POST /api/cabinet-sessions/:no/match
+activate API
+alt 數字相符
+  IoT -> API : 輪詢取得開鎖指令
+  activate IoT
+  IoT -> API : 開門後回報 POST /api/device/v1/events
+  API --> UI : 推送櫃門編號與倒數
+  alt 於手機點擊「完成」或「取消」
+    賣家 -> UI : 放入書籍，關門後點擊「完成」或「取消」
+    UI -> API : POST /api/cabinet-sessions/:no/close
+    IoT -> API : 輪詢取得結束指令
+    IoT -> API : 回報作業結束
+  else 倒數結束
+    IoT -> API : 回報作業結束（視為完成）
   end
-  deactivate API
-  deactivate UI
-  deactivate 賣家
-else 下單滿 7 天仍未存書
-  排程 -> API : 每 10 分鐘檢查逾期訂單
-  activate 排程
-  activate API
-  API -> DB : 訂單設為「已取消」，書籍改為下架
-  API -> DB : 平台保管的款項退回買家錢包
-  API -> 買家 : 推播「訂單已取消並退款」
-  API -> 賣家 : 推播「逾期未存書，訂單已取消」
-  deactivate API
-  deactivate 排程
+  deactivate IoT
+  alt 完成
+    API -> DB : 記錄櫃內書籍，訂單設為\n「已存書」或新增存書登記
+    API -> 買家 : 依訂單存書時推播「書籍已存入書櫃」
+  else 取消
+    API -> DB : 狀態不變，櫃門設為待確認
+  end
+  API --> UI : 推送作業結果
+else 數字不符或逾時
+  API --> UI : 作業結束，須重新掃碼
 end
+deactivate API
+UI --> 賣家 : 顯示作業結果
+deactivate UI
+deactivate 賣家
 @enduml

@@ -70,7 +70,6 @@ module.exports = {
       assert.deepStrictEqual(changes[0], { field: 'title', label: '書名', from: '書名', to: '新書名' });
       assert.deepStrictEqual(changes[1], { field: 'is_active', label: '啟用', from: '是', to: '否' });
 
-      // 沒有出現在 after 的欄位不會被視為變更。
       assert.deepStrictEqual(audit.diff({ price: 1 }, {}, fields), []);
       assert.deepStrictEqual(audit.diff({ price: 1 }, { price: undefined }, fields), []);
     }],
@@ -102,11 +101,9 @@ module.exports = {
       assert.ok(row.log_no.startsWith('LG'));
       assert.ok(row.target_no.startsWith('BK'));
       assert.strictEqual(row.summary, '下架書籍《挪威的森林》');
-      // 舊版 App 讀的是 detail 欄位。
       assert.strictEqual(row.detail, row.summary);
       assert.strictEqual(row.can_undo, false);
       assert.strictEqual(row.changes.length, 1);
-      // 使用者看得到的文字不得出現流水號。
       assert.strictEqual(/\b42\b/.test(row.summary), false);
     }],
 
@@ -227,7 +224,6 @@ module.exports = {
       const entry = prisma.rows('admin_operation_logs').at(-1);
       assert.strictEqual(entry.action, '還原：變更會員狀態');
       const detail = audit.parseDetail(entry.detail);
-      // 摘要以加密編號指向原紀錄，不會出現流水號。
       assert.ok(detail.summary.includes(publicId.encode('log', original.log_id)));
       assert.deepStrictEqual(detail.changes.map((c) => [c.from, c.to]), [['停權', '啟用']]);
 

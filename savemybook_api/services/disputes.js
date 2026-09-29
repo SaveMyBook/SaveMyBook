@@ -2,17 +2,18 @@ const prisma = require('../lib/prisma');
 const { badRequest, forbidden, notFound, conflict } = require('../lib/errors');
 const { userBrief, userName, orderItemsWithCover } = require('../lib/selects');
 const { DISPUTE_RESULT_LABELS } = require('../constants/domain');
+const { DISPUTE_WINDOW_HOURS } = require('../constants/policy');
 const { notify } = require('./notify');
 const audit = require('./audit');
 const settlement = require('./orders/settlement');
+const disputeAnalyses = require('./ai/dispute-analyses');
 
 const RESULTS = ['refund_manual', 'refund_auto', 'dismissed', 'mediated'];
 
-// 已取消或已退款的訂單不可申訴，否則裁決退款會退第二次。
+// 已取消或已退款的訂單不可申請爭議，否則裁決退款會退第二次。
 const NOT_DISPUTABLE = ['cancelled', 'refunded'];
 
-// 服務條款：取書後 24 小時內可提出申訴；取書前（放書、待取書等階段）不受此限。
-const DISPUTE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const DISPUTE_WINDOW_MS = DISPUTE_WINDOW_HOURS * 60 * 60 * 1000;
 
 const disputeInclude = {
   orders: {
@@ -33,25 +34,29 @@ const listMine = (userId) => prisma.transaction_disputes.findMany({
   include: disputeInclude
 });
 
-const create = async (userId, { orderId, reason, evidenceUrls }) => {
+const create = async (userId, { orderId: givenId, orderNo, reason, evidenceUrls }) => {
   const order = await prisma.orders.findUnique({
-    where: { order_id: orderId },
-    select: { buyer_id: true, seller_id: true, status: true, order_no: true, picked_up_at: true, completed_at: true }
+    where: orderNo ? { order_no: orderNo } : { order_id: givenId },
+    select: { order_id: true, buyer_id: true, seller_id: true, status: true, order_no: true, picked_up_at: true, completed_at: true }
   });
   if (!order) throw notFound('找不到該訂單');
-  if (order.buyer_id !== userId && order.seller_id !== userId) throw forbidden('存取被拒');
-  if (NOT_DISPUTABLE.includes(order.status)) throw badRequest('此訂單已取消或已退款，無法提出爭議');
-  // 完成訂單即撥款給賣家，之後不再受理申訴；取書後未完成的訂單以取書時間起算 24 小時。
-  if (order.status === 'completed') throw badRequest('訂單已完成，無法再提出申訴', 'DISPUTE_WINDOW_PASSED');
+  const orderId = order.order_id;
+  if (order.buyer_id !== userId && order.seller_id !== userId) throw forbidden();
+  if (NOT_DISPUTABLE.includes(order.status)) throw badRequest('此訂單已取消或已退款，無法申請爭議');
+  // 完成訂單即撥款給賣家，之後不再受理爭議。
+  if (order.status === 'completed') throw badRequest('訂單已完成，無法再申請爭議', 'DISPUTE_WINDOW_PASSED');
   if (order.picked_up_at && Date.now() - new Date(order.picked_up_at).getTime() > DISPUTE_WINDOW_MS) {
-    throw badRequest('已超過取書後 24 小時的申訴期限', 'DISPUTE_WINDOW_PASSED');
+    throw badRequest(`已超過取書後 ${DISPUTE_WINDOW_HOURS} 小時的爭議申請期限`, 'DISPUTE_WINDOW_PASSED');
   }
 
+  // 以訂單為範圍：一方申請後另一方再申請，兩案分別裁決會各自改動同一筆訂單並重複結算。
   const existing = await prisma.transaction_disputes.findFirst({
-    where: { order_id: orderId, applicant_id: userId, status: { in: ['pending', 'processing'] } },
+    where: { order_id: orderId, status: { in: ['pending', 'processing'] } },
     select: { dispute_id: true }
   });
   if (existing) throw conflict('此訂單已有處理中的爭議申請');
+  // 開門後改為退款處理中會使取書提交失敗，書在買家手上卻仍記錄在櫃內，裁決退款時又會重建存書登記。
+  await require('./cabinet-release').assertNotInSession(orderId);
 
   return prisma.$transaction(async (tx) => {
     const created = await tx.transaction_disputes.create({
@@ -59,16 +64,18 @@ const create = async (userId, { orderId, reason, evidenceUrls }) => {
       include: disputeInclude
     });
 
-    await tx.orders.update({
-      where: { order_id: orderId },
+    // 以讀取時的狀態為條件，雙方同時申請時只有一方成立。
+    const moved = await tx.orders.updateMany({
+      where: { order_id: orderId, status: order.status },
       data: { status: 'refunding', updated_at: new Date() }
     });
+    if (moved.count === 0) throw conflict('訂單狀態已變更，請重新整理後再試');
 
     const isBuyer = order.buyer_id === userId;
     await notify(tx, {
       userId: isBuyer ? order.seller_id : order.buyer_id,
       type: 'order',
-      title: `${isBuyer ? '買家' : '賣家'}對訂單提出爭議`,
+      title: `${isBuyer ? '買家' : '賣家'}已對訂單申請爭議`,
       content: `訂單 ${order.order_no} 有一筆爭議申請，客服將協助處理，處理期間訂單暫停進行。`,
       relatedId: orderId,
       relatedType: 'order'
@@ -94,8 +101,7 @@ const adminList = (status) => prisma.transaction_disputes.findMany({
   }
 });
 
-// 依時間欄位推回申訴前狀態，不可一律改成已完成（會替未存書的訂單撥款）。
-// 駁回或調解後：買家已取書的訂單直接完成並撥款；尚未取書的回到原本的進度。
+// 依時間欄位推回申請爭議前的狀態，不可一律改成已完成（會替未存書的訂單撥款）。
 const restoredStatus = (order) => {
   if (order.completed_at || order.picked_up_at) return 'completed';
   if (order.deposited_at) return 'deposited';
@@ -132,6 +138,7 @@ const resolve = async (disputeId, { result, adminNote }, { adminId, req }) => {
       }
     });
     if (claimed.count === 0) throw conflict('此爭議已裁決');
+    await disputeAnalyses.recordResolution(tx, disputeId, result);
 
     const settled = target === order.status
       ? { paidOut: 0, clawedBack: 0, refunded: 0 }
@@ -165,9 +172,9 @@ const resolve = async (disputeId, { result, adminNote }, { adminId, req }) => {
       await notice(order.buyer_id, settled.refunded > 0
         ? `訂單 ${order.order_no} 裁決退款，${settled.refunded} 代幣已退回您的錢包。`
         : `訂單 ${order.order_no} 裁決退款，款項先前已退回您的錢包。`);
-      await notice(order.seller_id, settled.clawedBack > 0
+      await notice(order.seller_id, (settled.clawedBack > 0
         ? `訂單 ${order.order_no} 裁決退款給買家，已從您的錢包收回 ${settled.clawedBack} 代幣。`
-        : `訂單 ${order.order_no} 裁決退款給買家，交易已取消。`);
+        : `訂單 ${order.order_no} 裁決退款給買家，交易已取消。`) + settlement.storedNotice(settled));
     } else {
       const content = `訂單 ${order.order_no} 經審核維持原交易，訂單恢復為「${settlement.statusLabel(target)}」。`
         + (settled.paidOut > 0 ? `貨款 ${settled.paidOut} 代幣已撥入賣家錢包。` : '');

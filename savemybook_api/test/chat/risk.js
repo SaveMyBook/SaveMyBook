@@ -47,6 +47,15 @@ const tests = [
     assert.deepStrictEqual(second.body.categories, ['contact']);
   }],
 
+  ['以冒號或 @ 寫出的通訊軟體帳號、拆開的電子郵件與市話都須確認後才送出', async () => {
+    const { me, roomId } = await pair();
+    for (const content of ['官方 LINE：@seller88', 'IG：book_lover', 'abc (at) proton.me', '店裡電話 (02)2500-7718', '0912—345—678']) {
+      const res = await send(me, roomId, { content });
+      assert.strictEqual(res.status, 409, content);
+      assert.deepStrictEqual(res.body.categories, ['contact'], content);
+    }
+  }],
+
   ['常見的一般對話不會誤判', async () => {
     const { me, partner, roomId } = await pair();
     for (const text of ['這本 linear algebra 可以放書櫃嗎', '轉帳給你了', 'ISBN 9789570912345', '要輸入密碼才能取書嗎', '我是賴老師的學生']) {

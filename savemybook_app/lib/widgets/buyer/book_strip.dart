@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../models/book.dart';
@@ -16,6 +18,9 @@ class BookStrip extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
   final ValueChanged<Book>? onLongPress;
+  final ValueChanged<Book>? onOpen;
+  final double inset;
+  final Map<int, String> reasons;
 
   const BookStrip({
     super.key,
@@ -27,7 +32,10 @@ class BookStrip extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.onLongPress,
+    this.onOpen,
     this.showHeader = true,
+    this.inset = 16,
+    this.reasons = const {},
   });
 
   final bool showHeader;
@@ -35,6 +43,28 @@ class BookStrip extends StatelessWidget {
   static const double _tileWidth = 120;
   static const double _imageHeight = 140;
   static const double _height = 226;
+
+  static const double _titleFontSize = 13;
+
+  static const double _titleLineHeight = 1.3;
+
+  static const double _priceFontSize = 15;
+
+  static const double _reasonFontSize = 11.5;
+
+  static const double _reasonLineHeight = 1.35;
+
+  static const int _reasonLines = 3;
+
+  static const double _reasonGap = 4;
+
+  static double _heightOf(BuildContext context, {bool withReasons = false}) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final title = (scaler.scale(_titleFontSize) - _titleFontSize) * _titleLineHeight * 2;
+    final price = (scaler.scale(_priceFontSize) - _priceFontSize) * 1.5;
+    final reason = withReasons ? _reasonGap + scaler.scale(_reasonFontSize) * _reasonLineHeight * _reasonLines : 0.0;
+    return _height + math.max(0.0, title + price) + reason;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +75,7 @@ class BookStrip extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (showHeader) Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 8, 10),
+          padding: EdgeInsets.fromLTRB(inset, 0, math.max(0, inset - 8), 10),
           child: Row(
             children: [
               Icon(icon, size: 18, color: c.accent),
@@ -87,13 +117,13 @@ class BookStrip extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: _height,
+          height: _heightOf(context, withReasons: books.any((b) => reasons.containsKey(b.bookId))),
           child: loading && books.isEmpty
               ? Shimmer(
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                    padding: EdgeInsets.fromLTRB(inset, 0, inset, 6),
                     itemCount: 4,
                     separatorBuilder: (_, _) => const SizedBox(width: 12),
                     itemBuilder: (_, _) => const SizedBox(
@@ -114,7 +144,7 @@ class BookStrip extends StatelessWidget {
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                  padding: EdgeInsets.fromLTRB(inset, 0, inset, 6),
                   itemCount: books.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, i) => FadeSlideIn(
@@ -131,13 +161,17 @@ class BookStrip extends StatelessWidget {
   Widget _tile(BuildContext context, AppColors c, Book book) {
     final heroTag = '${heroPrefix}_${book.bookId}';
     final unavailable = book.status != 'on_sale';
+    final reason = reasons[book.bookId];
 
     return PressableScale(
       scale: 0.95,
-      onTap: () => Navigator.push(
-        context,
-        CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: heroTag)),
-      ),
+      onTap: () {
+        onOpen?.call(book);
+        Navigator.push(
+          context,
+          CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: heroTag)),
+        );
+      },
       onLongPress: onLongPress == null ? null : () => onLongPress!(book),
       child: Container(
         width: _tileWidth,
@@ -189,8 +223,17 @@ class BookStrip extends StatelessWidget {
                       book.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 13, height: 1.3, fontWeight: FontWeight.w600, color: c.textPrimary),
+                      style: TextStyle(fontSize: _titleFontSize, height: _titleLineHeight, fontWeight: FontWeight.w600, color: c.textPrimary),
                     ),
+                    if (reason != null) ...[
+                      const SizedBox(height: _reasonGap),
+                      Text(
+                        reason,
+                        maxLines: _reasonLines,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: _reasonFontSize, height: _reasonLineHeight, color: c.textSecondary),
+                      ),
+                    ],
                     const Spacer(),
                     FittedBox(
                       fit: BoxFit.scaleDown,
@@ -198,7 +241,7 @@ class BookStrip extends StatelessWidget {
                       child: Text(
                         '\$${book.price.toInt()}',
                         maxLines: 1,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.accent),
+                        style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w800, color: c.accent),
                       ),
                     ),
                   ],
@@ -216,8 +259,9 @@ class BookStrip extends StatelessWidget {
 class DiscoveryGroup {
   final String? title;
   final List<Book> books;
+  final Map<int, String> reasons;
 
-  const DiscoveryGroup({required this.books, this.title});
+  const DiscoveryGroup({required this.books, this.title, this.reasons = const {}});
 }
 
 class DiscoveryTab {
@@ -227,8 +271,8 @@ class DiscoveryTab {
   final List<Book> books;
   final String? actionLabel;
   final VoidCallback? onAction;
-
-  /// 有值時以多排呈現，每排上方標示推薦依據；沒有值時單排呈現 [books]。
+  final ValueChanged<Book>? onOpen;
+  final ValueChanged<Book>? onLongPress;
   final List<DiscoveryGroup> groups;
 
   const DiscoveryTab({
@@ -238,6 +282,8 @@ class DiscoveryTab {
     required this.books,
     this.actionLabel,
     this.onAction,
+    this.onOpen,
+    this.onLongPress,
     this.groups = const [],
   });
 }
@@ -314,6 +360,10 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
           duration: Motion.base,
           switchInCurve: Motion.enterCurve,
           switchOutCurve: Motion.exitCurve,
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.topLeft,
+            children: [...previous, ?current],
+          ),
           child: current.groups.isEmpty
               ? BookStrip(
                   key: ValueKey(current.id),
@@ -322,6 +372,8 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
                   books: current.books,
                   heroPrefix: current.id,
                   showHeader: false,
+                  onOpen: current.onOpen,
+                  onLongPress: current.onLongPress,
                 )
               : Column(
                   key: ValueKey(current.id),
@@ -332,7 +384,7 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
                       if (i > 0) const SizedBox(height: 14),
                       if (group.title != null)
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 16, 8),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                           child: Text(
                             group.title!,
                             maxLines: 1,
@@ -346,6 +398,9 @@ class _DiscoveryPanelState extends State<DiscoveryPanel> {
                         books: group.books,
                         heroPrefix: '${current.id}$i',
                         showHeader: false,
+                        reasons: group.reasons,
+                        onOpen: current.onOpen,
+                        onLongPress: current.onLongPress,
                       ),
                     ],
                   ],

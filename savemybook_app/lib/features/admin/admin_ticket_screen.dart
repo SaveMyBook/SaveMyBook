@@ -196,7 +196,8 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
                 ),
               ),
-              StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
+              if (_loadedTab >= 0 && _tabs[_loadedTab].key == 'all')
+                StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
             ],
           ),
           const SizedBox(height: 10),
@@ -216,28 +217,29 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
           const SizedBox(height: 10),
           Row(
             children: [
-              Flexible(
-                child: Text(
-                  ticket.categoryText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: c.textHint),
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        ticket.categoryText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: c.textHint),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(Icons.forum_outlined, size: 12, color: c.textHint),
+                    const SizedBox(width: 3),
+                    Text('${ticket.messageCount}', style: TextStyle(fontSize: 11, color: c.textHint)),
+                  ],
                 ),
               ),
               const SizedBox(width: 10),
-              Icon(Icons.forum_outlined, size: 12, color: c.textHint),
-              const SizedBox(width: 3),
-              Text('${ticket.messageCount}', style: TextStyle(fontSize: 11, color: c.textHint)),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  _when(ticket.updatedAt),
-                  textAlign: TextAlign.end,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: c.textHint),
-                ),
+              Text(
+                _when(ticket.updatedAt),
+                maxLines: 1,
+                style: TextStyle(fontSize: 11, color: c.textHint),
               ),
             ],
           ),

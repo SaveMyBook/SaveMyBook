@@ -7,6 +7,7 @@ import 'i18n/app_localizations.dart';
 import 'i18n/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/books/book_detail_screen.dart';
+import 'features/cabinet/cabinet_resume.dart';
 import 'features/chat/chat_room_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/home_screen.dart';
@@ -60,6 +61,8 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     await HomePreferences.load();
 
     PushService.navigatorKey = navigatorKey;
+    CabinetResume.navigatorKey = navigatorKey;
+    WidgetsBinding.instance.addObserver(CabinetResumeObserver());
     ApiService.onSigningOut = ({required bool canReachServer}) async {
       RealtimeService.instance.stop();
       unawaited(HomeWidgetService.clear());
@@ -114,7 +117,9 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DeepLinkService.onProfileLink = _openProfileLink;
       DeepLinkService.onBookLink = _openBookLink;
+      DeepLinkService.onCabinetLink = CabinetResume.openScanner;
       DeepLinkService.flushPending();
+      unawaited(CabinetResume.check());
     });
   }
 

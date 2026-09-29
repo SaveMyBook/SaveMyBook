@@ -16,7 +16,6 @@ class ChatInputBar extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final bool enabled;
-  final String? disabledHint;
   final Widget? top;
   final ChatMentionController? mentions;
   final bool quickRepliesOpen;
@@ -38,7 +37,6 @@ class ChatInputBar extends StatefulWidget {
     required this.onVoiceUnavailable,
     required this.onVoiceTooShort,
     this.enabled = true,
-    this.disabledHint,
     this.top,
     this.mentions,
     this.quickRepliesOpen = false,
@@ -270,7 +268,7 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
               style: TextStyle(color: c.textPrimary, fontSize: 15, height: 1.35),
               decoration: InputDecoration(
                 isDense: true,
-                hintText: widget.enabled ? S.writeMessage : (widget.disabledHint ?? S.writeMessage),
+                hintText: S.writeMessage,
                 hintMaxLines: 1,
                 hintStyle: TextStyle(color: c.textHint, fontSize: 14.5, overflow: TextOverflow.ellipsis),
                 filled: true,

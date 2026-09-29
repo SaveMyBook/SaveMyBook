@@ -159,6 +159,21 @@ class SmallActionButton extends StatelessWidget {
     this.color,
   });
 
+  static const _textStyle = TextStyle(fontSize: 11, fontWeight: FontWeight.w600);
+
+  static double widthOf(BuildContext context, String label) {
+    final painter = TextPainter(
+      text: TextSpan(text: label, style: DefaultTextStyle.of(context).style.merge(_textStyle)),
+      textDirection: Directionality.of(context),
+      locale: Localizations.maybeLocaleOf(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final width = painter.width + 24;
+    painter.dispose();
+    return width.ceilToDouble();
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -191,11 +206,7 @@ class SmallActionButton extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: filled ? Colors.white : (enabled ? tint : c.textHint),
-                ),
+                style: _textStyle.copyWith(color: filled ? Colors.white : (enabled ? tint : c.textHint)),
               ),
       ),
     );
@@ -221,6 +232,27 @@ class QuickActionButton extends StatelessWidget {
     this.badgeColor,
     this.tint,
   });
+
+  static const _labelStyle = TextStyle(fontSize: 12, height: 1.2);
+
+  static bool labelsFit(BuildContext context, Iterable<String> labels, double width) {
+    var style = DefaultTextStyle.of(context).style.merge(_labelStyle);
+    if (MediaQuery.boldTextOf(context)) style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
+    bool fits(String text, {required bool wrap}) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: Directionality.of(context),
+        locale: Localizations.maybeLocaleOf(context),
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: wrap ? 2 : 1,
+      )..layout(maxWidth: wrap ? width : double.infinity);
+      final ok = wrap ? !painter.didExceedMaxLines : painter.width <= width;
+      painter.dispose();
+      return ok;
+    }
+
+    return labels.every((label) => fits(label, wrap: true) && label.split(' ').every((word) => fits(word, wrap: false)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -263,6 +295,7 @@ class QuickActionButton extends StatelessWidget {
                       child: Text(
                         badge > 99 ? '99+' : '$badge',
                         textAlign: TextAlign.center,
+                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -280,7 +313,7 @@ class QuickActionButton extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, height: 1.2, color: c.textPrimary),
+            style: _labelStyle.copyWith(color: c.textPrimary),
           ),
         ],
       ),

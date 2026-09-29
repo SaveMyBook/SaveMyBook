@@ -79,7 +79,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     if (email.isEmpty) return;
     Clipboard.setData(ClipboardData(text: email));
     HapticFeedback.selectionClick();
-    showAppSnackBar(context, S.copied('Email'));
+    showAppSnackBar(context, S.copied(S.email));
   }
 
   Future<void> _toggleStatus({required bool active}) async {
@@ -505,6 +505,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   label: S.joined,
                   value: Text(
                     formatDate(detail.createdAt),
+                    strutStyle: const StrutStyle(fontFamily: 'NotoSansTC', fontSize: 18, forceStrutHeight: true),
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textPrimary),
                   ),
                 ),
@@ -518,77 +519,72 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
   Widget _buildStatusCard(AdminMemberDetail detail, AppColors c) {
     return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionHeading(title: S.accountStatus),
-          if (_isSelf)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Text(
-                S.ownAccountStatusPermissionsCannotChanged,
-                style: TextStyle(fontSize: 12, color: c.textHint),
+      child: ListTileTheme.merge(
+        contentPadding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeading(title: S.accountStatus),
+            DisabledHint(
+              disabled: _isSelf,
+              reason: S.ownAccountStatusPermissionsCannotChanged,
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(S.accountEnabled, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+                subtitle: Text(
+                  detail.isActive ? S.canSignUseAppNormally : S.suspendedSignedOutImmediatelyAfterSigning,
+                  style: TextStyle(fontSize: 11, color: c.textSecondary),
+                ),
+                value: detail.isActive,
+                activeThumbColor: c.accent,
+                onChanged: _isBusy ? null : (_) => _toggleStatus(active: true),
               ),
             ),
-          DisabledHint(
-            disabled: _isSelf,
-            reason: S.ownAccountStatusPermissionsCannotChanged,
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(S.accountEnabled, style: TextStyle(fontSize: 14, color: c.textPrimary)),
-              subtitle: Text(
-                detail.isActive ? S.canSignUseAppNormally : S.suspendedSignedOutImmediatelyAfterSigning,
-                style: TextStyle(fontSize: 11, color: c.textSecondary),
+            Divider(color: c.divider, height: 1),
+            DisabledHint(
+              disabled: _isSelf,
+              reason: S.ownAccountStatusPermissionsCannotChanged,
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(S.blocked, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+                subtitle: detail.isBlacklisted
+                    ? Text(S.blockedNoFeaturesAvailable, style: TextStyle(fontSize: 11, color: c.textSecondary))
+                    : null,
+                value: detail.isBlacklisted,
+                activeThumbColor: c.danger,
+                onChanged: _isBusy ? null : (_) => _toggleStatus(active: false),
               ),
-              value: detail.isActive,
-              activeThumbColor: c.accent,
-              onChanged: _isBusy ? null : (_) => _toggleStatus(active: true),
             ),
-          ),
-          Divider(color: c.divider, height: 1),
-          DisabledHint(
-            disabled: _isSelf,
-            reason: S.ownAccountStatusPermissionsCannotChanged,
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(S.blocked, style: TextStyle(fontSize: 14, color: c.textPrimary)),
-              subtitle: Text(
-                detail.isBlacklisted ? S.blockedNoFeaturesAvailable : S.notBlocked,
-                style: TextStyle(fontSize: 11, color: c.textSecondary),
+            Divider(color: c.divider, height: 1),
+            DisabledHint(
+              disabled: _isSelf,
+              reason: S.ownAccountStatusPermissionsCannotChanged,
+              child: AppMenuItem(
+                icon: Icons.admin_panel_settings_outlined,
+                title: S.role,
+                subtitle: detail.isAdmin ? S.roleAdmin : S.roleBuyerSeller,
+                isLast: true,
+                onTap: _isBusy ? null : _changeRole,
               ),
-              value: detail.isBlacklisted,
-              activeThumbColor: c.danger,
-              onChanged: _isBusy ? null : (_) => _toggleStatus(active: false),
             ),
-          ),
-          Divider(color: c.divider, height: 1),
-          DisabledHint(
-            disabled: _isSelf,
-            reason: S.ownAccountStatusPermissionsCannotChanged,
-            child: AppMenuItem(
-              icon: Icons.admin_panel_settings_outlined,
-              title: S.role,
-              subtitle: detail.isAdmin ? S.roleAdmin : S.roleBuyerSeller,
-              onTap: _isBusy ? null : _changeRole,
+            Divider(color: c.divider, height: 1),
+            DisabledHint(
+              disabled: _isSelf || detail.isAdmin,
+              reason: _isSelf
+                  ? S.changeOwnPasswordGoSettingsChange
+                  : S.cannotResetAnotherAdminSPassword,
+              child: AppMenuItem(
+                icon: Icons.lock_reset_rounded,
+                title: S.resetPassword,
+                subtitle: detail.isAdmin
+                    ? S.cannotResetAnotherAdminSPassword
+                    : S.generateTemporaryPasswordHandOver,
+                isLast: true,
+                onTap: _isBusy ? null : () => _resetPassword(detail),
+              ),
             ),
-          ),
-          Divider(color: c.divider, height: 1),
-          DisabledHint(
-            disabled: _isSelf || detail.isAdmin,
-            reason: _isSelf
-                ? S.changeOwnPasswordGoSettingsChange
-                : S.cannotResetAnotherAdminSPassword,
-            child: AppMenuItem(
-              icon: Icons.lock_reset_rounded,
-              title: S.resetPassword,
-              subtitle: detail.isAdmin
-                  ? S.cannotResetAnotherAdminSPassword
-                  : S.generateTemporaryPasswordHandOver,
-              isLast: true,
-              onTap: _isBusy ? null : () => _resetPassword(detail),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -640,28 +636,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               ),
             ],
           ),
-          if (manual) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: c.warning.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline_rounded, size: 14, color: c.warning),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      S.memberSTierBeenAdjustedBy,
-                      style: TextStyle(fontSize: 11, color: c.warning, height: 1.4),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,

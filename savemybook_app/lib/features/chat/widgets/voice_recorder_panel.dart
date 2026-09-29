@@ -434,17 +434,21 @@ class _VoiceRecorderPanelState extends State<VoiceRecorderPanel> with WidgetsBin
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AnimatedSwitcher(
-          duration: Motion.micro,
-          child: _recording
-              ? Padding(
-                  key: const ValueKey('dot'),
-                  padding: const EdgeInsets.only(right: 10),
-                  child: _BlinkingDot(color: c.danger),
-                )
-              : const SizedBox(key: ValueKey('none')),
+        SizedBox(
+          width: 20,
+          child: AnimatedSwitcher(
+            duration: Motion.micro,
+            child: _recording
+                ? Align(
+                    key: const ValueKey('dot'),
+                    alignment: Alignment.centerLeft,
+                    child: _BlinkingDot(color: c.danger),
+                  )
+                : const SizedBox(key: ValueKey('none')),
+          ),
         ),
         text,
+        const SizedBox(width: 20),
       ],
     );
   }

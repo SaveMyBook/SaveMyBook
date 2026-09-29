@@ -71,7 +71,7 @@ module.exports = {
 
       const passed = await request('PUT', '/api/admin/auth/settings', { token: ctx.token, body: {}, headers: { 'x-verify-token': token } });
       assert.strictEqual(passed.status, 400, '通過身分驗證後才會檢查內容');
-      assert.strictEqual(passed.body.message, '請提供 settings 設定內容');
+      assert.strictEqual(passed.body.message, '請提供設定內容');
 
       const pin = h.verifyTokenFor({ user: ctx.user, sid: ctx.session.sid, scope: 'admin', method: 'pin' });
       const denied = await request('PUT', '/api/admin/auth/settings', { token: ctx.token, body: {}, headers: { 'x-verify-token': pin } });
@@ -133,15 +133,20 @@ module.exports = {
 
     ['身分驗證同樣檢查來源、使用者驗證與計數倒退', async () => {
       const ctx = await setup();
-      const origin = await verifyWith(ctx, 'sensitive', ctx.authenticator.get(
-        (await verifyOptions(ctx, 'sensitive')).body.data.options, { origin: 'https://evil.example' }
-      ));
-      assert.strictEqual(origin.body.code, 'PASSKEY_VERIFICATION_FAILED');
-
-      const uv = await verifyWith(ctx, 'sensitive', ctx.authenticator.get(
-        (await verifyOptions(ctx, 'sensitive')).body.data.options, { userVerified: false }
-      ));
+      let origin;
+      let uv;
+      const warnings = await h.captureWarnings(async () => {
+        origin = await verifyWith(ctx, 'sensitive', ctx.authenticator.get(
+          (await verifyOptions(ctx, 'sensitive')).body.data.options, { origin: 'https://evil.example' }
+        ));
+        uv = await verifyWith(ctx, 'sensitive', ctx.authenticator.get(
+          (await verifyOptions(ctx, 'sensitive')).body.data.options, { userVerified: false }
+        ));
+      });
+      assert.strictEqual(origin.body.code, 'PASSKEY_ORIGIN_NOT_ALLOWED');
       assert.strictEqual(uv.body.code, 'PASSKEY_VERIFICATION_FAILED');
+      assert.ok(warnings[0].includes('purpose=verify') && warnings[0].includes('origin=https://evil.example'), warnings[0]);
+      assert.ok(warnings[1].includes('UV=0'), warnings[1]);
 
       await passkeyToken(ctx, 'sensitive');
       const originalWarn = console.warn;
@@ -154,6 +159,22 @@ module.exports = {
       } finally {
         console.warn = originalWarn;
       }
+    }],
+
+    ['通行密鑰連續失敗用完額度後，密碼驗證不受影響', async () => {
+      const ctx = await setup();
+      for (let i = 0; i < 30; i += 1) {
+        const res = await verifyWith(ctx, 'sensitive', {});
+        assert.strictEqual(res.status, 400, `第 ${i + 1} 次`);
+      }
+      assert.strictEqual((await verifyWith(ctx, 'sensitive', {})).status, 429);
+
+      const options = await verifyOptions(ctx, 'sensitive');
+      assert.strictEqual(options.status, 200, '取得 options 另行計數');
+      const password = await request('POST', '/api/security/verify', {
+        token: ctx.token, body: { scope: 'sensitive', method: 'password', password: 'Passw0rd123' }
+      });
+      assert.strictEqual(password.status, 200, password.text);
     }],
 
     ['以通行密鑰驗證身分後即可刪除通行密鑰（全流程不使用密碼）', async () => {

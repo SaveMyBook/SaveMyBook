@@ -5,6 +5,7 @@ const { actorOf } = require('../../lib/request-context');
 const { badRequest } = require('../../lib/errors');
 const { SLOT_STATUSES } = require('../../constants/domain');
 const cabinets = require('../../services/cabinets');
+const deposits = require('../../services/book-deposits');
 
 const router = express.Router();
 const canManage = requireAdmin('cabinets');
@@ -25,6 +26,22 @@ const longitude = (value) => v.number(value, { label: '經度', min: -180, max: 
 
 router.get('/cabinets', canManage, async (req, res) => {
   res.status(200).json({ success: true, data: await cabinets.adminList() });
+});
+
+router.get('/cabinets/deposits', canManage, async (req, res) => {
+  const { page, limit, skip } = v.pagination(req.query);
+  const { total, rows } = await deposits.adminList({
+    overdue: v.bool(req.query.overdue),
+    cabinetId: v.optionalId(req.query.cabinet_id, '書櫃編號'),
+    skip,
+    limit
+  });
+  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: rows });
+});
+
+router.post('/cabinets/deposits/:bookId/clear', canManage, async (req, res) => {
+  const data = await deposits.adminClear(v.id(req.params.bookId, '書籍編號'), actorOf(req));
+  res.status(200).json({ success: true, message: '已登記書籍取出', data });
 });
 
 router.post('/cabinets', canManage, async (req, res) => {
@@ -83,7 +100,7 @@ router.patch('/cabinets/:id/maintenance', canManage, async (req, res) => {
 router.patch('/cabinets/:cabinetId/slots/:slotId', canManage, async (req, res) => {
   const cabinetId = v.id(req.params.cabinetId, '書櫃編號');
   const slotId = v.id(req.params.slotId, '櫃位編號');
-  const status = v.oneOf(req.body.status, SLOT_STATUSES, `status 僅接受：${SLOT_STATUSES.join(', ')}`);
+  const status = v.oneOf(req.body.status, SLOT_STATUSES, '櫃位狀態不正確');
 
   const slot = await cabinets.setSlotStatus(cabinetId, slotId, status, actorOf(req));
   res.status(200).json({ success: true, message: '櫃位狀態已更新', data: slot });

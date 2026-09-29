@@ -235,21 +235,6 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
                       range: LevelRules.rangeLabel(selected.minPoints, LevelRules.maxPointsOf(_levels, index)),
                       benefits: LevelRules.benefitsOf(selected.benefits),
                     ),
-                    const SizedBox(height: 12),
-                    AppCard(
-                      child: Row(
-                        children: [
-                          Icon(Icons.groups_outlined, color: c.textSecondary),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              S.p0Members(selected.memberCount),
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -327,6 +312,7 @@ class _LevelOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final total = levels.fold<int>(0, (sum, l) => sum + l.memberCount);
+    final lastShown = levels.lastIndexWhere((l) => l.memberCount > 0);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -358,7 +344,7 @@ class _LevelOverview extends StatelessWidget {
                                 Expanded(
                                   flex: level.memberCount,
                                   child: Container(
-                                    margin: EdgeInsets.only(right: i == levels.length - 1 ? 0 : 2),
+                                    margin: EdgeInsets.only(right: i == lastShown ? 0 : 2),
                                     color: LevelStyle.at(i).accent,
                                   ),
                                 ),

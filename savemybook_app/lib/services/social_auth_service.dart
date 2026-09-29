@@ -28,7 +28,6 @@ class SocialAuthFailure implements Exception {
   bool get isCancelled => code == AuthCodes.cancelled;
 }
 
-/// 包住 firebase_auth 與各家 SDK，讓畫面與測試都只依賴這層介面。
 abstract class FirebaseAuthGateway {
   bool get supportsGoogle;
 
@@ -237,7 +236,6 @@ class SocialAuth {
         _ => true,
       };
 
-  /// 取得可用於 /auth/social 與 /auth/link 的 Firebase ID Token。
   static Future<AuthResult<String>> firebaseIdToken(String provider) async {
     try {
       final token = switch (provider) {
@@ -253,8 +251,6 @@ class SocialAuth {
     }
   }
 
-  /// 開啟 LINE／Discord 授權頁，等回呼帶回一次性碼。
-  /// 同一時間只允許一個等待中的流程，重複呼叫會先把前一個收乾淨。
   static Future<AuthResult<String>> awaitOAuthCode(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return AuthResult<String>.of(AuthCodes.oauthFailed);
@@ -294,14 +290,13 @@ class SocialAuth {
     return completer.future;
   }
 
-  /// 使用者關閉授權頁回到 App；寬限時間內仍沒收到回呼就視為取消。
   static void handleBrowserClosed() {
     if (_oauthWait == null) return;
     _closeGrace?.cancel();
     _closeGrace = Timer(browserCloseGrace, cancelOAuthWait);
   }
 
-  /// 使用者離開登入畫面時呼叫，確保不留下計時器與深層連結處理器。
+  /// 離開登入畫面時必須呼叫，否則會留下計時器與深層連結處理器。
   static void cancelOAuthWait() => _finishOAuth(AuthResult<String>.of(AuthCodes.cancelled));
 
   static void _finishOAuth(AuthResult<String> result) {
@@ -323,7 +318,6 @@ class SocialAuth {
 
 enum PhoneSignInStage { idle, sending, codeSent, verifying, verified }
 
-/// 簡訊登入的狀態機：送出號碼 → 等驗證碼 → 驗證，含重送倒數。
 class PhoneSignInController extends ChangeNotifier {
   final FirebaseAuthGateway gateway;
   final Duration resendCooldown;

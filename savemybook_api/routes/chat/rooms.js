@@ -41,7 +41,7 @@ router.post('/rooms', async (req, res) => {
 
 router.put('/rooms/:roomId/mute', async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
-  if (typeof req.body.muted !== 'boolean') throw badRequest('muted 必須為布林值');
+  if (typeof req.body.muted !== 'boolean') throw badRequest('設定值不正確');
   await rooms.setMuted(roomId, req.user.userId, req.body.muted);
   res.status(200).json({
     success: true,
@@ -52,7 +52,7 @@ router.put('/rooms/:roomId/mute', async (req, res) => {
 
 router.put('/rooms/:roomId/pin', async (req, res) => {
   const roomId = v.id(req.params.roomId, '聊天室編號');
-  if (typeof req.body.pinned !== 'boolean') throw badRequest('pinned 必須為布林值');
+  if (typeof req.body.pinned !== 'boolean') throw badRequest('設定值不正確');
   const data = await rooms.setPinned(roomId, req.user.userId, req.body.pinned);
   res.status(200).json({ success: true, message: data.pinned ? '已釘選聊天室' : '已取消釘選', data });
 });

@@ -7,18 +7,23 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:savemybook_app/features/account/account_privacy_screen.dart';
 import 'package:savemybook_app/features/account/ai_consent_sheet.dart';
 import 'package:savemybook_app/features/account/ai_support_screen.dart';
+import 'package:savemybook_app/features/account/support_ticket_screen.dart';
 import 'package:savemybook_app/features/selling/ai_listing_assist.dart';
 import 'package:savemybook_app/features/admin/ai/ai_settings_form.dart';
 import 'package:savemybook_app/features/admin/ai/ai_settings_tab.dart';
+import 'package:savemybook_app/features/orders/order_detail_screen.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
 import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/models/ai.dart';
 import 'package:savemybook_app/models/book.dart';
+import 'package:savemybook_app/models/notification_category.dart';
 import 'package:savemybook_app/services/ai_status.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
+import 'package:savemybook_app/services/notification_router.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
 import 'package:savemybook_app/widgets/app_buttons.dart';
 
@@ -35,7 +40,17 @@ void main() {
       expect(s.features['listing_assist']!.webSearch, isTrue);
       expect(s.features['moderation']!.action, 'review');
       expect(s.monthlyBudgetUsd, 10);
-      expect(s.dailyPerUser, {'support': 30, 'listing_assist': 15, 'recommend': 5, 'book_chat': 30});
+      expect(s.reserveRatio, 0.2);
+      expect(s.dailyPerUser, {'support': 30, 'listing_assist': 15, 'recommend': 5, 'book_chat': 20});
+    });
+
+    test('reserve ratio is clamped and sent back with the limits', () {
+      expect(AiSettings.fromJson({'limits': {'reserve_ratio': 1.5}}).reserveRatio, 0.9);
+      expect(AiSettings.fromJson({'limits': {'reserve_ratio': -1}}).reserveRatio, 0);
+      final s = AiSettings.fromJson(lt.aiSettingsData()['settings'] as Map<String, dynamic>);
+      expect(s.reserveRatio, 0.35);
+      expect((s.toJson()['limits'] as Map)['reserve_ratio'], 0.35);
+      expect(s.copyWith(reserveRatio: 0.1).changedSections(s), ['limits']);
     });
 
     test('round-trips through toJson and keeps explicit nulls', () {
@@ -43,9 +58,9 @@ void main() {
       final s = AiSettings.fromJson(source);
       final json = s.toJson();
       expect(json['default_provider'], 'gemini');
-      expect((json['features'] as Map)['support'], {'enabled': true, 'provider': null});
-      expect((json['features'] as Map)['listing_assist'], {'enabled': true, 'provider': 'openai', 'web_search': true});
-      expect((json['features'] as Map)['moderation'], {'enabled': true, 'provider': 'deepseek', 'action': 'block'});
+      expect((json['features'] as Map)['support'], {'enabled': true, 'provider': null, 'fallback_provider': null});
+      expect((json['features'] as Map)['listing_assist'], {'enabled': true, 'provider': 'openai', 'fallback_provider': null, 'web_search': true});
+      expect((json['features'] as Map)['moderation'], {'enabled': true, 'provider': 'deepseek', 'fallback_provider': null, 'action': 'block'});
       expect(((json['limits'] as Map)['daily_per_user'] as Map)['recommend'], 0);
       expect(AiSettings.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>).fingerprint, s.fingerprint);
     });
@@ -117,6 +132,18 @@ void main() {
       expect(form.isDirty, isTrue);
     });
 
+    test('reserve is edited as a whole percentage', () {
+      expect(form.textFor('reserve'), '35');
+      expect(form.setText('reserve', '35'), isNull);
+      expect(form.isDirty, isFalse);
+      expect(form.setText('reserve', '7'), isNull);
+      expect(form.draft.reserveRatio, 0.07);
+      expect(form.changedSections, ['limits']);
+      expect(form.setText('reserve', '95'), 'range');
+      expect(form.setText('reserve', '12.5'), 'format');
+      expect(form.draft.reserveRatio, 0.07);
+    });
+
     test('text formatting drops trailing zeros', () {
       expect(AiSettingsForm.formatNumber(0.0028), '0.0028');
       expect(AiSettingsForm.formatNumber(14.0), '14');
@@ -181,6 +208,33 @@ void main() {
       expect(report.daily, hasLength(30));
       expect(report.topUsers.first.publicId, isNotEmpty);
       expect(report.pendingReviews, 9999);
+      expect(report.unreviewedListings, 123456);
+      expect(report.summary.memberBudgetUsd, 8024.25);
+      expect(report.summary.hasReserve, isTrue);
+    });
+
+    test('older reports without reserve fields keep the full budget for members', () {
+      final summary = AiUsageSummary.fromJson({'monthly_budget_usd': 10, 'month_cost_usd': 2});
+      expect(summary.memberBudgetUsd, 10);
+      expect(summary.hasReserve, isFalse);
+      expect(AiUsageReport.fromJson({'summary': {}}).unreviewedListings, 0);
+    });
+
+    test('review items expose rule holds and the AI opinion', () {
+      final ruled = AiReviewItem.fromJson(lt.aiReviewRow(1));
+      expect(ruled.byRules, isTrue);
+      expect(ruled.aiOpinion!.verdict, 'review');
+      expect(ruled.aiOpinion!.reasons, hasLength(1));
+      final byAi = AiReviewItem.fromJson(lt.aiReviewRow(2));
+      expect(byAi.byRules, isFalse);
+      expect(byAi.aiOpinion, isNull);
+      expect(AiReviewOpinion.fromJson({'verdict': 'unknown'}), isNull);
+      expect(AiReviewOpinion.fromJson('allow'), isNull);
+    });
+
+    test('budget alerts open the AI usage page for admins', () {
+      expect(NotificationRouter.hasTarget('ai_budget', null), isTrue);
+      expect(NotificationCategory.of('system', 'ai_budget'), NotificationCategory.service);
     });
   });
 
@@ -330,6 +384,193 @@ void main() {
     }, () => client);
   });
 
+  group('usage accuracy', () {
+    test('content-blocked and quota errors are not retryable', () {
+      expect(const AiResult<int>.fail('x', code: 'AI_CONTENT_BLOCKED').isContentBlocked, isTrue);
+      expect(const AiResult<int>.fail('x', code: 'AI_CONTENT_BLOCKED').canRetry, isFalse);
+      expect(const AiResult<int>.fail('x', code: 'AI_DAILY_LIMIT').canRetry, isFalse);
+      expect(const AiResult<int>.fail('x', code: 'AI_PROVIDER_ERROR').canRetry, isTrue);
+      expect(const AiResult<int>.fail('x', code: 'NETWORK').canRetry, isTrue);
+    });
+
+    test('connection test parses each check and stays compatible with older responses', () {
+      final result = AiTestResult.fromJson({
+        'ok': false,
+        'provider': 'deepseek',
+        'model': 'deepseek-chat',
+        'latency_ms': 820,
+        'error': 'JSON：回應格式不正確',
+        'checks': [
+          {'name': 'text', 'status': 'ok', 'latency_ms': 820, 'error': null},
+          {'name': 'json', 'status': 'failed', 'latency_ms': 15, 'error': '回應格式不正確'},
+          {'name': 'image', 'status': 'skipped', 'latency_ms': 0},
+          'bad',
+        ],
+      });
+      expect(result.checks.map((c) => c.name), ['text', 'json', 'image']);
+      expect(result.checks[0].ok, isTrue);
+      expect(result.checks[1].ok, isFalse);
+      expect(result.checks[1].error, '回應格式不正確');
+      expect(result.checks[2].skipped, isTrue);
+      expect(AiTestResult.fromJson({'ok': true, 'latency_ms': 5}).checks, isEmpty);
+    });
+
+    test('provider usage parses p95 latency and every feature has a stacking position', () {
+      final usage = AiProviderUsage.fromJson({'provider': 'gemini', 'model': 'm', 'avg_latency_ms': 840, 'p95_latency_ms': 1900});
+      expect(usage.avgLatencyMs, 840);
+      expect(usage.p95LatencyMs, 1900);
+      final failedOnly = AiProviderUsage.fromJson({'provider': 'gemini', 'model': 'm', 'avg_latency_ms': null, 'p95_latency_ms': null});
+      expect(failedOnly.avgLatencyMs, isNull);
+      expect(failedOnly.p95LatencyMs, isNull);
+
+      final data = AiCostChartData.from([
+        const AiDailyUsage(date: '2026-09-01', costUsd: 0.6, byFeature: {'admin_assist': 0.1, 'enrich': 0.1, 'book_chat_pick': 0.2, 'book_chat': 0.2}),
+      ]);
+      expect(data.features, ['book_chat', 'book_chat_pick', 'enrich', 'admin_assist']);
+    });
+
+    Widget settingsApp() => MaterialApp(
+          locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+          supportedLocales: LocaleProvider.supported,
+          theme: AppTheme.build(Brightness.light),
+          localizationsDelegates: const [AppLocalizations.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+          builder: (context, child) {
+            S = AppLocalizations.of(context);
+            return child!;
+          },
+          home: const Scaffold(body: AiSettingsTab(initialAdvancedOpen: true)),
+        );
+
+    testWidgets('connection test sends the unsaved model name and shows each check', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      final tests = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        final path = req.url.path.replaceFirst('/api', '');
+        Object? data;
+        if (path == '/admin/ai/settings') data = lt.aiSettingsData();
+        if (path == '/admin/ai/test') {
+          final body = jsonDecode(req.body) as Map<String, dynamic>;
+          tests.add(body);
+          data = {
+            'ok': false,
+            'provider': body['provider'],
+            'model': body['model'],
+            'latency_ms': 820,
+            'reply': '連線成功',
+            'error': 'JSON：回應格式不正確',
+            'checks': [
+              {'name': 'text', 'status': 'ok', 'latency_ms': 820, 'error': null},
+              {'name': 'json', 'status': 'failed', 'latency_ms': 15, 'error': '回應格式不正確'},
+              {'name': 'image', 'status': 'ok', 'latency_ms': 900, 'error': null},
+            ],
+          };
+        }
+        return http.Response(jsonEncode({'success': true, 'data': data}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+      });
+
+      Future<void> settle([int n = 10]) async {
+        for (var i = 0; i < n; i++) {
+          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      }
+
+      tester.view.physicalSize = const Size(1180, 820) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await http.runWithClient(() async {
+        await tester.pumpWidget(settingsApp());
+        await settle();
+
+        final modelField = find.byWidgetPredicate((w) => w is TextField && w.controller?.text == 'gemini-3.1-flash-lite');
+        await tester.scrollUntilVisible(modelField, 300, scrollable: find.byType(Scrollable).first);
+        await tester.enterText(modelField, 'gemini-9-preview');
+        await settle(3);
+
+        final scrollable = find.byType(Scrollable).first;
+        Future<void> tapGeminiTest() async {
+          await tester.drag(scrollable, const Offset(0, 5000));
+          await settle(3);
+          await tester.tap(find.text(S.test).at(1));
+        }
+
+        await tapGeminiTest();
+        await settle();
+        expect(tests, [
+          {'provider': 'gemini', 'model': 'gemini-9-preview'},
+        ]);
+        expect(find.byKey(const ValueKey('test-check-text')), findsOneWidget);
+        expect(find.byKey(const ValueKey('test-check-json')), findsOneWidget);
+        expect(find.byKey(const ValueKey('test-check-image')), findsOneWidget);
+        expect(find.text('JSON：回應格式不正確'), findsOneWidget);
+
+        await tester.scrollUntilVisible(find.byWidgetPredicate((w) => w is TextField && w.controller?.text == 'gemini-9-preview'), 300, scrollable: scrollable);
+        await tester.enterText(find.byWidgetPredicate((w) => w is TextField && w.controller?.text == 'gemini-9-preview'), '');
+        await settle(3);
+        await tapGeminiTest();
+        await settle(4);
+        expect(tests, hasLength(1), reason: '模型名稱不合法時不送出測試');
+        expect(find.text(S.pleaseFixHighlightedFields), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
+    });
+
+    testWidgets('listing assist hides retry when the provider blocked the content', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      tester.view.physicalSize = const Size(390, 844) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      var code = 'AI_CONTENT_BLOCKED';
+      final client = MockClient((req) async => http.Response(
+            jsonEncode({'success': false, 'code': code, 'message': code == 'AI_CONTENT_BLOCKED' ? '此內容無法由 AI 處理，請調整內容後再試' : 'AI 服務暫時無法使用，請稍後再試'}),
+            code == 'AI_CONTENT_BLOCKED' ? 422 : 502,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          ));
+
+      Future<void> settle([int n = 8]) async {
+        for (var i = 0; i < n; i++) {
+          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      }
+
+      Widget sheet() => MaterialApp(
+            locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+            supportedLocales: LocaleProvider.supported,
+            theme: AppTheme.build(Brightness.light),
+            localizationsDelegates: const [AppLocalizations.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+            builder: (context, child) {
+              S = AppLocalizations.of(context);
+              return child!;
+            },
+            home: Scaffold(
+              body: AiAssistProgressSheet(steps: const ['a', 'b'], run: () => ApiService().requestListingAssist(isbn: '9789573317241')),
+            ),
+          );
+
+      await http.runWithClient(() async {
+        await tester.pumpWidget(sheet());
+        await settle();
+        expect(find.text('此內容無法由 AI 處理，請調整內容後再試'), findsOneWidget);
+        expect(find.text(S.retry), findsNothing);
+
+        code = 'AI_PROVIDER_ERROR';
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(sheet());
+        await settle();
+        expect(find.text(S.retry), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
+    });
+  });
+
   group('AI consent', () {
     test('status parses consent and providers', () {
       final status = AiStatusInfo.fromJson({
@@ -344,8 +585,25 @@ void main() {
       expect(const AiResult<int>.fail('x', code: 'AI_CONSENT_REQUIRED').needsConsent, isTrue);
     });
 
-    Widget app(Widget home) => MaterialApp(
-          locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+    test('status parses re-consent state and the embedding provider', () {
+      final status = AiStatusInfo.fromJson({
+        'support': true,
+        'consented': false,
+        'consent_outdated': true,
+        'providers_in_use': ['DeepSeek', 'OpenAI'],
+        'embedding_provider': 'OpenAI',
+      });
+      expect(status.consentOutdated, isTrue);
+      expect(status.embeddingProvider, 'OpenAI');
+      expect(status.copyWith(consented: true).consentOutdated, isFalse);
+      expect(status.copyWith(consented: true).embeddingProvider, 'OpenAI');
+      expect(status.copyWith(consented: false).consentOutdated, isTrue);
+      expect(AiStatusInfo.fromJson(const {'embedding_provider': ' '}).embeddingProvider, isNull);
+      expect(AiStatusInfo.fromJson(const {}).consentOutdated, isFalse);
+    });
+
+    Widget app(Widget home, {Locale locale = const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')}) => MaterialApp(
+          locale: locale,
           supportedLocales: LocaleProvider.supported,
           theme: AppTheme.build(Brightness.light),
           localizationsDelegates: const [AppLocalizations.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
@@ -356,12 +614,14 @@ void main() {
           home: home,
         );
 
-    ({MockClient client, List<String> requests, List<Map<String, dynamic>> consents}) consentApi() {
+    ({MockClient client, List<String> requests, List<Map<String, dynamic>> consents, List<Map<String, dynamic>> messages}) consentApi() {
       final requests = <String>[];
       final consents = <Map<String, dynamic>>[];
+      final messages = <Map<String, dynamic>>[];
       final client = MockClient((req) async {
         final path = req.url.path.replaceFirst('/api', '');
         requests.add('${req.method} $path');
+        if (path == '/ai/support/messages') messages.add(jsonDecode(req.body) as Map<String, dynamic>);
         Object? data;
         if (path == '/ai/consent') {
           final body = jsonDecode(req.body) as Map<String, dynamic>;
@@ -378,7 +638,7 @@ void main() {
         }
         return http.Response(jsonEncode({'success': true, 'data': data}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
       });
-      return (client: client, requests: requests, consents: consents);
+      return (client: client, requests: requests, consents: consents, messages: messages);
     }
 
     Future<void> settle(WidgetTester tester, [int n = 8]) async {
@@ -387,6 +647,224 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
     }
+
+    Future<void> pumpSheet(WidgetTester tester, AiStatusInfo status) async {
+      tester.view.physicalSize = const Size(390, 2400) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(app(Scaffold(body: AiConsentSheet(status: status))));
+      await tester.pump();
+    }
+
+    testWidgets('consent sheet lists the data each feature sends, every recipient, retention and withdrawal', (tester) async {
+      await pumpSheet(tester, const AiStatusInfo(
+        support: true,
+        listingAssist: true,
+        recommend: true,
+        bookChat: true,
+        providersInUse: ['DeepSeek', 'Google Gemini', 'OpenAI'],
+        embeddingProvider: 'OpenAI',
+      ));
+      for (final (label, detail) in [
+        (S.aiSupport, S.messagesConversationHistoryEnterPlusOwn),
+        (S.aiBookAdvisor, S.requestsConversationHistoryEnter),
+        (S.listingAssist, S.isbnTitleConditionNotesPhotosSelect),
+        (S.recommendations, S.bookDetailsFromSavedItemsPurchase),
+      ]) {
+        expect(find.text(label), findsOneWidget);
+        expect(find.text(detail), findsOneWidget);
+      }
+      for (final item in ['訂單', '存書、取書與完成時間', '預約', '上架書籍', '審核原因', '交易爭議的處理狀態與結果', '錢包餘額', '最近收支', '客服工單']) {
+        expect(S.messagesConversationHistoryEnterPlusOwn, contains(item));
+      }
+      for (final item in ['收藏', '購買紀錄', '購物車', '最近瀏覽']) {
+        expect(S.bookDetailsFromSavedItemsPurchase, contains(item));
+      }
+      for (final item in ['作者', '出版社', '出版日期', '分類', '定價']) {
+        expect(S.isbnTitleConditionNotesPhotosSelect, contains(item));
+      }
+      expect(find.text('DeepSeek、Google Gemini、OpenAI'), findsOneWidget);
+      expect(find.text(S.questionsRequestsBookDetailsAlsoConverted('OpenAI')), findsOneWidget);
+      expect(find.text(S.aiSupportBookAdvisorConversationsKept), findsOneWidget);
+      expect(S.aiSupportBookAdvisorConversationsKept, allOf(contains('90 天'), contains('評價'), contains('處理紀錄')));
+      expect(find.text(S.canTurnOffAiDataProcessing), findsOneWidget);
+      expect(find.text(S.aiDataProcessingNoticeBeenUpdated), findsNothing);
+    });
+
+    testWidgets('consent sheet lists every feature the consent covers even when only one is open, and explains a re-consent', (tester) async {
+      await pumpSheet(tester, const AiStatusInfo(listingAssist: true, consentOutdated: true, providersInUse: ['DeepSeek']));
+      for (final (label, detail) in [
+        (S.aiSupport, S.messagesConversationHistoryEnterPlusOwn),
+        (S.aiBookAdvisor, S.requestsConversationHistoryEnter),
+        (S.listingAssist, S.isbnTitleConditionNotesPhotosSelect),
+        (S.recommendations, S.bookDetailsFromSavedItemsPurchase),
+      ]) {
+        expect(find.text(label), findsOneWidget);
+        expect(find.text(detail), findsOneWidget);
+      }
+      expect(find.text(S.aiDataProcessingNoticeBeenUpdated), findsOneWidget);
+      expect(find.text(S.questionsRequestsBookDetailsAlsoConverted('OpenAI')), findsNothing);
+    });
+
+    test('a consent rejected mid-session is re-read from the server so the sheet can explain an updated notice', () async {
+      ApiService.authToken = 't';
+      final client = MockClient((req) async => http.Response(
+            jsonEncode({'success': true, 'data': {'support': true, 'consented': false, 'consent_outdated': true, 'providers_in_use': ['DeepSeek']}}),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          ));
+      await http.runWithClient(() async {
+        AiStatus.debugSet(const AiStatusInfo(support: true, consented: true, providersInUse: ['DeepSeek']));
+        await AiStatus.markConsentRevoked();
+        expect(AiStatus.value.consented, isFalse);
+        expect(AiStatus.value.consentOutdated, isTrue);
+      }, () => client);
+
+      final offline = MockClient((req) async => throw http.ClientException('offline'));
+      await http.runWithClient(() async {
+        AiStatus.debugSet(const AiStatusInfo(support: true, consented: true, providersInUse: ['DeepSeek']));
+        await AiStatus.markConsentRevoked();
+        expect(AiStatus.value.consented, isFalse);
+        expect(AiStatus.value.consentOutdated, isTrue, reason: '無法向伺服器確認時，先前已同意即視為說明已更新');
+      }, () => offline);
+      AiStatus.debugSet(AiStatusInfo.none);
+      ApiService.authToken = null;
+    });
+
+    testWidgets('an outdated consent can still be turned off, which deletes conversations without agreeing again first', (tester) async {
+      final consents = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        final path = req.url.path.replaceFirst('/api', '');
+        Object? data = <String, Object?>{};
+        if (path == '/ai/status') data = {'support': true, 'consented': false, 'consent_outdated': true, 'providers_in_use': ['DeepSeek']};
+        if (path == '/users/me/deletion') data = {'pending': false, 'grace_days': 30};
+        if (path == '/ai/consent') {
+          final body = jsonDecode(req.body) as Map<String, dynamic>;
+          consents.add(body);
+          data = {'support': true, 'consented': body['granted'], 'consent_outdated': false, 'providers_in_use': ['DeepSeek']};
+        }
+        return http.Response(jsonEncode({'success': true, 'data': data}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+      });
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      tester.view.physicalSize = const Size(390, 844) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await http.runWithClient(() async {
+        await tester.pumpWidget(app(const AccountPrivacyScreen()));
+        await settle(tester);
+        expect(find.text(S.aiDataProcessing), findsOneWidget);
+        expect(find.text(S.consentRequiredAgain), findsOneWidget);
+        expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+
+        await tester.tap(find.byType(Switch));
+        await settle(tester);
+        expect(find.byType(AiConsentSheet), findsNothing);
+        expect(find.text(S.turnOffAiDataProcessing), findsOneWidget);
+        await tester.tap(find.text(S.turnOff));
+        await settle(tester);
+        expect(consents, [
+          {'granted': false},
+        ]);
+        expect(AiStatus.value.consentOutdated, isFalse);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
+      AiStatus.debugSet(AiStatusInfo.none);
+    });
+
+    testWidgets('consent can be withdrawn while every AI feature is unavailable, for example when the budget is used up', (tester) async {
+      final consents = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        final path = req.url.path.replaceFirst('/api', '');
+        Object? data = <String, Object?>{};
+        if (path == '/ai/status') data = {'support': false, 'listing_assist': false, 'recommend': false, 'book_chat': false, 'consented': true, 'providers_in_use': <String>[]};
+        if (path == '/users/me/deletion') data = {'pending': false, 'grace_days': 30};
+        if (path == '/ai/consent') {
+          final body = jsonDecode(req.body) as Map<String, dynamic>;
+          consents.add(body);
+          data = {'consented': body['granted'], 'providers_in_use': <String>[]};
+        }
+        return http.Response(jsonEncode({'success': true, 'data': data}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+      });
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      tester.view.physicalSize = const Size(390, 844) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await http.runWithClient(() async {
+        await tester.pumpWidget(app(const AccountPrivacyScreen()));
+        await settle(tester);
+        expect(AiStatus.value.any, isFalse);
+        expect(find.text(S.aiDataProcessing), findsOneWidget);
+        expect(find.text(S.consentRequiredAgain), findsNothing);
+
+        await tester.tap(find.byType(Switch));
+        await settle(tester);
+        await tester.tap(find.text(S.turnOff));
+        await settle(tester);
+        expect(consents, [
+          {'granted': false},
+        ]);
+        expect(find.text(S.aiDataProcessing), findsNothing);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
+      AiStatus.debugSet(AiStatusInfo.none);
+    });
+
+    testWidgets('turning off AI data processing asks for confirmation before deleting conversations', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      tester.view.physicalSize = const Size(390, 844) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final consents = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        final path = req.url.path.replaceFirst('/api', '');
+        Object? data = <String, Object?>{};
+        if (path == '/ai/status') data = {'support': true, 'consented': true, 'providers_in_use': ['DeepSeek']};
+        if (path == '/users/me/deletion') data = {'pending': false, 'grace_days': 30};
+        if (path == '/ai/consent') {
+          final body = jsonDecode(req.body) as Map<String, dynamic>;
+          consents.add(body);
+          data = {'support': true, 'consented': body['granted'], 'providers_in_use': ['DeepSeek']};
+        }
+        return http.Response(jsonEncode({'success': true, 'data': data}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+      });
+
+      await http.runWithClient(() async {
+        await tester.pumpWidget(app(const AccountPrivacyScreen()));
+        await settle(tester);
+        expect(AiStatus.value.consented, isTrue);
+
+        await tester.tap(find.byType(Switch));
+        await settle(tester);
+        expect(find.text(S.turnOffAiDataProcessing), findsOneWidget);
+        expect(find.text(S.aiFeaturesStopAiSupportBook), findsOneWidget);
+        await tester.tap(find.text(S.actionCancel));
+        await settle(tester);
+        expect(consents, isEmpty);
+        expect(AiStatus.value.consented, isTrue);
+
+        await tester.tap(find.byType(Switch));
+        await settle(tester);
+        await tester.tap(find.text(S.turnOff));
+        await settle(tester);
+        expect(consents, [
+          {'granted': false},
+        ]);
+        expect(AiStatus.value.consented, isFalse);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
+      AiStatus.debugSet(AiStatusInfo.none);
+    });
 
     testWidgets('support asks for consent before sending and does not call the API until the user agrees', (tester) async {
       SharedPreferences.setMockInitialValues({});
@@ -419,15 +897,188 @@ void main() {
         await tester.tap(find.text(S.agreeContinue));
         await settle(tester, 12);
         expect(api.consents, [
-          {'granted': true},
+          {'granted': true, 'notice_version': aiConsentNoticeVersion},
         ]);
+        expect(aiConsentNoticeVersion, 4);
         expect(AiStatus.value.consented, isTrue);
         expect(api.requests.where((r) => r == 'POST /ai/support/messages').length, 1);
+        expect(api.messages.single, allOf(containsPair('content', S.howDoIListBook), containsPair('locale', 'zh-Hant'), contains('client_id')));
         expect(api.requests.indexOf('PUT /ai/consent'), lessThan(api.requests.indexOf('POST /ai/support/messages')));
 
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 3));
       }, () => api.client);
+      AiStatus.debugSet(AiStatusInfo.none);
+    });
+
+    test('support messages keep only well-formed order numbers on assistant replies', () {
+      final reply = AiSupportMessage.fromJson({
+        'message_id': 2,
+        'role': 'assistant',
+        'content': '...',
+        'order_nos': ['smb20260914103000123456', 'SMB20250101120000123', 'SMB123', 42, 'SMB20260914103000123456', 'SMB20260914103000000001', 'SMB20260914103000000002'],
+      });
+      expect(reply.orderNos, ['SMB20260914103000123456', 'SMB20250101120000123', 'SMB20260914103000000001']);
+      expect(AiSupportMessage.fromJson({'message_id': 1, 'role': 'user', 'content': 'q', 'order_nos': ['SMB20260914103000123456']}).orderNos, isEmpty);
+      expect(AiSupportMessage.fromJson({'message_id': 3, 'role': 'assistant', 'content': 'a'}).orderNos, isEmpty);
+    });
+
+    testWidgets('support sends the interface language, shows the reference notice and opens linked orders by order number', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      tester.view.physicalSize = const Size(390, 844) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      const orderNo = 'SMB20260914103000123456';
+      final requests = <String>[];
+      final bodies = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        final path = req.url.path.replaceFirst('/api', '');
+        requests.add('${req.method} $path');
+        Object? data;
+        if (path == '/ai/support/session') {
+          data = {
+            'session_id': 1,
+            'status': 'open',
+            'messages': [
+              {'message_id': 1, 'role': 'user', 'content': 'Where is my order?', 'created_at': lt.now, 'order_nos': <String>[]},
+              {'message_id': 2, 'role': 'assistant', 'content': 'Order $orderNo is ready for pickup.', 'created_at': lt.now, 'order_nos': [orderNo]},
+            ],
+          };
+        }
+        if (path == '/ai/support/messages') {
+          bodies.add(jsonDecode(req.body) as Map<String, dynamic>);
+          data = {
+            'session_id': 1,
+            'user_message': {'message_id': 3, 'role': 'user', 'content': 'q', 'created_at': lt.now},
+            'reply': {'message_id': 4, 'role': 'assistant', 'content': 'Yes.', 'created_at': lt.now, 'order_nos': <String>[]},
+            'suggest_handoff': false,
+          };
+        }
+        if (path == '/orders/by-no/$orderNo' || path == '/orders/7') data = lt.order(7, 'deposited');
+        return http.Response(jsonEncode({'success': true, 'data': data}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+      });
+
+      await http.runWithClient(() async {
+        AiStatus.debugSet(const AiStatusInfo(support: true, consented: true, providersInUse: ['DeepSeek']));
+        await tester.pumpWidget(app(const AiSupportScreen(), locale: const Locale('en')));
+        await settle(tester);
+        expect(find.text(S.aiRepliesReferenceOnlyOrderPage), findsOneWidget);
+        final link = find.textContaining('${S.viewOrder}  $orderNo', findRichText: true);
+        expect(link, findsOneWidget);
+
+        await tester.enterText(find.byType(TextField), 'Can I cancel it?');
+        await tester.pump();
+        await tester.tap(find.byIcon(Icons.arrow_upward_rounded));
+        await settle(tester);
+        expect(bodies.single, allOf(containsPair('content', 'Can I cancel it?'), containsPair('locale', 'en'), contains('client_id')));
+        expect(find.textContaining(S.viewOrder, findRichText: true), findsOneWidget, reason: '沒有訂單編號的回覆不顯示連結');
+
+        await tester.tap(link);
+        await settle(tester, 12);
+        expect(requests, contains('GET /orders/by-no/$orderNo'));
+        expect(find.byType(OrderDetailScreen), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
+      AiStatus.debugSet(AiStatusInfo.none);
+    });
+
+    testWidgets('support reloads a conversation idle past the server window on resume and before sending or handing off', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      ApiService.authToken = 't';
+      tester.view.physicalSize = const Size(390, 844) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final stale = DateTime.now().subtract(aiSupportIdleLimit + const Duration(minutes: 1)).toUtc().toIso8601String();
+      Map<String, dynamic>? staleSession() => {
+            'session_id': 1,
+            'status': 'open',
+            'messages': [
+              {'message_id': 1, 'role': 'user', 'content': '舊的提問', 'created_at': stale},
+              {'message_id': 2, 'role': 'assistant', 'content': '舊的回覆', 'created_at': stale, 'order_nos': <String>[]},
+            ],
+          };
+      Map<String, dynamic>? session;
+      final requests = <String>[];
+      final client = MockClient((req) async {
+        final path = req.url.path.replaceFirst('/api', '');
+        requests.add('${req.method} $path');
+        Object? data;
+        if (path == '/ai/support/session') {
+          data = session;
+          session = null;
+        }
+        if (path == '/ai/support/messages') {
+          final now = DateTime.now().toUtc().toIso8601String();
+          data = {
+            'session_id': 2,
+            'user_message': {'message_id': 3, 'role': 'user', 'content': '新的提問', 'created_at': now},
+            'reply': {'message_id': 4, 'role': 'assistant', 'content': '新的回覆', 'created_at': now, 'order_nos': <String>[]},
+            'suggest_handoff': false,
+          };
+        }
+        return http.Response(jsonEncode({'success': true, 'data': data}), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+      });
+      int sessionReads() => requests.where((r) => r == 'GET /ai/support/session').length;
+      void backgroundAndResume() {
+        for (final state in [
+          AppLifecycleState.inactive,
+          AppLifecycleState.hidden,
+          AppLifecycleState.paused,
+          AppLifecycleState.hidden,
+          AppLifecycleState.inactive,
+          AppLifecycleState.resumed,
+        ]) {
+          tester.binding.handleAppLifecycleStateChanged(state);
+        }
+      }
+
+      Future<void> pumpStale() async {
+        session = staleSession();
+        requests.clear();
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(app(const AiSupportScreen()));
+        await settle(tester);
+        expect(find.text('舊的回覆'), findsOneWidget);
+        expect(sessionReads(), 1);
+      }
+
+      await http.runWithClient(() async {
+        AiStatus.debugSet(const AiStatusInfo(support: true, consented: true, providersInUse: ['DeepSeek']));
+
+        await pumpStale();
+        backgroundAndResume();
+        await settle(tester);
+        expect(sessionReads(), 2);
+        expect(find.text('舊的回覆'), findsNothing);
+        backgroundAndResume();
+        await settle(tester);
+        expect(sessionReads(), 2, reason: '沒有對話時不重新載入');
+
+        await pumpStale();
+        await tester.enterText(find.byType(TextField), '新的提問');
+        await tester.pump();
+        await tester.tap(find.byIcon(Icons.arrow_upward_rounded));
+        await settle(tester);
+        expect(requests, ['GET /ai/support/session', 'GET /ai/support/session', 'POST /ai/support/messages']);
+        expect(find.text('舊的回覆'), findsNothing);
+        expect(find.text('新的回覆'), findsOneWidget);
+        backgroundAndResume();
+        await settle(tester);
+        expect(sessionReads(), 2, reason: '剛送出的對話仍在時限內');
+
+        await pumpStale();
+        await tester.tap(find.text(S.talkPerson));
+        await settle(tester, 12);
+        expect(sessionReads(), 2);
+        expect(requests, isNot(contains('POST /ai/support/session/escalate')));
+        expect(find.byType(NewTicketScreen), findsOneWidget);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 3));
+      }, () => client);
       AiStatus.debugSet(AiStatusInfo.none);
     });
 
@@ -475,6 +1126,106 @@ void main() {
         await tester.pump(const Duration(seconds: 3));
       }, () => api.client);
       AiStatus.debugSet(AiStatusInfo.none);
+    });
+  });
+
+  group('listing assist sources', () {
+    Widget app(Widget home) => MaterialApp(
+          locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+          supportedLocales: LocaleProvider.supported,
+          theme: AppTheme.build(Brightness.light),
+          localizationsDelegates: const [AppLocalizations.delegate, GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+          builder: (context, child) {
+            S = AppLocalizations.of(context);
+            return child!;
+          },
+          home: home,
+        );
+
+    AiListingAssist result(String descriptionSource, {bool isbnMismatch = false}) => AiListingAssist.fromJson({
+          'fields': {'title': '挪威的森林', 'author': '村上春樹', 'description': '本書描述一段青春與成長的故事，適合喜愛文學的讀者。'},
+          'description_source': descriptionSource,
+          'isbn_mismatch': isbnMismatch,
+          'sources': [
+            {'title': 'books.com.tw', 'url': 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc', 'domain': 'books.com.tw'},
+          ],
+        });
+
+    Future<void> frames(WidgetTester tester) async {
+      for (var i = 0; i < 8; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    Future<AiListingSelection?> openAndApply(WidgetTester tester, AiListingAssist data, {Future<void> Function()? inspect}) async {
+      tester.view.physicalSize = const Size(390, 1600) * 2;
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      AiListingSelection? selection;
+      await tester.pumpWidget(app(Scaffold(
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async {
+              selection = await showAiListingResultSheet(
+                context,
+                result: data,
+                targets: const AiListingTargets(fields: {'title': '', 'author': '', 'description': ''}),
+              );
+            },
+            child: const Text('open'),
+          ),
+        ),
+      )));
+      await frames(tester);
+      await tester.tap(find.text('open'));
+      await frames(tester);
+      await inspect?.call();
+      await tester.tap(find.byIcon(Icons.check_rounded));
+      await frames(tester);
+      return selection;
+    }
+
+    test('the source domain comes from the response and falls back to the link host', () {
+      expect(AiSource.fromJson(const {'title': 'x', 'url': 'https://vertexaisearch.cloud.google.com/r', 'domain': 'books.com.tw'}).host, 'books.com.tw');
+      expect(AiSource.fromJson(const {'title': 'x', 'url': 'https://www.books.com.tw/p/1'}).host, 'books.com.tw');
+      expect(AiListingAssist.fromJson(const {'description_source': 'ai'}).descriptionWrittenByAi, isTrue);
+      expect(AiListingAssist.fromJson(const {'description_source': 'mixed'}).descriptionWrittenByAi, isFalse);
+    });
+
+    testWidgets('an AI-written description is labelled and not preselected, and a source opens when tapped', (tester) async {
+      final opened = <Uri>[];
+      final original = AiListingResultSheet.openSource;
+      AiListingResultSheet.openSource = (uri) async {
+        opened.add(uri);
+        return true;
+      };
+      addTearDown(() => AiListingResultSheet.openSource = original);
+
+      final selection = await openAndApply(tester, result('ai'), inspect: () async {
+        expect(find.text(S.writtenByAi), findsOneWidget);
+        await tester.tap(find.text('books.com.tw'));
+        await tester.pump();
+        expect(opened.single.toString(), 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc');
+      });
+      expect(selection!.fields, {'title', 'author'});
+    });
+
+    testWidgets('a description summarized from book records stays preselected', (tester) async {
+      final selection = await openAndApply(tester, result('mixed'), inspect: () async {
+        expect(find.text(S.summarizedByAiFromBookRecords), findsOneWidget);
+        expect(find.text(S.writtenByAi), findsNothing);
+      });
+      expect(selection!.fields, {'title', 'author', 'description'});
+    });
+
+    testWidgets('fields are not preselected when the ISBN and the title point to different books', (tester) async {
+      expect(AiListingAssist.fromJson(const {'isbn_mismatch': true}).isbnMismatch, isTrue);
+      final selection = await openAndApply(tester, result('mixed', isbnMismatch: true), inspect: () async {
+        expect(find.text(S.apply), findsOneWidget);
+        expect(find.text(S.applyP0(3)), findsNothing);
+      });
+      expect(selection, isNull);
     });
   });
 }

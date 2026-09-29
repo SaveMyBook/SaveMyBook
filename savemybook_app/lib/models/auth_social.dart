@@ -12,7 +12,6 @@ class AuthProviders {
 
   static const ids = [google, apple, phone, line, discord];
 
-  /// 走 Firebase ID Token 的渠道，其餘走伺服器端的 OAuth 授權碼流程。
   static const firebaseIds = [google, apple, phone];
 
   static const oauthIds = [line, discord];
@@ -251,7 +250,6 @@ class AuthSettingsBundle {
   }
 }
 
-/// 伺服器與 App 共用的登入相關錯誤代碼。
 class AuthCodes {
   const AuthCodes._();
 
@@ -277,7 +275,6 @@ class AuthCodes {
   static const verificationCancelled = 'VERIFICATION_CANCELLED';
   static const notLinked = 'NOT_LINKED';
 
-  /// 沒有伺服器訊息可用時的備援文案。
   static String messageOf(String code) => switch (code) {
         noAccountForProvider => S.signMethodNotLinkedAnyAccount,
         accountExists => S.emailAlreadyRegisteredSignWithPassword,

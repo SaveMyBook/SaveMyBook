@@ -165,7 +165,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                               hint: S.announcementTitle,
                               maxLength: 255,
                               textInputAction: TextInputAction.next,
-                              errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitleContent : null,
+                              errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle3 : null,
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
@@ -208,10 +208,6 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                               title: Text(
                                 S.publishNow,
                                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
-                              ),
-                              subtitle: Text(
-                                S.leaveOffSaveAsDraft,
-                                style: TextStyle(fontSize: 12, color: c.textSecondary),
                               ),
                               onChanged: (value) {
                                 HapticFeedback.selectionClick();

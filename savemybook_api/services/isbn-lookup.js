@@ -1,24 +1,10 @@
-const { fetchVolumeByIsbn } = require('../lib/google-books');
+const googleBooks = require('../lib/google-books');
 const openLibrary = require('../lib/open-library');
+const isbnCodes = require('../lib/isbn');
+const { titleMatches } = require('../lib/book-match');
 const { notFound, HttpError } = require('../lib/errors');
 
-const isbn10CheckDigit = (nine) => {
-  const sum = [...nine].reduce((acc, d, i) => acc + Number(d) * (10 - i), 0);
-  const check = (11 - (sum % 11)) % 11;
-  return check === 10 ? 'X' : String(check);
-};
-
-const isbn13CheckDigit = (twelve) => {
-  const sum = [...twelve].reduce((acc, d, i) => acc + Number(d) * (i % 2 === 0 ? 1 : 3), 0);
-  return String((10 - (sum % 10)) % 10);
-};
-
-const variantsOf = (isbn) => {
-  const code = isbn.toUpperCase();
-  if (code.length === 10) return [code, `978${code.slice(0, 9)}${isbn13CheckDigit(`978${code.slice(0, 9)}`)}`];
-  if (code.startsWith('978')) return [code, `${code.slice(3, 12)}${isbn10CheckDigit(code.slice(3, 12))}`];
-  return [code];
-};
+const variantsOf = (isbn) => isbnCodes.forms(isbn);
 
 const positiveInt = (value) => {
   const n = Number(value);
@@ -80,25 +66,34 @@ const settle = async (label, task) => {
 };
 
 // Google Books 對中文書與未帶金鑰的請求常查無資料或回傳 429，因此同時查詢 Open Library，逐欄位取第一個有值的來源。
-const gather = async (isbn) => {
-  const variants = variantsOf(isbn);
+const gather = async (isbn, { title = '' } = {}) => {
+  const code = isbnCodes.compact(isbn);
   let googleInfo = null;
   const [google, library] = await Promise.all([
     settle('Google Books', async () => {
-      googleInfo = await fetchVolumeByIsbn(isbn);
+      googleInfo = await googleBooks.fetchVolumeByIsbn(code);
       return fromGoogle(googleInfo);
     }),
-    settle('Open Library', () => openLibrary.fetchEditionByIsbn(variants))
+    settle('Open Library', async () => {
+      const edition = await openLibrary.fetchEditionByIsbn(variantsOf(code));
+      const listed = edition?.isbns ?? [];
+      return edition && (listed.length === 0 || isbnCodes.sameBook(code, listed)) ? edition : null;
+    })
   ]);
 
-  const sources = [google.value, fromOpenLibrary(library.value)].filter(Boolean);
-  if (sources.length === 0) {
+  const libraryFields = fromOpenLibrary(library.value);
+  if (!google.value && !libraryFields) {
     // Open Library 幾乎沒有中文書，Google Books 被限流（429）時不能當成查無此書，否則背景補齊會永久略過。
     if (google.failed || library.failed) throw new HttpError(502, '查詢外部書籍資訊發生錯誤');
     throw notFound('找不到此 ISBN 的書籍資訊');
   }
+  const trusted = (fields) => Boolean(fields) && (!title || titleMatches(title, fields.title, { subtitle: fields.subtitle }));
+  const useGoogle = trusted(google.value);
+  const useLibrary = trusted(libraryFields);
+  if (!useGoogle && !useLibrary) throw new HttpError(409, '此 ISBN 的書目與書名不符', 'ISBN_TITLE_MISMATCH');
 
-  if (library.value) {
+  const sources = [useGoogle && google.value, useLibrary && libraryFields].filter(Boolean);
+  if (useLibrary) {
     const detail = await settle('Open Library 版本頁', () => openLibrary.fetchEditionDetailByIsbn(library.value.isbn));
     const extra = fromOpenLibraryDetail(detail.value);
     if (extra) sources.push(extra);
@@ -109,16 +104,16 @@ const gather = async (isbn) => {
   if (bestDate) result.publish_date = bestDate;
 
   const links = [
-    google.value && { title: 'Google Books', url: googleInfo?.infoLink || googleInfo?.canonicalVolumeLink || `https://books.google.com/books?vid=ISBN${isbn}` },
-    library.value && { title: 'Open Library', url: `${openLibrary.BASE}/isbn/${encodeURIComponent(library.value.isbn)}` }
+    useGoogle && { title: 'Google Books', url: googleInfo?.infoLink || googleInfo?.canonicalVolumeLink || `https://books.google.com/books?vid=ISBN${code}` },
+    useLibrary && { title: 'Open Library', url: `${openLibrary.BASE}/isbn/${encodeURIComponent(library.value.isbn)}` }
   ].filter(Boolean);
   return { result, links };
 };
 
 const lookup = async (isbn) => (await gather(isbn)).result;
 
-const lookupWithSources = async (isbn) => {
-  const { result, links } = await gather(isbn);
+const lookupWithSources = async (isbn, options) => {
+  const { result, links } = await gather(isbn, options);
   return { fields: result, sources: links };
 };
 

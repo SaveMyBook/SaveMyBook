@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../models/ai.dart';
 import '../../../services/ai_status.dart';
 import '../../../services/api_service.dart';
+import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
@@ -164,12 +165,19 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   }
 
   Future<void> _test(String provider) async {
-    if (_testing.contains(provider)) return;
+    final form = _form;
+    if (_testing.contains(provider) || form == null) return;
+    if (form.isInvalid('$provider.model')) {
+      HapticFeedback.heavyImpact();
+      showAppSnackBar(context, S.pleaseFixHighlightedFields, isError: true);
+      if (!_advancedOpen) setState(() => _advancedOpen = true);
+      return;
+    }
     setState(() {
       _testing.add(provider);
       _tests.remove(provider);
     });
-    final result = await _api.testAiProvider(provider);
+    final result = await _api.testAiProvider(provider, model: form.draft.providers[provider]?.model);
     if (!mounted) return;
     setState(() {
       _testing.remove(provider);
@@ -341,16 +349,43 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
     );
   }
 
+  static String _coverageText(AiRetrievalCoverage? coverage) {
+    if (coverage == null || coverage.total <= 0) return '—';
+    return '${(coverage.ratio * 100).floor()}%';
+  }
+
   Widget _retrievalCard(AppColors c, AiRetrievalStatus r) {
-    final color = r.ready ? c.success : c.warning;
-    final String detail;
+    final paused = r.syncPausedUntil != null || r.queryPausedUntil != null;
+    final color = !r.ready || paused ? c.warning : c.success;
+    final lines = <String>[];
+    final warnings = <String>[];
     if (r.ready) {
-      final books = r.books;
-      final docs = r.knowledge;
-      final counts = S.p0BooksP1HelpArticlesIndexed(books, docs);
-      detail = '${AiProviders.nameOf(r.provider ?? '')}・${r.model ?? ''}\n$counts';
+      lines.add('${AiProviders.nameOf(r.provider ?? '')}・${r.model ?? ''}');
+      lines.add(S.p0BooksP1HelpArticlesIndexed(r.books, r.knowledge));
+      if (r.bookCoverage != null || r.knowledgeCoverage != null) {
+        final books = _coverageText(r.bookCoverage);
+        final docs = _coverageText(r.knowledgeCoverage);
+        lines.add(S.coverageBooksP0HelpArticlesP1(books, docs));
+      }
+      if (r.lastSyncAt != null) {
+        final time = formatDateTime(r.lastSyncAt);
+        lines.add(S.lastSyncP0(time));
+      }
+      if (r.syncPausedUntil != null) {
+        final time = formatDateTime(r.syncPausedUntil);
+        warnings.add(S.backgroundSyncPausedUntilP0(time));
+      }
+      if (r.queryPausedUntil != null) {
+        final time = formatDateTime(r.queryPausedUntil);
+        warnings.add(S.semanticQueriesPausedUntilP0(time));
+      }
+      final error = r.lastError;
+      if (error != null) {
+        final summary = [formatDateTime(error.at), AiLabels.errorCode(error.code)].where((t) => t.isNotEmpty).join('・');
+        warnings.add(S.lastErrorP0(summary));
+      }
     } else {
-      detail = S.noOpenaiGeminiKeyConfiguredOnly;
+      lines.add(S.noOpenaiGeminiKeyConfiguredOnly);
     }
     return AppCard(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -373,7 +408,14 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
                 ),
                 const SizedBox(height: 4),
-                Text(detail, style: TextStyle(fontSize: 12.5, height: 1.45, color: c.textSecondary)),
+                Text(lines.join('\n'), style: TextStyle(fontSize: 12.5, height: 1.45, color: c.textSecondary)),
+                if (warnings.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: r.lastError?.detail == null ? null : () => showAppSnackBar(context, r.lastError!.detail!, isError: true),
+                    child: Text(warnings.join('\n'), style: TextStyle(fontSize: 12.5, height: 1.45, color: c.warning)),
+                  ),
+                ],
               ],
             ),
           ),
@@ -484,7 +526,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                   ),
                   const SizedBox(height: 4),
                   Padding(
-                    padding: const EdgeInsets.only(left: 28),
+                    padding: const EdgeInsets.only(left: 42),
                     child: Text(
                       pricing.model,
                       maxLines: 1,
@@ -555,6 +597,15 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                       ),
                     ],
                   ),
+                  if (!testing && test != null && test.checks.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [for (final check in test.checks) _checkChip(c, check)],
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -585,6 +636,36 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _checkChip(AppColors c, AiTestCheck check) {
+    final label = AiLabels.testCheck(check.name);
+    final color = check.ok ? c.success : (check.skipped ? c.textHint : c.danger);
+    final icon = check.ok
+        ? Icons.check_circle_rounded
+        : (check.skipped ? Icons.remove_circle_outline_rounded : Icons.error_rounded);
+    final failed = !check.ok && !check.skipped;
+    final error = check.error ?? S.connectionFailed;
+    return Semantics(
+      label: failed ? '$label $error' : label,
+      button: failed,
+      child: GestureDetector(
+        key: ValueKey('test-check-${check.name}'),
+        onTap: failed ? () => showAppSnackBar(context, error, isError: true) : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 12, color: color),
+              const SizedBox(width: 3),
+              Text(label, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: color)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -727,33 +808,64 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
             child: !config.enabled
                 ? const SizedBox(width: double.infinity)
                 : Padding(
-                    padding: const EdgeInsets.only(top: 12, right: 4),
+                    padding: const EdgeInsets.only(top: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _label(c, S.model),
-                        AppSelect<String>(
-                          value: config.provider ?? '',
-                          title: S.model,
-                          leadingIcon: Icons.memory_rounded,
-                          options: [
-                            AppSelectOption(value: '', label: S.defaultP0(AiProviders.nameOf(s.defaultProvider))),
-                            for (final info in bundle.providers)
-                              AppSelectOption(
-                                value: info.id,
-                                label: info.name,
-                                subtitle: s.providers[info.id]!.model,
-                                enabled: info.keyConfigured,
-                                disabledReason: info.keyConfigured ? null : S.noKey,
-                              ),
-                          ],
-                          onChanged: (v) => _update(
-                            (s) => s.withFeature(feature, config.copyWith(provider: () => v.isEmpty ? null : v)),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: AppSelect<String>(
+                            value: config.provider ?? '',
+                            title: S.model,
+                            leadingIcon: Icons.memory_rounded,
+                            options: [
+                              AppSelectOption(value: '', label: S.defaultP0(AiProviders.nameOf(s.defaultProvider))),
+                              for (final info in bundle.providers)
+                                AppSelectOption(
+                                  value: info.id,
+                                  label: info.name,
+                                  subtitle: s.providers[info.id]!.model,
+                                  enabled: info.keyConfigured,
+                                  disabledReason: info.keyConfigured ? null : S.noKey,
+                                ),
+                            ],
+                            onChanged: (v) => _update(
+                              (s) => s.withFeature(feature, config.copyWith(provider: () => v.isEmpty ? null : v)),
+                            ),
                           ),
                         ),
                         if (!effectiveInfo.keyConfigured) ...[
                           const SizedBox(height: 8),
                           _inlineNote(c, Icons.key_off_rounded, c.warning, S.p0NoApiKey(effectiveInfo.name)),
+                        ],
+                        const SizedBox(height: 12),
+                        _label(c, S.backupProvider),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: AppSelect<String>(
+                            value: config.fallbackProvider ?? '',
+                            title: S.backupProvider,
+                            leadingIcon: Icons.swap_horiz_rounded,
+                            options: [
+                              AppSelectOption(value: '', label: S.none),
+                              for (final info in bundle.providers)
+                                AppSelectOption(
+                                  value: info.id,
+                                  label: info.name,
+                                  subtitle: s.providers[info.id]!.model,
+                                  enabled: info.keyConfigured && info.id != effective,
+                                  disabledReason: info.id == effective ? S.sameAsCurrentProvider : (info.keyConfigured ? null : S.noKey),
+                                ),
+                            ],
+                            onChanged: (v) => _update(
+                              (s) => s.withFeature(feature, config.copyWith(fallbackProvider: () => v.isEmpty ? null : v)),
+                            ),
+                          ),
+                        ),
+                        if (config.fallbackProvider == effective) ...[
+                          const SizedBox(height: 8),
+                          _inlineNote(c, Icons.info_outline_rounded, c.warning, S.sameAsCurrentProviderSoNo),
                         ],
                         if (feature == AiFeatures.listingAssist) ..._webSearchOption(c, s, config, effectiveInfo),
                         if (feature == AiFeatures.moderation) ..._moderationOption(c, config),
@@ -875,14 +987,17 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
     return [
       const SizedBox(height: 14),
       _label(c, S.suspiciousListings),
-      IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            option('review', S.holdReview, Icons.fact_check_outlined),
-            const SizedBox(width: 8),
-            option('block', S.rejectClearViolations, Icons.block_rounded),
-          ],
+      Padding(
+        padding: const EdgeInsets.only(right: 4),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              option('review', S.holdReview, Icons.fact_check_outlined),
+              const SizedBox(width: 8),
+              option('block', S.rejectClearViolations, Icons.block_rounded),
+            ],
+          ),
         ),
       ),
     ];
@@ -931,6 +1046,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   }
 
   Widget _limitsCard(AppColors c, AiSettings s) {
+    final memberPercent = 100 - (s.reserveRatio * 100).round();
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -940,7 +1056,10 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
           ),
           const SizedBox(height: 14),
-          _field(c, 'budget', S.monthlyBudgetUsd, prefix: 'US\$ ', hint: S.k0MeansNoCap),
+          _grid([
+            _field(c, 'budget', S.monthlyBudgetUsd, prefix: 'US\$ ', hint: S.k0MeansNoCap),
+            _field(c, 'reserve', S.reservedModerationAdminTools, integer: true, hint: S.memberFeaturesCanUseP0Budget(memberPercent)),
+          ], minWidth: 180),
           const SizedBox(height: 16),
           _label(c, S.dailyLimitPerMember),
           const SizedBox(height: 2),
@@ -948,6 +1067,8 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
             for (final f in AiFeatures.limited)
               _field(c, 'limit.$f', AiLabels.feature(f), integer: true, hint: S.k0MeansUnlimited),
           ], minWidth: 120),
+          const SizedBox(height: 8),
+          _inlineNote(c, Icons.info_outline_rounded, c.textSecondary, S.aiBookAdvisorUsageCountedBy),
         ],
       ),
     );
@@ -956,7 +1077,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
   Widget _advancedCard(AppColors c, AiSettingsBundle bundle, AdminFrame frame) {
     final form = _form!;
     final invalidAdvanced = AiSettingsForm.specs.any(
-      (spec) => !spec.key.startsWith('budget') && !spec.key.startsWith('limit.') && form.isInvalid(spec.key),
+      (spec) => !const {'budget', 'reserve'}.contains(spec.key) && !spec.key.startsWith('limit.') && form.isInvalid(spec.key),
     );
     return AppCard(
       padding: EdgeInsets.zero,

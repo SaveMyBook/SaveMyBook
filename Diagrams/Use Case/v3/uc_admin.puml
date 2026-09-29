@@ -21,9 +21,14 @@ rectangle "SaveMyBook - 後台管理" {
   usecase "處理檢舉" as report
   usecase "處理防詐警示" as risk
   usecase "管理訂單" as orders
-  usecase "仲裁申訴" as dispute
-  usecase "AI 分析申訴" as aianalysis
+  usecase "仲裁交易爭議" as dispute
+  usecase "AI 分析爭議" as aianalysis
   usecase "管理智慧書櫃" as cabinets
+  usecase "配對書櫃裝置" as pair
+  usecase "遠端開啟櫃門" as remote
+  usecase "處理待確認作業與櫃門" as cabreview
+  usecase "確認手動回報" as cabmanual
+  usecase "登記取出存書" as clear
   usecase "管理公告與文件" as content
   usecase "處理客服工單" as tickets
   usecase "系統設定" as settings
@@ -45,6 +50,11 @@ moderation <.. risk : <<extend>>
 dispute <.. aianalysis : <<extend>>
 aianalysis -- AI
 管理員 --> cabinets
+cabinets <.. pair : <<extend>>
+cabinets <.. remote : <<extend>>
+cabinets <.. cabreview : <<extend>>
+cabinets <.. cabmanual : <<extend>>
+cabinets <.. clear : <<extend>>
 管理員 --> content
 管理員 --> tickets
 管理員 --> settings

@@ -98,7 +98,7 @@ module.exports = {
       const blocked = await request('GET', ME, { token: h.tokenFor(blacklisted) });
       assert.strictEqual(blocked.status, 401);
       assert.strictEqual(blocked.body.code, 'ACCOUNT_BLACKLISTED');
-      assert.strictEqual(blocked.body.message, '此帳號已被列入黑名單，如有疑問請聯絡客服');
+      assert.strictEqual(blocked.body.message, '此帳號已停用，如有疑問請聯絡客服');
 
       const inactive = h.addUser({ isActive: false });
       const suspended = await request('GET', ME, { token: h.tokenFor(inactive) });
@@ -183,7 +183,6 @@ module.exports = {
       assert.strictEqual(run(new multer.MulterError('LIMIT_FILE_SIZE')).code, 413);
       assert.strictEqual(run(new multer.MulterError('LIMIT_FILE_COUNT')).body.message, '上傳的檔案數量超過上限');
 
-      // 未預期的錯誤不得把內部訊息外洩給使用者。
       const unexpected = run(new Error('資料庫密碼錯誤'));
       assert.strictEqual(unexpected.code, 500);
       assert.deepStrictEqual(unexpected.body, { success: false, message: '系統發生錯誤，請稍後再試' });
@@ -202,7 +201,6 @@ module.exports = {
       assert.strictEqual(last.body.message, '操作過於頻繁，請稍後再試');
       assert.ok(Number(last.headers.get('retry-after')) > 0);
 
-      // 限流以使用者為單位，換一個帳號不受影響。
       const other = await request('POST', '/api/push/devices', { token: h.tokenFor(h.addUser()), body });
       assert.notStrictEqual(other.status, 429);
     }],

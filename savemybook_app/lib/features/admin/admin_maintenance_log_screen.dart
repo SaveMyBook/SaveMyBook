@@ -174,11 +174,22 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                   ),
                 ],
                 const SizedBox(height: 3),
-                Text(
-                  '${S.operatorP0(log.adminName)}・${formatRelative(log.createdAt)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: c.textHint),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        S.operatorP0(log.adminName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: c.textHint),
+                      ),
+                    ),
+                    Text(
+                      '・${formatRelative(log.createdAt)}',
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 11, color: c.textHint),
+                    ),
+                  ],
                 ),
               ],
             ),

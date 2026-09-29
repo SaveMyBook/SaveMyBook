@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -28,7 +29,12 @@ import 'package:savemybook_app/models/category.dart';
 import 'package:savemybook_app/features/admin/admin_announcement_screen.dart';
 import 'package:savemybook_app/features/admin/admin_backup_screen.dart';
 import 'package:savemybook_app/features/admin/admin_book_screen.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_deposit_screen.dart';
 import 'package:savemybook_app/features/admin/admin_cabinet_screen.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_device_screen.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_open_sheet.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_pairing_dialog.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_session_sheet.dart';
 import 'package:savemybook_app/features/admin/admin_category_screen.dart';
 import 'package:savemybook_app/features/admin/admin_deletion_screen.dart';
 import 'package:savemybook_app/features/admin/admin_dispute_screen.dart';
@@ -48,7 +54,9 @@ import 'package:savemybook_app/features/admin/admin_wallet_screen.dart';
 import 'package:savemybook_app/features/home/announcement_screen.dart';
 import 'package:savemybook_app/features/books/book_detail_screen.dart';
 import 'package:savemybook_app/features/books/image_crop_screen.dart';
+import 'package:savemybook_app/features/selling/book_deposit_actions.dart';
 import 'package:savemybook_app/features/selling/book_manage_screen.dart';
+import 'package:savemybook_app/features/selling/edit_book_detail_screen.dart';
 import 'package:savemybook_app/features/orders/cart_screen.dart';
 import 'package:savemybook_app/features/account/change_password_screen.dart';
 import 'package:savemybook_app/features/chat/ai/ai_book_chat_screen.dart';
@@ -87,6 +95,10 @@ import 'package:savemybook_app/services/social_auth_service.dart';
 import 'package:savemybook_app/features/account/member_level_screen.dart';
 import 'package:savemybook_app/features/home/notification_screen.dart';
 import 'package:savemybook_app/features/orders/order_detail_screen.dart';
+import 'package:savemybook_app/features/orders/pickup_book_screen.dart';
+import 'package:savemybook_app/features/cabinet/cabinet_flow_controller.dart';
+import 'package:savemybook_app/features/cabinet/cabinet_flow_screen.dart';
+import 'package:savemybook_app/models/cabinet.dart';
 import 'package:savemybook_app/features/selling/pending_income_screen.dart';
 import 'package:savemybook_app/features/account/profile_screen.dart';
 import 'package:savemybook_app/features/orders/purchase_history_screen.dart';
@@ -154,6 +166,52 @@ Map<String, dynamic> book(int id, {String status = 'on_sale'}) => {
       'book_categories': {'category_name': 'Literature & Fiction Classics'},
       'smart_cabinets': cabinet(),
     };
+
+Map<String, dynamic> deposit(int days, {bool paused = false}) => {'deposited_at': now, 'paused': paused, 'days_stored': days};
+
+Map<String, dynamic> cabinetAccess(String mode, {String? reason}) =>
+    {'mode': mode, 'reason': reason, 'open_now': true, 'open_time': '08:00', 'close_time': '22:00', 'available_doors': 2, 'pre_deposit_doors': 1};
+
+Map<String, dynamic> manualReport(String kind) =>
+    {'report_no': 'MR4K2Q8ZT', 'kind': kind, 'status': 'pending', 'reason': 'offline', 'created_at': now};
+
+Map<String, dynamic> cabinetItem(String kind, String key, List<String> doors, {Map<String, dynamic>? blocked, Map<String, dynamic>? note, String result = 'pending', Map<String, dynamic>? error}) => {
+      'key': key,
+      'kind': kind,
+      'order_id': key.startsWith('order:') ? 7 : null,
+      'order_no': key.startsWith('order:') ? 'SMB20260914103000123456' : null,
+      'books': [
+        for (final (i, door) in (doors.isEmpty ? <String?>[null, null] : doors).indexed) {'book_id': 5 + i, 'title': longTitle, 'image_url': null, 'door': door},
+      ],
+      'doors': doors,
+      'paused': kind == 'retrieval',
+      'note': note,
+      'selected': blocked == null,
+      'blocked': blocked,
+      'result': result,
+      'error': error,
+    };
+
+CabinetSession cabinetSession(String status, {int? remainingMs = 52000, String? notice, Map<String, dynamic>? result, List<Map<String, dynamic>>? items}) => CabinetSession.fromJson({
+      'session_no': 'CS8MZQ41K',
+      'status': status,
+      'version': 1,
+      'cabinet': {...cabinet(), 'latitude': 25.0173, 'longitude': 121.5398},
+      'location_status': 'unavailable',
+      'items': items ??
+          [
+            cabinetItem('pickup', 'order:7', ['A01', 'A02']),
+            cabinetItem('order_deposit', 'order:8', [], blocked: {'code': 'CABINET_FULL', 'message': ''}),
+            cabinetItem('pre_deposit', 'book:9', []),
+            cabinetItem('retrieval', 'book:10', ['A03'], note: {'code': 'MOVE_TO_ORDER_CABINET', 'message': '此書籍已售出，取回後請存入訂單指定的書櫃「$longCabinet」'}),
+          ],
+      'doors': [for (final label in ['A01', 'A02', 'A03']) {'label': label, 'state': status == 'open' ? 'open' : 'pending'}],
+      'remaining_ms': remainingMs,
+      'open_ms': 60000,
+      'notice': notice,
+      'result': result,
+      'created_at': now,
+    });
 
 Map<String, dynamic> order(int id, String status) => {
       'order_id': id,
@@ -386,6 +444,13 @@ Map<String, dynamic> aiSettingsData() => {
         'provider': 'openai',
         'model': 'text-embedding-3-small-extended-preview-2026-09',
         'counts': {'book': 1234567, 'knowledge': 98765},
+        'coverage': {
+          'book': {'indexed': 1234560, 'total': 1234567},
+          'knowledge': {'indexed': 98765, 'total': 98765},
+        },
+        'last_sync_at': now,
+        'last_error': {'at': now, 'purpose': 'query', 'code': 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM', 'detail': '連線逾時' * 20},
+        'cooldown_until': {'sync': now, 'query': now},
       },
       'settings': {
         'enabled': true,
@@ -401,7 +466,7 @@ Map<String, dynamic> aiSettingsData() => {
           'recommend': {'enabled': false, 'provider': null},
           'moderation': {'enabled': true, 'provider': 'deepseek', 'action': 'block'},
         },
-        'limits': {'monthly_budget_usd': 12345, 'daily_per_user': {'support': 10000, 'listing_assist': 15, 'recommend': 0}},
+        'limits': {'monthly_budget_usd': 12345, 'reserve_ratio': 0.35, 'daily_per_user': {'support': 10000, 'listing_assist': 15, 'recommend': 0}},
       },
       'providers': [
         {'id': 'deepseek', 'name': 'DeepSeek', 'key_configured': false, 'vision': false, 'web_search': false, 'default_model': 'deepseek-flash'},
@@ -412,22 +477,77 @@ Map<String, dynamic> aiSettingsData() => {
 
 Map<String, dynamic> aiUsageData() => {
       'period': 'month',
-      'summary': {'requests': 1234567, 'errors': 98765, 'input_tokens': 9876543210, 'output_tokens': 123456789, 'search_calls': 45678, 'cost_usd': 9876.54321, 'month_cost_usd': 11111.2, 'monthly_budget_usd': 12345, 'budget_used_ratio': 0.9, 'projected_month_cost_usd': 23456.78},
+      'summary': {'requests': 1234567, 'errors': 98765, 'input_tokens': 9876543210, 'output_tokens': 123456789, 'search_calls': 45678, 'cost_usd': 9876.54321, 'month_cost_usd': 11111.2, 'monthly_budget_usd': 12345, 'reserve_ratio': 0.35, 'member_budget_usd': 8024.25, 'budget_used_ratio': 0.9, 'projected_month_cost_usd': 23456.78},
       'by_feature': [
-        for (final f in ['support', 'listing_assist', 'recommend', 'moderation', 'test'])
+        for (final f in ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'book_chat_pick', 'embedding', 'enrich', 'admin_assist', 'test'])
           {'feature': f, 'requests': 123456, 'cost_usd': f == 'test' ? 0.0042 : 1234.5678, 'input_tokens': 1, 'output_tokens': 1, 'errors': 9999},
       ],
       'by_provider': [
-        {'provider': 'deepseek', 'model': 'deepseek-flash-extended-context-preview-2026-09', 'requests': 999999, 'cost_usd': 4321.1234, 'avg_latency_ms': 12345},
-        {'provider': 'gemini', 'model': 'gemini-3.1-flash-lite', 'requests': 12, 'cost_usd': 0.00042, 'avg_latency_ms': 840},
+        {'provider': 'deepseek', 'model': 'deepseek-flash-extended-context-preview-2026-09', 'requests': 999999, 'cost_usd': 4321.1234, 'avg_latency_ms': 12345, 'p95_latency_ms': 123456},
+        {'provider': 'gemini', 'model': 'gemini-3.1-flash-lite', 'requests': 12, 'cost_usd': 0.00042, 'avg_latency_ms': 840, 'p95_latency_ms': 1900},
       ],
       'daily': [
         for (var i = 1; i <= 30; i++)
-          {'date': '2026-09-${i.toString().padLeft(2, '0')}', 'requests': 1234 * i, 'cost_usd': i * 12.5, 'by_feature': {'support': i * 5.0, 'listing_assist': i * 4.0, 'recommend': i * 2.5, 'moderation': i * 1.0}},
+          {'date': '2026-09-${i.toString().padLeft(2, '0')}', 'requests': 1234 * i, 'cost_usd': i * 14.5, 'by_feature': {'support': i * 5.0, 'listing_assist': i * 4.0, 'recommend': i * 2.5, 'moderation': i * 1.0, 'book_chat_pick': i * 1.0, 'enrich': i * 0.5, 'admin_assist': i * 0.5}},
       ],
       'top_users': many((i) => {'user_public_id': '0123456789abcdef0123456789abcde$i', 'nickname': longName, 'requests': 1234567, 'cost_usd': 12345.6789}, 5),
-      'recent_errors': many((i) => {'created_at': now, 'feature': 'listing_assist', 'provider': 'openai', 'model': 'gpt-5-nano-2025-08-07-very-long-model-identifier', 'error_code': i.isEven ? 'QUOTA' : 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM', if (i.isEven) 'error_detail': 'You exceeded your current quota. Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: gemini-3.1-flash-lite ' * 3}, 6),
+      'recent_errors': many((i) => {'created_at': now, 'feature': 'listing_assist', 'provider': 'openai', 'model': 'gpt-5-nano-2025-08-07-very-long-model-identifier', 'error_code': i.isEven ? 'QUOTA' : (i == 3 ? 'BUDGET_EXCEEDED' : 'SOME_VERY_LONG_UNMAPPED_PROVIDER_ERROR_CODE_FROM_UPSTREAM'), if (i.isEven) 'error_detail': 'You exceeded your current quota. Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: gemini-3.1-flash-lite ' * 3}, 6),
       'pending_reviews': 9999,
+      'unreviewed_listings': 123456,
+    };
+
+Map<String, dynamic> aiDecisionsData() => {
+      'period': 'month',
+      'features': [
+        {'feature': 'support', 'total': 1234567, 'outcomes': {'ok': 1000000, 'repaired': 1234, 'degraded': 200000, 'empty': 333, 'refused': 1000, 'failed': 32000}, 'paths': {'answer': 1000000, 'guarded': 34567, 'passage': 200000, 'future_path_code': 5}, 'flags': {'handoff': 123456, 'insufficient': 7890, 'degraded': 200000}, 'averages': {'docs': 5.67, 'history': 11.2}},
+        {'feature': 'book_chat', 'total': 98765, 'outcomes': {'ok': 90000, 'degraded': 8765}, 'paths': {'clarify': 1234, 'picked': 80000, 'declined': 5000, 'retrieval': 8765, 'popular': 3766}, 'flags': {'continued': 23456, 'inherited': 345, 'unmatched': 999, 'invalid_picks': 12}, 'averages': {'candidates': 29.4, 'fillers': 11.8, 'books': 5.2}},
+        {'feature': 'recommend', 'total': 0, 'outcomes': {}, 'paths': {}, 'flags': {}, 'averages': {}},
+        {'feature': 'listing_assist', 'total': 4321, 'outcomes': {'ok': 4000, 'repaired': 21, 'degraded': 300}, 'paths': {'model': 4021, 'bibliographic': 300}, 'flags': {'used_search': 3000, 'search_retry': 400, 'backup': 12, 'condition_adjusted': 88}, 'averages': {'photos': 3.4, 'sources': 2.1}},
+      ],
+      'prompt_versions': many((i) => {'feature': ['support', 'book_chat', 'book_chat_pick', 'listing_assist', 'moderation'][i % 5], 'prompt_version': '3f9c2a7b41d$i', 'requests': 1234567, 'errors': 12345, 'degraded': 2345, 'repaired': 12, 'first_at': now, 'last_at': now}, 5),
+      'embedding_by_origin': [
+        for (final o in ['index', 'book_chat', 'support', 'book_search', 'similar_books', 'recommend'])
+          {'origin': o, 'requests': 1234567, 'cost_usd': 1234.567891},
+      ],
+    };
+
+Map<String, dynamic> aiQualityData() => {
+      'period': 'month',
+      'moderation': {
+        'decisions': 123456,
+        'overturned': 12345,
+        'rate': 0.1,
+        'by_category': [
+          for (final c in ['source', 'contact', 'not_book', 'misleading', 'price', 'unspecified'])
+            {'category': c, 'decisions': 99999, 'overturned': 9999, 'rate': 0.1},
+        ],
+        'by_origin': [
+          {'origin': 'ai', 'decisions': 99999, 'overturned': 9999, 'rate': 0.1},
+          {'origin': 'rules', 'decisions': 0, 'overturned': 0, 'rate': null},
+        ],
+      },
+      'support': {
+        'sessions': 1234567, 'escalated': 123456, 'handoff_rate': 0.1, 'rated': 99999, 'unhelpful': 9999, 'negative_rate': 0.1,
+        'reasons': {'inaccurate': 9999, 'off_topic': 999, 'incomplete': 99, 'other': 9},
+      },
+      'book_chat': {
+        'replies': 1234567, 'without_books': 123456, 'no_books_rate': 0.1, 'rated': 0, 'unhelpful': 0, 'negative_rate': null,
+        'reasons': {'books_mismatch': 9999},
+      },
+      'dispute_assist': {'resolved': 99999, 'agreed': 88888, 'agreement_rate': 0.8889, 'rated': 0, 'helpful': 0, 'helpful_rate': null},
+      'recommendations': {
+        'ai': {'impressions': 123456789, 'clicks': 1234567, 'ctr': 0.01},
+        'rules': {'impressions': 123456789, 'clicks': 12345, 'ctr': 0.0001},
+        'not_interested': 99999,
+      },
+      'listing_assist': {
+        'listings': 99999,
+        'fields': [
+          for (final f in ['title', 'author', 'publisher', 'publish_date', 'isbn', 'description', 'category_id', 'condition_level', 'price'])
+            {'field': f, 'suggested': 99999, 'adopted': 88888, 'rate': 0.8889},
+        ],
+      },
+      'faqs_from_tickets': 99999,
     };
 
 Map<String, dynamic> aiReviewRow(int i) => {
@@ -438,16 +558,39 @@ Map<String, dynamic> aiReviewRow(int i) => {
       'reasons': ['The description includes a phone number and asks buyers to pay outside the platform', 'The photos appear to show a phone case rather than a book'],
       'categories': ['contact', 'not_book', 'misleading', 'price'],
       'status': 'pending',
+      'model': i.isOdd ? 'rules' : 'gpt-5-nano',
       'created_at': now,
+      if (i.isOdd)
+        'ai_opinion': {
+          'verdict': ['allow', 'review', 'reject'][i % 3],
+          'confidence': 0.8,
+          'categories': ['source'],
+          'reasons': ['The back cover shows a partially covered library barcode label next to the ISBN barcode'],
+        },
     };
 
 const aiSupportLong = 'You can drop the book off at any smart locker.\n\n**Steps**\n- Open the order and tap Drop off\n- Scan the QR code on the locker screen\n1. Put the book in the open slot and close the door firmly so that it locks\n2. Wait for the confirmation notification';
 
 List<AiChatItem> aiSupportItems() => [
       AiChatItem(id: 'a', isUser: true, content: 'How do I drop off a book I sold? ' * 3, animate: false),
-      AiChatItem(id: 'b', isUser: false, content: aiSupportLong, animate: false),
+      AiChatItem(
+        id: 'b',
+        isUser: false,
+        content: aiSupportLong,
+        animate: false,
+        messageNo: 'AS0000002',
+        feedback: const AiMessageFeedback(rating: 'unhelpful', reason: 'inaccurate'),
+      ),
       AiChatItem(id: 'c', isUser: true, content: 'The locker did not open after scanning and my order is stuck', animate: false),
-      AiChatItem(id: 'd', isUser: false, content: 'I am sorry about that. This needs a staff member to check the locker log.', suggestHandoff: true, animate: false),
+      AiChatItem(
+        id: 'd',
+        isUser: false,
+        content: 'I am sorry about that. This needs a staff member to check the locker log.',
+        suggestHandoff: true,
+        animate: false,
+        orderNos: const ['SMB20260914103000123456', 'SMB20260914103000654321'],
+        messageNo: 'AS0000004',
+      ),
       AiChatItem(id: 'e', isUser: true, content: 'Please transfer me', state: AiChatState.failed, error: 'The AI service is temporarily unavailable. Please try again later.', animate: false),
       AiChatItem(id: 'f', isUser: true, content: 'One more question', state: AiChatState.failed, error: 'You have reached today\'s AI usage limit. Please try again tomorrow.', blocked: true, animate: false),
     ];
@@ -465,6 +608,8 @@ List<AiBookChatItem> aiBookChatItems() {
       books: [for (final b in books) AiBookSuggestion(book: b, reason: longReason)],
       suggestions: const ['Any Japanese authors?', 'Something even cheaper please', 'Show me hardcovers only'],
       animate: false,
+      messageNo: 'AC0000002',
+      feedback: const AiMessageFeedback(rating: 'helpful'),
     ),
     AiBookChatItem(id: 'c', isUser: true, content: 'Anything without a cliffhanger?', state: AiBookChatState.failed, error: 'The AI service is temporarily unavailable. Please try again later.', animate: false),
     AiBookChatItem(id: 'd', isUser: true, content: 'One more question', state: AiBookChatState.failed, error: 'You have reached today\'s AI usage limit. Please try again tomorrow.', blocked: true, animate: false),
@@ -477,7 +622,11 @@ AiListingAssist aiAssistResult() => AiListingAssist.fromJson({
       'category': {'category_id': 2, 'name': 'Computer Science & Programming', 'confidence': 0.82},
       'condition': {'level': 'good', 'confidence': 0.45, 'reasons': ['Slight wear on the cover corners and a crease along the spine', 'No visible water damage']},
       'price': {'suggested': 12345, 'min': 10000, 'max': 99999, 'original_price': 99999, 'currency': 'TWD', 'reasons': ['List price 99999, good condition, about half of the list price']},
-      'sources': [{'title': 'Open Library: The Extraordinarily Long Title of a Second-hand Book', 'url': 'https://openlibrary.org/books/OL1M'}, {'title': '', 'url': 'https://www.books.com.tw/products/0010000000'}],
+      'sources': [
+        {'title': 'Open Library: The Extraordinarily Long Title of a Second-hand Book', 'url': 'https://openlibrary.org/books/OL1M'},
+        {'title': 'extraordinarily-long-bookstore-domain-name.com.tw', 'url': 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/AbCdEf', 'domain': 'extraordinarily-long-bookstore-domain-name.com.tw'},
+        {'title': '', 'url': 'https://www.books.com.tw/products/0010000000'},
+      ],
       'warnings': ['The photos were too dark to judge the condition reliably; add a clear photo of the spine'],
       'provider': 'gemini',
       'model': 'gemini-3.1-flash-lite',
@@ -503,10 +652,12 @@ Object? fakeData(String method, String path) {
     'GET /users/me/deletion': () => {'pending': false, 'grace_days': 30},
     'GET /users/me/qrcode': () => {'user_id': 1, 'nickname': longName, 'qr_data': 'https://api.savemybook.today/u/0123456789abcdef0123456789abcdef'},
     'GET /books': () => many((i) => {
-          ...book(i),
+          ...book(i, status: const {5: 'reserved', 6: 'removed'}[i] ?? 'on_sale'),
           'review_status': i == 2 ? 'pending' : (i == 3 ? 'rejected' : null),
           if (i == 4) 'reservation': {'reserved_until': DateTime.now().add(const Duration(hours: 30)).toIso8601String()},
-        }),
+          'in_cabinet': i == 1,
+          'deposit': i == 1 ? deposit(3) : (i == 6 ? deposit(12, paused: true) : null),
+        }, 6),
     'GET /books/5/similar': () => many((i) => book(i + 10)),
     'GET /chat/reservations/mine': () => many((i) => {
           'reservation_id': i,
@@ -520,19 +671,39 @@ Object? fakeData(String method, String path) {
           'created_at': now,
         }),
     'GET /ai/status': () => {'support': true, 'listing_assist': true, 'recommend': true, 'book_chat': true, 'web_search': true, 'consented': true, 'providers_in_use': ['DeepSeek', 'Google Gemini', 'OpenAI']},
-    'GET /ai/support/session': () => {'session_id': 1, 'status': 'open', 'messages': [for (final (i, m) in aiSupportItems().take(4).indexed) {'message_id': i + 1, 'role': m.isUser ? 'user' : 'assistant', 'content': m.content, 'created_at': now}]},
+    'GET /ai/support/session': () => {'session_id': 1, 'status': 'open', 'messages': [for (final (i, m) in aiSupportItems().take(4).indexed) {'message_id': i + 1, 'role': m.isUser ? 'user' : 'assistant', 'content': m.content, 'created_at': now, 'order_nos': m.orderNos, 'message_no': m.messageNo, 'feedback': m.isUser ? null : {'rating': 'helpful', 'reason': null}}]},
     'GET /ai/recommendations': () => many((i) => {'book': book(i), 'reason': longReason}, 6),
     'GET /ai/book-chat/session': () => {
           'session_id': 8,
           'messages': [
             {'message_id': 1, 'role': 'user', 'content': 'I want a mystery novel for my commute, under 300 coins', 'books': <Object>[], 'created_at': now},
-            {'message_id': 2, 'role': 'assistant', 'content': aiChatReply, 'books': many((i) => {'book': book(i), 'reason': longReason}, 6), 'created_at': now},
+            {'message_id': 2, 'role': 'assistant', 'content': aiChatReply, 'books': many((i) => {'book': book(i), 'reason': longReason}, 6), 'created_at': now, 'message_no': 'AC0000002'},
           ],
         },
     'GET /admin/ai/settings': aiSettingsData,
     'GET /admin/ai/usage': aiUsageData,
+    'GET /admin/ai/decisions': aiDecisionsData,
+    'GET /admin/ai/quality': aiQualityData,
     'GET /admin/ai/reviews': () => many(aiReviewRow, 5),
-    'GET /books/5': () => {...book(5), 'enrichment': {'fields': ['description', 'author', 'publisher'], 'ai_written': true}},
+    'GET /books/5': () => {...book(5), 'in_cabinet': true, 'enrichment': {'fields': ['description', 'author', 'publisher'], 'ai_written': true}},
+    'GET /admin/cabinets/deposits': () => many((i) => {
+          'book_id': i,
+          'book_no': 'BK3KER74$i',
+          'title': longTitle,
+          'book_status': i.isEven ? 'removed' : 'on_sale',
+          'image_url': null,
+          'seller': {'user_id': 2, 'user_no': 'MB7Q2XK9D', 'nickname': longName, 'avatar_url': null, 'deleted': i == 3},
+          'cabinet': cabinet(),
+          'deposited_at': now,
+          'days_stored': [2, 9, 15, 123][i % 4],
+          'paused': i == 2 || i == 3,
+          'paused_at': i == 2 || i == 3 ? now : null,
+          'reminded_at': i == 2 || i == 3 ? now : null,
+          'escalated': i >= 3,
+          'escalated_at': i >= 3 ? now : null,
+          'overdue': i >= 3,
+          'door': i.isOdd ? {'slot_id': 40 + i, 'label': 'A0$i'} : null,
+        }),
     'GET /categories': () => [
           {'category_id': 1, 'category_name': 'Literature & Fiction Classics', 'parent_id': null, 'sort_order': 0, 'other_book_categories': <Object>[]},
           {'category_id': 2, 'category_name': 'Computer Science & Programming', 'parent_id': null, 'sort_order': 1, 'other_book_categories': <Object>[]},
@@ -628,7 +799,7 @@ Object? fakeData(String method, String path) {
           'samples': many((j) => {'content': 'Please send me the verification code from your text message so I can finish the payment for you. ' * 2, 'categories': ['credential', 'scam', 'link', 'payment', 'offsite', 'contact'], 'created_at': now}, 3),
         }),
     'GET /admin/disputes': () => many((i) => {'dispute_id': i, 'order_id': i, 'reason': 'The book has water damage ' * 3, 'status': i.isEven ? 'resolved' : 'pending', 'result': i.isEven ? 'refund_manual' : null, 'created_at': now, 'users_transaction_disputes_applicant_idTousers': user(1), 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'total_amount': 1234567, 'users_orders_buyer_idTousers': user(1), 'users_orders_seller_idTousers': user(2), 'order_items': [{'books': book(i)}]}}),
-    'GET /admin/cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'latitude': 25.0173, 'longitude': 121.5398, 'total_slots': 200, 'available_slots': 123, 'is_active': i != 2, 'slot_summary': {'empty': 123, 'occupied': 45, 'reserved': 22, 'maintenance': 10}, 'cabinet_slots': many((j) => {'slot_id': j, 'slot_number': 'A${j.toString().padLeft(2, '0')}', 'status': 'occupied', 'updated_at': now}, 8)}),
+    'GET /admin/cabinets': () => many((i) => {...cabinet(), 'cabinet_id': i, 'latitude': 25.0173, 'longitude': 121.5398, 'total_slots': 200, 'available_slots': 123, 'is_active': i != 2, 'slot_summary': {'empty': 123, 'occupied': 45, 'reserved': 22, 'maintenance': 10}, 'cabinet_slots': many((j) => {'slot_id': j, 'slot_number': 'A${j.toString().padLeft(2, '0')}', 'status': 'occupied', 'updated_at': now, 'lock_channel': i == 1 && j <= 4 ? j : null, 'check_required_at': i == 1 && j == 2 ? now : null}, 8), 'device': i == 1 ? {'device_no': 'DV3K9QX2M', 'kind': 'esp32', 'status': 'active', 'online': false, 'last_seen_at': now} : (i == 3 ? {'device_no': 'DV7Q2M4XA', 'kind': 'simulator', 'status': 'pending', 'online': false} : null)}),
     'GET /admin/maintenance-logs': () => many((i) => {'log_id': i, 'action': 'Changed slot status', 'detail': 'Changed A12 at $longCabinet to maintenance', 'users': user(9), 'created_at': now}),
     'GET /admin/wallets': () => many((i) => {...user(i), 'balance': 9876543.5, 'frozen_amount': 0, 'total_income': 98765432, 'total_expense': 12345678}),
     'GET /admin/levels': () => many((i) => {'level_id': i, 'level_name': 'Platinum Collector Elite $i', 'min_points': (i - 1) * 1000000, 'max_points': i * 1000000 - 1, 'benefits': 'Free delivery, priority support and exclusive early access', 'member_count': 1234567 * i}),
@@ -639,6 +810,13 @@ Object? fakeData(String method, String path) {
     'GET /admin/deletions': () => many((i) => {...user(i), 'deletion_requested_at': now, 'purge_at': now}),
     'GET /admin/operation-logs': () => many((i) => {'log_id': i, 'action': 'Changed member status', 'target_type': 'user', 'target_id': i, 'summary': 'Changed account status and blocklist for $longName (alexandria.montgomery@example.com)', 'changes': [{'label': 'Account status', 'from': 'Active', 'to': 'Suspended'}, {'label': 'Price', 'from': '123456789 coins', 'to': '987654321 coins'}], 'can_undo': i.isOdd, 'reverted': i == 4 ? {'at': now, 'by': 9} : null, 'created_at': now, 'admin': user(9)}),
     'GET /announcements/all': () => many((i) => {'announcement_id': i, 'title': 'Scheduled maintenance for the smart locker network this weekend', 'content': 'Content ' * 20, 'type': ['general', 'maintenance', 'promotion', 'policy'][i % 4], 'is_published': i.isOdd, 'published_at': now, 'created_at': now, 'users': user(9)}),
+    'GET /admin/cabinets/3/device': adminCabinetDeviceData,
+    'GET /admin/cabinets/3/manual-reports': () => many(adminCabinetManualReport, 2),
+    'GET /admin/cabinets/3/sessions': () => many((i) => adminCabinetSessionRow(i, i == 1 ? 'needs_review' : 'partial')),
+    'GET /admin/cabinets/3/events': () => many(adminCabinetEvent, 7),
+    'GET /admin/cabinet-sessions/CS8MZQ41K': adminCabinetSessionDetail,
+    'GET /admin/cabinets/5/device': () => {...adminCabinetDeviceData(), 'device': null, 'pairing': null, 'active_session_no': null},
+    'GET /admin/cabinet-sessions/CSADMIN02': adminCabinetRemoteOpenDetail,
   };
 
   final key = '$method $path';
@@ -699,12 +877,88 @@ Map<String, Widget Function()> get screens => {
       'Favorites': () => const FavoritesScreen(),
       'BookDetail': () => BookDetailScreen(book: Book.fromJson(book(5))),
       'BookManage': () => const BookManageScreen(),
+      'BookManageSeller': () => const AsSeller(child: BookManageScreen()),
+      'BookManageSellerSold': () => const AsSeller(child: BookManageScreen(initialFilter: 'reserved')),
+      'BookManageSellerRetrieval': () => const AsSeller(child: BookManageScreen(initialFilter: 'pending_retrieval')),
+      'BookDetailSellerPaused': () => AsSeller(
+          child: BookDetailScreen(book: Book.fromJson({...book(8, status: 'removed'), 'deposit': deposit(12, paused: true)}))),
+      'BookDetailSellerDeposited': () => AsSeller(child: BookDetailScreen(book: Book.fromJson({...book(9), 'deposit': deposit(0)}))),
+      'BookDetailSellerDropOff': () => AsSeller(child: BookDetailScreen(book: Book.fromJson({...book(9), 'deposit': null}))),
+      'DropOffConfirm': () => DialogPreview(show: (context) => confirmBookDeposit(context, Book.fromJson(book(9)))),
+      'OrderDropOffConfirm': () => DialogPreview(
+          show: (context) => confirmOrderDeposit(
+              context,
+              Order.fromJson({
+                ...order(7, 'pending_deposit'),
+                'order_items': [
+                  for (final id in [5, 6, 7]) {'item_id': id, 'book_id': id, 'quantity': 1, 'unit_price': 123456, 'subtotal': 123456, 'books': book(id)},
+                ],
+              }))),
+      'RetrievalConfirm': () => DialogPreview(
+          show: (context) => confirmBookRetrieval(context, Book.fromJson({...book(9), 'deposit': deposit(3)}))),
+      'EditBookDetailDeposited': () => EditBookDetailScreen(
+          book: Book.fromJson({...book(9), 'deposit': deposit(3)}),
+          isbn: '9789571234567',
+          title: longTitle,
+          author: '',
+          publisher: '',
+          publishDate: '',
+          categoryId: 1),
+      'InCabinetBuyNowConfirm': () => DialogPreview(show: (context) => confirmInCabinetPurchase(context)),
+      'InCabinetCheckoutConfirm': () => DialogPreview(show: (context) => confirmInCabinetPurchase(context, fromCart: true)),
       'SellBook': () => const SellBookScreen(),
       'PurchaseHistory': () => const PurchaseHistoryScreen(),
       'SalesHistory': () => const SalesHistoryScreen(),
+      'SalesHistoryOnSale': () => const AsSeller(child: SalesHistoryScreen(initialTab: 'on_sale')),
       'OrderDetail': () => OrderDetailScreen(order: Order.fromJson(order(7, 'deposited'))),
       'OrderDetailSeller': () => OrderDetailScreen(order: Order.fromJson(order(7, 'refunding')), asSeller: true),
-      'Dispute': () => const DisputeScreen(orderId: 7),
+      'OrderDetailCabinetPending': () => OrderDetailScreen(
+          order: Order.fromJson({...order(9, 'deposited'), 'doors': ['A01', 'A02'], 'cabinet_access': cabinetAccess('scan'), 'manual_report': manualReport('pickup')})),
+      'OrderDetailSellerCabinet': () => OrderDetailScreen(
+          order: Order.fromJson({...order(9, 'pending_deposit'), 'doors': <String>[], 'cabinet_access': cabinetAccess('scan')}), asSeller: true),
+      'BookDetailSellerCabinetLocation': () => AsSeller(
+          child: BookDetailScreen(
+              book: Book.fromJson({
+            ...book(11, status: 'removed'),
+            'deposit': null,
+            'cabinet_access': cabinetAccess('scan'),
+            'location': {'cabinet_id': 4, 'cabinet_name': longCabinet, 'door': 'A03', 'retrievable': true, 'access': cabinetAccess('scan')},
+          }))),
+      'BookDetailSellerManualPending': () => AsSeller(
+          child: BookDetailScreen(
+              book: Book.fromJson({...book(12), 'deposit': null, 'cabinet_access': cabinetAccess('manual', reason: 'offline'), 'manual_report': manualReport('deposit')}))),
+      'PickupTab': () => const PickupBookScreen(isActive: true, scanInput: Stream.empty()),
+      'CabinetScan': () => const CabinetFlowScreen(scanInput: Stream.empty()),
+      'CabinetConfirm': () => CabinetFlowScreen(resume: cabinetSession('selecting')),
+      'CabinetMatch': () => CabinetFlowScreen(resume: cabinetSession('matching')),
+      'CabinetOpening': () => CabinetFlowScreen(resume: cabinetSession('opening')),
+      'CabinetOpen': () => CabinetFlowScreen(resume: cabinetSession('open', remainingMs: 44000)),
+      'CabinetOpenCloseDoorFirst': () => CabinetFlowScreen(resume: cabinetSession('open', remainingMs: 44000, notice: 'CLOSE_DOOR_FIRST')),
+      'CabinetResultDone': () => CabinetFlowScreen(
+          resume: cabinetSession('completed',
+              remainingMs: null,
+              result: {'outcome': 'completed', 'code': 'COMPLETED', 'message': ''},
+              items: [cabinetItem('order_deposit', 'order:8', ['A01'], result: 'done'), cabinetItem('retrieval', 'book:10', ['A03'], result: 'done')])),
+      'CabinetResultPartial': () => CabinetFlowScreen(
+          resume: cabinetSession('partial',
+              remainingMs: null,
+              result: {'outcome': 'partial', 'code': 'ITEMS_FAILED', 'message': ''},
+              items: [
+                cabinetItem('order_deposit', 'order:8', ['A01'], result: 'failed', error: {'code': 'DOOR_CONFLICT', 'message': ''}),
+                cabinetItem('retrieval', 'book:10', ['A03'], result: 'done'),
+              ])),
+      'CabinetResultReview': () => CabinetFlowScreen(
+          resume: cabinetSession('needs_review', remainingMs: null, result: {'outcome': 'needs_review', 'code': 'DEVICE_INTERRUPTED', 'message': ''})),
+      'CabinetError': () => CabinetFlowScreen(
+          cabinetContext: const CabinetContext.order(7),
+          controller: CabinetFlowController(cabinetContext: const CabinetContext.order(7))
+            ..fail(CabinetApiError(code: 'CABINET_WRONG_CABINET', extra: {'cabinet': {...cabinet(), 'latitude': 25.0173, 'longitude': 121.5398}}))),
+      'CabinetErrorOffline': () => CabinetFlowScreen(
+          controller: CabinetFlowController(cabinetContext: const CabinetContext.order(7))
+            ..fail(const CabinetApiError(code: 'CABINET_OFFLINE', extra: {'manual_allowed': true}))),
+      'CabinetErrorLocation': () => CabinetFlowScreen(
+          controller: CabinetFlowController()..fail(const CabinetApiError(code: CabinetApiError.locationRequired))),
+      'Dispute': () => const DisputeScreen(orderNo: 'SMB20260914103000123456'),
       'Notifications': () => const NotificationScreen(),
       'NotificationsTrade': () => const NotificationScreen(initialCategory: NotificationCategory.trade),
       'NotificationsEmptyCategory': () => const NotificationScreen(initialCategory: NotificationCategory.service),
@@ -761,6 +1015,11 @@ Map<String, Widget Function()> get screens => {
       'AdminRiskAlerts': () => const AdminReportScreen(initialTab: AdminReportScreen.riskAlertTab),
       'AdminDisputes': () => const AdminDisputeScreen(),
       'AdminCabinets': () => const AdminCabinetScreen(),
+      'AdminCabinetDeposits': () => const AdminCabinetDepositScreen(),
+      'AdminCabinetDepositsOverdue': () => const AdminCabinetDepositScreen(initialOverdue: true),
+      'DepositRemovalConfirm': () => DialogPreview(
+          show: (context) => confirmDepositRemoval(
+              context, CabinetDeposit.fromJson({'book_id': 1, 'title': longTitle, 'cabinet': cabinet(), 'days_stored': 15}))),
       'AdminMaintenanceLog': () => const AdminMaintenanceLogScreen(),
       'AdminWallets': () => const AdminWalletScreen(),
       'AdminLevels': () => const AdminLevelScreen(),
@@ -773,7 +1032,7 @@ Map<String, Widget Function()> get screens => {
       'AdminAnnouncements': () => const AdminAnnouncementScreen(),
       'AdminAiUsage': () => const AdminAiScreen(),
       'AdminAiSettings': () => const AdminAiScreen(initialTab: 1, initialAdvancedOpen: true),
-      'AdminAiReview': () => const AdminAiScreen(initialTab: 2),
+      'AdminAiDecisions': () => const AdminAiScreen(initialTab: 2),
       'AiSupport': () => const AiSupportScreen(),
       'AiSupportStates': () => AiSupportScreen(initialItems: aiSupportItems()),
       'AiBookChat': () => const AiBookChatScreen(),
@@ -794,7 +1053,14 @@ Map<String, Widget Function()> get screens => {
       'AiRecommendStrip': () => const AiRecommendStripPreview(),
       'AiConsentSheet': () => DialogPreview(
           show: (context) => showAiConsentSheet(context,
-              status: const AiStatusInfo(support: true, listingAssist: true, recommend: true, providersInUse: ['DeepSeek', 'Google Gemini', 'OpenAI']))),
+              status: const AiStatusInfo(
+                  support: true,
+                  listingAssist: true,
+                  recommend: true,
+                  bookChat: true,
+                  consentOutdated: true,
+                  providersInUse: ['DeepSeek', 'Google Gemini', 'OpenAI'],
+                  embeddingProvider: 'OpenAI'))),
       'AiConsentSheetSingle': () => DialogPreview(
           show: (context) => showAiConsentSheet(context, status: const AiStatusInfo(listingAssist: true, providersInUse: ['Google Gemini']))),
       'AdminDeleteBookDialog': () => DialogPreview(
@@ -816,6 +1082,32 @@ Map<String, Widget Function()> get screens => {
       'ImageCropSquare': () => const CropViewPreview(aspectRatio: 1),
       'ImageCropWide': () => const CropViewPreview(aspectRatio: 4 / 3),
       'ImageCropCircle': () => const CropViewPreview(circular: true),
+      'AdminCabinetDevice': () => const AdminCabinetDeviceScreen(cabinetId: 3),
+      'AdminCabinetOpenSheet': () => DialogPreview(
+          show: (context) => showAdminCabinetOpenSheet(context,
+              cabinetId: 3, slotId: 44, label: 'A04', cabinetName: longCabinet, allowForce: true, initialReason: longTitle)),
+      'AdminCabinetSessionSheet': () => DialogPreview(show: (context) => showAdminCabinetSessionSheet(context, 'CS8MZQ41K')),
+      'AdminCabinetDeviceUnpaired': () => const AdminCabinetDeviceScreen(cabinetId: 5),
+      'AdminCabinetPairingWaiting': () => DialogPreview(
+          show: (context) => showAdminCabinetPairingDialog(context,
+              cabinetId: 3, paired: adminCabinetPairResult(pending: true), previousDeviceNo: 'DV3K9QX2M')),
+      'AdminCabinetPairingFailed': () => DialogPreview(
+          show: (context) => showAdminCabinetPairingDialog(context,
+              cabinetId: 3, paired: adminCabinetPairResult(pending: false), previousDeviceNo: 'DV3K9QX2M')),
+      'AdminCabinetOpenMatch': () => DialogPreview(
+          show: (context) => showAdminCabinetOpenSheet(context,
+              cabinetId: 3,
+              slotId: 44,
+              label: 'A04',
+              cabinetName: longCabinet,
+              resume: const AdminCabinetRemoteOpen(sessionNo: 'CSADMIN01', status: 'matching', remainingMs: 60000))),
+      'AdminCabinetOpenCloseDoorFirst': () => DialogPreview(
+          show: (context) => showAdminCabinetOpenSheet(context,
+              cabinetId: 3,
+              slotId: 44,
+              label: 'A04',
+              cabinetName: longCabinet,
+              resume: const AdminCabinetRemoteOpen(sessionNo: 'CSADMIN02', status: 'open', remainingMs: 110000))),
     };
 
 AiListingTargets aiAssistTargets() => AiListingTargets(
@@ -841,7 +1133,11 @@ class AiRecommendStripPreview extends StatelessWidget {
         children: [
           DiscoveryPanel(tabs: [
             DiscoveryTab(id: 'picked', title: 'Picked for you', icon: Icons.auto_awesome_rounded, books: books, groups: [
-              DiscoveryGroup(title: 'Because you saved "$longTitle"', books: books.take(3).toList()),
+              DiscoveryGroup(
+                title: 'Because you saved "$longTitle"',
+                books: books.take(3).toList(),
+                reasons: {1: 'Continues the hands-on machine learning topic of a saved book', 2: 'Same author'},
+              ),
               DiscoveryGroup(title: 'More picks', books: books.skip(3).toList()),
             ]),
           ]),
@@ -1124,6 +1420,25 @@ class _FakeBiometrics extends LocalAuthPlatform {
   Future<List<BiometricType>> getEnrolledBiometrics() async => [BiometricType.face];
 }
 
+class AsSeller extends StatefulWidget {
+  final Widget child;
+  const AsSeller({super.key, required this.child});
+
+  @override
+  State<AsSeller> createState() => _AsSellerState();
+}
+
+class _AsSellerState extends State<AsSeller> {
+  @override
+  void initState() {
+    super.initState();
+    ApiService.currentUser = User.fromJson(user(2));
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
 class _WithBiometrics extends StatefulWidget {
   final Widget child;
   const _WithBiometrics({required this.child});
@@ -1164,7 +1479,6 @@ class _PhoneSmsCodePreviewState extends State<PhoneSmsCodePreview> {
   @override
   void initState() {
     super.initState();
-    // 假的 Firebase 會同步回呼，狀態在第一次 build 之前就已經是「已寄出驗證碼」。
     _controller.send('+886912345678');
   }
 
@@ -1178,7 +1492,6 @@ class _PhoneSmsCodePreviewState extends State<PhoneSmsCodePreview> {
   Widget build(BuildContext context) => SmsCodeScreen(controller: _controller);
 }
 
-// 一張上傳中、一張失敗、兩張完成，涵蓋縮圖上所有狀態的疊加層。
 TicketAttachmentController previewAttachments() {
   final controller = TicketAttachmentController(
     preparer: (path) async => path,
@@ -1206,6 +1519,80 @@ const locales = [Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'), Loc
 const sizes = [Size(360, 740), Size(390, 844)];
 const wideSizes = [Size(768, 1024), Size(1180, 820), Size(1440, 900)];
 const wideLocales = ['zh-Hant', 'en'];
+const largeTextScale = 2.0;
+const largeTextLocales = [Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'), Locale('en')];
+const largeTextScreens = ['Profile', 'Wallet'];
+
+Future<void> checkLayout(
+  WidgetTester tester,
+  List<String> problems,
+  String name,
+  Locale locale,
+  Size size, {
+  double textScale = 1,
+}) async {
+  ApiService.authToken = 'test-token';
+  ApiService.currentUser = testUser;
+
+  final errors = <String>[];
+  final previous = FlutterError.onError;
+  FlutterError.onError = (details) {
+    final text = details.exceptionAsString();
+    if (text.contains('overflowed')) {
+      final dump = details.toString();
+      if (const bool.fromEnvironment('DUMP')) debugPrint(dump);
+      final where = RegExp(r'/lib/([\w/]+\.dart:\d+)').allMatches(dump).map((m) => m.group(1)).toSet().take(2).join(' ← ');
+      errors.add('${text.split('\n').first} @ $where');
+    } else if (!text.contains('NetworkImageLoadException') && !text.contains('HTTP request failed')) {
+      if (const bool.fromEnvironment('DUMP')) debugPrint(details.toString());
+      errors.add('[例外] ${text.split('\n').first}');
+    }
+  };
+
+  tester.view.physicalSize = size * 3;
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+
+  await http.runWithClient(() async {
+    await tester.pumpWidget(MaterialApp(
+      locale: locale,
+      supportedLocales: LocaleProvider.supported,
+      theme: AppTheme.build(Brightness.light),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) {
+        S = AppLocalizations.of(context);
+        final page = child ?? const SizedBox.shrink();
+        if (textScale == 1) return page;
+        return MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)), child: page);
+      },
+      home: screens[name]!(),
+    ));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    if (textScale != 1) {
+      for (final paragraph in tester.renderObjectList<RenderParagraph>(find.byType(RichText))) {
+        if (paragraph.textSize.height > paragraph.size.height + 0.5) {
+          errors.add('[文字裁切] ${paragraph.text.toPlainText().split('\n').first}');
+        }
+      }
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 3));
+  }, fakeApi);
+
+  FlutterError.onError = previous;
+  final label = textScale == 1 ? '' : ' ${textScale}x';
+  for (final e in errors.toSet()) {
+    problems.add('$name [${locale.toLanguageTag()} ${size.width.toInt()}$label] $e');
+  }
+  expect(errors.toSet(), isEmpty, reason: '版面溢出或元件例外');
+}
 
 void main() {
   final problems = <String>[];
@@ -1226,61 +1613,181 @@ void main() {
 
   for (final locale in locales) {
     for (final size in [...sizes, if (wideLocales.contains(locale.toLanguageTag())) ...wideSizes]) {
-      for (final entry in screens.entries) {
-        testWidgets('${entry.key} ${locale.toLanguageTag()} ${size.width.toInt()}', (tester) async {
-          ApiService.authToken = 'test-token';
-          ApiService.currentUser = testUser;
+      for (final name in screens.keys) {
+        testWidgets('$name ${locale.toLanguageTag()} ${size.width.toInt()}', (tester) => checkLayout(tester, problems, name, locale, size));
+      }
+    }
+  }
 
-          final errors = <String>[];
-          final previous = FlutterError.onError;
-          FlutterError.onError = (details) {
-            final text = details.exceptionAsString();
-            if (text.contains('overflowed')) {
-              final dump = details.toString();
-              if (const bool.fromEnvironment('DUMP')) debugPrint(dump);
-              final where = RegExp(r'/lib/([\w/]+\.dart:\d+)').allMatches(dump).map((m) => m.group(1)).toSet().take(2).join(' ← ');
-              errors.add('${text.split('\n').first} @ $where');
-            } else if (!text.contains('NetworkImageLoadException') && !text.contains('HTTP request failed')) {
-              if (const bool.fromEnvironment('DUMP')) debugPrint(details.toString());
-              errors.add('[例外] ${text.split('\n').first}');
-            }
-          };
-
-          tester.view.physicalSize = size * 3;
-          tester.view.devicePixelRatio = 3;
-          addTearDown(tester.view.reset);
-
-          await http.runWithClient(() async {
-            await tester.pumpWidget(MaterialApp(
-              locale: locale,
-              supportedLocales: LocaleProvider.supported,
-              theme: AppTheme.build(Brightness.light),
-              localizationsDelegates: const [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              builder: (context, child) {
-                S = AppLocalizations.of(context);
-                return child ?? const SizedBox.shrink();
-              },
-              home: entry.value(),
-            ));
-            for (var i = 0; i < 8; i++) {
-              await tester.pump(const Duration(milliseconds: 250));
-            }
-            await tester.pumpWidget(const SizedBox.shrink());
-            await tester.pump(const Duration(seconds: 3));
-          }, fakeApi);
-
-          FlutterError.onError = previous;
-          for (final e in errors.toSet()) {
-            problems.add('${entry.key} [${locale.toLanguageTag()} ${size.width.toInt()}] $e');
-          }
-          expect(errors.toSet(), isEmpty, reason: '版面溢出或元件例外');
-        });
+  for (final locale in largeTextLocales) {
+    for (final size in sizes) {
+      for (final name in largeTextScreens) {
+        testWidgets('$name ${locale.toLanguageTag()} ${size.width.toInt()} ${largeTextScale}x',
+            (tester) => checkLayout(tester, problems, name, locale, size, textScale: largeTextScale));
       }
     }
   }
 }
+
+Map<String, dynamic> adminCabinetDoor(int channel, {String status = 'occupied', String? fault, bool check = false}) => {
+      'slot_id': 40 + channel,
+      'slot_no': 'SL5T2K8Q$channel',
+      'label': 'A0$channel',
+      'channel': channel,
+      'status': status,
+      'fault_code': fault,
+      'sensor': null,
+      'check': check
+          ? {
+              'at': now,
+              'reason': 'ITEM_FAILED_AFTER_OPEN',
+              'session_no': 'CS8MZQ41K',
+              'candidates': many((i) => {'book_id': 70 + i, 'book_no': 'BK7Q2M4X$i', 'title': longTitle, 'kind': 'order_deposit', 'order_id': 9}, 2),
+            }
+          : null,
+      'items': status == 'occupied'
+          ? many((i) => {
+                'kind': ['order', 'deposit', 'other'][i % 3],
+                'book_id': channel * 10 + i,
+                'book_no': 'BK4R6T8Y$i',
+                'title': longTitle,
+                'order_id': i % 3 == 0 ? 7 : null,
+                'order_no': i % 3 == 0 ? 'SMB20260914103000123456' : null,
+                'seller_nickname': longName,
+                'placed_at': now,
+              }, 3)
+          : <Map<String, dynamic>>[],
+    };
+
+Map<String, dynamic> adminCabinetDeviceData() => {
+      'cabinet': {'cabinet_id': 3, 'cabinet_name': longCabinet, 'is_active': true, 'is_maintenance': false, 'open_time': '08:00', 'close_time': '22:00'},
+      'access': {'mode': 'manual', 'reason': 'fault', 'online': false, 'open_now': true},
+      'simulator_enabled': true,
+      'kiosk_url': 'https://api.savemybook.today/kiosk',
+      'device': {
+        'device_no': 'DV3K9QX2M', 'kind': 'esp32', 'status': 'active', 'online': false, 'last_seen_at': now, 'paired_at': now,
+        'firmware': 'esp32-2026.09.28-release-candidate-build-1234', 'door_count': 4, 'has_door_sensor': true, 'unlock_pulse_ms': 800,
+        'fault_code': 'SENSOR_ERROR',
+      },
+      'pairing': {'kind': 'simulator', 'door_count': 8, 'has_door_sensor': false, 'firmware': 'sim-1.0.0', 'expires_at': now},
+      'active_session_no': 'CS2B7N5PL',
+      'doors': [
+        adminCabinetDoor(1),
+        adminCabinetDoor(2, status: 'reserved', check: true),
+        adminCabinetDoor(3, status: 'maintenance', fault: 'LOCK_NO_RELEASE', check: true),
+        adminCabinetDoor(4, status: 'empty'),
+      ],
+      'unplaced': many((i) => {'kind': i.isOdd ? 'order' : 'deposit', 'order_id': i.isOdd ? 7 : null, 'order_no': i.isOdd ? 'SMB20260914103000123456' : null, 'book_id': 90 + i, 'book_no': 'BK9W3E5R$i', 'title': longTitle}, 3),
+    };
+
+Map<String, dynamic> adminCabinetManualReport(int i) => {
+      'report_no': 'MR4K2Q8Z$i',
+      'kind': ['deposit', 'pickup', 'retrieve'][i % 3],
+      'status': 'pending',
+      'target_status': 'deposited',
+      'reason': ['offline', 'fault', 'no_device'][i % 3],
+      'created_at': now,
+      'user': {'user_no': 'MB3KER74B', 'nickname': longName},
+      'order': i.isOdd ? {'order_id': 7, 'order_no': 'SMB20260914103000123456', 'status': 'pending_deposit'} : null,
+      'book': i.isOdd ? null : {'book_id': 5, 'book_no': 'BK3KER745', 'title': longTitle},
+      'titles': [longTitle, longTitle],
+      'requires_door': i.isOdd,
+      'reviewer_nickname': null,
+    };
+
+Map<String, dynamic> adminCabinetSessionRow(int i, String status) => {
+      'session_no': 'CS8MZQ4$i',
+      'kind': i == 3 ? 'admin' : 'user',
+      'status': status,
+      'result_code': 'DEVICE_LOST',
+      'user': {'user_no': 'MB3KER74B', 'nickname': longName},
+      'item_kinds': ['pickup', 'order_deposit', 'pre_deposit', 'retrieval'],
+      'doors': ['A01', 'A02', 'A03', 'A04'],
+      'location_status': 'granted',
+      'distance_m': 1234,
+      'close_reason': 'timeout',
+      'created_at': now,
+      'opened_at': now,
+      'finished_at': now,
+    };
+
+Map<String, dynamic> adminCabinetEvent(int i) => {
+      'type': ['fault', 'connection_restored', 'manual_report', 'door_cleared', 'admin_open', 'revoked', 'unknown_future_event'][i % 7],
+      'source': 'admin',
+      'channel': 1,
+      'label': 'A01',
+      'device_no': 'DV3K9QX2M',
+      'session_no': 'CS8MZQ41K',
+      'order_id': 7,
+      'order_no': 'SMB20260914103000123456',
+      'actor': {'user_no': 'MB3KER74B', 'nickname': longName},
+      'detail': {'code': 'LOCK_NO_RELEASE', 'offline_ms': 7384000, 'kind': 'deposit', 'reason': 'Retrieve overdue books for the seller who moved abroad', 'mode': 'removed', 'force': true},
+      'result': 'ok',
+      'occurred_at': now,
+    };
+
+Map<String, dynamic> adminCabinetSessionDetail() => {
+      ...adminCabinetSessionRow(1, 'needs_review'),
+      'version': 5,
+      'cabinet': {'cabinet_id': 3, 'cabinet_name': longCabinet, 'address': 'No. 1, Sec. 4, Roosevelt Rd.', 'latitude': 25.0173, 'longitude': 121.5398},
+      'items': [
+        for (final kind in ['pickup', 'order_deposit', 'pre_deposit', 'retrieval'])
+          {
+            'key': 'order:7', 'kind': kind, 'order_id': 7, 'order_no': kind == 'pickup' || kind == 'order_deposit' ? 'SMB20260914103000123456' : null,
+            'books': many((i) => {'book_id': i, 'title': longTitle, 'image_url': null, 'door': 'A01'}, 2),
+            'doors': ['A01', 'A02'], 'paused': kind == 'retrieval', 'selected': true,
+            'note': kind == 'retrieval' ? {'code': 'MOVE_TO_ORDER_CABINET', 'message': '此書籍已售出，取回後請存入訂單指定的書櫃「$longCabinet」'} : null,
+            'blocked': null, 'result': kind == 'pickup' ? 'done' : 'failed',
+            'error': kind == 'pickup' ? null : {'code': 'DOOR_UNCONFIRMED', 'message': ''},
+            'seller_nickname': longName, 'buyer_nickname': kind == 'pickup' ? longName : null,
+          },
+      ],
+      'doors': [{'label': 'A01', 'state': 'open'}, {'label': 'A02', 'state': 'pending'}],
+      'remaining_ms': null,
+      'open_ms': 45000,
+      'result': {'outcome': 'needs_review', 'code': 'DEVICE_LOST', 'message': ''},
+      'started_at': now,
+      'matched_at': now,
+      'closed_at': now,
+      'accuracy_m': 18,
+      'admin_reason': 'Retrieve overdue books for the seller who moved abroad',
+      'admin_force': true,
+      'doors_timeline': [
+        {'label': 'A01', 'state': 'closed', 'command_served_at': now, 'opened_at': now, 'closed_at': now, 'close_reason': 'user_cancel'},
+        {'label': 'A02', 'state': 'pending', 'command_served_at': now, 'opened_at': null, 'closed_at': null, 'close_reason': null},
+      ],
+      'events': many((i) => {'type': ['session_created', 'match_entered', 'door_opened', 'close_refused'][i % 4], 'source': 'device', 'label': 'A01', 'detail': {'matched': true}, 'result': 'ok', 'occurred_at': now}, 4),
+      'review': {'note': 'Checked the locker on site with the building manager. ' * 3, 'reviewed_at': now, 'reviewer_nickname': longName},
+    };
+
+AdminCabinetPairResult adminCabinetPairResult({required bool pending}) => AdminCabinetPairResult.fromJson({
+      'kind': 'esp32',
+      'door_count': 8,
+      'has_door_sensor': true,
+      'firmware': 'esp32-2026.09.28-release-candidate-build-1234',
+      'summary': {
+        ...adminCabinetDeviceData(),
+        'pairing': pending
+            ? {'kind': 'esp32', 'door_count': 8, 'has_door_sensor': true, 'firmware': 'esp32-2026.09.28-release-candidate-build-1234', 'expires_at': now}
+            : null,
+      },
+    });
+
+Map<String, dynamic> adminCabinetRemoteOpenDetail() => {
+      'session_no': 'CSADMIN02',
+      'kind': 'admin',
+      'status': 'open',
+      'version': 4,
+      'cabinet': {'cabinet_id': 3, 'cabinet_name': longCabinet},
+      'items': <Object>[],
+      'doors': [{'label': 'A04', 'state': 'open'}],
+      'remaining_ms': 110000,
+      'open_ms': 120000,
+      'notice': 'CLOSE_DOOR_FIRST',
+      'result': null,
+      'admin_reason': 'Retrieve overdue books for the seller who moved abroad',
+      'admin_force': false,
+      'doors_timeline': <Object>[],
+      'events': <Object>[],
+      'review': null,
+    };

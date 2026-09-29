@@ -285,42 +285,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: responsiveListPadding(constraints, maxWidth: 520, horizontal: 20, top: context.isWide ? 32 : 20, bottom: 40),
                 children: [
-                  FadeSlideIn(
-                    child: AppCard(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(18),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: c.accent.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Icon(Icons.menu_book_rounded, color: c.accent, size: 24),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  S.joinSavemybook,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: c.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                   _buildField(
                     index: 1,
                     icon: Icons.badge_outlined,
@@ -338,7 +302,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     index: 2,
                     icon: Icons.alternate_email_rounded,
                     label: S.email,
-                    hint: S.emailSignWith,
+                    hint: 'name@example.com',
                     controller: _emailController,
                     errorText: _emailError,
                     keyboardType: TextInputType.emailAddress,
@@ -423,16 +387,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height: 50,
                       isLoading: _isLoading,
                       onPressed: _handleRegister,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  FadeSlideIn(
-                    index: 7,
-                    child: Center(
-                      child: Text(
-                        S.alreadyAccountGoBackSign,
-                        style: TextStyle(fontSize: 12, color: c.textHint),
-                      ),
                     ),
                   ),
                 ],

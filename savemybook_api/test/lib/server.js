@@ -1,5 +1,3 @@
-// 測試共用底層：以假的 Prisma Client 與假的對外 fetch 直接驅動本專案的 Express 路由。
-// 每個測試組（test/<組名>）是獨立行程，因此這裡的狀態不會跨組互相影響。
 const http = require('http');
 const path = require('path');
 const Module = require('module');
@@ -33,8 +31,6 @@ Module._load = function patched(request, parent, isMain) {
 
 const api = (relative) => require(path.join(API_ROOT, relative));
 
-// ---------- 對外 fetch ----------
-
 // 測試自己送出的 HTTP 請求要用真正的 fetch，必須在覆寫前先留下來。
 const realFetch = global.fetch;
 const fetchRoutes = [];
@@ -59,11 +55,8 @@ global.fetch = async (input, init = {}) => {
   throw new Error(`測試未攔截的對外請求：${url}`);
 };
 
-// ---------- 重設 ----------
-
 const resetHooks = [];
 
-// 測試組以 onReset() 登記自己要清掉的快取（各服務的設定快取等）。
 const onReset = (fn) => resetHooks.push(fn);
 
 let clientIpSeq = 0;
@@ -79,11 +72,8 @@ const reset = ({ tables = {} } = {}) => {
   for (const hook of resetHooks) hook();
 };
 
-// 測試組可用 setDefaultReset() 指定「每個測試前要做的重設」，runSuite 會改呼叫它。
 let defaultReset = reset;
 const setDefaultReset = (fn) => { defaultReset = fn; };
-
-// ---------- HTTP ----------
 
 const express = api('node_modules/express');
 const { registerRoutes } = api('routes');
@@ -133,9 +123,6 @@ const request = async (method, url, { body, token, headers = {}, raw } = {}) => 
   return { status: response.status, body: json, text, headers: response.headers };
 };
 
-// ---------- 測試執行 ----------
-
-// tests 是 [標題, 函式] 的陣列；每個測試前會自動 reset()。
 const runSuite = async (name, tests, { before } = {}) => {
   if (!baseUrl) await listen();
   let passed = 0;
@@ -157,7 +144,6 @@ const runSuite = async (name, tests, { before } = {}) => {
   return { passed, total: tests.length, failures };
 };
 
-// 逐一執行資料夾內所有 *.js 測試檔（除了 harness 與 run-all），回報總計並設定 exit code。
 const runFolder = async (dir, { skip = [] } = {}) => {
   const fs = require('fs');
   const ignored = new Set(['harness.js', 'fake-prisma.js', 'run-all.js', ...skip]);

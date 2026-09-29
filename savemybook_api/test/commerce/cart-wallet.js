@@ -12,7 +12,6 @@ const shopper = () => {
 };
 
 const tests = [
-  // ---------- 購物車 ----------
   ['加入購物車需提供書籍編號且書籍必須存在', async () => {
     const { token } = shopper();
 
@@ -94,7 +93,7 @@ const tests = [
 
     const zero = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: { quantity: 0 } });
     assert.strictEqual(zero.status, 400);
-    assert.strictEqual(zero.body.message, 'quantity 必須大於 0');
+    assert.strictEqual(zero.body.message, '數量必須大於 0');
 
     const tooMany = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: { quantity: 2 } });
     assert.strictEqual(tooMany.status, 400);
@@ -104,7 +103,7 @@ const tests = [
       token: tokenFor(other), body: { quantity: 1 }
     });
     assert.strictEqual(denied.status, 403);
-    assert.strictEqual(denied.body.message, '存取被拒');
+    assert.strictEqual(denied.body.message, '無權限執行此操作');
 
     const ok = await request('PATCH', `/api/cart/${item.cart_id}`, { token, body: { quantity: 1 } });
     assert.strictEqual(ok.status, 200);
@@ -125,7 +124,6 @@ const tests = [
     assert.strictEqual(prisma.rows('shopping_cart').length, 0);
   }],
 
-  // ---------- 收藏 ----------
   ['收藏書籍：不存在回 404，重複收藏不會產生第二筆', async () => {
     const { book, token } = shopper();
 
@@ -164,7 +162,6 @@ const tests = [
     assert.strictEqual(prisma.rows('favorites').length, 1);
   }],
 
-  // ---------- 錢包 ----------
   ['查詢錢包時自動建立帳戶並統計待入帳金額', async () => {
     const { buyer, seller, book } = shopper();
     const sellerToken = tokenFor(seller);
@@ -175,7 +172,6 @@ const tests = [
     const res = await request('GET', '/api/wallet', { token: sellerToken });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(Number(res.body.data.balance), 0);
-    // 已完成的訂單不算待入帳。
     assert.strictEqual(Number(res.body.data.pending_income), 240);
     assert.strictEqual(prisma.rows('wallets').length, 1);
 

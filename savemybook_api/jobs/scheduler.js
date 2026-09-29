@@ -6,6 +6,7 @@ const maintenance = require('../lib/maintenance');
 const sessions = require('../services/sessions');
 const reservations = require('../services/reservations');
 const orders = require('../services/orders');
+const bookDeposits = require('../services/book-deposits');
 const transferRecords = require('../services/chat/transfer-records');
 const oauth = require('../services/oauth-providers');
 const passkeys = require('../services/passkeys');
@@ -14,7 +15,17 @@ const supportAttachments = require('../services/support-attachments');
 const catalogSearch = require('../services/ai/catalog-search');
 const knowledge = require('../services/ai/knowledge');
 const enrichment = require('../services/ai/enrich');
+const aiConsent = require('../services/ai/consent');
+const aiBudgetAlerts = require('../services/ai/budget-alerts');
+const aiRequests = require('../services/ai/requests');
+const aiDecisions = require('../services/ai/decisions');
+const isbnCache = require('../services/ai/isbn-cache');
+const listingTokens = require('../services/ai/listing-tokens');
+const listingAdoption = require('../services/ai/listing-adoption');
+const recommendationEvents = require('../services/recommendation-events');
+const listingScreening = require('../services/listing-screening');
 const notificationCenter = require('../services/notifications');
+const cabinetDevices = require('../services/cabinet-devices');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -85,7 +96,6 @@ const runReservationExpiry = async () => {
   }
 };
 
-// 取書滿 24 小時自動完成並撥款、逾期未存書或未取書自動取消退款。
 const runOrderAutomation = async () => {
   if (maintenance.current().active) return;
   try {
@@ -98,7 +108,18 @@ const runOrderAutomation = async () => {
   }
 };
 
-// 上傳目錄可能因為部署覆蓋而遺失檔案；每天清一次，避免畫面長期出現破圖。
+const runDepositAutomation = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const { notified, paused, reminded, escalated } = await bookDeposits.runAutomation();
+    if (notified + reminded + escalated > 0) {
+      console.log(`📚 書櫃存書：逾期通知取回 ${notified} 本（其中暫停販售 ${paused} 本）、提醒取回 ${reminded} 本、通知管理員 ${escalated} 本`);
+    }
+  } catch (err) {
+    console.error('[書櫃存書自動處理失敗]:', err.message);
+  }
+};
+
 const runUploadsSweep = async () => {
   if (maintenance.current().active) return;
   try {
@@ -114,7 +135,6 @@ const runUploadsSweep = async () => {
   }
 };
 
-// 預先建立語意檢索的向量；未設定金鑰或 AI 關閉時不做任何事。
 const runEmbeddingSync = async () => {
   if (maintenance.current().active) return;
   try {
@@ -125,7 +145,6 @@ const runEmbeddingSync = async () => {
   }
 };
 
-// 既有書籍缺少的簡介、作者、出版社依 ISBN 分批補齊。
 const runEnrichmentBackfill = async () => {
   if (maintenance.current().active) return;
   try {
@@ -133,6 +152,90 @@ const runEnrichmentBackfill = async () => {
     if (done > 0) console.log(`📚 已補齊 ${done} 本書籍的資料`);
   } catch (err) {
     console.error('[書籍資料補齊失敗]:', err.message);
+  }
+};
+
+const runListingRecheck = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const done = await listingScreening.recheckDue();
+    if (done > 0) console.log(`🛡️  已補審 ${done} 本上架書籍`);
+  } catch (err) {
+    console.error('[上架補審失敗]:', err.message);
+  }
+};
+
+const runAiBudgetAlerts = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await aiBudgetAlerts.check();
+  } catch (err) {
+    console.error('[AI 預算通知失敗]:', err.message);
+  }
+};
+
+const runAiConversationCleanup = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const { support, book_chat: bookChat } = await aiConsent.purgeExpired();
+    if (support + bookChat > 0) console.log(`🧹 已刪除逾期的 AI 對話：客服 ${support} 筆、書籍顧問 ${bookChat} 筆`);
+  } catch (err) {
+    console.error('[刪除逾期 AI 對話失敗]:', err.message);
+  }
+  try {
+    await aiRequests.purgeExpired();
+  } catch (err) {
+    console.error('[刪除逾期 AI 訊息登記失敗]:', err.message);
+  }
+  try {
+    const { logs, meta } = await aiDecisions.purgeExpired();
+    if (logs + meta > 0) console.log(`🧹 已刪除逾期的 AI 決策紀錄：${logs} 筆，清除訊息附加資料 ${meta} 則`);
+  } catch (err) {
+    console.error('[刪除逾期 AI 決策紀錄失敗]:', err.message);
+  }
+  try {
+    const [cache, tokens] = await Promise.all([isbnCache.purgeExpired(), listingTokens.purgeExpired()]);
+    if (cache + tokens > 0) console.log(`🧹 已刪除過期的 ISBN 快取 ${cache} 筆、上架輔助權杖 ${tokens} 筆`);
+  } catch (err) {
+    console.error('[刪除過期 AI 快取失敗]:', err.message);
+  }
+};
+
+const runRecommendationCleanup = async () => {
+  if (maintenance.current().active) return;
+  try {
+    const [impressions, suggestions] = await Promise.all([recommendationEvents.purgeExpired(), listingAdoption.purgeExpired()]);
+    if (impressions + suggestions > 0) console.log(`🧹 已刪除逾期的推薦曝光紀錄 ${impressions} 筆、上架輔助建議紀錄 ${suggestions} 筆`);
+  } catch (err) {
+    console.error('[刪除逾期推薦與上架輔助紀錄失敗]:', err.message);
+  }
+};
+
+const runCabinetSessionSweep = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await cabinetDevices.runSessionSweep(new Date());
+  } catch (err) {
+    console.error('[書櫃作業逾時處理失敗]:', err.message);
+  }
+};
+
+const runCabinetDeviceSweep = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await cabinetDevices.sweep(new Date());
+  } catch (err) {
+    console.error('[書櫃裝置連線檢查失敗]:', err.message);
+  }
+};
+
+const runCabinetPurge = async ({ daily = false } = {}) => {
+  if (maintenance.current().active) return;
+  try {
+    const { events, pending } = await cabinetDevices.purge(new Date(), { daily });
+    if (events + pending > 0) console.log(`🗄️  書櫃資料清理：事件紀錄 ${events} 筆、逾期配對碼 ${pending} 筆`);
+  } catch (err) {
+    console.error('[書櫃資料清理失敗]:', err.message);
   }
 };
 
@@ -149,16 +252,32 @@ const startScheduler = () => {
     setInterval(runReservationExpiry, 5 * MINUTE),
     setInterval(runOrderAutomation, 10 * MINUTE),
     setTimeout(runOrderAutomation, 2 * MINUTE),
+    setInterval(runDepositAutomation, 10 * MINUTE),
+    setTimeout(runDepositAutomation, 3 * MINUTE),
     setInterval(runOauthCleanup, 10 * MINUTE),
     setInterval(runUploadsSweep, 24 * HOUR),
+    setInterval(runAiConversationCleanup, 24 * HOUR),
+    setTimeout(runAiConversationCleanup, 4 * MINUTE),
+    setInterval(runRecommendationCleanup, 24 * HOUR),
+    setTimeout(runRecommendationCleanup, 8 * MINUTE),
     setInterval(runEmbeddingSync, 10 * MINUTE),
+    setInterval(runListingRecheck, 10 * MINUTE),
+    setTimeout(runListingRecheck, 7 * MINUTE),
+    setInterval(runAiBudgetAlerts, 10 * MINUTE),
+    setTimeout(runAiBudgetAlerts, 2 * MINUTE),
     setInterval(runEnrichmentBackfill, 30 * MINUTE),
     setTimeout(runEnrichmentBackfill, 5 * MINUTE),
     setTimeout(runEmbeddingSync, MINUTE),
     setTimeout(runUploadsSweep, 3 * MINUTE),
     setTimeout(runReservationExpiry, MINUTE),
     setTimeout(runDeletionSweep, 30 * 1000),
-    setTimeout(runBackupIfDue, 2 * MINUTE)
+    setTimeout(runBackupIfDue, 2 * MINUTE),
+    setInterval(runCabinetSessionSweep, 15 * 1000),
+    setTimeout(runCabinetSessionSweep, 20 * 1000),
+    setInterval(runCabinetDeviceSweep, MINUTE),
+    setInterval(runCabinetPurge, 10 * MINUTE),
+    setInterval(() => runCabinetPurge({ daily: true }), 24 * HOUR),
+    setTimeout(() => runCabinetPurge({ daily: true }), 6 * MINUTE)
   ];
 
   if (env.backupEnabled) {
@@ -174,4 +293,7 @@ const startScheduler = () => {
   };
 };
 
-module.exports = { startScheduler, runBackupIfDue };
+module.exports = {
+  startScheduler, runBackupIfDue, runCabinetSessionSweep, runCabinetDeviceSweep, runCabinetPurge, runListingRecheck, runAiBudgetAlerts,
+  runAiConversationCleanup
+};

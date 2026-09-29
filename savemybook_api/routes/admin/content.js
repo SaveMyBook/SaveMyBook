@@ -32,7 +32,7 @@ router.put('/books/:id', canManage, async (req, res) => {
 
   const price = body.price === undefined ? undefined : Number(body.price);
   if (price !== undefined && (!Number.isFinite(price) || price < 0 || price > MAX_PRICE)) {
-    throw badRequest(`售價必須介於 0 ~ ${MAX_PRICE}`);
+    throw badRequest(`售價須介於 0 至 ${MAX_PRICE}`);
   }
 
   if (body.condition_level !== undefined) v.oneOf(body.condition_level, CONDITION_LEVELS, '不支援的書況');

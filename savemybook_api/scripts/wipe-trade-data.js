@@ -13,17 +13,30 @@ const STEPS = [
   ['書籍審核紀錄', "DELETE FROM content_reviews WHERE content_type = 'book'"],
   ['退款紀錄', 'DELETE FROM refund_records'],
   ['交易爭議', 'DELETE FROM transaction_disputes'],
+  ['書櫃作業櫃門', 'DELETE FROM cabinet_session_doors'],
+  ['書櫃作業項目', 'DELETE FROM cabinet_session_items'],
+  ['書櫃裝置作業占用', 'UPDATE cabinet_devices SET active_session_id = NULL WHERE active_session_id IS NOT NULL'],
+  ['書櫃櫃內書籍', 'DELETE FROM cabinet_slot_items'],
+  ['書櫃作業', 'DELETE FROM cabinet_sessions'],
+  ['書櫃作業事件', 'DELETE FROM cabinet_events WHERE session_id IS NOT NULL'],
+  ['書櫃挑戰碼', 'DELETE FROM cabinet_challenges'],
+  ['書櫃待確認櫃門', 'UPDATE cabinet_slots SET check_required_at = NULL, check_session_id = NULL, check_reason = NULL WHERE check_required_at IS NOT NULL'],
+  ['書櫃手動回報', 'DELETE FROM cabinet_manual_reports'],
   ['訂單明細', 'DELETE FROM order_items'],
   ['訂單', 'DELETE FROM orders'],
   ['預約', 'DELETE FROM reservations'],
   ['購物車', 'DELETE FROM shopping_cart'],
   ['收藏', 'DELETE FROM favorites'],
   ['推薦紀錄', 'DELETE FROM recommendation_logs'],
+  ['書櫃存書登記', 'DELETE FROM book_deposits'],
   ['書籍照片', 'DELETE FROM book_images'],
   ['書籍', 'DELETE FROM books']
 ];
 
-const COUNTS = ['books', 'book_images', 'orders', 'order_items', 'reservations', 'refund_records', 'transaction_disputes', 'shopping_cart', 'favorites'];
+const COUNTS = [
+  'books', 'book_images', 'book_deposits', 'orders', 'order_items', 'reservations', 'refund_records', 'transaction_disputes',
+  'shopping_cart', 'favorites', 'cabinet_sessions', 'cabinet_slot_items', 'cabinet_manual_reports'
+];
 
 const main = async () => {
   const confirmed = process.argv.includes('--yes');

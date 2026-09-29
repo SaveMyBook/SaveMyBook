@@ -1,5 +1,3 @@
-# 共用元件定義，供 docs/ 目錄下各文件以 $ref 引用。
-
 components:
   parameters:
     Page:
@@ -129,8 +127,8 @@ components:
           type: object
           nullable: true
           description: |
-            僅書籍詳情提供。賣家未填、由系統依 ISBN 書目自動補齊的欄位；`ai_written` 為 true 表示簡介由 AI 依書目來源整理。
-            賣家之後修改的欄位會從清單移除。沒有補齊任何欄位時為 null。
+            僅書籍詳情提供。賣家未填、由系統依 ISBN 書目自動補齊的欄位；`ai_written` 為 true 表示簡介由 AI 依書目來源或網路搜尋結果整理。
+            賣家或管理員之後修改或清空的欄位會從清單移除，也不再自動補齊。沒有補齊任何欄位時為 null。
           properties:
             fields:
               type: array
@@ -179,6 +177,42 @@ components:
           description: |
             僅出現在賣家本人取得的書籍物件（本人書籍列表、詳情、上架與編輯的回應）。
             `pending` 為等待上架審核（顯示「審核中」），`rejected` 為審核駁回，已公開或未經審核為 null。
+        in_cabinet:
+          type: boolean
+          description: |
+            書已存放於書櫃且販售中（訂單成立前即已存書），下單後即可至書櫃取書；書櫃維修中或停用時為 false。
+            此類訂單成立即為 `deposited`，買家無法自行取消，如有問題須申請交易爭議。
+            出現於書籍列表與詳情（含推薦、相似書籍、分享連結）、購物車與收藏清單；訂單等其他端點內嵌的書籍物件不含此欄位。
+          example: true
+        deposit:
+          allOf:
+            - $ref: '#/components/schemas/BookDeposit'
+          nullable: true
+          description: 僅出現在賣家本人取得的書籍物件（本人書籍列表、詳情、上架與編輯的回應）；未登記存書時為 null。
+        cabinet_access:
+          allOf:
+            - $ref: '#/components/schemas/CabinetAccess'
+          nullable: true
+          description: 僅出現在賣家本人取得的書籍物件：指定書櫃（`cabinet_id`）目前的存取方式，供 App 決定先行存書時顯示掃碼或手動回報；未指定書櫃時為 null。
+        location:
+          type: object
+          nullable: true
+          description: 僅出現在賣家本人取得的書籍物件：書目前實際所在的書櫃與櫃門（可能與 `cabinet_id` 不同）；不在任何櫃門中時為 null。
+          properties:
+            cabinet_id: { type: integer, example: 2 }
+            cabinet_name: { type: string, example: 台北車站站前店 }
+            door: { type: string, nullable: true, description: 櫃門標籤, example: A03 }
+            retrievable: { type: boolean, description: 目前可至書櫃掃碼取回, example: true }
+            access:
+              allOf:
+                - $ref: '#/components/schemas/CabinetAccess'
+              nullable: true
+              description: 所在書櫃目前的存取方式。
+        manual_report:
+          allOf:
+            - $ref: '#/components/schemas/CabinetManualReport'
+          nullable: true
+          description: 僅出現在賣家本人取得的書籍物件：此書待客服確認的存書或取回手動回報；沒有時為 null。
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
         users: { $ref: '#/components/schemas/UserBrief' }
@@ -194,6 +228,18 @@ components:
           allOf:
             - $ref: '#/components/schemas/CabinetBrief'
           nullable: true
+
+    BookDeposit:
+      type: object
+      description: 訂單成立前的存書資訊。
+      properties:
+        deposited_at: { type: string, format: date-time, description: 存書登記生效的時間 }
+        paused:
+          type: boolean
+          description: 存書已滿 7 天仍未售出，須至書櫃以 App 掃描 QR Code 取回；上架中的書此時已暫停販售（`status` 為 `removed`）。書仍在櫃中時，無論是否已滿 7 天，重新上架前都須先取回。
+          example: false
+        days_stored: { type: integer, description: 已存放的完整天數, example: 3 }
+        door: { type: string, nullable: true, description: 書所在的櫃門標籤；未對應任何櫃門（例如手動回報確認時未指定櫃門）時為 null。, example: A03 }
 
     # ---------- 分類 ----------
     Category:
@@ -267,16 +313,20 @@ components:
         quantity: { type: integer, example: 1 }
         unit_price: { type: string, description: 下單當時的單價。賣家後續調價不影響已成立的訂單, example: '180.00' }
         subtotal: { type: string, example: '180.00' }
+        pre_deposited:
+          type: boolean
+          description: 下單時此書已由賣家先行存書；訂單尚未存書即在取書前取消或退款時，此書恢復存書登記（訂單已存書時則訂單的每本書都恢復登記）。
+          example: false
         books: { $ref: '#/components/schemas/Book' }
 
     AdminOrder:
       type: object
       description: |
         後台訂單的共同欄位，列表與詳情共用。詳情另外附加時間軸、櫃位、
-        退款、申訴與錢包異動。
+        退款、爭議與錢包異動。
       properties:
         order_id: { type: integer, example: 40 }
-        order_no: { type: string, example: SMB20250911143012517 }
+        order_no: { type: string, example: SMB20250911143012517384 }
         status: { type: string, example: pending_deposit }
         total_amount: { type: string, example: '360.00' }
         created_at: { type: string, format: date-time }
@@ -310,8 +360,8 @@ components:
         order_id: { type: integer, example: 40 }
         order_no:
           type: string
-          description: '對外顯示的訂單編號，格式為 `SMB` 加年月日時分秒再加三位隨機碼。'
-          example: SMB20250911143012517
+          description: '對外顯示的訂單編號，格式為 `SMB` 加年月日時分秒再加 6 位亂數，共 20 位數字；早期訂單為 3 位亂數、共 17 位數字。'
+          example: SMB20250911143012517384
         buyer_id: { type: integer, example: 12 }
         seller_id: { type: integer, example: 8 }
         total_amount: { type: string, example: '360.00' }
@@ -323,7 +373,7 @@ components:
           example: pending_deposit
         payment_method: { type: string, nullable: true, enum: [wallet, bank_transfer], description: 新訂單一律為 wallet；bank_transfer 只會出現在舊資料。, example: wallet }
         payment_at: { type: string, format: date-time, nullable: true }
-        deposited_at: { type: string, format: date-time, nullable: true, description: 賣家完成存書的時間 }
+        deposited_at: { type: string, format: date-time, nullable: true, description: 賣家完成存書的時間；書在下單前已存入書櫃時為下單時間，買家取書期限由此起算 }
         picked_up_at: { type: string, format: date-time, nullable: true, description: 買家完成取件的時間 }
         completed_at: { type: string, format: date-time, nullable: true }
         cancelled_at: { type: string, format: date-time, nullable: true }
@@ -358,6 +408,23 @@ components:
               dispute_id: { type: integer }
               status: { type: string, enum: [pending, processing, resolved] }
               result: { type: string, nullable: true, enum: [refund_manual, refund_auto, dismissed, mediated] }
+        manual_report:
+          allOf:
+            - $ref: '#/components/schemas/CabinetManualReport'
+          nullable: true
+          description: 訂單列表與詳情：此訂單待客服確認的存書或取書手動回報；沒有時為 null。
+        cabinet_access:
+          allOf:
+            - $ref: '#/components/schemas/CabinetAccess'
+          nullable: true
+          description: |
+            訂單列表、詳情（含以訂單編號查詢）與 `PATCH /api/orders/{id}/status` 的 202 回應：訂單書櫃目前的存取方式，
+            App 據此顯示「掃描書櫃」或「手動回報」；訂單未指定書櫃時為 null。
+        doors:
+          type: array
+          items: { type: string }
+          description: 與 `cabinet_access` 出現於相同回應：此訂單的書目前所在的訂單書櫃櫃門標籤；尚未存書時為空陣列。
+          example: [A03]
 
     # ---------- 錢包 ----------
     Wallet:
@@ -391,7 +458,7 @@ components:
           example: '-360.00'
         balance_after: { type: string, description: 本次異動後的餘額, example: '890.00' }
         related_order_id: { type: integer, nullable: true, example: 40 }
-        description: { type: string, nullable: true, example: 購買訂單 SMB20250911143012517 }
+        description: { type: string, nullable: true, example: 購買訂單 SMB20250911143012517384 }
         created_at: { type: string, format: date-time }
 
     # ---------- 通知 ----------
@@ -410,8 +477,8 @@ components:
           enum: [system, order, message, promotion, reservation]
           description: 用戶端依此決定顯示的圖示與點擊後的導向目標。
           example: order
-        title: { type: string, example: 您的書已售出 }
-        content: { type: string, example: 訂單 SMB20250911143012517 已成立，請於七天內至書櫃存書。 }
+        title: { type: string, example: 書籍已售出 }
+        content: { type: string, example: 訂單 SMB20250911143012517384 已成立，請於七天內至書櫃存書。 }
         related_id:
           type: integer
           nullable: true
@@ -420,7 +487,7 @@ components:
         related_type:
           type: string
           nullable: true
-          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`book_review`、`risk_alert`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
+          description: '可能的值為 `order`、`book`、`chat_room`、`report`、`ticket`、`admin_ticket`、`book_review`、`risk_alert`、`cabinet_deposit`、`legal`、`user`、`wallet`、`security`、`password`、`member_level`、`announcement`、`push_test`。`security` 為新裝置登入、交易密碼變更或鎖定等帳號安全通知，無對應的 `related_id`。'
           example: order
         category: { $ref: '#/components/schemas/NotificationCategory' }
         is_read: { type: boolean, example: false }
@@ -575,7 +642,7 @@ components:
 
         | `categories` 值 | 說明 | 權重 |
         | --- | --- | --- |
-        | `contact` | 通訊軟體帳號、手機號碼、電子郵件等聯絡方式 | 2 |
+        | `contact` | 通訊軟體帳號（含「LINE：@id」等寫法）、手機與市話號碼、電子郵件（含以 (at) 或空白拆開的寫法）等聯絡方式 | 2 |
         | `payment` | 匯款帳號、先付訂金等付款資訊 | 2 |
         | `offsite` | 私下交易、面交、不透過平台 | 2 |
         | `link` | 短網址、IP 位址或可疑網域的連結 | 4 |
@@ -584,7 +651,7 @@ components:
 
         分數為類別權重加總；傳送者帳號未滿 7 天、沒有完成過訂單各加 1，1 小時內在 5 個以上聊天室發言再加 2
         （帳號因素僅在內容已命中時計入）。分數 5 以上為 `high`，其餘為 `notice`。
-        內容會先正規化（全形轉半形、去除空白與標點、國字數字轉阿拉伯數字）再比對，以涵蓋拆字與插入符號的寫法。
+        內容會先正規化（全形轉半形、去除空白與標點（含各種破折號、加號與等號）、國字數字轉阿拉伯數字）再比對，以涵蓋拆字與插入符號的寫法。
       properties:
         level: { type: string, enum: [notice, high], example: high }
         categories:
@@ -962,7 +1029,7 @@ components:
             帳號已停權:
               value: { success: false, code: ACCOUNT_INACTIVE, message: 此帳號已被停權，如有疑問請聯絡客服 }
             帳號在黑名單:
-              value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已被列入黑名單，如有疑問請聯絡客服 }
+              value: { success: false, code: ACCOUNT_BLACKLISTED, message: 此帳號已停用，如有疑問請聯絡客服 }
             裝置已登出:
               value: { success: false, code: SESSION_REVOKED, message: 此裝置已登出，請重新登入 }
 
@@ -1026,7 +1093,7 @@ components:
             不是管理員:
               value: { success: false, message: 權限不足，僅限管理員執行此操作 }
             缺少細部權限:
-              value: { success: false, message: 您沒有這項功能的權限 }
+              value: { success: false, code: ADMIN_PERMISSION_REQUIRED, message: 您沒有「會員管理」的權限 }
             需要驗證:
               value:
                 success: false
@@ -1056,14 +1123,14 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已經被其他買家預約，保留到 9/16 18:30 }
+          example: { success: false, code: BOOK_RESERVED, message: 《挪威的森林》已由其他買家預約，保留至 9/16 18:30 }
 
     Forbidden:
       description: 已通過認證，但無權存取該筆資料。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, message: 存取被拒 }
+          example: { success: false, message: 無權限執行此操作 }
 
     AdminForbidden:
       description: 請求者非管理員，或該管理員未具備此功能的細部權限。
@@ -1074,14 +1141,14 @@ components:
             不是管理員:
               value: { success: false, message: 權限不足，僅限管理員執行此操作 }
             缺少細部權限:
-              value: { success: false, message: 您沒有這項功能的權限 }
+              value: { success: false, code: ADMIN_PERMISSION_REQUIRED, message: 您沒有「會員管理」的權限 }
 
     NotFound:
       description: 指定的資源不存在。
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, message: 找不到該資料 }
+          example: { success: false, message: 找不到資料 }
 
     ServerError:
       description: 伺服器發生未預期的錯誤，詳細原因僅記錄於伺服器日誌。
@@ -1095,7 +1162,7 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
-          example: { success: false, message: 訂單狀態已經變更，請重新整理後再試 }
+          example: { success: false, message: 訂單狀態已變更，請重新整理後再試 }
 
     TooManyRequests:
       description: 短時間內請求次數過多。回應標頭 `Retry-After` 為建議等待的秒數。

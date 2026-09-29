@@ -1,4 +1,3 @@
-// 以記憶體資料表模擬 Prisma Client：支援本專案實際用到的 model API 與原生 SQL 子集。
 const AUTO_KEYS = {
   users: 'user_id',
   login_logs: 'log_id',
@@ -7,7 +6,6 @@ const AUTO_KEYS = {
   notifications: 'notification_id'
 };
 
-// 各測試組以 registerModels() 補上自己會用到的資料表設定，不必改動這個檔案。
 const registerModels = ({ autoKeys = {}, uniqueKeys = {}, defaults = {} } = {}) => {
   Object.assign(AUTO_KEYS, autoKeys);
   for (const [table, keys] of Object.entries(uniqueKeys)) {
@@ -28,7 +26,6 @@ const UNIQUE_KEYS = {
   admin_permissions: [['user_id']]
 };
 
-// 資料表層級的預設值，Prisma 的 @default 在此自行補上。
 const MODEL_DEFAULTS = {
   users: {
     avatar_url: null, bio: null, phone: null, birthday: null, gender: 'undisclosed',
@@ -45,7 +42,6 @@ const matchValue = (actual, expected) => {
   if (expected === null) return actual === null || actual === undefined;
   if (expected instanceof Date) return actual instanceof Date && actual.getTime() === expected.getTime();
   if (expected && typeof expected === 'object') {
-    // 同一個欄位可同時給多個條件（例如 { not: null, lte: 日期 }），全部成立才算符合。
     const checks = [];
     if ('in' in expected) checks.push(expected.in.some((v) => matchValue(actual, v)));
     if ('notIn' in expected) checks.push(!expected.notIn.some((v) => matchValue(actual, v)));
@@ -105,9 +101,19 @@ const sortRows = (list, orderBy) => {
   });
 };
 
-const paginate = (list, { skip = 0, take } = {}) => (take == null ? list.slice(skip) : list.slice(skip, skip + take));
+// Prisma 的原子運算（{ increment: 1 }）在這裡直接套用到記憶體中的值。
+const applyData = (row, data) => {
+  for (const [key, value] of Object.entries(data ?? {})) {
+    if (value && typeof value === 'object' && !(value instanceof Date) && 'increment' in value) {
+      row[key] = Number(row[key] ?? 0) + Number(value.increment);
+    } else {
+      row[key] = value;
+    }
+  }
+  return row;
+};
 
-// ---------- 原生 SQL 迷你直譯器 ----------
+const paginate = (list, { skip = 0, take } = {}) => (take == null ? list.slice(skip) : list.slice(skip, skip + take));
 
 const splitTop = (text, separator) => {
   const parts = [];
@@ -150,6 +156,8 @@ const compare = (a, b, op) => {
   if (op === '=') return String(left) === String(right);
   if (op === '<') return left < right;
   if (op === '>') return left > right;
+  if (op === '<=') return left != null && left <= right;
+  if (op === '>=') return left != null && left >= right;
   return false;
 };
 
@@ -162,7 +170,7 @@ const evalCondition = (row, text, params) => {
   if (m) return row[m[1]] !== null && row[m[1]] !== undefined;
   m = /^(\w+)\s+IS\s+NULL$/i.exec(trimmed);
   if (m) return row[m[1]] === null || row[m[1]] === undefined;
-  m = /^(\w+)\s*(=|<|>)\s*\?$/.exec(trimmed);
+  m = /^(\w+)\s*(<=|>=|=|<|>)\s*\?$/.exec(trimmed);
   if (m) return compare(row[m[1]], params.next(), m[2]);
   m = /^(\w+)\s*<>\s*\?$/.exec(trimmed);
   if (m) return !compare(row[m[1]], params.next(), '=');
@@ -238,7 +246,6 @@ class FakePrisma {
         args
       ).map((row) => project(row, args)),
       count: async (args = {}) => rows().filter((row) => matchWhere(row, args.where ?? {})).length,
-      // Prisma 的 groupBy 只回傳分組欄位與聚合值，這裡支援本專案用到的 _count。
       groupBy: async (args = {}) => {
         const groups = new Map();
         for (const row of rows().filter((r) => matchWhere(r, args.where ?? {}))) {
@@ -264,19 +271,19 @@ class FakePrisma {
       upsert: async (args) => {
         const row = rows().find((item) => matchWhere(item, args.where));
         if (!row) return project(insert({ ...args.where, ...args.create }), args);
-        Object.assign(row, args.update);
+        applyData(row, args.update);
         return project(row, args);
       },
       update: async (args) => {
         const row = rows().find((item) => matchWhere(item, args.where));
         if (!row) throw missingError();
-        Object.assign(row, args.data);
+        applyData(row, args.data);
         this.assertUnique(table, row, row);
         return project(row, args);
       },
       updateMany: async (args) => {
         const affected = rows().filter((row) => matchWhere(row, args.where ?? {}));
-        affected.forEach((row) => Object.assign(row, args.data));
+        affected.forEach((row) => applyData(row, args.data));
         return { count: affected.length };
       },
       delete: async (args) => {
@@ -365,7 +372,8 @@ class FakePrisma {
   }
 
   runSelect(sql, values) {
-    const m = /^SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER BY\s+(.+?))?$/i.exec(sql);
+    // FOR UPDATE 在此只接受語法、不模擬鎖定；需要驗證鎖定順序的測試組自行包裝 $transaction。
+    const m = /^SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER BY\s+(.+?))?(?:\s+FOR UPDATE)?$/i.exec(sql);
     if (!m) return null;
 
     const [, columnText, table, whereText, orderText] = m;
@@ -396,7 +404,6 @@ class FakePrisma {
     return selected.map((row) => Object.fromEntries(columns.map((c) => [c.alias, row[c.column] ?? null])));
   }
 
-  // 各測試組可用 onSql() 自行處理迷你直譯器不支援的查詢（JOIN、聚合、GROUP BY 等）。
   onSql(matcher, handler) {
     this.sqlHandlers.push({ matcher, handler });
   }

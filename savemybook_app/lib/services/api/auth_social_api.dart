@@ -110,9 +110,7 @@ extension AuthSocialApi on ApiService {
     return AuthResult.ok(url);
   }
 
-  /// 綁定時回傳 provider 代號；登入時回傳 null 並已寫入登入 Token。
-  /// 一次性碼在收到 NO_ACCOUNT_FOR_PROVIDER 與 EMAIL_REQUIRED 後仍可重用，
-  /// 使用者決定要建立帳號時帶 create 重送即可，不必再開一次授權頁。
+  /// 一次性碼在收到 NO_ACCOUNT_FOR_PROVIDER 與 EMAIL_REQUIRED 後仍可重用，帶 create 重送即可，不必再開一次授權頁。
   Future<AuthResult<String?>> exchangeOAuthCode(
     String code, {
     bool create = false,

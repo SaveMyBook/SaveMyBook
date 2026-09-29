@@ -20,6 +20,7 @@ import '../../account/ai_consent_sheet.dart';
 import '../../account/ai_support_screen.dart';
 import '../../books/book_detail_screen.dart';
 import '../widgets/chat_bubbles.dart';
+import 'ai_feedback_bar.dart';
 import '../../../i18n/strings.dart';
 
 enum AiBookChatState { sent, sending, failed }
@@ -28,24 +29,30 @@ class AiBookChatItem {
   final String id;
   final bool isUser;
   final String content;
+  final String clientId;
   final List<AiBookSuggestion> books;
   final List<String> suggestions;
   AiBookChatState state;
   String? error;
   bool blocked;
   final bool animate;
+  final String? messageNo;
+  AiMessageFeedback? feedback;
 
   AiBookChatItem({
     required this.id,
     required this.isUser,
     required this.content,
+    String? clientId,
     this.books = const [],
     this.suggestions = const [],
     this.state = AiBookChatState.sent,
     this.error,
     this.blocked = false,
     this.animate = true,
-  });
+    this.messageNo,
+    this.feedback,
+  }) : clientId = clientId ?? newAiClientId();
 }
 
 class AiBookChatScreen extends StatefulWidget {
@@ -109,11 +116,21 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
         }
         return;
       }
+      final messages = result.data?.messages ?? const <AiBookChatMessage>[];
       _items
         ..clear()
         ..addAll([
-          for (final m in result.data?.messages ?? const <AiBookChatMessage>[])
-            AiBookChatItem(id: 'm${m.messageId}', isUser: m.isUser, content: m.content, books: m.books, animate: false),
+          for (final (i, m) in messages.indexed)
+            AiBookChatItem(
+              id: 'm${m.messageId}',
+              isUser: m.isUser,
+              content: m.content,
+              books: m.books,
+              suggestions: i == messages.length - 1 ? m.suggestions : const [],
+              animate: false,
+              messageNo: m.messageNo,
+              feedback: m.feedback,
+            ),
         ]);
     });
     _scrollToEnd(jump: true);
@@ -160,11 +177,14 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
         id: item.id,
         isUser: item.isUser,
         content: item.content,
+        clientId: item.clientId,
         books: item.books,
         state: item.state,
         error: item.error,
         blocked: item.blocked,
         animate: false,
+        messageNo: item.messageNo,
+        feedback: item.feedback,
       );
 
   Future<void> _deliver(AiBookChatItem item) async {
@@ -175,10 +195,12 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
       item.error = null;
     });
     _scrollToEnd();
-    final result = await _api.sendAiBookChatMessage(item.content);
+    final result = await _post(item);
     if (!mounted) return;
+    if (result.inProgress && await _recover(item)) return;
     if (result.needsConsent) {
-      AiStatus.markConsentRevoked();
+      await AiStatus.markConsentRevoked();
+      if (!mounted) return;
       setState(() {
         _waiting = false;
         item.state = AiBookChatState.failed;
@@ -192,7 +214,7 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
       if (!result.isOk || result.data == null) {
         item.state = AiBookChatState.failed;
         item.error = result.error;
-        item.blocked = result.isQuotaOrDisabled;
+        item.blocked = !result.canRetry;
         return;
       }
       item.state = AiBookChatState.sent;
@@ -203,10 +225,46 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
         content: reply.content,
         books: reply.books,
         suggestions: reply.suggestions,
+        messageNo: reply.messageNo,
       ));
     });
     if (item.state == AiBookChatState.failed) HapticFeedback.heavyImpact();
     _scrollToEnd();
+  }
+
+  // 逾時不代表伺服器沒有處理：須以同一個識別碼重送，伺服器才會回傳第一次的回應而不重複扣次。
+  Future<AiResult<AiBookChatReply>> _post(AiBookChatItem item) async {
+    final result = await _api.sendAiBookChatMessage(item.content, clientId: item.clientId);
+    if (!result.timedOut || !mounted) return result;
+    return _api.sendAiBookChatMessage(item.content, clientId: item.clientId);
+  }
+
+  Future<bool> _recover(AiBookChatItem item) async {
+    final session = await _api.fetchAiBookChatSession();
+    if (!mounted || !session.isOk) return false;
+    final messages = session.data?.messages ?? const <AiBookChatMessage>[];
+    final at = messages.indexWhere((m) => m.isUser && m.clientId == item.clientId);
+    if (at < 0 || at + 1 >= messages.length || messages[at + 1].isUser) return false;
+    final reply = messages[at + 1];
+    setState(() {
+      _waiting = false;
+      item.state = AiBookChatState.sent;
+      item.error = null;
+      _items.insert(
+        _items.indexOf(item) + 1,
+        AiBookChatItem(
+          id: 'm${reply.messageId}_${++_localSeq}',
+          isUser: false,
+          content: reply.content,
+          books: reply.books,
+          suggestions: _items.last == item ? reply.suggestions : const [],
+          messageNo: reply.messageNo,
+          feedback: reply.feedback,
+        ),
+      );
+    });
+    _scrollToEnd();
+    return true;
   }
 
   Future<void> _newConversation() async {
@@ -284,12 +342,6 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const FadeSlideIn(child: AiAvatar(size: 64)),
-              const SizedBox(height: 16),
-              FadeSlideIn(
-                index: 1,
-                child: Text(S.tellMeWhatBookLooking,
-                    textAlign: TextAlign.center, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary)),
-              ),
               const SizedBox(height: 20),
               if (_blockedMessage == null)
                 Wrap(
@@ -408,7 +460,7 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
         ),
         if (failed)
           Padding(
-            padding: const EdgeInsets.only(top: 4, right: 4),
+            padding: EdgeInsets.only(top: 4, right: item.blocked ? 0 : 4),
             child: item.blocked
                 ? _inlineNotice(c, item.error ?? '', icon: Icons.block_rounded, color: c.warning, maxWidth: maxWidth)
                 : Text(item.error?.isNotEmpty == true ? item.error! : S.failedSend,
@@ -451,12 +503,23 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
               height: AiBookChatCard.height,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.only(left: 38, right: 8),
                 itemCount: item.books.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (context, i) => FadeSlideIn(index: i, offsetY: 10, child: AiBookChatCard(suggestion: item.books[i])),
               ),
+            ),
+          ),
+        if (item.messageNo != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, top: 2),
+            child: AiFeedbackBar(
+              feature: 'book_chat',
+              messageNo: item.messageNo!,
+              initial: item.feedback,
+              onChanged: (value) => item.feedback = value,
             ),
           ),
         if (item.suggestions.isNotEmpty)
@@ -485,9 +548,9 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 15, color: color),
+            Padding(padding: const EdgeInsets.only(top: 2), child: Icon(icon, size: 15, color: color)),
             const SizedBox(width: 6),
-            Flexible(child: Text(text, style: TextStyle(fontSize: 12.5, height: 1.4, color: c.textPrimary))),
+            Flexible(child: Text(text, textWidthBasis: TextWidthBasis.longestLine, style: TextStyle(fontSize: 12.5, height: 1.4, color: c.textPrimary))),
           ],
         ),
       ),
@@ -501,6 +564,7 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
       top: 10,
       bottom: MediaQuery.paddingOf(context).bottom + 10,
       builder: (context, padding) => Container(
+        width: double.infinity,
         padding: padding,
         decoration: BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider))),
         child: blocked != null
@@ -610,7 +674,7 @@ class AiBookChatCard extends StatelessWidget {
                     const Spacer(),
                     Row(
                       children: [
-                        Expanded(
+                        Flexible(
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,

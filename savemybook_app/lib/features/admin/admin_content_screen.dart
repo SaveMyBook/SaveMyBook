@@ -127,6 +127,11 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
   Widget _buildCard(String key, AppColors c) {
     final doc = _docs.where((d) => d.key == key).firstOrNull;
     final title = doc?.title.trim().isNotEmpty == true ? doc!.title : (_known[key] ?? key);
+    final badges = <Widget>[
+      if (doc != null) StatusBadge(label: S.versionP0(doc.version), color: c.accent),
+      if (doc?.requiresConsent ?? _consentKeys.contains(key)) StatusBadge(label: S.requiresUserConsent, color: c.warning),
+      if (_drafts.contains(key)) StatusBadge(label: S.unsavedDraft, color: c.danger),
+    ];
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -161,16 +166,10 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: c.textSecondary),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    if (doc != null) StatusBadge(label: S.versionP0(doc.version), color: c.accent),
-                    if (doc?.requiresConsent ?? _consentKeys.contains(key)) StatusBadge(label: S.requiresUserConsent, color: c.warning),
-                    if (_drafts.contains(key)) StatusBadge(label: S.unsavedDraft, color: c.danger),
-                  ],
-                ),
+                if (badges.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(spacing: 6, runSpacing: 6, children: badges),
+                ],
               ],
             ),
           ),
@@ -209,7 +208,10 @@ Widget liftDraggedCard(Widget child, int index, Animation<double> animation) {
 }
 
 class AdminFaqScreen extends StatefulWidget {
-  const AdminFaqScreen({super.key});
+  /// 由 AI 客服轉接的工單建立常見問題時，載入後直接開啟預填的新增表單。
+  final FaqDraft? draft;
+
+  const AdminFaqScreen({super.key, this.draft});
 
   @override
   State<AdminFaqScreen> createState() => _AdminFaqScreenState();
@@ -223,7 +225,9 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    _load().then((_) {
+      if (mounted && widget.draft != null) _edit(draft: widget.draft);
+    });
   }
 
   Future<void> _load() async {
@@ -235,11 +239,11 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     });
   }
 
-  Future<void> _edit({FaqItem? faq}) async {
+  Future<void> _edit({FaqItem? faq, FaqDraft? draft}) async {
     final c = AppColors.of(context);
-    final questionController = TextEditingController(text: faq?.question ?? '');
-    final answerController = TextEditingController(text: faq?.answer ?? '');
-    var category = faq?.category ?? 'general';
+    final questionController = TextEditingController(text: faq?.question ?? draft?.question ?? '');
+    final answerController = TextEditingController(text: faq?.answer ?? draft?.answer ?? '');
+    var category = faq?.category ?? draft?.category ?? 'general';
     var visible = faq?.isVisible ?? true;
     var showErrors = false;
 
@@ -279,6 +283,13 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                     faq == null ? S.newQuestion : S.editQuestion,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
                   ),
+                  if (draft != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      S.preFilledFromSupportEnquiryReview,
+                      style: TextStyle(fontSize: 12.5, height: 1.4, color: c.textSecondary),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   AppSelect<String>(
                     value: category,
@@ -359,6 +370,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
         answer: answer,
         sortOrder: faq?.sortOrder ?? _faqs.length,
         isVisible: visible,
+        sourceTicketId: draft?.sourceTicketId,
       ),
     );
     if (!mounted) return;
@@ -567,7 +579,8 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
               children: [
                 IconButton(
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 24),
                   icon: Icon(Icons.delete_outline_rounded, color: c.iconInactive, size: 20),
                   onPressed: () => _delete(faq),
                 ),

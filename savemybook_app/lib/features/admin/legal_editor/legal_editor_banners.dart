@@ -56,7 +56,6 @@ class LegalStatusStrip extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Expanded(
-            flex: 3,
             child: Text(
               label,
               maxLines: 1,
@@ -65,17 +64,12 @@ class LegalStatusStrip extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Flexible(
-            flex: 2,
-            child: ValueListenableBuilder<String>(
-              valueListenable: stats,
-              builder: (_, value, _) => Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 12, color: c.textHint),
-              ),
+          ValueListenableBuilder<String>(
+            valueListenable: stats,
+            builder: (_, value, _) => Text(
+              value,
+              maxLines: 1,
+              style: TextStyle(fontSize: 12, color: c.textHint),
             ),
           ),
         ],

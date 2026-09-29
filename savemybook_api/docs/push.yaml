@@ -175,7 +175,7 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: 10 秒後送出，請先回到主畫面或鎖定手機 }
+                  message: { type: string, example: 10 秒後送出，請返回主畫面或鎖定手機 }
                   data:
                     type: object
                     properties:
@@ -187,13 +187,13 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 只有管理員可以傳送測試通知 }
+              example: { success: false, message: 僅管理員可傳送測試通知 }
         '409':
           description: 這個帳號沒有任何已登記的推播裝置。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: NO_PUSH_DEVICE, message: 這個帳號還沒有登記任何推播裝置。請確認已允許這個 App 傳送通知，然後重新開啟 App。 }
+              example: { success: false, code: NO_PUSH_DEVICE, message: 此帳號尚無已登錄的推播裝置，請確認 App 已取得通知權限後再試。 }
         '429': { $ref: '#/components/responses/TooManyRequests' }
         '503':
           description: 伺服器尚未設定推播。

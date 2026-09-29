@@ -7,9 +7,9 @@ class SecurityStatus {
   final DateTime? pinLockedUntil;
   final bool biometricPayEnabled;
 
-  /// 伺服器已完成通行密鑰設定。
   final bool passkeyAvailable;
   final bool hasPasskey;
+  final String? failureMessage;
 
   const SecurityStatus({
     required this.available,
@@ -19,7 +19,11 @@ class SecurityStatus {
     required this.biometricPayEnabled,
     this.passkeyAvailable = false,
     this.hasPasskey = false,
+    this.failureMessage,
   });
+
+  const SecurityStatus.failed(String? message)
+      : this(available: false, hasPaymentPin: false, biometricPayEnabled: false, failureMessage: message);
 
   static const unknown = SecurityStatus(available: false, hasPaymentPin: false, biometricPayEnabled: false);
 
@@ -98,7 +102,7 @@ class PushDeviceInfo {
 }
 
 class ServerStatus {
-  static const requiredApiRevision = 13;
+  static const requiredApiRevision = 15;
 
   final bool reachable;
   final int apiRevision;

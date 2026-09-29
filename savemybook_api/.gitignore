@@ -6,4 +6,4 @@ node_modules
 backups/
 
 # 使用者上傳的檔案
-uploads/
+/uploads/

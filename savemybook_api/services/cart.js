@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const { badRequest, forbidden, notFound } = require('../lib/errors');
 const { bookCard, cabinetBrief } = require('../lib/selects');
 const reservations = require('./reservations');
+const deposits = require('./book-deposits');
 
 const MAX_CART_ITEMS = 100;
 
@@ -18,11 +19,15 @@ const list = async (userId) => {
 
   const holds = items.length > 0 ? await reservations.activeHoldsFor(items.map((i) => i.book_id)) : [];
   const holdOf = new Map(holds.map((h) => [h.book_id, h]));
-  const data = items.map((i) => {
+  const books = await deposits.withCabinetFlag(items.map((i) => i.books));
+  const data = items.map((i, index) => {
     const hold = holdOf.get(i.book_id);
-    return hold
-      ? { ...i, books: { ...i.books, reservation: { reserved_until: hold.pickup_deadline, reserved_for_me: hold.buyer_id === userId } } }
-      : i;
+    return {
+      ...i,
+      books: hold
+        ? { ...books[index], reservation: { reserved_until: hold.pickup_deadline, reserved_for_me: hold.buyer_id === userId } }
+        : books[index]
+    };
   });
 
   const total = items.reduce((sum, i) => sum + Number(i.books.price) * i.quantity, 0);
@@ -74,7 +79,7 @@ const setQuantity = async (userId, cartId, quantity) => {
     include: { books: { select: { quantity: true } } }
   });
   if (!item) throw notFound('找不到該購物車項目');
-  if (item.user_id !== userId) throw forbidden('存取被拒');
+  if (item.user_id !== userId) throw forbidden();
 
   const max = Math.max(item.books.quantity, 1);
   if (quantity > max) throw badRequest(`此書籍數量僅 ${max} 本`);

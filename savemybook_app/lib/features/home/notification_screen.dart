@@ -364,7 +364,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                     HeaderIconButton(icon: Icons.delete_sweep_outlined, onTap: _clearAll),
                   ]
                 : const [],
-            bottom: AppTabBar(controller: _tabs, tabs: [S.alerts, S.announcement]),
+            bottom: AppTabBar(controller: _tabs, tabs: [S.alerts, S.announcements3]),
           ),
           Expanded(
             child: TabBarView(
@@ -529,6 +529,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
@@ -540,18 +541,22 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                           ),
                         ),
                       ),
-                      PopIn(
-                        triggerKey: n.isRead,
-                        child: n.isRead
-                            ? const SizedBox(width: 8, height: 8)
-                            : Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: c.danger,
-                                  shape: BoxShape.circle,
+                      const SizedBox(width: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 7),
+                        child: PopIn(
+                          triggerKey: n.isRead,
+                          child: n.isRead
+                              ? const SizedBox(width: 8, height: 8)
+                              : Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: c.danger,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
+                        ),
                       ),
                     ],
                   ),

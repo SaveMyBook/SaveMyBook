@@ -64,7 +64,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
         'legal' => Icons.policy_outlined,
         'faq' => Icons.quiz_outlined,
         'level' => Icons.workspace_premium_outlined,
-        'cabinet' => Icons.storage_rounded,
+        'cabinet' || 'cabinet_slot' => Icons.storage_rounded,
         'ticket' => Icons.support_agent_rounded,
         'backup' => Icons.backup_outlined,
         _ => Icons.bolt_rounded,
@@ -156,7 +156,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
               padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 8)),
               child: AppSearchField(
                 controller: _search,
-                hint: S.searchActionsEGNicknameBook,
+                hint: S.searchActions,
                 onChanged: _onSearchChanged,
                 onSubmitted: (_) => _load(showLoading: true),
               ),
@@ -254,10 +254,11 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
 
   String? _typeLabel(String? type) {
     if (type == null) return null;
+    if (type == 'cabinet_slot') return S.slot;
     for (final f in _filters) {
       if (f.value == type) return f.label;
     }
-    return type;
+    return null;
   }
 
   Widget _buildCard(AdminOperationLog log, AppColors c) {
@@ -315,7 +316,6 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                             color: c.neutral,
                             fontSize: 10,
                           ),
-                        if (reverted) StatusBadge(label: S.undone, color: c.warning, fontSize: 10),
                       ],
                     ),
                     if (log.summary.isNotEmpty) ...[
@@ -326,39 +326,50 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                       ),
                     ],
                     const SizedBox(height: 6),
-                    Row(
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Icon(Icons.person_outline_rounded, size: 12, color: c.textHint),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            log.adminName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 11, color: c.textHint),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(Icons.schedule_rounded, size: 12, color: c.textHint),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          flex: 2,
-                          child: Tooltip(
-                            message: formatDateTime(log.createdAt),
-                            child: Text(
-                              _when(log.createdAt),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 11, color: c.textHint),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person_outline_rounded, size: 12, color: c.textHint),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Text(
+                                log.adminName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11, color: c.textHint),
+                              ),
                             ),
-                          ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.schedule_rounded, size: 12, color: c.textHint),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Tooltip(
+                                message: formatDateTime(log.createdAt),
+                                child: Text(
+                                  _when(log.createdAt),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 11, color: c.textHint),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                     if (reverted) ...[
                       const SizedBox(height: 2),
                       Text(
-                        '${S.undone}・${formatDateTime(log.revertedAt)}',
+                        S.undoneP0(formatDateTime(log.revertedAt)),
                         style: TextStyle(fontSize: 11, color: c.warning),
                       ),
                     ],
@@ -389,7 +400,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
-                                'IP ${log.ipAddress}・${log.logNo}',
+                                'IP ${log.ipAddress}',
                                 style: TextStyle(fontSize: 11, color: c.textHint),
                               ),
                             ),

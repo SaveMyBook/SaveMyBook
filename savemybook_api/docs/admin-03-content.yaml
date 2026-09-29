@@ -94,6 +94,9 @@ paths:
         操作一律通知賣家。書名或售價有變動時，通知會寫出改成什麼——
         商品是賣家的，價格被動過必須讓他知道。稽核紀錄同樣記下異動欄位。
 
+        修改的簡介、作者、出版社與出版日期之後不再由系統依 ISBN 自動補齊。更正 ISBN 時，比照賣家修改：
+        依舊 ISBN 自動補齊、且未在同一次請求中修改的這些欄位會清空，並在背景依新的 ISBN 重新補齊；交易中或已完成的書籍不清空。
+
         照片不由此端點處理，請使用 `POST /api/books/{id}/images`
         與 `DELETE /api/books/{id}/images/{imageId}`。
         上下架請使用同路徑的 `PATCH`。
@@ -145,20 +148,20 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
-                書名: { value: { success: false, message: 書名必填，且不能超過 255 個字元 } }
-                售價: { value: { success: false, message: 售價必須介於 0 ~ 999999 } }
+                書名: { value: { success: false, message: 書名為必填，且不可超過 255 個字元 } }
+                售價: { value: { success: false, message: 售價須介於 0 至 999999 } }
                 書況: { value: { success: false, message: 不支援的書況 } }
                 ISBN: { value: { success: false, message: 'ISBN 必須是 10 或 13 位數字' } }
-                分類不存在: { value: { success: false, message: 找不到這個分類 } }
-                空請求: { value: { success: false, message: 沒有要修改的欄位 } }
+                分類不存在: { value: { success: false, message: 找不到此分類 } }
+                空請求: { value: { success: false, message: 沒有需要修改的欄位 } }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404':
-          description: 找不到這本書。
+          description: 找不到此書籍。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 找不到這本書 }
+              example: { success: false, message: 找不到此書籍 }
         '500': { $ref: '#/components/responses/ServerError' }
 
     patch:
@@ -170,7 +173,12 @@ paths:
         不開放手動異動。
 
         操作會發送通知予賣家，下架時 `reason` 將包含於通知內容中，
-        並寫入稽核紀錄。
+        並寫入稽核紀錄。恢復上架時未結的上架審核一併標記為通過；恢復的是背景審核直接駁回的書時，
+        計入 AI 品質報表的推翻比例。
+
+        書籍登記存放於書櫃（訂單成立前存書）時：下架後賣家取回不會自動恢復上架；
+        恢復上架已滿 7 天的存書時，存書天數自恢復上架時重新起算，不再提醒賣家取回。
+        還原本操作（`POST /api/admin/operation-logs/{id}/undo`）時比照反向操作處理存書紀錄。
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -204,7 +212,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 只能設定為上架或下架 }
+              example: { success: false, message: 僅可設定為上架或下架 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -219,6 +227,8 @@ paths:
 
         - 書籍狀態為 `reserved`，或有 `pending`、保留期限內 `confirmed` 的預約時回傳 409 `BOOK_IN_TRANSACTION`
         - 已有訂單紀錄時回傳 409 `BOOK_HAS_ORDERS`；為保留交易資料，此類書籍請改用 `PATCH` 強制下架
+        - 書籍仍登記存放於書櫃（訂單成立前存書）時回傳 409 `BOOK_DEPOSITED`；請先由人員取出並以
+          `POST /api/admin/cabinets/deposits/{bookId}/clear` 登記後再刪除
 
         刪除時一併移除已結束的預約、購物車項目、收藏、推薦紀錄與書籍照片資料，
         關聯此書籍的聊天室保留並解除關聯。完成後通知賣家（附上 `reason`）並寫入稽核紀錄。
@@ -268,7 +278,7 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 找不到此書籍 }
         '409':
-          description: 書籍交易或預約進行中，或已有訂單紀錄。
+          description: 書籍交易或預約進行中、已有訂單紀錄，或書籍仍存放於書櫃。
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -277,6 +287,8 @@ paths:
                   value: { success: false, code: BOOK_IN_TRANSACTION, message: 此書籍交易或預約進行中，請先處理後再刪除 }
                 已有訂單:
                   value: { success: false, code: BOOK_HAS_ORDERS, message: 此書籍已有訂單紀錄，為保留交易資料無法刪除，如需停止販售請使用強制下架 }
+                仍存放於書櫃:
+                  value: { success: false, code: BOOK_DEPOSITED, message: 此書籍仍存放於書櫃，請先於書櫃管理登記取出後再刪除 }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/categories:
@@ -348,7 +360,7 @@ paths:
                 名稱為空白:
                   value: { success: false, message: 請輸入分類名稱 }
                 名稱過長:
-                  value: { success: false, message: 分類名稱不可超過 50 字 }
+                  value: { success: false, message: 分類名稱不可超過 50 個字 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -468,7 +480,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, message: 還有 312 本書屬於這個分類，請先調整後再刪除 }
+              example: { success: false, message: 此分類仍有 312 本書籍，請先調整後再刪除 }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }

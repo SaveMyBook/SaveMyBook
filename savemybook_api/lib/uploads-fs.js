@@ -39,7 +39,6 @@ const exists = (url) => {
 
 const forget = (url) => cache.delete(url);
 
-// 各資料夾對應到實際存放網址的欄位；找不到檔案時就地清除，避免畫面一直出現破圖。
 const CLEANERS = {
   avatars: async (url) => {
     await prisma.$executeRaw`UPDATE users SET avatar_url = NULL WHERE avatar_url = ${url}`;
@@ -57,7 +56,6 @@ const folderOf = (url) => (SAFE_URL.test(url) ? url.split('/')[2] : null);
 
 const pending = new Set();
 
-// 清理只在背景進行，不阻擋當次請求，也不讓同一個網址重複清。
 const pruneLater = (url) => {
   const cleaner = CLEANERS[folderOf(url) ?? ''];
   if (!cleaner || pending.has(url)) return;
@@ -68,7 +66,6 @@ const pruneLater = (url) => {
     .finally(() => pending.delete(url));
 };
 
-/** 回傳可用的網址；檔案不存在時回 null，並在背景清掉資料庫欄位。 */
 const usableUrl = (url) => {
   if (!isUploadUrl(url)) return url ?? null;
   if (exists(url)) return url;

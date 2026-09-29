@@ -11,11 +11,21 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
+const VERIFY_METHODS = ['password', 'passkey', 'pin', 'biometric'];
+
+// 依驗證方式分開計數：通行密鑰因裝置設定連續失敗時，不可連帶鎖住密碼、交易密碼與付款驗證。
 const verifyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
-  key: byUser,
+  key: (req) => `${byUser(req)}:${VERIFY_METHODS.includes(req.body?.method) ? req.body.method : 'other'}`,
   message: '驗證嘗試次數過多，請 15 分鐘後再試'
+});
+
+const passkeyOptionsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  key: byUser,
+  message: '操作過於頻繁，請 15 分鐘後再試'
 });
 
 router.get('/', async (req, res) => {
@@ -23,7 +33,7 @@ router.get('/', async (req, res) => {
   res.status(200).json({ success: true, data });
 });
 
-router.post('/verify/passkey/options', verifyLimiter, async (req, res) => {
+router.post('/verify/passkey/options', passkeyOptionsLimiter, async (req, res) => {
   const scopes = Object.keys(security.SCOPES).filter((id) => security.SCOPES[id].methods.includes('passkey'));
   const scope = v.oneOf(req.body.scope, scopes, '驗證範圍不正確');
 

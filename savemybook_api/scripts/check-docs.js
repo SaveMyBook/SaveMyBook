@@ -64,6 +64,38 @@ for (const ops of Object.values(spec.paths)) {
 }
 const duplicateIds = [...new Set(ids.filter((v, i) => ids.indexOf(v) !== i))];
 
+const sourceFiles = (target) => {
+  if (!fs.statSync(target).isDirectory()) return target.endsWith('.js') ? [target] : [];
+  return fs.readdirSync(target).flatMap((name) => sourceFiles(path.join(target, name)));
+};
+const literals = new Set();
+const patterns = [];
+for (const file of ['routes', 'services', 'lib', 'middleware', 'constants'].flatMap((d) => sourceFiles(path.join(root, d)))) {
+  const src = fs.readFileSync(file, 'utf8');
+  for (const m of src.matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g)) literals.add(m[1] ?? m[2]);
+  for (const m of src.matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
+    const parts = m[1].split(/\$\{(?:[^{}]|\{[^{}]*\})*\}/);
+    if (parts.length === 1) literals.add(m[1]);
+    // 幾乎全是插值的樣板會匹配任何字串，不能拿來比對。
+    else if (parts.join('').trim().length >= 4) {
+      patterns.push(new RegExp(`^${parts.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*?')}$`, 's'));
+    }
+  }
+}
+const staleMessages = new Set();
+const checkExamples = (node, where) => {
+  if (!node || typeof node !== 'object') return;
+  if (node.success === false && typeof node.message === 'string'
+    && !literals.has(node.message) && !patterns.some((re) => re.test(node.message))) {
+    staleMessages.add(`${where}：${node.message}`);
+  }
+  for (const value of Object.values(node)) checkExamples(value, where);
+};
+for (const [p, ops] of Object.entries(spec.paths)) {
+  for (const [method, op] of Object.entries(ops)) checkExamples(op, `${method.toUpperCase()} ${p}`);
+}
+for (const [name, response] of Object.entries(spec.components.responses ?? {})) checkExamples(response, name);
+
 const missing = [...actual].filter((k) => !documented.has(k)).sort();
 const stale = [...documented].filter((k) => !actual.has(k)).sort();
 
@@ -78,7 +110,8 @@ show('❌ 沒有寫進文件的端點：', missing);
 show('⚠️  文件有但程式裡找不到的端點：', stale);
 show('❌ 指向不存在元件的 $ref：', [...new Set(broken)]);
 show('❌ 重複的 operationId：', duplicateIds);
+show('❌ 錯誤範例的 message 在程式中找不到：', [...staleMessages]);
 
-const ok = !missing.length && !stale.length && !broken.length && !duplicateIds.length;
+const ok = !missing.length && !stale.length && !broken.length && !duplicateIds.length && !staleMessages.size;
 console.log(ok ? '\n✅ 文件與路由一致' : '\n請修正上述問題');
 process.exit(ok ? 0 : 1);

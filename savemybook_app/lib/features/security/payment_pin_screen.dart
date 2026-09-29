@@ -81,7 +81,7 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
       );
       if (!mounted) return;
       if (!status.available) {
-        setState(() => _loadError = S.networkError);
+        setState(() => _loadError = status.failureMessage ?? S.networkError);
         return;
       }
       if (status.hasPaymentPin) {
@@ -239,7 +239,9 @@ class _PaymentPinScreenState extends State<PaymentPinScreen> {
                       const SizedBox(height: 16),
                       PinEntryPanel(
                         title: confirming ? S.enterAgainConfirm : S.set6DigitPaymentPin,
-                        subtitle: confirming ? S.enterSamePinAgain : S.avoidRepeatedSequentialPatternedDigits,
+                        subtitle: S.avoidRepeatedSequentialPatternedDigits,
+                        // 確認步驟隱藏副標但保留高度，數字鍵盤才不會在切換步驟時位移。
+                        subtitleHidden: confirming,
                         initialError: _notice,
                         onCompleted: _onPin,
                       ),
@@ -353,15 +355,6 @@ class _StepIndicator extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        Row(mainAxisSize: MainAxisSize.min, children: [dot(1), dot(2)]),
-        const SizedBox(height: 8),
-        Text(
-          S.stepP02(step),
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textHint),
-        ),
-      ],
-    );
+    return Row(mainAxisSize: MainAxisSize.min, children: [dot(1), dot(2)]);
   }
 }

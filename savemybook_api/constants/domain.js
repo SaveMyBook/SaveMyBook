@@ -9,15 +9,26 @@ const ORDER_UNSETTLED_STATUSES = [...ORDER_OPEN_STATUSES, 'refunding'];
 
 const ORDER_FINAL_STATUSES = ['completed', 'cancelled', 'refunded'];
 
+// 訂單編號為 SMB 加 20 位數字，早期訂單為 17 位。
+const ORDER_NO_SOURCE = 'SMB\\d{17}(?:\\d{3})?';
+
 const ORDER_STATUS_LABELS = {
   pending_payment: '待付款',
   pending_deposit: '待存書',
   deposited: '已存書',
-  pending_pickup: '待取貨',
+  pending_pickup: '待取書',
   completed: '已完成',
   cancelled: '已取消',
   refunding: '審核中',
   refunded: '已退款'
+};
+
+// App 依買賣方身分與取書進度另有顯示名稱，AI 客服檢索須認得這些說法。
+const ORDER_STATUS_ALIASES = {
+  pending_deposit: ['待賣家存書'],
+  deposited: ['待取書', '待完成訂單', '待買家確認'],
+  pending_pickup: ['待取書'],
+  refunding: ['爭議處理中', '申訴中']
 };
 
 const BOOK_STATUSES = ['on_sale', 'reserved', 'sold', 'removed'];
@@ -41,7 +52,7 @@ const REPORT_STATUSES = ['pending', 'reviewing', 'resolved', 'dismissed'];
 const REPORT_STATUS_LABELS = { pending: '待處理', reviewing: '審核中', resolved: '違規成立', dismissed: '未違規' };
 const DISPUTE_STATUSES = ['pending', 'processing', 'resolved'];
 const DISPUTE_RESULT_LABELS = {
-  refund_manual: '人工退款', refund_auto: '自動退款', dismissed: '駁回申訴', mediated: '協調結案'
+  refund_manual: '人工退款', refund_auto: '自動退款', dismissed: '駁回爭議', mediated: '協調結案'
 };
 
 const ADMIN_PERMISSIONS = {
@@ -75,7 +86,7 @@ const ADMIN_PERMISSION_LABELS = {
 };
 
 module.exports = {
-  ORDER_STATUSES, ORDER_OPEN_STATUSES, ORDER_UNSETTLED_STATUSES, ORDER_FINAL_STATUSES, ORDER_STATUS_LABELS,
+  ORDER_STATUSES, ORDER_OPEN_STATUSES, ORDER_UNSETTLED_STATUSES, ORDER_FINAL_STATUSES, ORDER_NO_SOURCE, ORDER_STATUS_LABELS, ORDER_STATUS_ALIASES,
   BOOK_STATUSES, BOOK_STATUS_LABELS, CONDITION_LEVELS, CONDITION_LABELS, GENDERS, USER_ROLES, USER_ROLE_LABELS,
   REPORT_TARGET_TYPES, ANNOUNCEMENT_TYPES, ANNOUNCEMENT_TYPE_LABELS, TICKET_CATEGORIES, TICKET_STATUSES, TICKET_STATUS_LABELS,
   SLOT_STATUSES, SLOT_STATUS_LABELS, NOTIFICATION_TYPES, REPORT_STATUSES, REPORT_STATUS_LABELS,

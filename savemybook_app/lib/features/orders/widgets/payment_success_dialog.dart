@@ -6,8 +6,13 @@ import '../../../utils/motion.dart';
 import '../../../widgets/animations.dart';
 import '../../../widgets/app_buttons.dart';
 
-/// 付款成功：結帳與直接購買共用。回傳 true 表示使用者選擇查看訂單。
-Future<bool?> showPaymentSuccess(BuildContext context, {required double total, int count = 1, int sellerCount = 1}) {
+Future<bool?> showPaymentSuccess(
+  BuildContext context, {
+  required double total,
+  int count = 1,
+  int sellerCount = 1,
+  bool readyForPickup = false,
+}) {
   final c = AppColors.of(context);
   return showGeneralDialog<bool>(
     context: context,
@@ -57,7 +62,11 @@ Future<bool?> showPaymentSuccess(BuildContext context, {required double total, i
                 FadeSlideIn(
                   index: 5,
                   child: Text(
-                    sellerCount > 1 ? S.p0BooksSplitIntoP1Orders(count, sellerCount) : S.orderPlacedSellerDropBookOff,
+                    sellerCount > 1
+                        ? S.p0BooksSplitIntoP1Orders(count, sellerCount)
+                        : readyForPickup
+                        ? S.orderPlacedBookLockerReadyPickup
+                        : S.orderPlacedSellerDropBookOff,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, height: 1.5, color: c.textSecondary),
                   ),

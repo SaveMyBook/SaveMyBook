@@ -56,7 +56,7 @@ const tests = [
 
     const bad = await send(me, roomId, { content: 'https://example.com/a.jpg', message_type: 'image' });
     assert.strictEqual(bad.status, 400);
-    assert.strictEqual(bad.body.message, '圖片請先透過 /api/uploads/chat-image 上傳');
+    assert.strictEqual(bad.body.message, '圖片無效，請重新上傳');
 
     const res = await send(me, roomId, { content: IMAGE, message_type: 'image' });
     assert.strictEqual(res.status, 201);
@@ -69,7 +69,7 @@ const tests = [
     const { me, partner, roomId } = await pair();
 
     const badUrl = await send(me, roomId, { content: IMAGE, message_type: 'voice', duration: 5 });
-    assert.strictEqual(badUrl.body.message, '語音請先透過 /api/uploads/voice 上傳');
+    assert.strictEqual(badUrl.body.message, '語音無效，請重新錄製');
 
     const noDuration = await send(me, roomId, { content: VOICE, message_type: 'voice' });
     assert.strictEqual(noDuration.body.message, '語音長度不正確');
@@ -97,7 +97,7 @@ const tests = [
     assert.strictEqual(tooMany.body.message, '相簿須包含 2 至 20 張圖片');
 
     const bad = await send(me, roomId, { content: [IMAGE, 'https://example.com/b.jpg'], message_type: 'album' });
-    assert.strictEqual(bad.body.message, '圖片請先透過 /api/uploads/chat-image 上傳');
+    assert.strictEqual(bad.body.message, '圖片無效，請重新上傳');
 
     const urls = [IMAGE, '/uploads/chat/photo-2.jpg'];
     const res = await send(me, roomId, { content: urls, message_type: 'album' });
@@ -330,7 +330,7 @@ const tests = [
     assert.strictEqual(read.status, 403);
     const write = await send(outsider, roomId, { content: '偷偷插話' });
     assert.strictEqual(write.status, 403);
-    assert.strictEqual(write.body.message, '存取被拒');
+    assert.strictEqual(write.body.message, '無權限執行此操作');
   }],
 
   ['對方帳號停用後無法再傳訊息', async () => {

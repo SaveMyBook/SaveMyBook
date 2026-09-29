@@ -300,11 +300,11 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               examples:
                 缺少帳號憑證:
-                  value: { success: false, message: 請提供 Email 與密碼 }
+                  value: { success: false, message: 請輸入電子郵件與密碼 }
                 一次性碼失效:
                   value: { success: false, code: OAUTH_CODE_INVALID, message: 登入逾時，請重新操作 }
                 通行密鑰驗證失敗:
-                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作 }
+                  value: { success: false, code: PASSKEY_VERIFICATION_FAILED, message: 通行密鑰驗證失敗，請重新操作或改用其他方式 }
         '401':
           description: 密碼錯誤，或 ID Token 無效。
           content:
@@ -330,7 +330,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: ACCOUNT_NOT_FOUND, message: 此 Email 尚未註冊 }
+              example: { success: false, code: ACCOUNT_NOT_FOUND, message: 此電子郵件尚未註冊 }
         '409':
           description: 綁定規則不允許。
           content:
@@ -737,7 +737,7 @@ components:
           example:
             success: false
             code: AUTH_SOCIAL_UNAVAILABLE
-            message: 社群登入暫時無法使用，請稍後再試
+            message: 此登入方式暫時無法使用，請稍後再試
 
     AuthProviderError:
       description: 無法連線至第三方登入服務或其回應不正確。

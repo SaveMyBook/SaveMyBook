@@ -14,7 +14,6 @@ String chatRiskNote(ChatRiskCategory category) => switch (category) {
   ChatRiskCategory.contact => S.personSharedOutsideContactDetailsWatch,
 };
 
-/// 同一聊天室每種類別只在最早出現的那則訊息下提醒一次；高風險訊息則每則都提醒。
 Map<int, ChatRisk> chatRiskNotes(Iterable<ChatMessage> messages, int myId) {
   final shown = <ChatRiskCategory>{};
   final notes = <int, ChatRisk>{};
@@ -66,16 +65,23 @@ class ChatRiskNote extends StatelessWidget {
                   WidgetSpan(
                     alignment: PlaceholderAlignment.baseline,
                     baseline: TextBaseline.alphabetic,
-                    child: GestureDetector(onTap: onTips, child: Text(S.scamSafetyTips, style: link)),
-                  ),
-                  if (onReport != null) ...[
-                    const TextSpan(text: '・'),
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.baseline,
-                      baseline: TextBaseline.alphabetic,
-                      child: GestureDetector(onTap: onReport, child: Text(S.report, style: link)),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Flexible(child: GestureDetector(onTap: onTips, child: Text(S.scamSafetyTips, style: link))),
+                            if (onReport != null)
+                              Text('・', style: link.copyWith(fontWeight: risk.high ? FontWeight.w500 : FontWeight.w400, color: tone)),
+                          ],
+                        ),
+                        if (onReport != null) GestureDetector(onTap: onReport, child: Text(S.report, style: link)),
+                      ],
                     ),
-                  ],
+                  ),
                 ],
               ),
               style: TextStyle(fontSize: 11.5, height: 1.4, color: tone, fontWeight: risk.high ? FontWeight.w500 : FontWeight.w400),
@@ -129,7 +135,7 @@ class ChatRiskBanner extends StatelessWidget {
                   height: 24,
                   child: IconButton(
                     onPressed: onDismiss,
-                    tooltip: S.close,
+                    tooltip: S.actionClose,
                     padding: EdgeInsets.zero,
                     icon: Icon(Icons.close_rounded, size: 18, color: c.textSecondary),
                   ),

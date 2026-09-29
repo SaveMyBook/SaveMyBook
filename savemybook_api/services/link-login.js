@@ -33,7 +33,7 @@ const authenticate = async ({ email, password, assertion }) => {
     auth.assertLoginAllowed(user);
     return { user, method: 'passkey' };
   }
-  if (!email || !password) throw badRequest('請提供 Email 與密碼');
+  if (!email || !password) throw badRequest('請輸入電子郵件與密碼');
   return { user: await auth.verifyPassword(email, password), method: 'password' };
 };
 
@@ -61,7 +61,7 @@ const linkAndSignIn = async ({ provider, idToken, code, email, password, asserti
     }).catch(() => {});
   }
 
-  if (code) await oauth.dropResult(code);
+  if (code) await oauth.consumeResult(code);
   return auth.issueLogin(user, device, method);
 };
 

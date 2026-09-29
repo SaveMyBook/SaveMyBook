@@ -36,7 +36,7 @@ end
 API -> API : 依推薦依據分組\n（同一依據至少 2 本，最多 3 組）
 API --> UI : 推薦書籍與分組
 deactivate API
-UI --> 買家 : 分排顯示「因為您收藏了《…》」\n「您常看的「考試用書」」「更多推薦」
+UI --> 買家 : 分排顯示「與已收藏的《…》相關」\n「『考試用書』類別推薦」「更多推薦」
 deactivate UI
 deactivate 買家
 @enduml

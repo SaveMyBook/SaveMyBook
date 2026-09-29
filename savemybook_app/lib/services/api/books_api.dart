@@ -116,7 +116,6 @@ extension BooksApi on ApiService {
     return res != null && res['success'] == true;
   }
 
-  /// 下架書籍；失敗時回傳伺服器說明（例如預約保留中或已完成交易），讓畫面顯示實際原因。
   Future<String?> removeBook(int bookId) async {
     final res = await _send('DELETE', '/books/$bookId');
     if (res == null) return S.pleaseSignFirst;

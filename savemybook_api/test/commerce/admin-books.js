@@ -136,7 +136,7 @@ const tests = [
 
     const badPrice = await request('PUT', `/api/admin/books/${book.book_id}`, { token, body: { price: -1 } });
     assert.strictEqual(badPrice.status, 400);
-    assert.strictEqual(badPrice.body.message, '售價必須介於 0 ~ 999999');
+    assert.strictEqual(badPrice.body.message, '售價須介於 0 至 999999');
 
     const badCategory = await request('PUT', `/api/admin/books/${book.book_id}`, { token, body: { category_id: 999 } });
     assert.strictEqual(badCategory.status, 400);
@@ -181,7 +181,7 @@ const tests = [
     addCartItem(fan.user_id, book.book_id);
     prisma.rows('favorites').push({ favorite_id: 1, user_id: fan.user_id, book_id: book.book_id, created_at: new Date() });
     addReservation({ bookId: book.book_id, buyerId: fan.user_id, sellerId: seller.user_id, status: 'cancelled' });
-    prisma.rows('recommendation_logs').push({ log_id: 1, book_id: book.book_id, user_id: fan.user_id });
+    prisma.rows('recommendation_logs').push({ rec_id: 1, book_id: book.book_id, user_id: fan.user_id });
     prisma.rows('chat_rooms').push({
       room_id: 1, user_a_id: fan.user_id, user_b_id: seller.user_id, book_id: book.book_id, room_type: 'direct'
     });
@@ -205,7 +205,6 @@ const tests = [
 
     const log = logs()[0];
     assert.strictEqual(log.action, '刪除書籍');
-    // 書籍編號對外一律使用加密編號。
     assert.match(summaryOf(log), /^刪除書籍 BK[0-9A-Z]{7}《小王子》，並通知賣家，原因：重複上架$/);
   }],
 
@@ -270,7 +269,6 @@ const tests = [
     assert.strictEqual(notice.title, '書籍未通過審核');
     assert.ok(notice.content.includes('原因：販售盜版'));
 
-    // 被駁回後即成為違規鎖定，賣家不可自行重新上架。
     const relist = await request('PUT', `/api/books/${book.book_id}`, {
       token: tokenFor(seller), body: { status: 'on_sale' }
     });
@@ -302,7 +300,7 @@ const tests = [
       token, body: { decision: 'maybe' }
     });
     assert.strictEqual(bad.status, 400);
-    assert.strictEqual(bad.body.message, 'decision 僅接受：approve, reject');
+    assert.strictEqual(bad.body.message, '審核結果不正確');
   }],
 
   ['駁回後再核准會讓已下架的書籍重新上架', async () => {

@@ -1,14 +1,20 @@
 const prisma = require('../../lib/prisma');
 const { badRequest, forbidden, notFound, conflict } = require('../../lib/errors');
-const { ORDER_FINAL_STATUSES } = require('../../constants/domain');
+const { ORDER_FINAL_STATUSES, ORDER_NO_SOURCE } = require('../../constants/domain');
+const policy = require('../../constants/policy');
 const { notify } = require('../notify');
 const { withTxnNo } = require('../wallet');
 const audit = require('../audit');
 const settlement = require('./settlement');
 const { checkout, buyNow } = require('./checkout');
 const { orderInclude, adminOrderInclude } = require('./selects');
+const cabinetAccess = require('../cabinet-access');
+const doors = require('../cabinet-doors');
 
-const { transition, describeSettlement, statusLabel } = settlement;
+const cabinetRelease = () => require('../cabinet-release');
+const cabinetManual = () => require('../cabinet-manual');
+
+const { transition, describeSettlement, storedNotice, statusLabel } = settlement;
 
 const IN_CABINET = ['deposited', 'pending_pickup'];
 const PRE_DEPOSIT = ['pending_payment', 'pending_deposit'];
@@ -59,14 +65,26 @@ const listForUser = async (userId, { role, filter, skip, limit }) => {
 const isParty = (order, user) =>
   order.buyer_id === user.userId || order.seller_id === user.userId || user.role === 'admin';
 
-const findForParty = async (orderId, user, include) => {
-  const order = await prisma.orders.findUnique({ where: { order_id: orderId }, include });
+const findForParty = async (orderId, user, include, omit) => {
+  const order = await prisma.orders.findUnique({ where: { order_id: orderId }, include, ...(omit && { omit }) });
   if (!order) throw notFound('找不到該訂單');
-  if (!isParty(order, user)) throw forbidden('存取被拒');
+  if (!isParty(order, user)) throw forbidden();
   return order;
 };
 
-const detailForParty = (orderId, user) => findForParty(orderId, user, orderInclude);
+const detailForParty = (orderId, user) => findForParty(orderId, user, orderInclude, { pickup_code: true });
+
+const ORDER_NO_PATTERN = new RegExp(`^${ORDER_NO_SOURCE}$`);
+
+// 非當事人與不存在一律回 404，避免以編號探測他人的訂單是否存在。
+const detailForPartyByNo = async (orderNo, user) => {
+  const found = await prisma.orders.findUnique({
+    where: { order_no: orderNo },
+    select: { order_id: true, buyer_id: true, seller_id: true }
+  });
+  if (!found || !isParty(found, user)) throw notFound('找不到該訂單');
+  return detailForParty(found.order_id, user);
+};
 
 const cancel = async (orderId, user, reason) => {
   const order = await findForParty(orderId, user, { order_items: true });
@@ -77,10 +95,11 @@ const cancel = async (orderId, user, reason) => {
   if (order.status === 'refunding' && !isAdmin) {
     throw badRequest('此訂單爭議處理中，無法自行取消，請等候客服裁決');
   }
-  // 書已放進書櫃後雙方都不能自行取消，有問題須提出申訴，避免書在買家手上卻被退款。
-  if (!isAdmin && !PRE_DEPOSIT.includes(order.status)) {
-    throw badRequest('賣家已存書，無法取消訂單；如有問題請提出申訴', 'ORDER_NOT_CANCELLABLE');
+  // 書已放進書櫃後雙方都不能自行取消，有問題須申請爭議，避免書在買家手上卻被退款。
+  if (!isAdmin && !policy.ORDER_CANCELLABLE_STATUSES.includes(order.status)) {
+    throw badRequest('賣家已存書，無法取消訂單；如有問題請申請爭議', 'ORDER_NOT_CANCELLABLE');
   }
+  if (!isAdmin) await cabinetRelease().assertNotInSession(orderId);
 
   return prisma.$transaction(async (tx) => {
     const money = await transition(tx, order, 'cancelled', { cancelReason: reason });
@@ -90,20 +109,26 @@ const cancel = async (orderId, user, reason) => {
         userId: order.buyer_id,
         type: 'order',
         title: '訂單已退款',
-        content: `訂單 ${order.order_no} 已取消，${money.refunded} 代幣已退回您的帳戶。`,
+        content: `訂單 ${order.order_no} 已取消，${money.refunded} 代幣已退回您的錢包。`,
         relatedId: orderId,
         relatedType: 'order'
       });
     }
 
-    await notify(tx, {
-      userId: user.userId === order.buyer_id ? order.seller_id : order.buyer_id,
-      type: 'order',
-      title: '訂單已取消',
-      content: `訂單 ${order.order_no} 已取消。${reason ? `原因：${reason}` : ''}`,
-      relatedId: orderId,
-      relatedType: 'order'
-    });
+    const stored = storedNotice(money);
+    let recipients = [order.buyer_id];
+    if (user.userId === order.buyer_id) recipients = [order.seller_id];
+    else if (user.userId !== order.seller_id && stored) recipients = [order.buyer_id, order.seller_id];
+    for (const recipientId of recipients) {
+      await notify(tx, {
+        userId: recipientId,
+        type: 'order',
+        title: '訂單已取消',
+        content: `訂單 ${order.order_no} 已取消。${recipientId === order.seller_id ? stored : ''}${reason ? `原因：${reason}` : ''}`,
+        relatedId: orderId,
+        relatedType: 'order'
+      });
+    }
 
     return tx.orders.findUnique({ where: { order_id: orderId }, include: orderInclude });
   });
@@ -134,7 +159,7 @@ const TRANSITIONS = {
   }
 };
 
-const CONFIRM_WINDOW_HOURS = 24;
+const CONFIRM_WINDOW_HOURS = policy.ORDER_AUTO_COMPLETE_HOURS;
 
 const notifyPickedUp = (tx, order) => notify(tx, {
   userId: order.seller_id,
@@ -160,13 +185,13 @@ const notifyCompleted = (tx, order, money, { auto = false } = {}) => Promise.all
     userId: order.buyer_id,
     type: 'order',
     title: '訂單已自動完成',
-    content: `訂單 ${order.order_no} 取書已滿 ${CONFIRM_WINDOW_HOURS} 小時且未提出申訴，已自動完成。`,
+    content: `訂單 ${order.order_no} 取書已滿 ${CONFIRM_WINDOW_HOURS} 小時且未申請爭議，已自動完成。`,
     relatedId: order.order_id,
     relatedType: 'order'
   })
 ]);
 
-const markPickedUp = async (tx, order) => {
+const markPickedUpInTx = async (tx, order) => {
   const result = await tx.orders.updateMany({
     where: { order_id: order.order_id, status: order.status, picked_up_at: null },
     data: { picked_up_at: new Date(), updated_at: new Date() }
@@ -175,13 +200,41 @@ const markPickedUp = async (tx, order) => {
   await notifyPickedUp(tx, order);
 };
 
+const cabinetNameOf = async (db, order) => {
+  if (order.smart_cabinets?.cabinet_name) return order.smart_cabinets.cabinet_name;
+  if (order.cabinet_id == null) return null;
+  const cabinet = await db.smart_cabinets.findUnique({ where: { cabinet_id: order.cabinet_id }, select: { cabinet_name: true } });
+  return cabinet?.cabinet_name ?? null;
+};
+
+const notifyDeposited = async (tx, order) => {
+  const cabinet = await cabinetNameOf(tx, order);
+  await notify(tx, {
+    userId: order.buyer_id,
+    type: 'order',
+    title: '書籍已存入書櫃',
+    content: `訂單 ${order.order_no} 的書籍已存入${cabinet ? `「${cabinet}」` : ''}書櫃，請於營業時間內至書櫃以 App 掃描 QR Code 取書。`,
+    relatedId: order.order_id,
+    relatedType: 'order'
+  });
+};
+
+const markDepositedInTx = async (tx, order) => {
+  const money = await transition(tx, order, 'deposited');
+  await notifyDeposited(tx, order);
+  return money;
+};
+
+const orderBookIds = (order) => (order.order_items ?? []).map((i) => Number(i.book_id));
+
 const advance = async (orderId, status, user) => {
   const rule = TRANSITIONS[status];
   const order = await findForParty(orderId, user, { order_items: true });
 
-  const isAdmin = user.role === 'admin';
+  // 身為當事人的管理員只能以自己的身分操作，不得代替對方回報存書或取書。
+  const isStaff = user.role === 'admin' && user.userId !== order.buyer_id && user.userId !== order.seller_id;
   const actorId = rule.by === 'seller' ? order.seller_id : order.buyer_id;
-  if (!isAdmin && user.userId !== actorId) {
+  if (!isStaff && user.userId !== actorId) {
     throw forbidden(rule.by === 'seller' ? '僅賣家可執行此操作' : '僅買家可確認取書或完成訂單');
   }
   if (order.status === status) throw conflict('訂單已是此狀態');
@@ -191,53 +244,61 @@ const advance = async (orderId, status, user) => {
   // 舊版 App 在買家取書時直接送 completed；尚未確認取書時一律視為取書，不撥款。
   const pickupOnly = status === 'picked_up' || (status === 'completed' && !order.picked_up_at);
 
-  return prisma.$transaction(async (tx) => {
-    if (pickupOnly) {
-      await markPickedUp(tx, order);
-      return tx.orders.findUnique({ where: { order_id: orderId }, include: orderInclude });
-    }
-
-    const money = await transition(tx, order, status);
-    const updated = await tx.orders.findUnique({ where: { order_id: orderId }, include: orderInclude });
-
-    if (status === 'deposited' || status === 'pending_pickup') {
-      const cabinet = updated.smart_cabinets?.cabinet_name;
-      await notify(tx, {
-        userId: order.buyer_id,
-        type: 'order',
-        title: '書籍已存入書櫃',
-        content: `訂單 ${order.order_no} 的書籍已存入${cabinet ? `「${cabinet}」` : ''}書櫃，請前往書櫃掃描機台上的 QR Code 取書。`,
-        relatedId: orderId,
-        relatedType: 'order'
+  if (status === 'deposited' || pickupOnly) {
+    const manual = await cabinetAccess.assertManualAllowed(order.cabinet_id, user, {
+      buyerId: order.buyer_id, sellerId: order.seller_id
+    });
+    if (manual.audited) {
+      return cabinetManual().submit({
+        kind: status === 'deposited' ? 'deposit' : 'pickup', order, user, targetStatus: status, reason: manual.reason
       });
     }
+  }
+
+  return prisma.$transaction(async (tx) => {
+    if (pickupOnly) {
+      await markPickedUpInTx(tx, order);
+      const slotIds = await doors.removeBooks(tx, orderBookIds(order));
+      if (slotIds.length) await doors.markCheck(tx, slotIds, { reason: 'MANUAL_REPORT' });
+      return tx.orders.findUnique({ where: { order_id: orderId }, include: orderInclude, omit: { pickup_code: true } });
+    }
+
+    const money = status === 'deposited' ? await markDepositedInTx(tx, order) : await transition(tx, order, status);
+    const updated = await tx.orders.findUnique({ where: { order_id: orderId }, include: orderInclude, omit: { pickup_code: true } });
+
+    if (status === 'pending_pickup') await notifyDeposited(tx, updated);
     if (status === 'completed') await notifyCompleted(tx, order, money);
 
     return updated;
   });
 };
 
-// ---------- 排程：自動完成與逾期取消 ----------
-
-const DEPOSIT_DAYS = 7;
-const PICKUP_DAYS = 7;
+const DEPOSIT_DAYS = policy.ORDER_DEPOSIT_DAYS;
+const PICKUP_DAYS = policy.ORDER_PICKUP_DAYS;
 const BATCH = 100;
 
 const hoursAgo = (h, now) => new Date(now.getTime() - h * 60 * 60 * 1000);
 
-// 每筆訂單各自一個交易：單筆失敗（例如狀態剛被使用者變更）不影響其他訂單。
+// 每筆訂單各自一個交易：單筆失敗（例如狀態剛被使用者變更）不影響其他訂單。處理函式回傳 false 表示本次保留不處理。
+// 保留的訂單狀態不變、每次都會再被查到，因此以游標逐批處理完全部到期訂單，否則保留超過一批後，較新的訂單永遠輪不到。
 const eachOrder = async (where, handler) => {
-  const due = await prisma.orders.findMany({ where, include: { order_items: true }, take: BATCH, orderBy: { order_id: 'asc' } });
   let done = 0;
-  for (const order of due) {
-    try {
-      await prisma.$transaction((tx) => handler(tx, order));
-      done += 1;
-    } catch (err) {
-      if (err.status !== 409) console.error(`[訂單 ${order.order_no} 自動處理失敗]:`, err.message);
+  let after = 0;
+  for (;;) {
+    const due = await prisma.orders.findMany({
+      where: { ...where, order_id: { gt: after } }, include: { order_items: true }, take: BATCH, orderBy: { order_id: 'asc' }
+    });
+    for (const order of due) {
+      try {
+        const handled = await prisma.$transaction((tx) => handler(tx, order));
+        if (handled !== false) done += 1;
+      } catch (err) {
+        if (err.status !== 409) console.error(`[訂單 ${order.order_no} 自動處理失敗]:`, err.message);
+      }
     }
+    if (due.length < BATCH) return done;
+    after = Number(due[due.length - 1].order_id);
   }
-  return done;
 };
 
 const completeDue = (now = new Date()) => eachOrder(
@@ -248,7 +309,8 @@ const completeDue = (now = new Date()) => eachOrder(
   }
 );
 
-const cancelOverdue = async (tx, order, { reason, buyerContent, sellerContent }) => {
+const cancelOverdue = async (tx, order, { reason, buyerContent, sellerContent }, now = new Date()) => {
+  if (await cabinetRelease().overdueHold(tx, order, now)) return false;
   const money = await transition(tx, order, 'cancelled', { cancelReason: reason, restoreBookTo: 'removed' });
   await notify(tx, {
     userId: order.buyer_id,
@@ -262,7 +324,7 @@ const cancelOverdue = async (tx, order, { reason, buyerContent, sellerContent })
     userId: order.seller_id,
     type: 'order',
     title: '訂單已取消',
-    content: sellerContent,
+    content: sellerContent(money.redeposited > 0),
     relatedId: order.order_id,
     relatedType: 'order'
   });
@@ -273,8 +335,10 @@ const cancelUndeposited = (now = new Date()) => eachOrder(
   (tx, order) => cancelOverdue(tx, order, {
     reason: `賣家逾 ${DEPOSIT_DAYS} 天未存書`,
     buyerContent: `訂單 ${order.order_no} 的賣家逾 ${DEPOSIT_DAYS} 天未存書，訂單已自動取消，`,
-    sellerContent: `訂單 ${order.order_no} 逾 ${DEPOSIT_DAYS} 天未存書，已自動取消，書籍已改為下架，如需販售請重新上架。`
-  })
+    sellerContent: (stored) => (stored
+      ? `訂單 ${order.order_no} 逾 ${DEPOSIT_DAYS} 天未存書，已自動取消，書籍已改為下架。已存放於書櫃的書籍請至書櫃以 App 掃描 QR Code 取回；如需販售請重新上架。`
+      : `訂單 ${order.order_no} 逾 ${DEPOSIT_DAYS} 天未存書，已自動取消，書籍已改為下架，如需販售請重新上架。`)
+  }, now)
 );
 
 const cancelUncollected = (now = new Date()) => eachOrder(
@@ -282,8 +346,9 @@ const cancelUncollected = (now = new Date()) => eachOrder(
   (tx, order) => cancelOverdue(tx, order, {
     reason: `買家逾 ${PICKUP_DAYS} 天未取書`,
     buyerContent: `訂單 ${order.order_no} 存書後逾 ${PICKUP_DAYS} 天未取書，訂單已自動取消，`,
-    sellerContent: `訂單 ${order.order_no} 的買家逾 ${PICKUP_DAYS} 天未取書，訂單已自動取消，請至書櫃取回書籍；書籍已改為下架，如需販售請重新上架。`
-  })
+    sellerContent: () => `訂單 ${order.order_no} 的買家逾 ${PICKUP_DAYS} 天未取書，訂單已自動取消，`
+      + '請至書櫃以 App 掃描 QR Code 取回書籍；書籍已改為下架，如需販售請重新上架。'
+  }, now)
 );
 
 const runAutomation = async (now = new Date()) => ({
@@ -361,12 +426,14 @@ const adminDetail = async (orderId) => {
   });
 
   if (!order) throw notFound('找不到此訂單');
+  const doorMap = await doors.orderDoors([order.order_id]);
 
   return {
     ...shapeAdminOrder(order),
     payment_method: order.payment_method,
     note: order.note,
     slot: order.cabinet_slots,
+    doors: (doorMap.get(Number(order.order_id)) ?? []).map((d) => d.label),
     updated_at: order.updated_at,
     timeline: {
       created_at: order.created_at,
@@ -391,16 +458,21 @@ const adminChangeStatus = async (orderId, status, note, { adminId, req }) => {
   try {
     money = await prisma.$transaction(async (tx) => {
       const result = await transition(tx, order, status, { cancelReason: note || '管理員手動取消' });
+      if (status === 'completed' && !order.picked_up_at) {
+        const placed = await doors.bookDoors(orderBookIds(order), { tx });
+        const slotIds = [...placed.values()].filter((d) => d.cabinet_id === Number(order.cabinet_id)).map((d) => d.slot_id);
+        if (slotIds.length) await doors.markCheck(tx, slotIds, { reason: 'ADMIN_COMPLETED' });
+      }
       const effect = describeSettlement(result);
-      const content = `訂單 ${order.order_no} 已由客服調整為「${statusLabel(status)}」。`
-        + `${effect ? `${effect}。` : ''}${note ? `說明：${note}` : ''}`;
+      const content = (extra) => `訂單 ${order.order_no} 已由客服調整為「${statusLabel(status)}」。`
+        + `${effect ? `${effect}。` : ''}${extra}${note ? `說明：${note}` : ''}`;
 
       for (const userId of [order.buyer_id, order.seller_id]) {
         await notify(tx, {
           userId,
           type: 'order',
           title: '訂單狀態已更新',
-          content,
+          content: content(userId === order.seller_id ? storedNotice(result) : ''),
           relatedId: orderId,
           relatedType: 'order'
         });
@@ -428,6 +500,8 @@ const adminChangeStatus = async (orderId, status, note, { adminId, req }) => {
 };
 
 module.exports = {
-  TRANSITIONS, CONFIRM_WINDOW_HOURS, DEPOSIT_DAYS, PICKUP_DAYS, tabFilter, listForUser, detailForParty, checkout, buyNow, cancel, advance,
+  TRANSITIONS, CONFIRM_WINDOW_HOURS, DEPOSIT_DAYS, PICKUP_DAYS, ORDER_NO_PATTERN, tabFilter, listForUser, detailForParty, detailForPartyByNo,
+  checkout, buyNow, cancel, advance,
+  markPickedUpInTx, markDepositedInTx, notifyDeposited,
   completeDue, cancelUndeposited, cancelUncollected, runAutomation, adminList, adminDetail, adminChangeStatus
 };

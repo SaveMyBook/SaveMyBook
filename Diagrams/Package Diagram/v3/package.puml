@@ -6,7 +6,7 @@ skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 13
 skinparam packageStyle rectangle
 skinparam nodesep 30
-skinparam ranksep 40
+skinparam ranksep 30
 
 package "Presentation Layer (Flutter)" as PL {
   package "Widgets" as W {
@@ -40,6 +40,7 @@ package "API Layer (Backend)" as BL {
   component "Express App" as express
   component "Socket.IO Server" as sio
   component "OpenAPI Docs" as docs
+  component "Device API" as devapi
 }
 
 package "Middleware Layer" as ML {
@@ -54,9 +55,10 @@ package "Service Layer" as SL {
   component "Order Service" as a3
   component "Wallet Service" as a4
   component "Chat Service" as a5
-  component "AI Service" as a6
-  component "Notification Service" as a7
-  component "Scheduler" as a8
+  component "Cabinet Service" as a6
+  component "AI Service" as a7
+  component "Notification Service" as a8
+  component "Scheduler" as a9
 }
 
 package "Data Access Layer" as DL {
@@ -83,16 +85,19 @@ rtsvc -[hidden]right- pushsvc
 apisvc --> express : REST API 呼叫
 rtsvc --> sio : Socket.IO
 express -right-> docs
+sio -[hidden]right- devapi
 express --> mauth
 sio --> mauth
 mauth -[hidden]right- mver
 mver -[hidden]right- mrate
 mauth --> a2
-a1 -[hidden]- a5
-a2 -[hidden]- a6
-a3 -[hidden]- a7
-a4 -[hidden]- a8
-a6 --> prisma
+a1 -[hidden]- a4
+a2 -[hidden]- a5
+a3 -[hidden]- a6
+a4 -[hidden]- a7
+a5 -[hidden]- a8
+a6 -[hidden]- a9
 a7 --> prisma
+a8 --> prisma
 prisma -right-> maria
 @enduml

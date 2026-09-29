@@ -150,7 +150,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
             ),
             ListTile(
               leading: Icon(Icons.manage_accounts_outlined, color: c.accent),
-              title: Text(S.fullSettingsTierPermissions, style: TextStyle(color: c.textPrimary)),
+              title: Text(S.memberSettings, style: TextStyle(color: c.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _openDetail(member);
@@ -185,21 +185,24 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  AppSelectChip<String?>(
-                    value: _statusFilter,
-                    title: S.accountStatus,
-                    iconOnly: _statusFilter == null,
-                    highlighted: _statusFilter != null,
-                    options: [
-                      AppSelectOption(value: null, label: S.actionAll, icon: Icons.people_alt_outlined),
-                      AppSelectOption(value: 'active', label: S.memberNormal, icon: Icons.check_circle_outline_rounded, iconColor: c.success),
-                      AppSelectOption(value: 'inactive', label: S.memberInactive, icon: Icons.pause_circle_outline_rounded, iconColor: c.warning),
-                      AppSelectOption(value: 'blacklisted', label: S.memberBlacklisted, icon: Icons.gpp_bad_outlined, iconColor: c.danger),
-                    ],
-                    onChanged: (value) {
-                      setState(() => _statusFilter = value);
-                      _load();
-                    },
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48, maxHeight: 48),
+                    child: AppSelectChip<String?>(
+                      value: _statusFilter,
+                      title: S.accountStatus,
+                      iconOnly: _statusFilter == null,
+                      highlighted: _statusFilter != null,
+                      options: [
+                        AppSelectOption(value: null, label: S.actionAll, icon: Icons.people_alt_outlined),
+                        AppSelectOption(value: 'active', label: S.memberNormal, icon: Icons.check_circle_outline_rounded, iconColor: c.success),
+                        AppSelectOption(value: 'inactive', label: S.memberInactive, icon: Icons.pause_circle_outline_rounded, iconColor: c.warning),
+                        AppSelectOption(value: 'blacklisted', label: S.memberBlacklisted, icon: Icons.gpp_bad_outlined, iconColor: c.danger),
+                      ],
+                      onChanged: (value) {
+                        setState(() => _statusFilter = value);
+                        _load();
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -260,12 +263,10 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        _tag(
-                          member.role == 'admin' ? S.roleAdmin : S.roleBuyerSeller,
-                          member.role == 'admin' ? c.warning : c.accent,
-                          icon: member.role == 'admin' ? Icons.shield_outlined : null,
-                        ),
+                        if (member.role == 'admin') ...[
+                          const SizedBox(width: 6),
+                          _tag(S.roleAdmin, c.warning, icon: Icons.shield_outlined),
+                        ],
                         if (_isSelf(member)) ...[
                           const SizedBox(width: 4),
                           _tag(S.you, c.textHint),

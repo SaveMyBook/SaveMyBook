@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/app_notification.dart';
+import '../features/admin/admin_cabinet_deposit_screen.dart';
+import '../features/admin/admin_cabinet_device_screen.dart';
 import '../features/admin/admin_report_screen.dart';
+import '../features/admin/ai/admin_ai_screen.dart';
 import '../features/home/announcement_screen.dart';
 import '../features/books/book_detail_screen.dart';
 import '../features/account/change_password_screen.dart';
@@ -18,7 +21,7 @@ class NotificationRouter {
 
   static bool hasTarget(String? relatedType, int? relatedId) {
     if (relatedType == null || _noTarget.contains(relatedType)) return false;
-    if (const {'wallet', 'member_level', 'password', 'security'}.contains(relatedType)) return true;
+    if (const {'wallet', 'member_level', 'password', 'security', 'ai_budget'}.contains(relatedType)) return true;
     return relatedId != null;
   }
 
@@ -44,6 +47,8 @@ class NotificationRouter {
         return const ChangePasswordScreen();
       case 'security':
         return const SecurityCenterScreen();
+      case 'ai_budget':
+        return ApiService.currentUser?.role == 'admin' ? const AdminAiScreen() : null;
     }
     if (id == null) return null;
 
@@ -62,6 +67,10 @@ class NotificationRouter {
         return ApiService.currentUser?.role == 'admin'
             ? const AdminReportScreen(initialTab: AdminReportScreen.riskAlertTab)
             : null;
+      case 'cabinet_deposit':
+        return ApiService.currentUser?.role == 'admin' ? const AdminCabinetDepositScreen(initialOverdue: true) : null;
+      case 'cabinet':
+        return ApiService.currentUser?.role == 'admin' ? AdminCabinetDeviceScreen(cabinetId: id, focusPending: true) : null;
       case 'order':
         final order = await api.fetchOrderDetail(id);
         if (order == null) return null;

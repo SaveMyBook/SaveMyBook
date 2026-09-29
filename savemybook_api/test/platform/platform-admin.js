@@ -256,7 +256,6 @@ module.exports = {
       assert.strictEqual(notice.title, '密碼已被重設');
       assert.strictEqual(notice.related_type, 'password');
 
-      // 臨時密碼不可寫進操作紀錄。
       const [log] = prisma.rows('admin_operation_logs');
       assert.strictEqual(log.action, '重設會員密碼');
       assert.strictEqual(log.detail.includes(res.body.data.temp_password), false);
@@ -271,7 +270,6 @@ module.exports = {
         token: h.tokenFor(admin), headers: verifiedAs(admin)
       });
       assert.strictEqual(res.status, 200);
-      // 未標記時，使用者用臨時密碼登入後仍會被當成沒有密碼，無法通過身分驗證或解除綁定。
       assert.strictEqual(Number(target.password_set), 1);
     }],
 

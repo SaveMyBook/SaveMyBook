@@ -36,7 +36,7 @@ const env = {
   oauthRedirectBase: (process.env.OAUTH_REDIRECT_BASE || process.env.PUBLIC_WEB_URL || '').replace(/\/+$/, ''),
   passkeyRpId: (process.env.PASSKEY_RP_ID ?? 'savemybook.today').trim(),
   passkeyRpName: process.env.PASSKEY_RP_NAME || '救「舊」我的書',
-  passkeyOrigins: (process.env.PASSKEY_ORIGINS ?? 'https://savemybook.today,https://api.savemybook.today')
+  passkeyOrigins: (process.env.PASSKEY_ORIGINS ?? 'https://savemybook.today')
     .split(',')
     .map((s) => s.trim().replace(/\/+$/, ''))
     .filter(Boolean),
@@ -46,7 +46,10 @@ const env = {
   androidCertFingerprints: (process.env.ANDROID_CERT_SHA256 || '')
     .split(',')
     .map((s) => s.trim().toUpperCase())
-    .filter(Boolean)
+    .filter(Boolean),
+  cabinetSimulator: process.env.CABINET_SIMULATOR === 'true',
+  cabinetQrSecret: process.env.CABINET_QR_SECRET || '',
+  cabinetTimezone: process.env.CABINET_TIMEZONE || 'Asia/Taipei'
 };
 
 const assertEnv = () => {

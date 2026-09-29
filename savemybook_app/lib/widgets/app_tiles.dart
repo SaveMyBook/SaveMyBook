@@ -287,6 +287,7 @@ class InfoLine extends StatelessWidget {
   final String value;
   final int maxLines;
   final double fontSize;
+  final double? labelMinWidth;
 
   const InfoLine({
     super.key,
@@ -295,7 +296,27 @@ class InfoLine extends StatelessWidget {
     this.label,
     this.maxLines = 2,
     this.fontSize = 11,
+    this.labelMinWidth,
   });
+
+  static double labelWidthOf(BuildContext context, Iterable<String> labels, {double fontSize = 11}) {
+    var style = DefaultTextStyle.of(context).style.merge(TextStyle(fontSize: fontSize, height: 1.3));
+    if (MediaQuery.boldTextOf(context)) style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
+    final textScaler = MediaQuery.textScalerOf(context);
+    var width = 0.0;
+    for (final label in labels) {
+      final painter = TextPainter(
+        text: TextSpan(text: '$label：', style: style),
+        textDirection: Directionality.of(context),
+        locale: Localizations.maybeLocaleOf(context),
+        textScaler: textScaler,
+        maxLines: 1,
+      )..layout();
+      if (painter.width > width) width = painter.width;
+      painter.dispose();
+    }
+    return width.ceilToDouble();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -309,7 +330,10 @@ class InfoLine extends StatelessWidget {
           const SizedBox(width: 3),
         ],
         if (label != null)
-          Text('$label：', style: TextStyle(fontSize: fontSize, color: c.textHint)),
+          ConstrainedBox(
+            constraints: BoxConstraints(minWidth: labelMinWidth ?? 0),
+            child: Text('$label：', style: TextStyle(fontSize: fontSize, color: c.textHint, height: 1.3)),
+          ),
         Expanded(
           child: Text(
             value,

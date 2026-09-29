@@ -14,15 +14,12 @@ import '../auth/social_sign_in.dart';
 import 'set_password_screen.dart';
 import '../../i18n/strings.dart';
 
-/// 帳號安全的「登入方式」：列出已綁定項目並提供綁定／解除綁定與設定密碼。
 class SignInMethodsCard extends StatefulWidget {
   final bool hasPaymentPin;
   final ValueChanged<AuthIdentityList>? onLoaded;
 
-  /// 外層畫面改變這個值即可要求重新載入（例如在別處設定完密碼）。
   final int refreshTick;
 
-  /// 測試用：直接帶入資料，不再呼叫伺服器。
   final AuthProvidersInfo? initialProviders;
   final AuthIdentityList? initialIdentities;
 
@@ -275,10 +272,7 @@ class _SignInMethodsCardState extends State<SignInMethodsCard> {
     final account = identity?.account;
     final boundAt = identity?.createdAt;
     final boundDate = boundAt == null ? null : formatDate(boundAt);
-    final subtitle = [
-      ?account,
-      if (boundDate != null) S.linkedP0(boundDate),
-    ].join('　');
+    final subtitleStyle = TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary);
 
     return Row(
       children: [
@@ -294,13 +288,22 @@ class _SignInMethodsCardState extends State<SignInMethodsCard> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: c.textPrimary),
               ),
-              if (subtitle.isNotEmpty) ...[
+              if (account != null || boundDate != null) ...[
                 const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, height: 1.35, color: c.textSecondary),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    if (account != null)
+                      Text(account, maxLines: 1, overflow: TextOverflow.ellipsis, style: subtitleStyle),
+                    if (boundDate != null)
+                      Text(
+                        S.linkedP0(boundDate),
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: subtitleStyle,
+                      ),
+                  ],
                 ),
               ],
             ],

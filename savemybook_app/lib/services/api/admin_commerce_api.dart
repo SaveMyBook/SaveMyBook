@@ -32,11 +32,28 @@ extension AdminCommerceApi on ApiService {
     return _mapList(res, DisputeCase.fromJson);
   }
 
-  Future<(DisputeAnalysis?, String?)> analyzeDispute(int disputeId) async {
-    final res = await _send('POST', '/admin/disputes/$disputeId/ai-analysis');
+  /// 最近一次保存的分析結果，不呼叫模型；尚未分析時結果為 null。
+  Future<(DisputeAnalysis?, String?)> fetchDisputeAnalysis(int disputeId) async {
+    final res = await _send('GET', '/admin/disputes/$disputeId/ai-analysis');
     if (res == null) return (null, S.pleaseSignFirst);
-    if (res['success'] != true || res['data'] is! Map) return (null, res['message'] as String? ?? S.loadFailed);
-    return (DisputeAnalysis.fromJson(Map<String, dynamic>.from(res['data'])), null);
+    if (res['success'] != true) return (null, res['message'] as String? ?? S.loadFailed);
+    final data = res['data'];
+    return (data is Map ? DisputeAnalysis.fromJson(Map<String, dynamic>.from(data)) : null, null);
+  }
+
+  Future<String?> rateDisputeAnalysis(int disputeId, {required String analysisNo, required bool helpful}) async {
+    final res = await _send('PATCH', '/admin/disputes/$disputeId/ai-analysis', body: {'analysis_no': analysisNo, 'helpful': helpful});
+    if (res == null) return S.pleaseSignFirst;
+    return res['success'] == true ? null : (res['message'] as String? ?? S.actionFailed);
+  }
+
+  Future<(DisputeAnalysis?, String?, String?)> analyzeDispute(int disputeId) async {
+    final res = await _send('POST', '/admin/disputes/$disputeId/ai-analysis');
+    if (res == null) return (null, S.pleaseSignFirst, null);
+    if (res['success'] != true || res['data'] is! Map) {
+      return (null, res['message'] as String? ?? S.loadFailed, res['code'] as String?);
+    }
+    return (DisputeAnalysis.fromJson(Map<String, dynamic>.from(res['data'])), null, null);
   }
 
   Future<String?> arbitrateDispute(int disputeId, {required String result, String? adminNote}) async {

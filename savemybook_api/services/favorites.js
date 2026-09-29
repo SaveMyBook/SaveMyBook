@@ -1,6 +1,7 @@
 const prisma = require('../lib/prisma');
 const { notFound } = require('../lib/errors');
 const { bookCard } = require('../lib/selects');
+const deposits = require('./book-deposits');
 
 const list = async (userId) => {
   const favorites = await prisma.favorites.findMany({
@@ -8,7 +9,7 @@ const list = async (userId) => {
     orderBy: { created_at: 'desc' },
     include: { books: { include: bookCard } }
   });
-  return favorites.map((f) => f.books);
+  return deposits.withCabinetFlag(favorites.map((f) => f.books));
 };
 
 const bookIds = async (userId) => {

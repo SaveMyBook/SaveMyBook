@@ -87,7 +87,7 @@ void main() {
   for (final (status, reservation, label) in [
     ('reserved', null, '已售出・無法編輯'),
     ('sold', null, '已完成・無法編輯'),
-    ('on_sale', {'reserved_until': DateTime.now().add(const Duration(hours: 3)).toIso8601String()}, '已預訂・無法編輯'),
+    ('on_sale', {'reserved_until': DateTime.now().add(const Duration(hours: 3)).toIso8601String()}, '已預約・無法編輯'),
   ]) {
     testWidgets('自己的書狀態為 $status 時不能編輯', (tester) async {
       final json = _book(sellerId: 1, status: status, reservation: reservation);
@@ -174,7 +174,7 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
-  testWidgets('書籍頁顯示相似的書與自動補齊標示', (tester) async {
+  testWidgets('書籍頁顯示相似書籍與 AI 整理標示，不顯示書目來源小字', (tester) async {
     final json = {
       ..._book(),
       'description': '依書目整理的簡介',
@@ -198,9 +198,9 @@ void main() {
     );
     expect(find.text('內容簡介'), findsOneWidget);
     expect(find.text('由 AI 依書目整理'), findsOneWidget);
-    expect(find.text('部分資料依 ISBN 書目自動補齊'), findsOneWidget);
+    expect(find.text('部分資料依 ISBN 書目自動補齊'), findsNothing);
     expect(find.text('AI 整理'), findsNothing, reason: '來源標示不再夾在欄位文字中');
-    await tester.scrollUntilVisible(find.text('相似的書'), 300, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(find.text('相似書籍'), 300, scrollable: find.byType(Scrollable).first);
     expect(find.text('行政法解題書'), findsOneWidget);
     await tester.pump(const Duration(seconds: 4));
   });

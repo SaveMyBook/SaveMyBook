@@ -408,10 +408,11 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                               child: FormRowCard(
                                 label: S.lockerLocation,
                                 labelWidth: 88,
-                                alignTop: true,
                                 child: CabinetSelectField(
                                   value: _cabinetId,
-                                  keepSelectableId: widget.book.cabinetId,
+                                  enabled: !widget.book.isDeposited,
+                                  hint: widget.book.isDeposited && widget.book.cabinetName.isNotEmpty ? widget.book.cabinetName : null,
+                                  disabledReason: S.lockerCannotChangedWhileBookStored,
                                   errorText: _showErrors && _cabinetId == null ? S.chooseLocker : null,
                                   onChanged: (cabinet, byUser) => setState(() {
                                     if (byUser) _cabinetTouched = true;

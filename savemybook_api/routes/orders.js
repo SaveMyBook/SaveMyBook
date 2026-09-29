@@ -4,6 +4,8 @@ const { requireVerification } = require('../middleware/verification');
 const v = require('../lib/validate');
 const { badRequest } = require('../lib/errors');
 const orders = require('../services/orders');
+const cabinetAccess = require('../services/cabinet-access');
+const cabinetManual = require('../services/cabinet-manual');
 
 const router = express.Router();
 
@@ -15,15 +17,23 @@ router.get('/', async (req, res) => {
   const { page, limit, skip } = v.pagination(req.query);
 
   const filter = tab ? orders.tabFilter(role, tab) : null;
-  if (tab && !filter) throw badRequest(`不支援的 tab：${String(tab).slice(0, 30)}`);
+  if (tab && !filter) throw badRequest('請求內容不正確');
 
   const { list, total } = await orders.listForUser(req.user.userId, { role, filter, skip, limit });
-  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data: list });
+  const data = await cabinetManual.decorateOrders(await cabinetAccess.decorateOrders(list));
+  res.status(200).json({ success: true, pagination: v.pageMeta(total, { page, limit }), data });
+});
+
+router.get('/by-no/:orderNo', async (req, res) => {
+  const orderNo = String(req.params.orderNo ?? '').trim().toUpperCase();
+  if (!orders.ORDER_NO_PATTERN.test(orderNo)) throw badRequest('訂單編號格式不正確');
+  const order = await orders.detailForPartyByNo(orderNo, req.user);
+  res.status(200).json({ success: true, data: await cabinetManual.decorateOrders(await cabinetAccess.decorateOrders(order)) });
 });
 
 router.get('/:id', async (req, res) => {
   const order = await orders.detailForParty(v.id(req.params.id, '訂單編號'), req.user);
-  res.status(200).json({ success: true, data: order });
+  res.status(200).json({ success: true, data: await cabinetManual.decorateOrders(await cabinetAccess.decorateOrders(order)) });
 });
 
 router.post('/checkout', requireVerification('payment'), async (req, res) => {
@@ -58,6 +68,10 @@ router.patch('/:id/status', async (req, res) => {
   const status = v.oneOf(req.body.status, allowed, '訂單狀態不正確');
 
   const updated = await orders.advance(orderId, status, req.user);
+  if (cabinetManual.isPending(updated)) {
+    const data = await cabinetAccess.decorateOrders(updated);
+    return res.status(202).json({ success: true, message: '已送出手動回報，待客服確認後生效', data });
+  }
   res.status(200).json({ success: true, message: '訂單狀態已更新', data: updated });
 });
 

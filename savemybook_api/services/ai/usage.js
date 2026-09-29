@@ -1,8 +1,11 @@
 const prisma = require('../../lib/prisma');
 const publicId = require('../../lib/public-id');
 const { clip } = require('../../lib/text');
+const reviews = require('./reviews');
 
-const FEATURES = ['support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'embedding', 'enrich', 'admin_assist', 'test'];
+const FEATURES = [
+  'support', 'listing_assist', 'recommend', 'moderation', 'book_chat', 'book_chat_pick', 'embedding', 'enrich', 'admin_assist', 'test'
+];
 const PERIODS = ['today', '7d', '30d', 'month'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -18,19 +21,30 @@ const localDate = (d) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
-const log = async ({ feature, provider, model, userId = null, usage = {}, costUsd = 0, latencyMs = 0, status = 'ok', errorCode = null, errorDetail = null }) => {
+const optional = (value, max) => (value ? clip(String(value), max) : null);
+
+const COLUMNS = `feature, provider, model, user_id, input_tokens, cached_tokens, output_tokens, search_calls, cost_usd, latency_ms, status,
+  error_code, error_detail, request_id, prompt_version, outcome, origin, format_dropped, format_defaulted`;
+const SMALL_MAX = 65535;
+
+// origin 只用於嵌入呼叫：feature 固定為 embedding，才不會把向量費用與次數算進發起功能的每日次數。
+const log = async ({
+  feature, provider, model, userId = null, usage = {}, costUsd = 0, latencyMs = 0, status = 'ok', errorCode = null, errorDetail = null,
+  requestId = null, promptVersion = null, outcome = null, origin = null, format = null
+}) => {
   try {
+    const ok = status === 'ok';
     const values = [
       feature, clip(String(provider), 20), clip(String(model ?? ''), 80), userId,
       uint(usage.input_tokens), uint(usage.cached_tokens), uint(usage.output_tokens), uint(usage.search_calls),
-      round6(Math.max(0, num(costUsd))), uint(latencyMs), status === 'ok' ? 'ok' : 'error',
-      errorCode ? clip(String(errorCode), 60) : null
+      round6(Math.max(0, num(costUsd))), uint(latencyMs), ok ? 'ok' : 'error',
+      optional(errorCode, 60), optional(errorDetail, 400),
+      optional(requestId, 32), optional(promptVersion, 16), optional(outcome ?? (ok ? 'ok' : 'failed'), 20), optional(origin, 30),
+      Math.min(SMALL_MAX, uint(format?.dropped)), Math.min(SMALL_MAX, uint(format?.defaulted))
     ];
     await prisma.$executeRawUnsafe(
-      `INSERT INTO ai_usage_logs
-        (feature, provider, model, user_id, input_tokens, cached_tokens, output_tokens, search_calls, cost_usd, latency_ms, status, error_code, error_detail, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      ...values, errorDetail ? clip(String(errorDetail), 400) : null, new Date()
+      `INSERT INTO ai_usage_logs (${COLUMNS}, created_at) VALUES (${values.map(() => '?').join(', ')}, ?)`,
+      ...values, new Date()
     );
   } catch (err) {
     console.error('[AI 用量紀錄寫入失敗]:', err.message);
@@ -50,10 +64,21 @@ const monthSearchCalls = async (provider, now = new Date()) => {
   return num(rows[0]?.calls);
 };
 
-const budgetExceeded = async (settings) => {
+// 會員使用的功能只能用到預算扣除保留額度的部分，保留額度留給上架審核與管理輔助，
+// 否則聊天類功能用光預算後，新上架的書會全部跳過審核。
+const RESERVED_FEATURES = ['moderation', 'admin_assist'];
+
+const budgetCap = (settings, feature = null) => {
   const budget = num(settings.limits.monthly_budget_usd);
-  if (budget <= 0) return false;
-  return (await monthCost()) >= budget;
+  if (budget <= 0) return 0;
+  if (RESERVED_FEATURES.includes(feature)) return budget;
+  return round6(budget * (1 - num(settings.limits.reserve_ratio)));
+};
+
+const budgetExceeded = async (settings, feature = null) => {
+  const cap = budgetCap(settings, feature);
+  if (cap <= 0) return false;
+  return (await monthCost()) >= cap;
 };
 
 const dailyCount = async (userId, feature, now = new Date()) => {
@@ -61,6 +86,19 @@ const dailyCount = async (userId, feature, now = new Date()) => {
     SELECT COUNT(*) AS n FROM ai_usage_logs
     WHERE user_id = ${userId} AND feature = ${feature} AND status = 'ok' AND created_at >= ${startOfDay(now)}`;
   return num(rows[0]?.n);
+};
+
+const billedFailureCount = async (userId, feature, now = new Date()) => {
+  const rows = await prisma.$queryRaw`
+    SELECT COUNT(*) AS n FROM ai_usage_logs
+    WHERE user_id = ${userId} AND feature = ${feature} AND status = 'error' AND cost_usd > 0 AND created_at >= ${startOfDay(now)}`;
+  return num(rows[0]?.n);
+};
+
+const percentile = (values, p) => {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  return Math.round(sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1))]);
 };
 
 const periodRange = (period, now = new Date()) => {
@@ -89,10 +127,10 @@ const projectMonth = (cost, now) => {
   return round6((cost / elapsed) * ((nextMonth - monthStart) / DAY_MS));
 };
 
-const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) => {
+const report = async (period, { monthlyBudgetUsd = 0, reserveRatio = 0, now = new Date() } = {}) => {
   const { from, to } = periodRange(period, now);
 
-  const [totals, byFeature, byProvider, dailyRows, topRows, errorRows, month, pending] = await Promise.all([
+  const [totals, byFeature, byProvider, dailyRows, topRows, errorRows, month, pending, unreviewed] = await Promise.all([
     prisma.$queryRaw`
       SELECT COUNT(*) AS requests, COALESCE(SUM(status = 'error'), 0) AS errors,
         COALESCE(SUM(input_tokens), 0) AS input_tokens, COALESCE(SUM(output_tokens), 0) AS output_tokens,
@@ -105,12 +143,15 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       FROM ai_usage_logs WHERE created_at >= ${from} AND created_at <= ${to}
       GROUP BY feature ORDER BY cost_usd DESC`,
     prisma.$queryRaw`
-      SELECT provider, model, COUNT(*) AS requests, COALESCE(SUM(cost_usd), 0) AS cost_usd, COALESCE(AVG(latency_ms), 0) AS avg_latency_ms
+      SELECT provider, model, COUNT(*) AS requests, COALESCE(SUM(cost_usd), 0) AS cost_usd,
+        AVG(CASE WHEN status = 'ok' THEN latency_ms END) AS avg_latency_ms
       FROM ai_usage_logs WHERE created_at >= ${from} AND created_at <= ${to}
       GROUP BY provider, model ORDER BY cost_usd DESC`,
     // 逐筆取回再依伺服器當地日期分組：資料庫時區可能與伺服器不同，DATE() 會切錯日期。
+    // p95 也在這裡計算，MySQL 沒有百分位數函式。
     prisma.$queryRaw`
-      SELECT feature, cost_usd, created_at FROM ai_usage_logs WHERE created_at >= ${from} AND created_at <= ${to}`,
+      SELECT feature, provider, model, status, latency_ms, cost_usd, created_at FROM ai_usage_logs
+      WHERE created_at >= ${from} AND created_at <= ${to}`,
     prisma.$queryRaw`
       SELECT l.user_id, u.nickname, COUNT(*) AS requests, COALESCE(SUM(l.cost_usd), 0) AS cost_usd
       FROM ai_usage_logs l JOIN users u ON u.user_id = l.user_id
@@ -121,11 +162,20 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       WHERE status = 'error' AND created_at >= ${from} AND created_at <= ${to}
       ORDER BY created_at DESC LIMIT 10`,
     monthCost(now),
-    prisma.$queryRaw`SELECT COUNT(*) AS n FROM ai_book_reviews WHERE status = 'pending'`
+    prisma.$queryRaw`SELECT COUNT(*) AS n FROM ai_book_reviews WHERE status = 'pending'`,
+    reviews.unreviewedCount(now)
   ]);
 
   const t = totals[0] ?? {};
   const budget = num(monthlyBudgetUsd);
+
+  const okLatencies = new Map();
+  for (const row of dailyRows) {
+    if (row.status !== 'ok') continue;
+    const key = `${row.provider}|${row.model}`;
+    if (!okLatencies.has(key)) okLatencies.set(key, []);
+    okLatencies.get(key).push(num(row.latency_ms));
+  }
 
   const days = daysBetween(from, to);
   const daily = new Map(days.map((date) => [date, { date, requests: 0, cost_usd: 0, by_feature: {} }]));
@@ -151,6 +201,8 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       cost_usd: round6(num(t.cost_usd)),
       month_cost_usd: month,
       monthly_budget_usd: budget,
+      reserve_ratio: budget > 0 ? num(reserveRatio) : 0,
+      member_budget_usd: budget > 0 ? round6(budget * (1 - num(reserveRatio))) : 0,
       budget_used_ratio: budget > 0 ? Math.round((month / budget) * 10000) / 10000 : 0,
       projected_month_cost_usd: projectMonth(month, now)
     },
@@ -167,7 +219,8 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       model: r.model,
       requests: num(r.requests),
       cost_usd: round6(num(r.cost_usd)),
-      avg_latency_ms: Math.round(num(r.avg_latency_ms))
+      avg_latency_ms: r.avg_latency_ms == null ? null : Math.round(num(r.avg_latency_ms)),
+      p95_latency_ms: percentile(okLatencies.get(`${r.provider}|${r.model}`) ?? [], 0.95)
     })),
     daily: [...daily.values()].map((d) => ({
       ...d,
@@ -188,11 +241,12 @@ const report = async (period, { monthlyBudgetUsd = 0, now = new Date() } = {}) =
       error_code: r.error_code,
       error_detail: r.error_detail ?? null
     })),
-    pending_reviews: num(pending[0]?.n)
+    pending_reviews: num(pending[0]?.n),
+    unreviewed_listings: unreviewed
   };
 };
 
 module.exports = {
-  FEATURES, PERIODS, startOfDay, startOfMonth, localDate, log, monthCost, monthSearchCalls, budgetExceeded, dailyCount,
-  periodRange, daysBetween, projectMonth, report
+  FEATURES, PERIODS, startOfDay, startOfMonth, localDate, log, monthCost, monthSearchCalls, budgetCap,
+  budgetExceeded, dailyCount, billedFailureCount, percentile, periodRange, daysBetween, projectMonth, report
 };

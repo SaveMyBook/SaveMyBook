@@ -96,7 +96,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | --- | --- | --- | --- | --- |
 | \`payment\` | 交易密碼、生物辨識 | 3 分鐘 | 單次；請求失敗（狀態碼大於等於 400）時恢復可用 | \`POST /api/orders/checkout\`、\`POST /api/chat/rooms/{roomId}/transfers\`、\`POST /api/chat/transfers/{id}/pay\` |
 | \`sensitive\` | 登入密碼、通行密鑰、交易密碼、生物辨識 | 5 分鐘 | 有效期內可重複使用 | 匯出個人資料、交易密碼與登入裝置管理；後台刪除使用者（\`DELETE /api/users/{id}\`） |
-| \`admin\` | 登入密碼、通行密鑰 | 5 分鐘 | 有效期內可重複使用 | 後台高風險操作：錢包調整、重設會員密碼、設定管理員權限、產生備份下載網址、刪除備份、立即匿名化、還原操作、修改 AI 與登入方式設定 |
+| \`admin\` | 登入密碼、通行密鑰 | 5 分鐘 | 有效期內可重複使用 | 後台高風險操作：錢包調整、重設會員密碼、設定管理員權限、產生備份下載網址、刪除備份、立即匿名化、還原操作、修改 AI 與登入方式設定、遠端開啟書櫃櫃門、以配對碼綁定書櫃裝置 |
 
 \`verify_token\` 記錄簽發時使用的驗證方式。\`admin\` 範圍只接受帳號的登入密碼或通行密鑰（兩者視為同等強度），
 以交易密碼或生物辨識簽發的權杖不得用於後台端點；尚未設定登入密碼的帳號（社群註冊）
@@ -130,8 +130,8 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`RECALL_WINDOW_PASSED\` | 400 | 訊息送出已超過 1 小時，無法收回 | 隱藏收回選項 |
 | \`GROUP_MEMBER_LIMIT\` | 400 | 群組成員將超過 100 人 | 提示減少邀請人數 |
 | \`TRANSFER_STATE_CHANGED\` | 409 | 請款已被付款、婉拒、取消或已到期 | 重新取得訊息以更新轉帳卡片 |
-| \`DISPUTE_WINDOW_PASSED\` | 400 | 取書已超過 24 小時或訂單已完成，依服務條款不可再提出爭議 | 隱藏申訴入口 |
-| \`ORDER_NOT_CANCELLABLE\` | 400 | 賣家已存書，買賣雙方都不能自行取消訂單 | 隱藏取消按鈕，引導提出交易申訴 |
+| \`DISPUTE_WINDOW_PASSED\` | 400 | 取書已超過 24 小時或訂單已完成，依服務條款不可再申請爭議 | 隱藏爭議入口 |
+| \`ORDER_NOT_CANCELLABLE\` | 400 | 賣家已存書（含下單前書已存入書櫃、成立即為 \`deposited\` 的訂單），買賣雙方都不能自行取消訂單 | 隱藏取消按鈕，引導申請交易爭議 |
 | \`BOOK_HELD\` | 409 | 書籍預約保留中，賣家不能編輯或下架 | 顯示保留到期時間，停用編輯與下架 |
 | \`BOOK_LOCKED\` | 409 | 書籍訂單已成立或已完成，賣家不能編輯內容、照片或下架已完成的書 | 停用編輯與下架 |
 | \`BOOK_NOT_APPROVED\` | 403 | 書籍因違規下架，賣家無法自行重新上架 | 引導使用者開立客服工單 |
@@ -140,10 +140,13 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`AI_DISABLED\` | 503 | AI 功能目前未開放 | 隱藏 AI 功能入口 |
 | \`AI_NOT_CONFIGURED\` | 503 | 此 AI 功能使用的服務商尚未設定 API 金鑰 | 隱藏 AI 功能入口 |
 | \`AI_BUDGET_EXCEEDED\` | 503 | AI 功能本月用量已達上限 | 提示稍後再試 |
-| \`AI_CONSENT_REQUIRED\` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理 | 顯示 AI 資料處理同意說明 |
-| \`AI_DAILY_LIMIT\` | 429 | 使用者今日 AI 使用次數已達上限 | 提示明日再試 |
-| \`AI_PROVIDER_ERROR\` | 502 | AI 服務商錯誤、逾時或回應格式不正確 | 提示稍後再試 |
-| \`AI_UNAVAILABLE\` | 503 | AI 功能目前未開放或尚未完成設定（交易申訴分析） | 隱藏 AI 分析入口 |
+| \`AI_CONSENT_REQUIRED\` | 403 | 使用者尚未同意將資料提供給 AI 服務商處理，或隱私權政策重大更新後尚未重新同意 | 顯示 AI 資料處理同意說明 |
+| \`AI_CONSENT_NOTICE_OUTDATED\` | 409 | 同意 AI 資料處理時未附上目前的說明版本（\`notice_version\`） | 提示更新 App |
+| \`AI_DAILY_LIMIT\` | 429 | 使用者今日 AI 使用次數已達上限，或已計費但失敗的呼叫已達每日上限 | 提示明日再試 |
+| \`AI_CONTENT_BLOCKED\` | 422 | 內容遭 AI 服務商的安全機制拒絕，重送相同內容仍會失敗 | 顯示 \`message\`，不提供重試；內容可由使用者修改時引導調整 |
+| \`AI_PROVIDER_ERROR\` | 502 | AI 服務商錯誤、逾時或回應格式不正確，且沒有可降級的內容 | 提示稍後再試 |
+| \`AI_REQUEST_IN_PROGRESS\` | 409 | 相同 \`client_id\` 的訊息仍在處理中 | 稍後以相同 \`client_id\` 重送，或重新讀取對話 |
+| \`AI_UNAVAILABLE\` | 503 | AI 功能目前未開放或尚未完成設定（交易爭議分析） | 隱藏 AI 分析入口 |
 | \`INVALID_ID_TOKEN\` | 401 | 第三方登入憑證無效、過期或簽章不符 | 重新取得登入憑證後再試 |
 | \`PROVIDER_MISMATCH\` | 400 | 登入憑證的實際來源與請求的 \`provider\` 不符 | 檢查 App 的登入流程 |
 | \`NO_ACCOUNT_FOR_PROVIDER\` | 404 | 此第三方帳號尚未綁定任何帳號，且請求未帶 \`create\`；可能附帶 \`provider_email\` | 詢問使用者要登入既有帳號並綁定（\`POST /api/auth/social/link-login\`）、建立新帳號，還是取消 |
@@ -162,8 +165,9 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`AUTH_SOCIAL_UNAVAILABLE\` | 503 | 伺服器尚未設定 Firebase 專案參數 | 隱藏 Google、Apple 與手機號碼登入入口 |
 | \`PASSKEY_UNAVAILABLE\` | 503 | 伺服器未設定通行密鑰的 RP ID 與來源 | 隱藏通行密鑰入口 |
 | \`PASSKEY_CHALLENGE_INVALID\`、\`PASSKEY_CHALLENGE_EXPIRED\` | 400 | 挑戰值已使用、逾時，或用途與範圍不符 | 重新取得 options 後再試 |
-| \`PASSKEY_VERIFICATION_FAILED\`、\`PASSKEY_INVALID_RESPONSE\` | 400 | 通行密鑰的簽章、來源或格式驗證未通過 | 提示改用密碼 |
-| \`PASSKEY_NOT_RECOGNIZED\` | 400 | 伺服器沒有這組通行密鑰，可能已刪除 | 提示改用密碼，並請使用者至系統設定移除該通行密鑰 |
+| \`PASSKEY_VERIFICATION_FAILED\`、\`PASSKEY_INVALID_RESPONSE\` | 400 | 通行密鑰的簽章、RP ID、使用者驗證或格式驗證未通過 | 提示改用密碼 |
+| \`PASSKEY_ORIGIN_NOT_ALLOWED\` | 400 | 請求來源不在伺服器允許的通行密鑰來源（通常是 Android 簽署金鑰指紋未加入 \`PASSKEY_ORIGINS\`），重試不會成功 | 顯示 \`message\`，提示改用其他方式 |
+| \`PASSKEY_NOT_RECOGNIZED\` | 400 | 伺服器查無這組通行密鑰（已刪除，或帳號已不存在）；身分驗證時憑證不屬於目前帳號亦回此代碼 | 提示改用密碼；登入時可透過系統的 Signal API 通知移除該通行密鑰 |
 | \`PASSKEY_COUNTER_REGRESSED\` | 400 | 通行密鑰的簽章計數倒退，疑似遭複製 | 提示改用密碼並檢查帳號安全 |
 | \`PASSKEY_NOT_REGISTERED\` | 400 | 帳號尚未註冊通行密鑰 | 改用登入密碼驗證 |
 | \`PASSKEY_ALREADY_REGISTERED\` | 409 | 這組通行密鑰已經註冊 | 重新載入清單，並說明同一個密碼管理工具已有通行密鑰 |
@@ -177,6 +181,102 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 
 409 代表資料在處理期間被其他請求變更（例如兩人同時結帳同一本書、同一筆訂單被重複取消），
 重新整理後再試即可。
+
+### Smart Cabinet
+
+智慧書櫃相關代碼集中於下列各表。\`message\` 為回應中的實際文字，\`{…}\` 為依情況帶入的值。
+
+**掃碼作業**（\`/api/cabinet-sessions\`）
+
+| \`code\` | HTTP | \`message\` | 情況與建議處理方式 |
+| --- | --- | --- | --- |
+| \`CABINET_CODE_INVALID\` | 400 | 此 QR Code 並非 SaveMyBook 書櫃 QR Code | 掃描內容不是書櫃 QR Code；提示重新掃描 |
+| \`CABINET_CODE_EXPIRED\` | 410 | 書櫃 QR Code 已更新，請重新掃描書櫃螢幕上的 QR Code | QR Code 每 30 秒更新、最長有效 45 秒，或已被使用；引導重新掃描 |
+| \`CABINET_BUSY\` | 409 | 書櫃使用中，請稍候再掃描 | 書櫃有其他進行中的作業 |
+| \`CABINET_UNAVAILABLE\` | 409 | 此書櫃暫停服務 | 書櫃已停用 |
+| \`CABINET_MAINTENANCE\` | 409 | 此書櫃維修中，暫停服務 | 書櫃維修中或裝置故障 |
+| \`CABINET_CLOSED\` | 409 | 目前非書櫃營業時間，營業時間為 {open_time}–{close_time} | 附 \`open_time\`、\`close_time\` |
+| \`CABINET_OFFLINE\` | 409 | 書櫃目前連線中斷，暫時無法使用 | 附 \`manual_allowed\`，為 true 時提供手動回報 |
+| \`CABINET_ACTIVE_SESSION\` | 409 | 您有進行中的書櫃作業，請先完成或取消 | 附 \`session_no\`，引導回到該作業 |
+| \`CABINET_COOLDOWN\` | 429 | 您在此書櫃的作業多次未完成，請於 {n} 分鐘後再試 | 本人在此書櫃最近 2 次作業皆以確認逾時、比對逾時、數字不符或開門前取消結束，自最後一次起 10 分鐘內拒絕；附 \`retry_after_s\` |
+| \`CABINET_LOCATION_REQUIRED\` | 403 | 使用書櫃須允許存取位置資訊，請於系統設定中開啟後再試 | \`location_status\` 為 \`denied\`；提供開啟設定 |
+| \`CABINET_LOCATION_UNAVAILABLE\` | 403 | 目前無法確認您的位置，請開啟定位服務後再試 | \`location_status\` 為 \`unavailable\`，或精度超過 500 公尺、定位資料超過 60 秒；提供重試 |
+| \`CABINET_TOO_FAR\` | 403 | 您目前的位置距離書櫃約 {n} 公尺，請於書櫃旁操作 | 距離扣除定位精度（最多 100 公尺）後超過 200 公尺；附 \`distance_m\` |
+| \`CABINET_NOTHING_TO_DO\` | 404 | 您在此書櫃沒有待辦理的項目 | 附 \`other_cabinets\` |
+| \`CABINET_ITEM_BLOCKED\` | 409 | 第一個項目的受阻原因（見下方說明） | 所有項目皆無法辦理；附 \`items\` |
+| \`CABINET_WRONG_CABINET\` | 409 | 此訂單的指定書櫃為「{cabinet_name}」，請至該書櫃辦理（書籍為「此書籍的指定書櫃為…」） | 帶入作業情境 \`context\` 時掃描了其他書櫃；附 \`cabinet\` |
+| \`CABINET_CONTEXT_CHANGED\` | 409 | 訂單狀態已變更，請重新整理後再試／書籍狀態已變更，請重新整理後再試 | 作業情境的訂單或書籍已無法辦理；重新載入 |
+| \`CABINET_SESSION_NOT_FOUND\` | 404 | 找不到此書櫃作業 | 作業不存在或不是本人的作業 |
+| \`CABINET_NO_SELECTION\` | 400 | 請至少選擇一個項目 | \`start\` 未選擇項目 |
+| \`CABINET_ITEMS_CHANGED\` | 409 | 部分項目狀態已變更，請重新確認 | \`start\` 時項目已變更；附更新後的 \`session\`，回到確認步驟 |
+| \`CABINET_FULL\` | 409 | 此書櫃可用的櫃門不足，請減少存書項目或稍後再試 | 附 \`available_doors\`、\`required_doors\`；先行存書須保留 1 扇櫃門給訂單；手動回報先行存書時亦適用 |
+| \`PREDEPOSIT_LIMIT\` | 409 | 您在此書櫃的先行存書已達上限，請待售出或取回後再存入 | 每位賣家在同一台書櫃最多先行存放 1 本；手動回報存書時亦適用 |
+| \`MATCH_CODE_INVALID\` | 400 | 請輸入兩位數字 | \`code\` 不是 10 至 99 的兩位半形數字字串；不消耗比對機會 |
+| \`CABINET_SESSION_STATE\` | 409 | 櫃門已開啟，無法執行此操作／本次作業處理中，請稍候／目前無法執行此操作 | 作業狀態不允許此操作；附 \`session\`，以其更新畫面 |
+| \`ORDER_IN_CABINET_SESSION\` | 409 | 此訂單正於書櫃辦理中，請稍後再試 | 取消訂單或申請爭議時，該訂單有進行中的書櫃作業 |
+
+\`CABINET_ITEM_BLOCKED\` 的 \`message\` 與 \`items[].blocked.message\` 相同，依受阻原因為：
+\`DOOR_UNKNOWN\`「無法確認此項目的櫃門，請聯絡客服」、\`DOOR_FAULT\`「此項目的櫃門故障，請聯絡客服」、
+\`DOOR_CHECK\`「此項目的櫃門待客服確認，請聯絡客服」、\`DOOR_SHARED\`「此櫃門存放其他項目，請聯絡客服」、
+\`CABINET_FULL\`「書櫃目前沒有可用的櫃門」、\`PREDEPOSIT_LIMIT\`「您在此書櫃的先行存書已達上限，請待售出或取回後再存入」。
+
+**存書登記與手動回報**（\`/api/books\`、\`/api/orders\`、\`/api/users\`）
+
+| \`code\` | HTTP | \`message\` | 情況與建議處理方式 |
+| --- | --- | --- | --- |
+| \`CABINET_SCAN_REQUIRED\` | 409 | 此書櫃已啟用掃碼存取，請至書櫃以 App 掃描 QR Code 辦理 | 書櫃為掃碼模式時（含裝置離線或故障未滿 2 分鐘，及裝置自行解除配對或疑遭複製而撤銷後 2 分鐘內）呼叫手動存書、取書或取回；附 \`cabinet_id\`，引導掃碼 |
+| \`MANUAL_REPORT_PENDING\` | 409 | 此項目已有待客服確認的手動回報 | 同一項目已有待確認的手動回報 |
+| \`DEPOSIT_NOT_ALLOWED\` | 409 | 書籍須為上架中且已公開販售，才能存入書櫃／此書籍已有進行中的訂單，請依訂單流程存書 | 隱藏存書按鈕；已有訂單時改依訂單流程存書 |
+| \`CABINET_REQUIRED\` | 400 | 請先於書籍資料中指定存放的書櫃 | 引導編輯書籍選擇書櫃 |
+| \`CABINET_UNAVAILABLE\` | 400 | 此書櫃已停用，請先變更存放的書櫃 | 存書時書櫃已停用；引導編輯書籍改選其他書櫃 |
+| \`CABINET_MAINTENANCE\` | 400 | 此書櫃維修中，暫時無法存書／《{title}》存放的書櫃維修中，暫時無法購買，請先移除或稍後再試 | 存書時書櫃維修中；結帳時購物車中的書存放於維修中的書櫃（直接購買時結尾為「請稍後再試」） |
+| \`CABINET_UNAVAILABLE\` | 409 | 此書櫃暫停服務 | 已配對裝置的書櫃停用時，手動回報取回、訂單存書或取書 |
+| \`CABINET_MAINTENANCE\` | 409 | 此書櫃維修中，暫停服務 | 已配對裝置的書櫃維修中時，手動回報取回、訂單存書或取書 |
+| \`BOOK_DEPOSITED\` | 409 | 此書籍已登記存放於書櫃／此書籍已存放於書櫃，無法變更書櫃；請先至書櫃取回書籍後再變更 | 重複登記存書，或存書期間變更書櫃；重新載入書籍 |
+| \`RETRIEVAL_REQUIRED\` | 409 | 此書籍仍存放於書櫃，請先至書櫃以 App 掃描 QR Code 取回後再重新上架 | 書籍仍登記存放於書櫃（不論是否已暫停販售）時重新上架；引導掃碼取回 |
+| \`NOT_DEPOSITED\` | 409 | 此書籍目前未登記存放於書櫃 | 手動回報取回時書籍未登記存書；重新載入書籍 |
+| \`BOOK_SOLD_IN_CABINET\` | 409 | 此書籍已售出（訂單 {order_no}），… | 手動回報取回時書籍已轉入進行中的訂單，\`message\` 依情況說明請勿取回、改存入訂單書櫃或以掃碼辦理訂單存書；停用取回按鈕並引導至該筆訂單 |
+| \`BOOKS_IN_CABINET\` | 400 | 尚有 {n} 本書籍存放於書櫃，請先至書櫃以 App 掃描 QR Code 取回後再申請刪除 | 申請刪除帳號時 |
+
+**後台書櫃管理**（\`/api/admin\`，權限 \`cabinets\`）
+
+| \`code\` | HTTP | \`message\` | 情況與建議處理方式 |
+| --- | --- | --- | --- |
+| \`DEVICE_NOT_PAIRED\` | 409 | 此書櫃尚未配對裝置 | 遠端開櫃、撤銷裝置或清除裝置故障時沒有有效裝置 |
+| \`DEVICE_OFFLINE\` | 409 | 書櫃裝置目前離線，無法遠端開啟櫃門 | 遠端開櫃 |
+| \`CABINET_BUSY\` | 409 | 書櫃使用中，請待目前作業結束後再試 | 遠端開櫃時書櫃有進行中的作業 |
+| \`CABINET_COOLDOWN\` | 429 | 數字確認多次未完成，請於 {n} 分鐘後再試 | 同一位管理員 10 分鐘內有 2 個遠端開櫃作業以比對逾時或數字不符結束（不分書櫃）；附 \`retry_after_s\`；\`force: true\` 不受限 |
+| \`RATE_LIMITED\` | 429 | 操作過於頻繁，請稍後再試（遠端開櫃）／嘗試次數過多，請稍後再試（配對裝置） | 每位管理員每 10 分鐘各 10 次 |
+| \`MATCH_CODE_INVALID\` | 400 | 請輸入兩位數字 | 後台 \`match\`，規則同使用者端 |
+| \`CABINET_SESSION_NOT_FOUND\` | 404 | 找不到此書櫃作業 | 後台 \`match\`、\`close\` 只限發起遠端開櫃的管理員本人 |
+| \`CABINET_SESSION_STATE\` | 409 | 櫃門已開啟，無法執行此操作／本次作業處理中，請稍候／目前無法執行此操作 | 附 \`session\` |
+| \`DOOR_NOT_FOUND\` | 404 | 找不到此櫃門 | |
+| \`DOOR_NOT_EMPTY\` | 409 | 櫃門內有存放紀錄或待確認，須完成數字確認後開啟 | \`force: true\` 只能開啟無存放紀錄且無待確認的櫃門 |
+| \`DOOR_HAS_ORDER\` | 409 | 此櫃門存放進行中訂單的書籍，請先於訂單管理調整訂單狀態 | 以「已取出」清空櫃門時 |
+| \`DOOR_ASSIGN_INVALID\` | 409 | 此項目不在本書櫃、已有櫃門紀錄，或與櫃內其他項目不屬於同一筆訂單或同一本書 | 登記櫃門存放內容或確認手動回報時 |
+| \`DOOR_REQUIRED\` | 400 | 請指定書籍存放的櫃門 | 確認存書的手動回報時未指定櫃門 |
+| \`SESSION_NOT_REVIEWABLE\` | 409 | 此作業目前無法由客服處理 | |
+| \`SESSION_SELF_REVIEW\` | 403 | 此書櫃作業與您本人相關，須由其他管理員處理 | |
+| \`MANUAL_REPORT_NOT_FOUND\` | 404 | 找不到此手動回報 | |
+| \`MANUAL_REPORT_NOT_PENDING\` | 409 | 此手動回報已處理 | |
+| \`MANUAL_REPORT_STALE\` | 409 | 項目狀態已變更，此手動回報已失效 | 回報已作廢 |
+| \`MANUAL_REPORT_SELF_REVIEW\` | 403 | 此手動回報與您本人相關，須由其他管理員處理 | |
+| \`PAIRING_CODE_INVALID\` | 400 | 配對碼無效或已逾時 | 格式不符、查無、已逾時或已綁定（不區分原因） |
+| \`DEVICE_DISABLED\` | 403 | 模擬書櫃目前未開放 | 模擬器關閉時配對模擬書櫃 |
+| \`CABINET_HAS_DEPOSITS\` | 409 | 此書櫃仍有 {n} 本訂單成立前存放的書籍，請先於存書列表登記取出後再停用 | 停用書櫃時 |
+| \`SLOT_STATUS_DERIVED\` | 409 | 此櫃門狀態由系統依存放內容判定，僅可設定或結束維修 | 手動變更櫃門狀態時 |
+| \`BOOK_DEPOSITED\` | 409 | 此書籍仍存放於書櫃，請先於書櫃管理登記取出後再刪除／此使用者仍有書籍存放於書櫃，請先於書櫃管理登記取出，或改用匿名化 | 刪除仍在櫃中的書籍，或永久刪除仍有書籍在櫃中的使用者 |
+
+**書櫃裝置**（\`/api/device\`）
+
+| \`code\` | HTTP | \`message\` |
+| --- | --- | --- |
+| \`DEVICE_AUTH_REQUIRED\` | 401 | 缺少裝置憑證 |
+| \`DEVICE_REVOKED\` | 401 | 裝置憑證已失效，請重新配對 |
+| \`DEVICE_DISABLED\` | 403 | 模擬書櫃目前未開放 |
+| \`DEVICE_PAYLOAD_INVALID\` | 400 | 資料格式不正確 |
+| \`PAIRING_EXPIRED\` | 410 | 配對碼已逾時，請重新取得 |
+| \`DEVICE_STALE_BOOT\` | 409 | 此請求來自裝置重新啟動前，已略過 |
 
 ### Validation
 
@@ -193,10 +293,12 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`POST /api/auth/refresh\` | 同 IP 15 分鐘 60 次 |
 | \`POST /api/auth/social\`、\`POST /api/auth/social/link-login\`、\`POST /api/auth/oauth/{provider}/start\`、\`POST /api/auth/oauth/exchange\` | 同 IP 15 分鐘合計 30 次 |
 | \`POST /api/auth/link\`、\`POST /api/auth/password/set\` | 每位使用者 15 分鐘合計 20 次 |
-| \`POST /api/security/verify\`、\`POST /api/security/verify/passkey/options\` | 每位使用者 15 分鐘合計 30 次 |
+| \`POST /api/security/verify\` | 每位使用者每種驗證方式（\`method\`）15 分鐘各 30 次 |
+| \`POST /api/security/verify/passkey/options\` | 每位使用者 15 分鐘 30 次 |
 | \`POST /api/auth/passkeys/login/options\` | 同 IP 15 分鐘 60 次 |
 | \`POST /api/auth/passkeys/login\` | 同 IP 15 分鐘 30 次 |
-| \`POST /api/users/me/passkeys/options\`、\`POST /api/users/me/passkeys\`、\`PATCH /api/users/me/passkeys/{id}\` | 每位使用者 15 分鐘合計 20 次 |
+| \`POST /api/users/me/passkeys/options\` | 每位使用者 15 分鐘 20 次（\`POST /api/users/me/passkeys\` 不另外限流） |
+| \`PATCH /api/users/me/passkeys/{id}\` | 每位使用者 15 分鐘 30 次 |
 | \`POST /api/users\` | 同 IP 每小時 30 次 |
 | \`PUT /api/users/me/password\`、\`POST /api/users/me/deletion\` | 每位使用者 15 分鐘 10 次 |
 | \`POST /api/uploads\` | 每位使用者 10 分鐘 30 次 |
@@ -206,7 +308,20 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 | \`GET /api/chat/link-preview\` | 每位使用者每分鐘 30 次 |
 | \`GET /api/chat/link-preview/image\` | 每位使用者每分鐘 120 次 |
 | \`GET /api/books/isbn/{isbn}\` | 每位使用者每分鐘 30 次 |
-| \`POST /api/ai/support/messages\`、\`POST /api/ai/support/session/escalate\`、\`POST /api/ai/listing-assist\` | 每位使用者每分鐘合計 20 次（另有管理員設定的每日次數上限） |
+| \`POST /api/ai/support/messages\`、\`POST /api/ai/support/session/escalate\`、\`POST /api/ai/listing-assist\`、\`POST /api/ai/book-chat/messages\` | 每位使用者每分鐘合計 20 次（另有管理員設定的每日次數上限） |
+| \`PUT /api/ai/support/messages/{messageNo}/feedback\`、\`PUT /api/ai/book-chat/messages/{messageNo}/feedback\`、\`POST /api/ai/recommendations/clicks\`、\`POST /api/ai/recommendations/dismissals\` | 每位使用者每分鐘合計 30 次 |
+| \`GET /api/ai/recommendations\` | 每位使用者每分鐘 30 次 |
+| \`POST /api/support/tickets\`、\`POST /api/support/tickets/{id}/messages\` | 每位使用者每分鐘合計 20 次 |
+| \`POST /api/cabinet-sessions\` | 每位使用者每分鐘 10 次 |
+| \`POST /api/cabinet-sessions/{sessionNo}/start\`、\`…/cancel\`、\`…/match\`、\`…/close\` | 每位使用者每分鐘合計 20 次 |
+| \`GET /api/cabinet-sessions/active\`、\`GET /api/cabinet-sessions/{sessionNo}\` | 每位使用者每分鐘合計 120 次 |
+| \`POST /api/device/v1/pair/request\` | 同 IP 每 10 分鐘 10 次；全站每分鐘 30 次 |
+| \`POST /api/device/v1/pair/poll\` | 同 IP 每分鐘 60 次 |
+| \`GET /api/device/v1/state\`、\`POST /api/device/v1/events\`、\`POST /api/device/v1/unpair\` | 每台裝置每分鐘各 240、120、10 次 |
+| \`POST /api/admin/cabinets/{id}/doors/{slotId}/open\`、\`POST /api/admin/cabinets/{id}/device/pair\` | 每位管理員每 10 分鐘各 10 次 |
+| \`POST /api/admin/disputes/{id}/ai-analysis\` | 每位管理員每 10 分鐘 30 次 |
+| \`POST /api/admin/ai/test\` | 每位管理員每 10 分鐘 20 次 |
+| \`POST /api/admin/backups/{id}/restore\` | 每位管理員 15 分鐘 5 次 |
 | \`POST\`、\`DELETE /api/push/devices\` | 每位使用者每分鐘 20 次 |
 | \`POST /api/push/test\` | 每位使用者 10 分鐘 5 次 |
 
@@ -252,7 +367,7 @@ Token 到期後可憑同一裝置以 \`POST /api/auth/refresh\` 換發，裝置�
 ## Order Lifecycle
 
 站內以代幣計價，1 代幣等值 1 元。結帳時即自買家錢包扣款，賣方款項則於訂單完成後
-始行入帳，期間於賣家端顯示為待定收益（\`GET /api/wallet/pending\`）。
+始行入帳，期間於賣家端顯示為待撥款項（\`GET /api/wallet/pending\`）。
 
 \`\`\`
               結帳（扣除買家代幣）
@@ -262,21 +377,26 @@ pending_payment → pending_deposit → deposited → pending_pickup → complet
                      │                                        （賣家代幣入帳）
                      ├──→ cancelled（退款予買家）
                      └──→ refunding ──→ refunded（爭議裁決退款；已撥款則先向賣家收回）
-                                   └──→ 駁回／調解：回到申訴前的狀態
+                                   └──→ 駁回／調解：回到申請爭議前的狀態
 \`\`\`
 
 | 狀態 | 意義 |
 | --- | --- |
 | \`pending_payment\` | 訂單已建立，尚未付款 |
 | \`pending_deposit\` | 已付款，等待賣家存入書櫃 |
-| \`deposited\` | 賣家已完成存書 |
+| \`deposited\` | 賣家已完成存書，或下單時書已存放於書櫃 |
 | \`pending_pickup\` | 等待買家取件 |
 | \`completed\` | 買家已取件，款項匯入賣家錢包 |
 | \`cancelled\` | 已取消，代幣退回買家 |
-| \`refunding\` | 買家提出爭議，等待管理員仲裁 |
+| \`refunding\` | 買賣雙方任一方申請爭議，等待管理員仲裁 |
 | \`refunded\` | 仲裁結果為退款並已完成 |
 
 單次結帳若涵蓋多位賣家的商品，將依賣家拆分為多筆訂單，回應為陣列。
+
+賣家可在上架後、訂單成立前先將書存入書櫃（先行存書），於書櫃以 App 掃碼辦理（見 \`cabinet-sessions\`）；書櫃沒有有效裝置，或裝置離線、故障持續 2 分鐘以上時，改以 \`POST /api/books/{id}/deposit\` 手動回報，經管理員確認後生效。訂單中每本書都已存於該訂單的書櫃時，
+訂單直接以 \`deposited\` 成立，買家即可取書，且雙方即無法自行取消；其餘訂單以 \`pending_deposit\` 成立。
+訂單在買家取書前取消或退款時，仍在櫃中的書恢復存書登記（已存書的訂單為每本書，尚未存書的為先行存書的書）。
+存書滿 7 天仍未售出即暫停販售並提醒賣家取回，細節見「書籍」的 Pre-order Deposit。
 
 每一步只能由對應的一方推進：賣家設為 \`deposited\`，買家設為 \`completed\`。
 所有涉及金額的狀態變更都以「狀態仍為讀取時的值」作為更新條件，扣款以「餘額足夠」作為更新條件，
@@ -352,10 +472,11 @@ const base = {
   'x-tagGroups': [
     { name: '開始使用', tags: ['auth', 'auth-social', 'passkeys', 'users', 'account', 'security'] },
     { name: '商品', tags: ['books', 'categories', 'favorites', 'cabinets'] },
-    { name: '交易', tags: ['cart', 'orders', 'wallet'] },
+    { name: '交易', tags: ['cart', 'orders', 'cabinet-sessions', 'wallet'] },
     { name: '互動', tags: ['chat', 'notifications', 'push', 'announcements'] },
-    { name: '客服與申訴', tags: ['support', 'reports', 'disputes'] },
+    { name: '客服、檢舉與爭議', tags: ['support', 'reports', 'disputes'] },
     { name: 'AI', tags: ['ai'] },
+    { name: '書櫃裝置', tags: ['device'] },
     { name: '共用工具', tags: ['uploads', 'public', 'well-known', 'status'] },
     {
       name: '管理後台',

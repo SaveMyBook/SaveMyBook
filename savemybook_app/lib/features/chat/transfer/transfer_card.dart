@@ -233,15 +233,6 @@ class TransferCardView extends StatelessWidget {
                       ),
                   ],
                 ),
-                if (t.transferNo.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    t.transferNo,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 10.5, color: c.textHint, letterSpacing: 0.3),
-                  ),
-                ],
                 AnimatedSize(
                   duration: Motion.base,
                   curve: Motion.standard,

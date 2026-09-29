@@ -26,14 +26,7 @@ class ChatHistoryHead extends StatelessWidget {
         ),
       );
     }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 4),
-      child: Text(
-        S.startConversation,
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 11.5, color: c.textHint),
-      ),
-    );
+    return const SizedBox(height: 20);
   }
 }
 

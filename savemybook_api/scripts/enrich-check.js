@@ -7,18 +7,13 @@
 const { env } = require('../config/env');
 
 const probeGoogle = async (isbn) => {
-  const url = new URL('https://www.googleapis.com/books/v1/volumes');
-  url.searchParams.set('q', `isbn:${isbn}`);
-  url.searchParams.set('printType', 'books');
-  if (env.googleBooksApiKey) url.searchParams.set('key', env.googleBooksApiKey);
+  const googleBooks = require('../lib/google-books');
   try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!response.ok) return `HTTP ${response.status}${response.status === 429 ? '（額度用完或被限流）' : ''}`;
-    const info = (await response.json())?.items?.[0]?.volumeInfo;
-    if (!info) return '查無此書';
+    const info = await googleBooks.fetchVolumeByIsbn(isbn);
+    if (!info) return '查無 ISBN 相符的資料';
     return `有資料：《${info.title ?? ''}》，簡介 ${String(info.description ?? '').length} 字`;
   } catch (err) {
-    return `連線失敗：${err.message}`;
+    return `連線失敗：${err.message}${/429/.test(err.message) ? '（額度用完或被限流）' : ''}`;
   }
 };
 
@@ -35,6 +30,8 @@ const probeOpenLibrary = async (isbn) => {
   }
 };
 
+const STATUS_LABELS = { done: '已補齊', partial: '部分補齊', none: '查無可補資料', mismatch: '書名不符' };
+
 const main = async () => {
   const prisma = require('../lib/prisma');
   try {
@@ -42,8 +39,19 @@ const main = async () => {
 
     const rows = await prisma.$queryRaw`SELECT status, COUNT(*) AS n, MAX(attempted_at) AS last FROM ai_book_enrichments GROUP BY status`;
     console.log('補齊紀錄：');
-    for (const r of rows) console.log(`  ${r.status === 'done' ? '已補齊' : '查無可補資料'}：${Number(r.n)} 本，最近一次 ${r.last?.toISOString?.() ?? r.last}`);
+    for (const r of rows) console.log(`  ${STATUS_LABELS[r.status] ?? r.status}：${Number(r.n)} 本，最近一次 ${r.last?.toISOString?.() ?? r.last}`);
     if (rows.length === 0) console.log('  尚無任何紀錄');
+    const [stats] = await prisma.$queryRaw`
+      SELECT
+        COALESCE(SUM(e.status = 'done' AND (b.description IS NULL OR b.description = '') AND FIND_IN_SET('description', e.seller_fields) = 0), 0) AS done_blank,
+        COALESCE(SUM(e.next_attempt_at IS NOT NULL), 0) AS retrying,
+        COALESCE(SUM(e.rejected_fields <> ''), 0) AS rejected,
+        COALESCE(SUM(FIND_IN_SET('simplified', e.observations) > 0), 0) AS simplified,
+        COALESCE(SUM(FIND_IN_SET('unsourced_numbers', e.observations) > 0), 0) AS unsourced,
+        COALESCE(SUM(FIND_IN_SET('uncited', e.observations) > 0), 0) AS uncited
+      FROM ai_book_enrichments e JOIN books b ON b.book_id = e.book_id`;
+    console.log(`  標記完成但簡介空白：${Number(stats.done_blank)} 本；等待重試：${Number(stats.retrying)} 本；賣家修改過自動補齊欄位：${Number(stats.rejected)} 本`);
+    console.log(`  觀察項目：簡體字比例偏高 ${Number(stats.simplified)} 本、簡介含來源外數字 ${Number(stats.unsourced)} 本、網路搜尋沒有引用標註 ${Number(stats.uncited)} 本`);
     const [pending] = await prisma.$queryRaw`
       SELECT COUNT(*) AS n FROM books b LEFT JOIN ai_book_enrichments e ON e.book_id = b.book_id
       WHERE e.book_id IS NULL AND b.status = 'on_sale' AND b.is_approved = 1 AND b.isbn IS NOT NULL AND b.isbn <> ''

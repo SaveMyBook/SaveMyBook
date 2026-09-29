@@ -20,7 +20,7 @@ paths:
       description: |
         首次呼叫時若尚未建立錢包，系統會自動建立（餘額為 0），因此不會回傳 404。
 
-        `pending_income` 為待定收益，即已售出但訂單尚未完成的金額總和。
+        `pending_income` 為待撥款項，即已售出但訂單尚未完成的金額總和。
         該金額尚未計入 `balance`，須待訂單完成後始行轉入。
       security: [{ bearerAuth: [] }]
       responses:
@@ -102,7 +102,7 @@ paths:
 
   /api/wallet/pending:
     get:
-      summary: 取得待定收益明細
+      summary: 取得待撥款項明細
       operationId: listPendingIncome
       tags: [wallet]
       description: |

@@ -169,6 +169,8 @@ paths:
         - 已送出的通知與推播不會收回
         - 錢包調整的還原是寫一筆反向的調整交易，不刪除原本的帳務紀錄
         - 新增書櫃的還原是停用該書櫃，不刪除（可能已被書籍或訂單引用）
+        - 還原書籍上下架時，存書紀錄比照管理員變更書籍狀態處理：改回上架時已逾期的存書重新起算存書天數，
+          改回下架時取回後不會自動恢復上架
 
         需 `admin` 範圍的身分驗證（`X-Verify-Token` 標頭，只接受帳號的登入密碼或通行密鑰）。
       security: [{ bearerAuth: [] }]
@@ -200,7 +202,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
-              example: { success: false, code: UNDO_CONFLICT, message: 無法還原：資料之後又被修改過（書名目前是《新書名》）。請直接到對應的管理頁面手動調整。 }
+              example: { success: false, code: UNDO_CONFLICT, message: 無法還原：資料之後曾再次修改（書名目前是 新書名）。請至對應的管理頁面手動調整。 }
 
   /api/admin/maintenance-logs:
     get:

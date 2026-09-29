@@ -60,8 +60,14 @@ class AiStatus {
     return result;
   }
 
-  static void markConsentRevoked() {
-    ApiService.aiStatus.value = value.copyWith(consented: false);
+  static Future<void> markConsentRevoked() async {
+    final current = value;
+    final fallback = current.copyWith(consented: false, consentOutdated: current.consented || current.consentOutdated);
+    ApiService.aiStatus.value = fallback;
+    _fetchedAt = null;
+    final fresh = await refresh(force: true);
+    if (identical(fresh, AiStatusInfo.none) && ApiService.authToken != null) ApiService.aiStatus.value = fallback;
+    if (value.consented) ApiService.aiStatus.value = value.copyWith(consented: false);
   }
 
   static void invalidate() {
