@@ -7,6 +7,8 @@ skinparam defaultFontSize 13
 skinparam usecase {
   BackgroundColor white
 }
+skinparam nodesep 50
+skinparam ranksep 20
 left to right direction
 
 actor 賣家
@@ -32,8 +34,8 @@ rectangle "SaveMyBook - 書籍與商品管理" {
 
 賣家 --> manage
 manage <.. sell : <<extend>>
-manage <.. edit : <<extend>>
-manage <.. delist : <<extend>>
+manage <. "«extend»" edit
+delist "«extend»" .> manage
 sell <.. isbn : <<extend>>
 sell <.. assist : <<extend>>
 sell ..> review : <<include>>
@@ -46,4 +48,5 @@ browse ..> detail : <<include>>
 detail <.. similar : <<extend>>
 assist -- AI
 enrich -- AI
+similar -[hidden]- AI
 @enduml

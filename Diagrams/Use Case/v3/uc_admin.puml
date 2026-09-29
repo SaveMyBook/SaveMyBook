@@ -7,6 +7,8 @@ skinparam defaultFontSize 13
 skinparam usecase {
   BackgroundColor white
 }
+skinparam nodesep 30
+skinparam ranksep 80
 left to right direction
 
 actor 管理員
@@ -42,24 +44,24 @@ rectangle "SaveMyBook - 後台管理" {
 管理員 --> members
 管理員 --> books
 管理員 --> moderation
-moderation <.. review : <<extend>>
-moderation <.. report : <<extend>>
+moderation <. "«extend»" review
+report "«extend»" .> moderation
 moderation <.. risk : <<extend>>
 管理員 --> orders
 管理員 --> dispute
 dispute <.. aianalysis : <<extend>>
 aianalysis -- AI
 管理員 --> cabinets
-cabinets <.. pair : <<extend>>
+cabinets <. "«extend»" pair
 cabinets <.. remote : <<extend>>
 cabinets <.. cabreview : <<extend>>
 cabinets <.. cabmanual : <<extend>>
-cabinets <.. clear : <<extend>>
+clear "«extend»" .> cabinets
 管理員 --> content
 管理員 --> tickets
 管理員 --> settings
-settings <.. ai : <<extend>>
-settings <.. signin : <<extend>>
+settings <. "«extend»" ai
+signin "«extend»" .> settings
 settings <.. backup : <<extend>>
 管理員 --> logs
 @enduml

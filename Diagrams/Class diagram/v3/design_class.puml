@@ -1,16 +1,16 @@
 @startuml
+' 以 render_class.py 輸出 PNG：多重性文字會自動移離連線，直接用 PlantUML 產圖會有文字壓線
 skinparam monochrome true
 skinparam shadowing false
 skinparam dpi 220
 skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 12
 skinparam classAttributeIconSize 0
-skinparam linetype ortho
+skinparam linetype polyline
+skinparam nodesep 30
+skinparam ranksep 30
 hide circle
 hide empty methods
-left to right direction
-skinparam nodesep 25
-skinparam ranksep 45
 
 class "使用者 users" as users {
   user_id: Int
@@ -137,19 +137,20 @@ class "推播通知 notifications" as notifications {
   + markAsRead()
 }
 
-users "1" -- "1" wallets : owns
-users "1" -- "0..*" cart : owns
-cart "0..*" --> "1" books : contains
-users "1" -- "0..*" books : lists
-users "1" -- "0..*" orders : places
-orders "1" --> "1..*" books : includes
-orders --> wallets : settleTo
-orders "1" -- "0..1" disputes : mayTrigger
-reservations "0..*" --> "1" books : holds
-orders "0..*" --> "1" cabinets : pickupAt
-cabinets "1" *-- "1..*" slots : contains
-users "2..*" -- "0..*" rooms : participates
-rooms "1" *-- "0..*" messages : contains
+users "1" -up-> "0..*" notifications : receive
+users "1" -left- "0..*" cart : owns
+users "2..*" -right- "0..*" rooms : participates
+rooms "1" *-right- "0..*" messages : contains
 messages "1" -- "0..1" risks : assessedBy
-users "1" --> "0..*" notifications : receive
+cart "0..*" ---> "1" books : contains
+users "1" --- "0..*" orders : places
+orders "1" -left-> "1..*" books : includes
+users "1" --- "0..*" books : lists
+orders -right-> wallets : settleTo
+users "1" --- "1" wallets : owns
+reservations "0..*" -up-> "1" books : holds
+orders "1" -- "0..1" disputes : mayTrigger
+orders "0..*" --> "1" cabinets : pickupAt
+wallets -[hidden]- cabinets
+cabinets "1" *-right- "1..*" slots : contains
 @enduml

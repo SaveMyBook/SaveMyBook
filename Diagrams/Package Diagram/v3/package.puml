@@ -7,6 +7,7 @@ skinparam defaultFontSize 13
 skinparam packageStyle rectangle
 skinparam nodesep 30
 skinparam ranksep 30
+skinparam linetype polyline
 
 package "Presentation Layer (Flutter)" as PL {
   package "Widgets" as W {
@@ -32,15 +33,15 @@ package "Presentation Layer (Flutter)" as PL {
 
 package "Application Layer (Frontend)" as AL {
   component "API Service" as apisvc
-  component "Realtime Service" as rtsvc
   component "Push Service" as pushsvc
+  component "Realtime Service" as rtsvc
 }
 
 package "API Layer (Backend)" as BL {
   component "Express App" as express
-  component "Socket.IO Server" as sio
   component "OpenAPI Docs" as docs
   component "Device API" as devapi
+  component "Socket.IO Server" as sio
 }
 
 package "Middleware Layer" as ML {
@@ -50,22 +51,22 @@ package "Middleware Layer" as ML {
 }
 
 package "Service Layer" as SL {
-  component "Auth Service" as a1
   component "Book Service" as a2
+  component "Auth Service" as a1
   component "Order Service" as a3
   component "Wallet Service" as a4
   component "Chat Service" as a5
-  component "Cabinet Service" as a6
   component "AI Service" as a7
-  component "Notification Service" as a8
+  component "Cabinet Service" as a6
   component "Scheduler" as a9
+  component "Notification Service" as a8
 }
 
-package "Data Access Layer" as DL {
+package "Data Access\nLayer" as DL {
   component "Prisma ORM" as prisma
 }
 
-package "Database Layer" as DB {
+package "Database\nLayer" as DB {
   component "MariaDB" as maria
 }
 
@@ -80,23 +81,29 @@ w3 --> s1
 t2 --> s4
 s6 --> apisvc
 s7 --> rtsvc
-apisvc -[hidden]right- rtsvc
-rtsvc -[hidden]right- pushsvc
+apisvc -[hidden]right- pushsvc
+pushsvc -[hidden]right- rtsvc
 apisvc --> express : REST API 呼叫
-rtsvc --> sio : Socket.IO
+rtsvc --> sio : <U+00A0>Socket.IO
 express -right-> docs
-sio -[hidden]right- devapi
+docs -[hidden]right- devapi
+devapi -[hidden]right- sio
 express --> mauth
 sio --> mauth
 mauth -[hidden]right- mver
 mver -[hidden]right- mrate
 mauth --> a2
-a1 -[hidden]- a4
-a2 -[hidden]- a5
-a3 -[hidden]- a6
-a4 -[hidden]- a7
+a2 -[hidden]right- a1
+a1 -[hidden]right- a3
+a3 -[hidden]right- a4
+a4 -[hidden]right- a5
+a2 -[hidden]- a7
+a1 -[hidden]- a6
+a3 -[hidden]- a9
 a5 -[hidden]- a8
-a6 -[hidden]- a9
+a7 -[hidden]right- a6
+a6 -[hidden]right- a9
+a9 -[hidden]right- a8
 a7 --> prisma
 a8 --> prisma
 prisma -right-> maria

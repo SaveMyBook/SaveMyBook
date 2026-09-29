@@ -4,7 +4,7 @@ skinparam shadowing false
 skinparam dpi 220
 skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 12
-skinparam linetype ortho
+skinparam linetype polyline
 skinparam nodesep 30
 skinparam ranksep 40
 hide circle
@@ -114,5 +114,4 @@ books ||--o{ favorites
 books ||--o{ shopping_cart
 books ||--o{ recommendation_logs
 books ||--o{ recommendation_dismissals
-book_images -[hidden]down- recommendation_dismissals
 @enduml

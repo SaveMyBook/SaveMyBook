@@ -3,9 +3,11 @@ skinparam monochrome true
 skinparam shadowing false
 skinparam dpi 220
 skinparam defaultFontName "PingFang TC"
-skinparam defaultFontSize 12
+skinparam defaultFontSize 13
 skinparam classAttributeIconSize 0
-skinparam linetype ortho
+skinparam linetype polyline
+skinparam nodesep 40
+skinparam ranksep 70
 hide circle
 hide empty methods
 
@@ -83,20 +85,20 @@ class "推播通知 notifications" as notifications {
   is_read
 }
 
-users -- wallets
-users -- cart
+users -left- cart
+users -right- rooms
+rooms *-right- messages
+messages -- risks
 cart --> books
 users -- books
+orders -left-> books
 users -- orders
-orders --> books
-orders --> wallets
-orders -- disputes
-reservations --> books
-reservations --> cabinets
-cabinets *-- slots
-orders --> cabinets
-users -- rooms
-rooms *-- messages
-messages -- risks
+orders -right-> wallets
+users -- wallets
 users --> notifications
+reservations -up-> books
+reservations -right-> cabinets
+orders --> cabinets
+orders -- disputes
+cabinets *-- slots
 @enduml

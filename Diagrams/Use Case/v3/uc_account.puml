@@ -7,6 +7,8 @@ skinparam defaultFontSize 13
 skinparam usecase {
   BackgroundColor white
 }
+skinparam nodesep 50
+skinparam ranksep 20
 left to right direction
 
 actor 訪客
@@ -35,9 +37,9 @@ rectangle "SaveMyBook - 帳號與安全" {
 會員 --> pin
 會員 --> sessions
 會員 --> delete
-login <.. pwd : <<extend>>
+pwd "«extend»" .> login
 login <.. social : <<extend>>
-login <.. pk : <<extend>>
+login <. "«extend»" pk
 login ..> legal : <<include>>
 methods ..> verify : <<include>>
 pin ..> verify : <<include>>
