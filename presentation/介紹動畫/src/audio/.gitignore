@@ -1,0 +1,8 @@
+# 以下皆可由 build.sh 重新產生
+stems/
+out/
+fonts/
+tts/*.npy
+cues.json
+cue_boost.json
+__pycache__/
