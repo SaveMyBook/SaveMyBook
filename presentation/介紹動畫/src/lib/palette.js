@@ -1,0 +1,33 @@
+'use strict';
+
+module.exports = {
+  stage: '#F3F5F7',
+  card: '#FFFFFF',
+  cardAlt: '#FAFBFC',
+  inputFill: '#F3F5F7',
+  text: '#151E27',
+  muted: '#5B6770',
+  faint: '#8A969F',
+  hint: '#BDBDBD',
+  border: '#E3E7EA',
+  divider: '#E8EBEE',
+  brand: '#627D8D',
+  brandSoft: '#E8ECEF',
+  brandTint: '#EDF1F3',
+  page: '#E9EEF1',
+  success: '#2E9E5B',
+  danger: '#D64545',
+  warning: '#D98613',
+  iconInactive: '#BDBDBD',
+  kiosk: {
+    bg: '#0E1318',
+    header: '#18212A',
+    text: '#EEF2F5',
+    muted: '#93A2AD',
+    track: '#2A3540',
+    online: '#3CCF8E',
+    accent: '#46B59C',
+    warn: '#F0B429',
+    bezel: '#20282F',
+  },
+};

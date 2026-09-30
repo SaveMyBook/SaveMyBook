@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "intro-animation",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", "/Users/xukaijun/Desktop/SaveMyBook/presentation/介紹動畫"],
+      "port": 8765
+    }
+  ]
+}
