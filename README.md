@@ -72,7 +72,7 @@ SaveMyBook/
 ├── .github/workflows/            # GitHub Actions（每日更新 README 開發數據統計）
 ├── branding/                     # 品牌視覺
 │   ├── Logo Design/              # 各版本 Logo、去背圖
-│   └── Badges Design/            # 成就徽章設計（印刷檔、圖檔、編輯檔）
+│   └── Badges Design/            # 識別證設計（印刷檔、圖檔、編輯檔）
 ├── competition/                  # 各項專題競賽簡章、報名表與上傳資料
 ├── database/                     # 早期資料庫建置腳本、SQL 備份與測試資料
 ├── Diagrams/                     # 系統分析與設計圖表
