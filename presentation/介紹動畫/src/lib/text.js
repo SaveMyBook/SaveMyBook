@@ -81,7 +81,7 @@ function text(str, opts = {}) {
   const pieces = items
     .filter((it) => it.id)
     .map((it, n) => {
-      const use = el('use', { href: `#${it.id}`, x: it.x + offset });
+      const use = el('use', { href: `#${it.id}`, x: it.x + offset, 'data-c': TAG.on ? it.ch : undefined });
       if (!perChar) return use;
       const spec = perChar(n, it.ch, ((it.x + offset + it.adv / 2) * s));
       if (!spec) return use;
@@ -92,11 +92,11 @@ function text(str, opts = {}) {
       }
       return motion(conv, use);
     });
-  const tag = TAG.on ? { class: 'tx', 'data-t': str } : {};
+  const tag = TAG.on ? { class: 'tx', 'data-t': str, 'data-w': weight, 'data-ls': ls || undefined } : {};
   return g({ transform: `translate(${fmt(x)} ${fmt(y)}) scale(${fmt(s)})`, fill, opacity, ...tag, ...attrs }, pieces);
 }
 
-// 檢查工具用：開啟後每段文字加上 class 與原文，方便比對文字是否被其他物件遮住。
+// 檢查與轉 PowerPoint 用：開啟後每段文字加上 class、原文與字重，每個字形加上對應的字元。
 const TAG = { on: process.env.SVG_TAG_TEXT === '1' };
 
 function textBlock(str, opts = {}) {

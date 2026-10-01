@@ -5,7 +5,8 @@
   "description": "救「舊」我的書 介紹動畫產生器（輸出純 SVG）",
   "scripts": {
     "sample": "node build.js sample",
-    "build": "node build.js full"
+    "build": "node build.js full",
+    "pptx": "bash tools/pptx/run.sh"
   },
   "dependencies": {
     "opentype.js": "^1.3.4"
