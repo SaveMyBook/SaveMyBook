@@ -1,0 +1,221 @@
+WEBVTT
+
+1
+00:00:00.700 --> 00:00:03.183
+Why is trading used books so hard?
+
+2
+00:00:03.400 --> 00:00:06.369
+面交怕詐騙 寄送嫌麻煩
+Meeting up feels risky. Shipping is a hassle.
+
+3
+00:00:06.900 --> 00:00:08.395
+超過一半的人
+More than half of respondents
+
+4
+00:00:08.395 --> 00:00:12.132
+想要 24 小時自助存取的實體書櫃
+want a physical locker with 24/7 self-service access.
+
+5
+00:00:15.200 --> 00:00:19.493
+SaveMyBook — a used-book marketplace built around smart lockers
+
+6
+00:00:21.300 --> 00:00:25.900
+書櫃只用一片 ESP32 就能控制四扇櫃門
+A single ESP32 controls all four locker doors
+
+7
+00:00:25.900 --> 00:00:28.079
+並與伺服器即時同步
+and stays in sync with the server in real time.
+
+8
+00:00:30.300 --> 00:00:31.645
+存書只要四步
+Storing a book takes just four steps.
+
+9
+00:00:31.645 --> 00:00:35.679
+第一 用 App 掃描書櫃上的 QR Code
+First, scan the locker's QR code with the app.
+
+10
+00:00:36.800 --> 00:00:39.312
+第二 輸入螢幕上的數字
+Second, enter the number shown on the screen,
+
+11
+00:00:39.312 --> 00:00:41.573
+並確認你就在書櫃旁
+confirming you're right at the locker.
+
+12
+00:00:42.500 --> 00:00:45.143
+第三 指定櫃門自動開啟
+Third, the assigned door unlocks automatically.
+
+13
+00:00:45.143 --> 00:00:47.258
+30 秒內放入書籍
+Place your book inside within 30 seconds.
+
+14
+00:00:48.400 --> 00:00:51.109
+最後 關上櫃門就完成存書
+Finally, close the door and you're done.
+
+15
+00:00:51.109 --> 00:00:53.572
+買家也會同步收到通知
+The buyer is notified instantly.
+
+16
+00:00:55.800 --> 00:00:59.660
+從上架到售後 七項 AI 功能全程協助
+Seven AI features help from listing to after-sales.
+
+17
+00:01:02.300 --> 00:01:05.257
+拍張照片 AI 就能判斷書況
+Snap a photo, and AI assesses the book's condition,
+
+18
+00:01:05.257 --> 00:01:08.215
+並查詢書目、建議合理售價
+looks up its details, and suggests a fair price.
+
+19
+00:01:10.600 --> 00:01:13.495
+規則檢查加上 AI 影像審核
+Rule-based checks plus AI image review
+
+20
+00:01:13.495 --> 00:01:15.425
+雙層把關上架品質
+keep every listing up to standard.
+
+21
+00:01:17.900 --> 00:01:22.532
+書籍資料不完整？系統會自動幫你補齊
+Missing book details? The system fills them in for you.
+
+22
+00:01:23.600 --> 00:01:27.286
+系統會根據收藏與瀏覽紀錄推薦好書
+Picks based on your favorites and browsing history —
+
+23
+00:01:27.286 --> 00:01:29.128
+每一本都附上理由
+each with a reason why.
+
+24
+00:01:31.800 --> 00:01:33.901
+只要說出需求和預算
+Just describe what you need and your budget,
+
+25
+00:01:33.901 --> 00:01:36.469
+AI 書籍顧問就幫你挑書
+and the AI book advisor picks for you.
+
+26
+00:01:38.600 --> 00:01:41.788
+有問題？AI 客服立即回覆
+Questions? The AI assistant answers instantly.
+
+27
+00:01:41.788 --> 00:01:44.445
+複雜狀況一鍵轉接真人
+Complex issues go to a person in one tap.
+
+28
+00:01:45.200 --> 00:01:48.738
+發生爭議時 AI 會比對照片與說明
+In a dispute, AI compares photos and descriptions,
+
+29
+00:01:48.738 --> 00:01:51.333
+整理證據協助管理員裁決
+organizing evidence to help admins decide.
+
+30
+00:01:53.000 --> 00:01:56.592
+AI 用量設有上限 使用前須經同意
+AI usage is capped and requires consent,
+
+31
+00:01:56.592 --> 00:01:59.466
+對話紀錄 90 天後自動刪除
+and chat logs are deleted after 90 days.
+
+32
+00:02:00.400 --> 00:02:02.509
+款項先由平台暫管
+Payments are held by the platform
+
+33
+00:02:02.509 --> 00:02:05.673
+取書 24 小時後才撥給賣家
+and released to the seller 24 hours after pickup.
+
+34
+00:02:07.000 --> 00:02:08.831
+Every payment is verified once more,
+
+35
+00:02:08.831 --> 00:02:11.579
+可以用交易密碼或生物辨識
+by transaction PIN or biometrics.
+
+36
+00:02:14.800 --> 00:02:17.913
+偵測到私下交易或詐騙話術時
+When off-platform deals or scam tactics are detected,
+
+37
+00:02:17.913 --> 00:02:20.069
+系統會即時提醒雙方
+both sides are warned right away.
+
+38
+00:02:22.000 --> 00:02:25.829
+從 Flutter App、Node.js 後端
+From the Flutter app and Node.js backend
+
+39
+00:02:25.829 --> 00:02:29.111
+到 ESP32 智慧書櫃 一套系統完整串起
+to the ESP32 smart locker — one connected system.
+
+40
+00:02:31.000 --> 00:02:35.759
+296 個 API、超過 4,000 項測試全數通過
+296 APIs and 4,000+ tests, all passing,
+
+41
+00:02:35.759 --> 00:02:37.489
+支援五種介面語言
+in five interface languages.
+
+42
+00:02:38.800 --> 00:02:40.836
+服務費規劃只收一成
+A planned service fee of just 10% —
+
+43
+00:02:40.836 --> 00:02:44.682
+遠低於委託寄賣的三成五 賣家拿得更多
+far below consignment's 35%, so sellers keep more.
+
+44
+00:02:47.300 --> 00:02:50.200
+Let idle books circulate again.
+
+45
+00:02:51.400 --> 00:02:52.860
+SaveMyBook

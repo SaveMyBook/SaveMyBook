@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>救「舊」我的書｜結合智慧書櫃的二手書交易平台</title>
+  <meta name="description" content="救「舊」我的書是結合智慧書櫃的二手書交易平台：以 App 掃碼存取書籍，款項由平台暫管，並以 AI 協助上架、找書與客服。">
+  <meta name="theme-color" content="#627D8D">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://savemybook.today/">
+  <meta property="og:title" content="救「舊」我的書｜結合智慧書櫃的二手書交易平台">
+  <meta property="og:description" content="掃碼存取、款項暫管、AI 輔助。讓閒置的書，重新流動。">
+  <meta property="og:image" content="https://savemybook.today/og.jpg">
+  <meta property="og:locale" content="zh_TW">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+</head>
+<body>
+  <a class="skip" href="#problem">跳至內容</a>
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <div class="flyers" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <a class="mark" href="#cover" data-jump>
+      <img src="/brand/book-slate-128.png" alt="" width="28" height="28">
+      <span>救「舊」我的書</span>
+    </a>
+    <button class="toc-button magnetic" type="button" aria-expanded="false" aria-controls="toc">
+      <span class="toc-button__label">目錄</span>
+      <span class="toc-button__folio"><b data-folio>1</b><i>/</i>10</span>
+    </button>
+  </header>
+
+  <nav class="fore-edge" aria-label="章節">
+    <ol></ol>
+  </nav>
+
+  <div class="toc" id="toc" role="dialog" aria-modal="true" aria-labelledby="toc-title" hidden>
+    <div class="toc__page">
+      <p class="toc__eyebrow">救「舊」我的書</p>
+      <h2 class="toc__title" id="toc-title">目錄</h2>
+      <ol class="toc__list"></ol>
+      <button class="toc__close" type="button">闔上目錄</button>
+    </div>
+  </div>
+
+  <main>
+    <!-- 序章 -->
+    <section class="ch ch-cover" id="cover" data-label="序章" data-title="封面">
+      <div class="stage">
+        <div class="cover__text">
+          <p class="cover__series">SaveMyBook</p>
+          <h1 class="cover__title" aria-label="救「舊」我的書"><span class="ch-char">救</span><span class="ch-char ch-char--quote">「</span><span class="ch-char">舊</span><span class="ch-char ch-char--quote">」</span><span class="ch-char">我</span><span class="ch-char">的</span><span class="ch-char">書</span></h1>
+          <p class="cover__subtitle">結合智慧書櫃的二手書交易平台</p>
+        </div>
+        <ul class="cover__spine" aria-label="三項核心">
+          <li>掃碼存取</li><li>款項暫管</li><li><span class="tcy">AI</span>輔助</li>
+        </ul>
+        <a class="cover__turn magnetic" href="#problem" data-jump>
+          <span class="cover__turn-curl" aria-hidden="true"></span>
+          <span class="cover__turn-text">向下翻頁</span>
+        </a>
+        <figure class="still still--cover"><img src="/brand/book-white.webp" alt="救「舊」我的書 標誌：一本打開的書" width="512" height="512"></figure>
+      </div>
+    </section>
+
+    <!-- 第一章 -->
+    <section class="ch ch-problem" id="problem" data-label="第一章" data-title="難在哪裡">
+      <div class="page">
+        <header class="runhead"><span>第一章</span><span>難在哪裡</span></header>
+        <div class="problem__open">
+          <h2 class="h-chapter reveal-lines">二手書交易，<br>難在哪裡？</h2>
+          <p class="lead reveal">本專題回收 498 份有效問卷，整理出使用者真正的困擾。</p>
+        </div>
+
+        <div class="ledger" aria-label="受訪者對兩種交易方式最大的困擾">
+          <p class="ledger__caption">受訪者對兩種交易方式最大的困擾</p>
+          <div class="ledger__row">
+            <p class="ledger__key">面交</p>
+            <p class="ledger__num"><span class="count" data-to="43.2" data-dec="1">43.2</span><small>%</small></p>
+            <p class="ledger__note">擔心對方失約或遭遇詐騙</p>
+          </div>
+          <div class="ledger__row">
+            <p class="ledger__key">寄送</p>
+            <p class="ledger__num"><span class="count" data-to="57.9" data-dec="1">57.9</span><small>%</small></p>
+            <p class="ledger__note">須自行包裝並至超商寄件</p>
+          </div>
+        </div>
+
+        <div class="ledger ledger--answer" aria-label="受訪者期待的解決方式">
+          <p class="ledger__caption">受訪者期待的解決方式</p>
+          <div class="ledger__row">
+            <p class="ledger__key">交易方式</p>
+            <p class="ledger__num"><span class="count" data-to="51.4" data-dec="1">51.4</span><small>%</small></p>
+            <p class="ledger__note">傾向使用實體儲物櫃</p>
+          </div>
+          <div class="ledger__row">
+            <p class="ledger__key">書櫃功能</p>
+            <p class="ledger__num"><span class="count" data-to="57.4" data-dec="1">57.4</span><small>%</small></p>
+            <p class="ledger__note">最看重 24 小時自助存取</p>
+          </div>
+        </div>
+
+        <aside class="marginalia">資料來源：本專題「二手書籍交易行為與市場需求調查」，498 份有效問卷。</aside>
+        <p class="problem__close reveal-lines">二手書交易，<br>需要更好的方式。</p>
+        <p class="folio">p. 2</p>
+      </div>
+    </section>
+
+    <!-- 第二章 -->
+    <section class="ch ch-listing scene" id="listing" data-label="第二章" data-title="上架" style="--len: 4">
+      <div class="stage">
+        <header class="runhead"><span>第二章</span><span>上架</span></header>
+        <div class="beats">
+          <article class="beat" data-beat="0">
+            <p class="eyebrow">AI 上架輔助</p>
+            <h2 class="h-scene">拍張照片，<br>AI 判斷書況與售價</h2>
+            <p class="body">依 ISBN 查詢書目與網路資料，並附上建議售價區間與資料來源。</p>
+          </article>
+          <article class="beat" data-beat="1">
+            <p class="eyebrow">上架審核</p>
+            <h2 class="h-scene">規則＋AI，<br>雙層把關</h2>
+            <p class="body">規則即時攔截售價異常與站外交易，AI 再判讀最多 4 張照片，必要時交由管理員複核。</p>
+            <ol class="checks">
+              <li><span>售價異常</span><b>規則比對</b></li>
+              <li><span>疑似非正規來源</span><b>規則比對</b></li>
+              <li><span>站外聯絡資訊</span><b>規則比對</b></li>
+              <li><span>照片與書況</span><b>AI 判讀</b></li>
+            </ol>
+          </article>
+          <article class="beat" data-beat="2">
+            <p class="eyebrow">資料補齊</p>
+            <h2 class="h-scene">空白欄位，<br>自動補齊</h2>
+            <p class="body">上架後於背景依 ISBN 查詢書目，由 AI 整理成繁體中文簡介，並標示「由 AI 依書目整理」。</p>
+            <ol class="sources" aria-label="書目資料來源順序">
+              <li>Google Books</li><li>Open Library</li><li>網路搜尋</li><li>AI 整理</li>
+            </ol>
+          </article>
+        </div>
+        <figure class="still"><img src="/screens/sell_ai-s.webp" alt="App 上架畫面：AI 判斷書況並建議售價" loading="lazy"></figure>
+        <p class="folio">p. 3</p>
+      </div>
+    </section>
+
+    <!-- 第三章 -->
+    <section class="ch ch-discover scene" id="discover" data-label="第三章" data-title="找書" style="--len: 4">
+      <div class="stage">
+        <header class="runhead"><span>第三章</span><span>找書</span></header>
+        <div class="beats">
+          <article class="beat" data-beat="0">
+            <p class="eyebrow">個人化推薦</p>
+            <h2 class="h-scene">每本推薦，<br>都有理由</h2>
+            <p class="body">分析收藏、購物車與瀏覽紀錄，以語意向量找出相近書籍，再由 AI 排序並寫下推薦理由。</p>
+          </article>
+          <article class="beat" data-beat="1">
+            <p class="eyebrow">AI 書籍顧問</p>
+            <h2 class="h-scene">說出需求，<br>AI 幫您挑書</h2>
+            <p class="body">理解分類、預算與書況條件，只推薦站內可購買的書籍。</p>
+            <p class="quote-bubble">想找適合入門的程式設計書，預算 300 代幣以內</p>
+          </article>
+        </div>
+        <div class="shelf" aria-label="推薦書籍示意">
+          <ol class="shelf__row"></ol>
+          <p class="shelf__hint">拖曳書架或繼續捲動</p>
+        </div>
+        <figure class="still"><img src="/screens/ai_chat-s.webp" alt="App 的 AI 書籍顧問對話畫面" loading="lazy"></figure>
+        <p class="folio">p. 4</p>
+      </div>
+    </section>
+
+    <!-- 第四章 -->
+    <section class="ch ch-chat scene" id="chat" data-label="第四章" data-title="聊天" style="--len: 4">
+      <div class="stage">
+        <header class="runhead"><span>第四章</span><span>聊天</span></header>
+        <div class="beats">
+          <article class="beat" data-beat="0">
+            <p class="eyebrow">聊天協商</p>
+            <h2 class="h-scene">議價與預約，<br>在聊天室完成</h2>
+            <p class="body">買家可於聊天室預約書籍，賣家接受後即保留，保留期間他人無法購買；雙方也可透過站內轉帳或請款收付代幣。</p>
+          </article>
+          <article class="beat" data-beat="1">
+            <p class="eyebrow">交易安全</p>
+            <h2 class="h-scene">可疑訊息，<br>即時提醒</h2>
+            <p class="body">偵測站外聯絡、私下付款與常見詐騙話術，提醒雙方留在平台交易。</p>
+            <ol class="index-list" aria-label="偵測項目">
+              <li>聯絡方式</li><li>付款資訊</li><li>平台外交易</li><li>可疑連結</li><li>索取驗證資料</li><li>詐騙話術</li>
+            </ol>
+            <ul class="consequence">
+              <li>收訊方看到防詐提醒</li>
+              <li>聊天室顯示高風險橫幅</li>
+              <li>24 小時內 3 則高風險訊息，通知管理員</li>
+            </ul>
+          </article>
+          <article class="beat" data-beat="2">
+            <p class="eyebrow">我的預約</p>
+            <h2 class="h-scene">保留中的書，<br>一處查看</h2>
+            <p class="body">已保留與待賣家回覆的預約集中於「我的預約」，可直接購買已保留的書籍，或取消預約。</p>
+          </article>
+        </div>
+        <figure class="still"><img src="/screens/chat_room-s.webp" alt="App 聊天室畫面，訊息下方顯示防詐提醒" loading="lazy"></figure>
+        <p class="folio">p. 5</p>
+      </div>
+    </section>
+
+    <!-- 第五章 -->
+    <section class="ch ch-cabinet scene" id="cabinet" data-label="第五章" data-title="智慧書櫃" style="--len: 7">
+      <div class="stage">
+        <header class="runhead"><span>第五章</span><span>智慧書櫃</span></header>
+        <div class="beats">
+          <article class="beat" data-beat="0">
+            <p class="eyebrow">智慧書櫃</p>
+            <h2 class="h-scene">一片 ESP32，<br>控制四扇櫃門</h2>
+            <p class="body">以 HTTPS 定時與伺服器同步，接收開鎖指令並回報開關門。</p>
+          </article>
+          <article class="beat beat--step" data-beat="1">
+            <p class="step-no">01</p>
+            <h2 class="h-scene">掃碼</h2>
+            <p class="body">QR Code 約每 30 秒更新，每組只能使用一次。</p>
+          </article>
+          <article class="beat beat--step" data-beat="2">
+            <p class="step-no">02</p>
+            <h2 class="h-scene">比對</h2>
+            <p class="body">輸入書櫃螢幕上的兩位數字，並確認您在書櫃 200 公尺內。</p>
+          </article>
+          <article class="beat beat--step" data-beat="3">
+            <p class="step-no">03</p>
+            <h2 class="h-scene">開門</h2>
+            <p class="body">只開啟指定的櫃門，倒數 30 秒內放入書籍。</p>
+          </article>
+          <article class="beat beat--step" data-beat="4">
+            <p class="step-no">04</p>
+            <h2 class="h-scene">完成</h2>
+            <p class="body">櫃門關上才登記存書，買家同步收到取書通知。</p>
+          </article>
+        </div>
+        <ul class="xray-labels" aria-label="書櫃內部元件">
+          <li data-part="screen"><b>2.4 吋 TFT 螢幕</b><span>240 × 320，顯示 QR Code 與數字</span></li>
+          <li data-part="board"><b>ESP32 控制板</b><span>Wi-Fi 連線・HTTPS 同步</span></li>
+          <li data-part="relay"><b>四路繼電器</b><span>驅動電磁鎖</span></li>
+          <li data-part="locks"><b>電磁鎖 ×4</b><span>A01–A04，逐一開鎖</span></li>
+          <li data-part="power"><b>12V 電源</b><span>降壓 5V 供應控制板</span></li>
+        </ul>
+        <div class="notice" role="status">
+          <p class="notice__title">書籍已存入書櫃</p>
+          <p class="notice__body">訂單 ODNMX0225 的書籍已存入「圖書館大廳」書櫃，請於營業時間內至書櫃以 App 掃描 QR Code 取書。</p>
+        </div>
+        <figure class="still"><img src="/screens/cabinet_match-s.webp" alt="App 輸入書櫃比對數字的畫面" loading="lazy"></figure>
+        <p class="folio">p. 6</p>
+      </div>
+    </section>
+
+    <!-- 第六章 -->
+    <section class="ch ch-payment scene" id="payment" data-label="第六章" data-title="款項" style="--len: 4">
+      <div class="stage">
+        <header class="runhead"><span>第六章</span><span>款項</span></header>
+        <div class="beats">
+          <article class="beat" data-beat="0">
+            <p class="eyebrow">交易安全</p>
+            <h2 class="h-scene">款項由平台暫管</h2>
+            <p class="body">買家完成訂單或取書滿 24 小時後，款項才撥入賣家錢包。</p>
+          </article>
+          <article class="beat" data-beat="1">
+            <p class="eyebrow">交易安全</p>
+            <h2 class="h-scene">付款前，<br>再驗證一次</h2>
+            <p class="body">結帳須輸入交易密碼或通過生物辨識，登入可用通行密鑰。</p>
+            <dl class="methods">
+              <div><dt>交易密碼</dt><dd>結帳時輸入 6 位數字</dd></div>
+              <div><dt>生物辨識付款</dt><dd>辨識失敗時改用交易密碼</dd></div>
+              <div><dt>通行密鑰登入</dt><dd>海嫄的 iPhone・免輸入密碼</dd></div>
+            </dl>
+          </article>
+        </div>
+        <div class="escrow" aria-label="款項流向">
+          <ol class="escrow__nodes">
+            <li data-node="buyer"><svg class="node-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.2" r="3.6"/><path d="M4.8 20c.8-3.8 3.6-5.8 7.2-5.8s6.4 2 7.2 5.8"/></svg><b>買家</b><span>結帳付款</span></li>
+            <li data-node="hold"><svg class="node-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.6c0 4.6-3.2 8.2-7.5 9.4-4.3-1.2-7.5-4.8-7.5-9.4V6z"/><rect x="9" y="10.5" width="6" height="5" rx="1"/><path d="M10.2 10.5V9a1.8 1.8 0 0 1 3.6 0v1.5"/></svg><b>平台暫管</b><span>款項保管中</span></li>
+            <li data-node="seller"><svg class="node-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v3"/><rect x="4" y="7.5" width="16" height="11.5" rx="2.5"/><path d="M15.5 12.3h4.5v3h-4.5a1.5 1.5 0 0 1 0-3z"/></svg><b>賣家錢包</b><span>撥款入帳</span></li>
+          </ol>
+          <ol class="escrow__track">
+            <li>付款</li><li>賣家存書</li><li>買家取書</li><li>完成訂單<small>或取書滿 24 小時</small></li><li>撥款</li>
+          </ol>
+          <p class="escrow__branch">申請爭議時，暫停自動完成與撥款，由管理員裁決。</p>
+          <span class="coin" aria-hidden="true"><b>280</b><i>代幣</i></span>
+          <span class="escrow__gain" aria-hidden="true">+280 代幣</span>
+        </div>
+        <figure class="still"><img src="/screens/pay_verify-s.webp" alt="App 付款前輸入交易密碼的畫面" loading="lazy"></figure>
+        <p class="folio">p. 7</p>
+      </div>
+    </section>
+
+    <!-- 第七章 -->
+    <section class="ch ch-fee" id="fee" data-label="第七章" data-title="服務費">
+      <div class="page">
+        <header class="runhead"><span>第七章</span><span>服務費</span></header>
+        <p class="eyebrow">交易服務費</p>
+        <h2 class="h-chapter reveal-lines">低抽成，<br>快速撥款</h2>
+        <p class="lead reveal">規劃收取 10% 交易服務費，遠低於委託寄賣的 35%。</p>
+        <figure class="fee">
+          <figcaption class="fee__caption">以售價 110 元為例</figcaption>
+          <div class="fee__row fee__row--ours" style="--pct: 10">
+            <p class="fee__name">救「舊」我的書 <small>規劃</small></p>
+            <div class="fee__bar"><span></span></div>
+            <p class="fee__pct"><span class="count" data-to="10">10</span>%</p>
+            <p class="fee__gets">賣家實得 <b>99</b> 元</p>
+          </div>
+          <div class="fee__row" style="--pct: 35">
+            <p class="fee__name">委託寄賣</p>
+            <div class="fee__bar"><span></span></div>
+            <p class="fee__pct"><span class="count" data-to="35">35</span>%</p>
+            <p class="fee__gets">賣家實得 <b>71</b> 元</p>
+          </div>
+        </figure>
+        <aside class="marginalia">委託寄賣以 TAAZE 讀冊生活二手書代售服務條款（2025 年 8 月版）為例；本系統之交易服務費為規劃，目前未收取。</aside>
+        <p class="folio">p. 8</p>
+      </div>
+    </section>
+
+    <!-- 第八章 -->
+    <section class="ch ch-together scene" id="together" data-label="第八章" data-title="全部匯集" style="--len: 6">
+      <div class="stage">
+        <header class="runhead"><span>第八章</span><span>全部匯集</span></header>
+        <div class="orbit" aria-label="七項 AI 功能">
+          <div class="orbit__core"><img src="/apple-touch-icon.png" alt="" width="96" height="96"></div>
+          <ol class="orbit__ring"></ol>
+          <div class="rings" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="beats">
+          <article class="beat" data-beat="0">
+            <p class="eyebrow">AI 輔助</p>
+            <h2 class="h-scene">從上架到售後，<br>都有 AI 協助</h2>
+            <p class="body">七項 AI 功能，涵蓋上架、找書、客服與交易爭議處理。</p>
+          </article>
+          <article class="beat" data-beat="1">
+            <p class="eyebrow">AI 治理</p>
+            <h2 class="h-scene">採用 OpenAI，<br>用量與隱私全程把關</h2>
+            <p class="body">設有每月預算與每日次數上限；使用前須取得同意，對話紀錄保存 90 天後自動刪除。</p>
+          </article>
+          <article class="beat beat--wide" data-beat="2">
+            <p class="eyebrow">系統架構</p>
+            <h2 class="h-scene">從手機到書櫃，一套系統串起</h2>
+            <p class="body">App 與書櫃經 Cloudflare、NGINX 連到 Node.js 服務，資料存於 MariaDB。</p>
+          </article>
+          <article class="beat beat--wide" data-beat="3">
+            <p class="eyebrow">開發成果</p>
+            <h2 class="h-scene">完整實作，逐項驗證</h2>
+            <p class="body">後端 10 組測試群組與 App 測試全數通過。</p>
+          </article>
+        </div>
+        <div class="arch" aria-label="系統架構">
+          <svg class="arch__wires" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <ul class="arch__nodes">
+            <li data-n="app"><b>Flutter App</b><span>跨平台行動應用</span></li>
+            <li data-n="cab"><b>ESP32 智慧書櫃</b><span>HTTPS 定時查詢狀態</span></li>
+            <li data-n="edge"><b>Cloudflare・NGINX</b><span>DNS、WAF 與反向代理</span></li>
+            <li data-n="api"><b>Node.js・Express</b><span>RESTful API 與排程作業</span></li>
+            <li data-n="io"><b>Socket.IO</b><span>聊天與書櫃狀態即時推送</span></li>
+            <li data-n="db"><b>MariaDB</b><span>關聯式資料庫・Prisma ORM 存取</span></li>
+            <li data-n="ai" class="ext"><b>OpenAI</b><span>AI 功能</span></li>
+            <li data-n="fb" class="ext"><b>Firebase</b><span>推播與登入驗證</span></li>
+            <li data-n="gb" class="ext"><b>Google Books</b><span>書目資料</span></li>
+          </ul>
+        </div>
+        <dl class="stats">
+          <div><dt><span class="count" data-to="296">296</span></dt><dd>個 API 端點<small>RESTful API</small></dd></div>
+          <div><dt><span class="count" data-to="1536" data-sep="1">1,536</span></dt><dd>項後端測試<small>10 組測試群組全數通過</small></dd></div>
+          <div><dt><span class="count" data-to="2563" data-sep="1">2,563</span></dt><dd>項 App 測試<small>49 個測試檔全數通過</small></dd></div>
+          <div><dt><span class="count" data-to="5">5</span></dt><dd>種介面語言<small>繁中・簡中・英・日・韓</small></dd></div>
+        </dl>
+        <p class="folio">p. 9</p>
+      </div>
+    </section>
+
+    <!-- 終章 -->
+    <section class="ch ch-end" id="end" data-label="終章" data-title="重新流動">
+      <div class="stage">
+        <img class="end__mark" src="/brand/book-white.webp" alt="" width="160" height="160">
+        <p class="end__line reveal-lines">讓閒置的書，<br>重新流動。</p>
+        <p class="end__name">救「舊」我的書</p>
+        <button class="film-button magnetic" type="button">
+          <span class="film-button__icon" aria-hidden="true"></span>
+          <span>播放介紹影片</span>
+          <span class="film-button__len">2:57</span>
+        </button>
+      </div>
+      <footer class="colophon">
+        <p>© 2026 救「舊」我的書</p>
+        <p>savemybook.today</p>
+      </footer>
+    </section>
+  </main>
+
+  <dialog class="film" aria-label="介紹影片">
+    <div class="film__frame">
+      <video controls playsinline preload="none" poster="/media/intro-poster.webp">
+        <source src="/media/intro.mp4" type="video/mp4">
+        <track kind="subtitles" src="/media/intro.vtt" srclang="zh-Hant" label="中英字幕" default>
+      </video>
+      <button class="film__close" type="button">關閉影片</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
