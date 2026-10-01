@@ -401,6 +401,8 @@ class ChatReservation {
   final DateTime? pickupDeadline;
   final bool isHolding;
   final DateTime? createdAt;
+  final String sellerName;
+  final int? roomId;
 
   const ChatReservation({
     required this.reservationId,
@@ -419,6 +421,8 @@ class ChatReservation {
     this.pickupDeadline,
     required this.isHolding,
     this.createdAt,
+    this.sellerName = '',
+    this.roomId,
   });
 
   bool get isPending => status == 'pending';
@@ -443,6 +447,8 @@ class ChatReservation {
       pickupDeadline: parseDate(json['pickup_deadline'])?.toLocal(),
       isHolding: json['is_holding'] == true,
       createdAt: parseDate(json['created_at'])?.toLocal(),
+      sellerName: json['seller'] is Map ? json['seller']['nickname'] as String? ?? '' : '',
+      roomId: json['room_id'] == null ? null : parseInt(json['room_id']),
     );
   }
 }

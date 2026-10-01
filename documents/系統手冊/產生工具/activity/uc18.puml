@@ -1,0 +1,47 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+|系統|
+|管理員|
+start
+:於後台編輯法律文件;
+if (選擇「重大更新」？) then ([是])
+  |系統|
+  :版本號遞增並通知\n全體會員重新同意;
+else ([否])
+  |系統|
+  :僅更新文件內容;
+  stop
+endif
+|使用者（會員）|
+:進入首頁或App回到前景;
+|系統|
+if (有待同意之文件？) then ([否])
+  stop
+else ([是])
+endif
+repeat
+  :以不可關閉之全螢幕\n逐份顯示文件;
+  |使用者（會員）|
+  :捲動至文末並選擇\n同意或不同意;
+  |系統|
+  if (選擇同意？) then ([否])
+    :將使用者登出;
+    stop
+  else ([是])
+  endif
+  if (文件已更新\n為較新版本？) then ([是])
+    :重新取得最新版本;
+  else ([否])
+    :記錄已同意之文件版本;
+  endif
+repeat while (尚有待同意之文件？) is ([是]) not ([否])
+|使用者（會員）|
+:繼續使用App;
+stop
+@enduml

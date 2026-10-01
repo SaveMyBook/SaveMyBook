@@ -18,11 +18,12 @@ rectangle "SaveMyBook - 交易與訂單" {
   usecase "結帳" as checkout
   usecase "直接購買" as buynow
   usecase "付款驗證" as verify
-  usecase "查看購買紀錄" as history
+  usecase "查看購買訂單" as history
+  usecase "查看我的預約" as myres
   usecase "完成訂單" as complete
   usecase "申請爭議" as dispute
   usecase "取消訂單" as cancel
-  usecase "查看銷售紀錄" as sales
+  usecase "查看銷售訂單" as sales
   usecase "掃描書櫃取書" as pickup
   usecase "掃描書櫃存書" as deposit
   usecase "上架後先行存書" as predeposit
@@ -38,6 +39,7 @@ rectangle "SaveMyBook - 交易與訂單" {
 買家 --> checkout
 買家 --> buynow
 買家 --> history
+買家 --> myres
 買家 --> complete
 買家 --> dispute
 買家 --> cancel

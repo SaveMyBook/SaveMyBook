@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../models/book.dart';
 import '../../../models/order.dart';
 import '../../../utils/app_colors.dart';
 import '../../../widgets/responsive.dart';
@@ -41,51 +40,6 @@ class OrderCard extends StatelessWidget {
       openHours: showPickupWindow ? order.cabinetOpenHours : '',
       placement: CabinetMessages.orderPlacement(order),
       depositNote: order.hasPendingManualReport ? S.manualReportAwaitingConfirmation : null,
-      actionLabel: actionLabel,
-      onAction: onAction,
-      secondaryLabel: secondaryLabel,
-      onSecondary: onSecondary,
-      onTap: onTap,
-    );
-  }
-}
-
-class ListingCard extends StatelessWidget {
-  final Book book;
-  final String? status;
-  final Color? statusColor;
-  final String? depositNote;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-  final String? secondaryLabel;
-  final VoidCallback? onSecondary;
-  final VoidCallback? onTap;
-
-  const ListingCard({
-    super.key,
-    required this.book,
-    this.status,
-    this.statusColor,
-    this.depositNote,
-    this.actionLabel,
-    this.onAction,
-    this.secondaryLabel,
-    this.onSecondary,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SaleCardFrame(
-      imageUrl: book.hasImage ? book.imageUrl : null,
-      title: book.title,
-      price: book.price,
-      status: status ?? book.sellerStatusText,
-      statusColor: statusColor,
-      address: book.cabinetAddress,
-      openHours: book.cabinetOpenHours,
-      placement: '',
-      depositNote: depositNote,
       actionLabel: actionLabel,
       onAction: onAction,
       secondaryLabel: secondaryLabel,

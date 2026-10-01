@@ -20,6 +20,10 @@ double parseDouble(dynamic value) {
   return double.tryParse(value.toString()) ?? 0;
 }
 
+// 舊資料的簡介可能存有字面的「\n」（AI 多跳脫一層），顯示前還原為換行。
+String? unescapeLineBreaks(String? value) =>
+    value?.replaceAll(r'\r\n', '\n').replaceAll(r'\n', '\n').replaceAll(r'\r', '\n');
+
 int parseInt(dynamic value) {
   if (value == null) return 0;
   if (value is num) return value.toInt();

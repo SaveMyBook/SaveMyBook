@@ -11,6 +11,7 @@
   "orderBuyerPendingDeposit": "待卖家存书",
   "orderBuyerDeposited": "待取书",
   "orderBuyerRefunding": "争议处理中",
+  "orderSellerAwaitingPickup": "待买家取书",
   "orderFlowDeposit": "待卖家存书",
   "orderFlowDeposited": "已存入书柜",
   "orderFlowPickup": "买家已取书",
@@ -586,8 +587,9 @@
       "p1": {}
     }
   },
-  "purchases": "购买记录",
-  "sales": "销售记录",
+  "orderHistory": "订单记录",
+  "purchaseOrders": "购买订单",
+  "salesOrders": "销售订单",
   "settings": "设置",
   "signOut2": "确认退出登录",
   "cancelOrderBookReturnsShop": "确定要取消订单 {p0} 吗？取消后书籍将重新在商城销售。",
@@ -4258,8 +4260,9 @@
   "revokedByAdministrator": "管理员撤销",
   "simulatorTurnedOff": "模拟书柜功能关闭",
   "tooManyRequestsPleaseTryAgain": "操作过于频繁，请稍后再试",
-  "viewPurchases": "查看购买记录",
-  "viewSales": "查看销售记录",
+  "viewPurchases": "查看购买订单",
+  "viewSales": "查看销售订单",
+  "viewMyBooks": "前往书籍管理",
   "retrievalNotAvailableLockerRightNow": "此书柜目前无法办理取回，请联系客服",
   "itemsCouldNotCompleted": "项目未能完成",
   "onceDelistedP0NoLongerAppear2": "取消上架后，《{p0}》将不再在商城显示。此书存放于书柜中，须先取回书籍，方可重新上架。",
@@ -4353,5 +4356,30 @@
   "removedFromPublicView": "已停止公开显示",
   "hiddenFromPublic": "停止公开显示",
   "afterReviewBookNoLongerShown": "此书籍经审核后停止公开显示，订单不受影响。",
-  "bookWasConfirmedViolateRulesAfter": "此书籍经审核确认违规，订单不受影响。"
+  "bookWasConfirmedViolateRulesAfter": "此书籍经审核确认违规，订单不受影响。",
+  "myReservations": "我的预约",
+  "reservationHeld": "已保留",
+  "awaitingSellerReply": "待卖家回复",
+  "noHeldReservations": "目前没有已保留的预约",
+  "noPendingReservations": "目前没有待卖家回复的预约",
+  "reservationTimeLeftHoursMinutes": "剩余 {p0} 小时 {p1} 分钟",
+  "@reservationTimeLeftHoursMinutes": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reservationTimeLeftMinutes": "剩余 {p0} 分钟",
+  "@reservationTimeLeftMinutes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reservationSentAtP0": "送出时间：{p0}",
+  "@reservationSentAtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookHeldForBuyer": "已被预约"
 }

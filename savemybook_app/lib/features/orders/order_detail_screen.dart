@@ -15,7 +15,6 @@ import '../books/book_detail_screen.dart';
 import '../cabinet/cabinet_entry.dart';
 import '../selling/book_deposit_actions.dart';
 import 'dispute_screen.dart';
-import 'purchase_history_screen.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
@@ -131,7 +130,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final canCollect = !widget.asSeller && canCollectOrder(_order);
+    final canCollect = !widget.asSeller && _order.canCollect;
     final canComplete = !widget.asSeller && _order.awaitingConfirmation;
     final canDeposit = widget.asSeller && (_order.status == 'pending_payment' || _order.status == 'pending_deposit');
     final canDispute = !widget.asSeller && _order.isInCabinet && _order.canOpenDispute();

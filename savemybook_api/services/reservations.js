@@ -1,6 +1,6 @@
 const prisma = require('../lib/prisma');
 const { badRequest, conflict, forbidden, notFound } = require('../lib/errors');
-const { coverImage } = require('../lib/selects');
+const { coverImage, userName } = require('../lib/selects');
 const { notify, notifyMany } = require('./notify');
 const realtime = require('./realtime');
 const codec = require('./chat/codec');
@@ -77,7 +77,7 @@ const deadlineFormat = new Intl.DateTimeFormat('zh-TW', {
 
 const formatDeadline = (date) => deadlineFormat.format(new Date(date));
 
-const heldError = () => conflict('此書籍已預約，保留期間無法編輯或取消上架', 'BOOK_HELD');
+const heldError = () => conflict('此書籍已被預約，保留期間無法編輯或取消上架', 'BOOK_HELD');
 
 const assertNotHeld = async (bookId) => {
   if (await activeHold(null, bookId)) throw heldError();
@@ -300,13 +300,25 @@ const mine = async (buyerId, now = new Date()) => {
   const rows = await prisma.reservations.findMany({
     where: {
       buyer_id: buyerId,
-      OR: [{ status: 'pending' }, { status: 'confirmed', pickup_deadline: { gt: now } }]
+      OR: [
+        { status: 'pending', created_at: { gt: new Date(now.getTime() - PENDING_TTL_MS) } },
+        { status: 'confirmed', pickup_deadline: { gt: now } }
+      ]
     },
     orderBy: { created_at: 'desc' },
     take: 50,
-    include: { books: { select: bookSelect } }
+    include: { books: { select: bookSelect }, users_reservations_seller_idTousers: { select: userName } }
   });
-  return rows.filter((r) => r.books?.status === 'on_sale').map(shape);
+  const listed = rows.filter((r) => r.books?.status === 'on_sale');
+  const roomIds = new Map();
+  for (const sellerId of new Set(listed.map((r) => r.seller_id))) {
+    roomIds.set(sellerId, (await rooms.between(prisma, buyerId, sellerId))?.room_id ?? null);
+  }
+  return listed.map((r) => ({
+    ...shape(r),
+    seller: { user_id: r.seller_id, nickname: r.users_reservations_seller_idTousers?.nickname ?? null },
+    room_id: roomIds.get(r.seller_id)
+  }));
 };
 
 const holdForViewer = async (bookId, viewerId) => {

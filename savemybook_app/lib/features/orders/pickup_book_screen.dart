@@ -16,7 +16,6 @@ import '../../widgets/animations.dart';
 import '../../widgets/responsive.dart';
 import 'widgets/pickup_ready_card.dart';
 import 'order_detail_screen.dart';
-import 'purchase_history_screen.dart';
 import '../../i18n/strings.dart';
 
 class PickupBookScreen extends StatefulWidget {
@@ -113,7 +112,7 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
     if (ApiService.authToken == null) return;
     final orders = await _api.fetchOrders(role: 'buyer', tab: 'pending_pickup');
     if (!mounted) return;
-    final ready = orders.where(canCollectOrder).toList();
+    final ready = orders.where((o) => o.canCollect).toList();
     setState(() {
       _ready = ready;
       if (_page >= ready.length) _page = 0;

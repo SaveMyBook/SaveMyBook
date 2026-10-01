@@ -11,6 +11,7 @@
   "orderBuyerPendingDeposit": "出品者の預け入れ待ち",
   "orderBuyerDeposited": "受け取り待ち",
   "orderBuyerRefunding": "異議申立中",
+  "orderSellerAwaitingPickup": "購入者の受け取り待ち",
   "orderFlowDeposit": "出品者が預け入れ",
   "orderFlowDeposited": "ロッカーに預け入れ済み",
   "orderFlowPickup": "購入者が受け取り済み",
@@ -586,8 +587,9 @@
       "p1": {}
     }
   },
-  "purchases": "購入履歴",
-  "sales": "販売履歴",
+  "orderHistory": "注文履歴",
+  "purchaseOrders": "購入注文",
+  "salesOrders": "販売注文",
   "settings": "設定",
   "signOut2": "ログアウトしますか？",
   "cancelOrderBookReturnsShop": "注文 {p0} をキャンセルしますか？本は再びショップに並びます。",
@@ -4258,8 +4260,9 @@
   "revokedByAdministrator": "管理者が無効化",
   "simulatorTurnedOff": "シミュレーター機能の停止",
   "tooManyRequestsPleaseTryAgain": "操作が頻繁すぎます。しばらくしてから再度お試しください。",
-  "viewPurchases": "購入履歴を見る",
-  "viewSales": "販売履歴を見る",
+  "viewPurchases": "購入注文を見る",
+  "viewSales": "販売注文を見る",
+  "viewMyBooks": "書籍管理を開く",
   "retrievalNotAvailableLockerRightNow": "現在このロッカーでは回収の手続きができません。サポートにお問い合わせください。",
   "itemsCouldNotCompleted": "項目を完了できませんでした",
   "onceDelistedP0NoLongerAppear2": "出品を取り消すと、「{p0}」はショップに表示されなくなります。この本はロッカーに保管されているため、再出品するには先に本を回収する必要があります。",
@@ -4353,5 +4356,30 @@
   "removedFromPublicView": "公開を停止しました",
   "hiddenFromPublic": "非公開",
   "afterReviewBookNoLongerShown": "審査の結果、この本は公開を停止しました。注文には影響しません。",
-  "bookWasConfirmedViolateRulesAfter": "審査の結果、この本の違反が確認されました。注文には影響しません。"
+  "bookWasConfirmedViolateRulesAfter": "審査の結果、この本の違反が確認されました。注文には影響しません。",
+  "myReservations": "予約一覧",
+  "reservationHeld": "確保中",
+  "awaitingSellerReply": "出品者の返信待ち",
+  "noHeldReservations": "確保中の予約はありません",
+  "noPendingReservations": "出品者の返信待ちの予約はありません",
+  "reservationTimeLeftHoursMinutes": "残り{p0}時間{p1}分",
+  "@reservationTimeLeftHoursMinutes": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reservationTimeLeftMinutes": "残り{p0}分",
+  "@reservationTimeLeftMinutes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reservationSentAtP0": "送信日時：{p0}",
+  "@reservationSentAtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookHeldForBuyer": "取り置き中"
 }

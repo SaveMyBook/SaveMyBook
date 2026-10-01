@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:於「客服中心」查看常見問題;
+if (問題已解決？) then ([是])
+  stop
+else ([否])
+endif
+:點擊「聯絡客服」\n再點擊「提出問題」;
+:選擇類型、填寫主旨與\n內容並可附加圖片;
+|系統|
+if (開啟中工單已達5筆？) then ([是])
+  :提示待客服回覆後\n再提出新問題;
+  stop
+else ([否])
+endif
+:建立工單（待處理）\n並通知客服管理員;
+repeat
+  |客服管理員|
+  :檢視工單並回覆;
+  |系統|
+  :狀態轉為「客服已回覆」\n並通知使用者;
+  |使用者（會員）|
+  :查看回覆;
+backward:送出追問內容;
+repeat while (需要追問？) is ([是]) not ([否])
+:點擊「結案」;
+|系統|
+:狀態更新為「已結案」，\n不再接受回覆;
+stop
+@enduml

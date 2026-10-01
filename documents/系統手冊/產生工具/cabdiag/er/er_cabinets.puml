@@ -1,0 +1,93 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+left to right direction
+
+entity "books" as books {
+  {field} <&key> book_id : int
+  --
+  ...
+}
+entity "cabinet_sessions" as cabinet_sessions {
+  {field} <&key> session_id : int
+  --
+  ...
+}
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  {field} cabinet_name : varchar(100)
+  {field} address : varchar(500)
+  {field} latitude : decimal(10,7)
+  {field} longitude : decimal(10,7)
+  {field} total_slots : int
+  {field} available_slots : int
+  {field} is_active : tinyint(1)
+  {field} is_maintenance : tinyint(1)
+  {field} open_time : time
+  {field} close_time : time
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "cabinet_slots" as cabinet_slots {
+  {field} <&key> slot_id : int
+  --
+  {field} cabinet_id : int
+  {field} slot_number : varchar(10)
+  {field} status : enum
+  {field} updated_at : datetime
+  {field} lock_channel : tinyint
+  {field} fault_code : varchar(40)
+  {field} check_required_at : datetime
+  {field} check_session_id : int
+  {field} check_reason : varchar(40)
+  {field} sensor_state : varchar(10)
+  {field} sensor_at : datetime
+}
+entity "cabinet_slot_items" as cabinet_slot_items {
+  {field} <&key> book_id : int
+  --
+  {field} slot_id : int
+  {field} cabinet_id : int
+  {field} session_id : int
+  {field} placed_by : enum
+  {field} placed_at : datetime
+}
+entity "book_deposits" as book_deposits {
+  {field} <&key> book_id : int
+  --
+  {field} cabinet_id : int
+  {field} deposited_at : datetime
+  {field} paused_at : datetime
+  {field} auto_paused : tinyint(1)
+  {field} reminded_at : datetime
+  {field} escalated_at : datetime
+}
+entity "reservations" as reservations {
+  {field} <&key> reservation_id : int
+  --
+  {field} book_id : int
+  {field} buyer_id : int
+  {field} seller_id : int
+  {field} status : enum
+  {field} pickup_deadline : datetime
+  {field} note : text
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+smart_cabinets ||--o{ cabinet_slots
+books ||--o| cabinet_slot_items
+cabinet_slots ||--o{ cabinet_slot_items
+cabinet_sessions ||--o{ cabinet_slot_items
+books ||--o| book_deposits
+book_deposits }o--|| smart_cabinets
+books ||--o{ reservations
+@enduml

@@ -182,6 +182,12 @@ module.exports = {
       assert.strictEqual(out, '本書描述一段 青春故事。');
     }],
 
+    ['簡介整理：模型多跳脫一層的字面換行（\\n）還原為真正的換行', () => {
+      const out = cleanDescription('第一段描述本書主題與背景。\\n\\n第二段說明適合的讀者對象。\\r\\n第三段整理重點。');
+      assert.strictEqual(out, '第一段描述本書主題與背景。\n\n第二段說明適合的讀者對象。\n第三段整理重點。');
+      assert.ok(!out.includes('\\n'));
+    }],
+
     ['簡介整理：清掉促銷、贈品與活動訊息', () => {
       const out = cleanDescription('本書描述一段青春故事。\n★限時特價 79 折\n購買即贈品書籤一組\n適合喜歡村上春樹的讀者。');
       assert.strictEqual(out, '本書描述一段青春故事。\n適合喜歡村上春樹的讀者。');

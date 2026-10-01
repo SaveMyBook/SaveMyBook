@@ -1,0 +1,106 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype polyline
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "books" as books {
+  {field} <&key> book_id : int
+  --
+  {field} seller_id : int
+  {field} isbn : varchar(13)
+  {field} title : varchar(255)
+  {field} author : varchar(255)
+  {field} publisher : varchar(255)
+  {field} publish_date : varchar(20)
+  {field} category_id : int
+  {field} condition_level : enum
+  {field} condition_note : text
+  {field} price : decimal(10,2)
+  {field} quantity : int
+  {field} description : text
+  {field} cabinet_id : int
+  {field} status : enum
+  {field} view_count : int
+  {field} is_approved : tinyint(1)
+  {field} share_token : char(32)
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "book_categories" as book_categories {
+  {field} <&key> category_id : int
+  --
+  {field} category_name : varchar(50)
+  {field} parent_id : int
+  {field} sort_order : int
+  {field} created_at : datetime
+}
+entity "book_images" as book_images {
+  {field} <&key> image_id : int
+  --
+  {field} book_id : int
+  {field} image_url : varchar(500)
+  {field} image_type : enum
+  {field} sort_order : int
+  {field} created_at : datetime
+}
+entity "favorites" as favorites {
+  {field} <&key> favorite_id : int
+  --
+  {field} user_id : int
+  {field} book_id : int
+  {field} created_at : datetime
+}
+entity "shopping_cart" as shopping_cart {
+  {field} <&key> cart_id : int
+  --
+  {field} user_id : int
+  {field} book_id : int
+  {field} quantity : int
+  {field} added_at : datetime
+}
+entity "recommendation_logs" as recommendation_logs {
+  {field} <&key> rec_id : int
+  --
+  {field} user_id : int
+  {field} book_id : int
+  {field} rec_type : enum
+  {field} source : varchar(10)
+  {field} is_clicked : tinyint(1)
+  {field} clicked_at : datetime
+  {field} created_at : datetime
+}
+entity "recommendation_dismissals" as recommendation_dismissals {
+  {field} <&key> user_id : int
+  {field} <&key> book_id : int
+  --
+  {field} created_at : datetime
+}
+entity "reports" as reports {
+  {field} <&key> report_id : int
+  --
+  {field} reporter_id : int
+  {field} target_type : enum
+  {field} target_id : int
+  {field} reason : text
+  {field} evidence_urls : text
+  {field} status : enum
+  {field} admin_id : int
+  {field} admin_note : text
+  {field} created_at : datetime
+  {field} resolved_at : datetime
+}
+book_categories ||--o{ books
+book_categories ||--o{ book_categories
+books ||--o{ book_images
+books ||--o{ favorites
+books ||--o{ shopping_cart
+books ||--o{ recommendation_logs
+books ||--o{ recommendation_dismissals
+@enduml

@@ -158,7 +158,7 @@ class Book {
       title: json['title'] as String? ?? S.untitled,
       price: parsedPrice,
       conditionLevel: json['condition_level'] as String? ?? 'good',
-      description: json['description'] as String? ?? S.noDescriptionYet,
+      description: unescapeLineBreaks(json['description'] as String?) ?? S.noDescriptionYet,
       imageUrl: parsedImageUrl,
       imageUrls: parsedImageUrls,
       images: parsedImages,

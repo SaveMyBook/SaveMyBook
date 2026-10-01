@@ -1,0 +1,41 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+|系統|
+start
+:收到賣家上架或編輯申請;
+:以規則檢查售價異常\n與可疑來源字樣;
+if (規則攔截？) then ([否])
+  :書籍即時上架;
+  if (AI審核已啟用？) then ([否])
+    :略過AI審核，維持上架;
+    stop
+  else ([是])
+    |AI服務|
+    :於背景判讀文字與至多\n4張照片，回傳判定與信心值;
+    |系統|
+    if (判定為允許？) then ([是])
+      :維持上架;
+      stop
+    else ([否])
+    endif
+    if (判定違規、信心值達門檻\n且設為直接拒絕？) then ([是])
+      :直接下架並通知賣家;
+      stop
+    else ([否])
+    endif
+  endif
+else ([是])
+endif
+:轉為審核中並通知\n賣家與管理員;
+|管理員|
+:於「上架審核」人工複核，\n點擊「核准上架」或「拒絕」;
+|系統|
+:依複核結果上架或下架\n並通知賣家;
+stop
+@enduml

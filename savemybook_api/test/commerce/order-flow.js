@@ -181,20 +181,26 @@ const tests = [
     assert.ok(notificationsOf(fan.user_id).some((n) => n.content === '《夜間飛行》的預約保留已結束，現已開放購買。'));
   }],
 
-  ['購買紀錄已預訂：列出等待回覆與保留中的預約，不含已到期或已取消', async () => {
+  ['我的預約：列出等待回覆與保留中的預約，附賣家暱稱與聊天室，不含已到期、逾時未回覆或已取消', async () => {
     const buyer = addUser();
-    const seller = addUser();
-    const books = [0, 1, 2, 3].map((i) => addBook({ sellerId: seller.user_id, title: `書 ${i}` }));
+    const seller = addUser({ nickname: '舊書攤' });
+    const books = [0, 1, 2, 3, 4].map((i) => addBook({ sellerId: seller.user_id, title: `書 ${i}` }));
+    const room = addRoom(buyer.user_id, seller.user_id, books[0].book_id);
     const pending = addReservation({ bookId: books[0].book_id, buyerId: buyer.user_id, sellerId: seller.user_id });
     const holding = addReservation({ bookId: books[1].book_id, buyerId: buyer.user_id, sellerId: seller.user_id, status: 'confirmed' });
     addReservation({ bookId: books[2].book_id, buyerId: buyer.user_id, sellerId: seller.user_id, status: 'confirmed', deadline: hoursAgo(1) });
     addReservation({ bookId: books[3].book_id, buyerId: buyer.user_id, sellerId: seller.user_id, status: 'cancelled' });
+    const stale = addReservation({ bookId: books[4].book_id, buyerId: buyer.user_id, sellerId: seller.user_id });
+    stale.created_at = hoursAgo(25);
 
     const res = await request('GET', '/api/chat/reservations/mine', { token: tokenFor(buyer) });
     assert.strictEqual(res.status, 200);
     const ids = res.body.data.map((r) => r.reservation_id).sort();
     assert.deepStrictEqual(ids, [pending.reservation_id, holding.reservation_id].sort());
-    assert.strictEqual(res.body.data.find((r) => r.reservation_id === holding.reservation_id).is_holding, true);
+    const held = res.body.data.find((r) => r.reservation_id === holding.reservation_id);
+    assert.strictEqual(held.is_holding, true);
+    assert.deepStrictEqual(held.seller, { user_id: seller.user_id, nickname: '舊書攤' });
+    assert.strictEqual(held.room_id, room.room_id);
   }]
 ];
 

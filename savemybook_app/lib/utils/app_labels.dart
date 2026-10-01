@@ -47,7 +47,7 @@ class AppLabels {
   // 賣家書籍管理與後台：held 為聊天室預約保留中（書籍本身仍是 on_sale），reserved 為訂單已成立，sold 為訂單已完成。
   static Map<String, String> get ownerBookStatus => {
     'on_sale': S.bookOnSale,
-    'held': S.bookReserved,
+    'held': S.bookHeldForBuyer,
     'reserved': S.bookSold,
     'sold': S.orderCompleted,
     'removed': S.bookRemoved,

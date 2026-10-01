@@ -11,6 +11,7 @@
   "orderBuyerPendingDeposit": "待賣家存書",
   "orderBuyerDeposited": "待取書",
   "orderBuyerRefunding": "爭議處理中",
+  "orderSellerAwaitingPickup": "待買家取書",
   "orderFlowDeposit": "待賣家存書",
   "orderFlowDeposited": "已存入書櫃",
   "orderFlowPickup": "買家已取書",
@@ -586,8 +587,9 @@
       "p1": {}
     }
   },
-  "purchases": "購買紀錄",
-  "sales": "銷售紀錄",
+  "orderHistory": "訂單紀錄",
+  "purchaseOrders": "購買訂單",
+  "salesOrders": "銷售訂單",
   "settings": "設定",
   "signOut2": "確認登出",
   "cancelOrderBookReturnsShop": "確定要取消訂單 {p0} 嗎？取消後書籍將重新於商城販售。",
@@ -4258,8 +4260,9 @@
   "revokedByAdministrator": "管理員撤銷",
   "simulatorTurnedOff": "模擬書櫃功能關閉",
   "tooManyRequestsPleaseTryAgain": "操作過於頻繁，請稍後再試",
-  "viewPurchases": "查看購買紀錄",
-  "viewSales": "查看銷售紀錄",
+  "viewPurchases": "查看購買訂單",
+  "viewSales": "查看銷售訂單",
+  "viewMyBooks": "前往書籍管理",
   "retrievalNotAvailableLockerRightNow": "此書櫃目前無法辦理取回，請聯絡客服",
   "itemsCouldNotCompleted": "項目未能完成",
   "onceDelistedP0NoLongerAppear2": "取消上架後，《{p0}》將不再於商城顯示。此書存放於書櫃中，須先取回書籍，方可重新上架。",
@@ -4353,5 +4356,30 @@
   "removedFromPublicView": "已停止公開顯示",
   "hiddenFromPublic": "停止公開顯示",
   "afterReviewBookNoLongerShown": "此書籍經審核後停止公開顯示，訂單不受影響。",
-  "bookWasConfirmedViolateRulesAfter": "此書籍經審核確認違規，訂單不受影響。"
+  "bookWasConfirmedViolateRulesAfter": "此書籍經審核確認違規，訂單不受影響。",
+  "myReservations": "我的預約",
+  "reservationHeld": "已保留",
+  "awaitingSellerReply": "待賣家回覆",
+  "noHeldReservations": "目前沒有已保留的預約",
+  "noPendingReservations": "目前沒有待賣家回覆的預約",
+  "reservationTimeLeftHoursMinutes": "剩餘 {p0} 小時 {p1} 分鐘",
+  "@reservationTimeLeftHoursMinutes": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reservationTimeLeftMinutes": "剩餘 {p0} 分鐘",
+  "@reservationTimeLeftMinutes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reservationSentAtP0": "送出時間：{p0}",
+  "@reservationSentAtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookHeldForBuyer": "已被預約"
 }

@@ -1,0 +1,46 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（賣家）|
+start
+:於「上架書籍」頁面掃描\nISBN條碼或輸入ISBN;
+|系統|
+if (查到書目資料？) then ([是])
+  :帶入書籍基本資訊;
+else ([否])
+  :提示手動輸入書籍資訊;
+endif
+|使用者（賣家）|
+if (使用「AI帶入」？) then ([是]\n)
+  |AI服務|
+  :依書目建議資料、分類與售價；\n加入照片後建議書況與售價;
+else ([否])
+endif
+|使用者（賣家）|
+:確認書況、售價、書櫃\n與照片並點擊「確認上架」;
+|系統|
+if (規則式審核命中？) then ([是])
+  :以「審核中」建立\n並通知賣家與管理員;
+  stop
+else ([否])
+  :以「販售中」建立書籍;
+endif
+|AI服務|
+:於背景審核書籍內容;
+|系統|
+if (判定違規且設為\n直接拒絕？) then ([是])
+  :自動下架並通知賣家;
+  stop
+else ([否])
+endif
+if (需人工複核？) then ([是])
+  :轉為「審核中」\n並通知賣家與管理員;
+else ([否])
+  :維持「販售中」;
+endif
+stop
+@enduml

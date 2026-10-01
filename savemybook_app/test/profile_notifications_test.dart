@@ -15,10 +15,10 @@ import 'package:savemybook_app/features/account/settings_screen.dart';
 import 'package:savemybook_app/features/account/share_profile_screen.dart';
 import 'package:savemybook_app/features/account/support_ticket_screen.dart';
 import 'package:savemybook_app/features/home/notification_screen.dart';
-import 'package:savemybook_app/features/orders/purchase_history_screen.dart';
+import 'package:savemybook_app/features/orders/my_reservations_screen.dart';
+import 'package:savemybook_app/features/orders/order_history_screen.dart';
 import 'package:savemybook_app/features/security/security_center_screen.dart';
 import 'package:savemybook_app/features/selling/book_manage_screen.dart';
-import 'package:savemybook_app/features/selling/sales_history_screen.dart';
 import 'package:savemybook_app/features/books/favorites_screen.dart';
 import 'package:savemybook_app/features/account/wallet_screen.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
@@ -295,7 +295,7 @@ void main() {
         expect(find.text(S.editProfile), findsNothing);
         expect(find.text(S.myQrCode), findsNothing);
         expect(find.text(S.coins), findsNothing);
-        for (final label in [S.pickUp, S.orderPendingDeposit, S.saved, S.myBooks, S.purchases, S.sales, S.accountSecurity, S.helpCentre2, S.settings]) {
+        for (final label in [S.pickUp, S.orderPendingDeposit, S.saved, S.myReservations, S.myBooks, S.orderHistory, S.accountSecurity, S.helpCentre2, S.settings]) {
           expect(find.text(label), findsOneWidget, reason: label);
         }
         expect(find.text(S.admin), findsNothing);
@@ -304,12 +304,9 @@ void main() {
           (find.byKey(const ValueKey('profile_edit_area')), EditProfileScreen),
           (find.byKey(const ValueKey('profile_qr_code')), ShareProfileScreen),
           (find.byIcon(Icons.monetization_on_rounded), WalletScreen),
-          (find.text(S.pickUp), PurchaseHistoryScreen),
-          (find.text(S.orderPendingDeposit), SalesHistoryScreen),
           (find.text(S.saved), FavoritesScreen),
+          (find.text(S.myReservations), MyReservationsScreen),
           (find.text(S.myBooks), BookManageScreen),
-          (find.text(S.purchases), PurchaseHistoryScreen),
-          (find.text(S.sales), SalesHistoryScreen),
           (find.text(S.accountSecurity), SecurityCenterScreen),
           (find.text(S.helpCentre2), HelpCenterScreen),
           (find.text(S.settings), SettingsScreen),
@@ -318,6 +315,19 @@ void main() {
           await _tapAndSettle(tester, finder);
           expect(find.byType(screen), findsOneWidget, reason: '$screen');
           Navigator.of(tester.element(find.byType(screen))).pop();
+          await _settle(tester);
+        }
+
+        final orderRoutes = <(String, OrderRole, String?)>[
+          (S.pickUp, OrderRole.buyer, OrderHistoryScreen.awaitingPickup),
+          (S.orderPendingDeposit, OrderRole.seller, OrderHistoryScreen.awaitingDeposit),
+          (S.orderHistory, OrderRole.buyer, null),
+        ];
+        for (final (label, role, filter) in orderRoutes) {
+          await _tapAndSettle(tester, find.text(label));
+          final screen = tester.widget<OrderHistoryScreen>(find.byType(OrderHistoryScreen));
+          expect((screen.role, screen.filter), (role, filter), reason: label);
+          Navigator.of(tester.element(find.byType(OrderHistoryScreen))).pop();
           await _settle(tester);
         }
       }, server.client);

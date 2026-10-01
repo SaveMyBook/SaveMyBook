@@ -1,0 +1,9 @@
+.venv/
+plantuml.jar
+__pycache__/
+overlap_svg/
+*_backup/
+out*.docx
+_install_backup/
+_pre1001_backup/
+_render/

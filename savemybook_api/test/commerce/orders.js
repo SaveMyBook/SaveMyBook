@@ -247,6 +247,48 @@ const tests = [
     assert.strictEqual(bad.body.message, '請求內容不正確');
   }],
 
+  ['訂單紀錄的狀態篩選買賣雙方共用：已取書待完成列在待取書，已完成只含完成的訂單；舊頁籤條件不變', async () => {
+    const { buyer, seller, book, buyerToken, sellerToken } = scene();
+    const add = (status, extra = {}) => addOrder({ buyerId: buyer.user_id, sellerId: seller.user_id, bookId: book.book_id, status, ...extra });
+    const unpaid = add('pending_payment');
+    const waiting = add('pending_deposit');
+    const ready = add('deposited');
+    const collected = add('deposited', { picked_up_at: new Date() });
+    const legacyPickup = add('pending_pickup');
+    const disputed = add('refunding');
+    const done = add('completed');
+    const cancelled = add('cancelled');
+    const refunded = add('refunded');
+
+    const ids = async (token, role, tab) => {
+      const res = await request('GET', `/api/orders?role=${role}&tab=${tab}`, { token });
+      assert.strictEqual(res.status, 200, `${role}/${tab}`);
+      return res.body.data.map((o) => o.order_id).sort((a, b) => a - b);
+    };
+    const expected = {
+      awaiting_pickup: [ready, collected, legacyPickup],
+      awaiting_deposit: [unpaid, waiting],
+      disputing: [disputed],
+      finished: [done],
+      cancelled: [cancelled, refunded]
+    };
+    for (const [tab, orders] of Object.entries(expected)) {
+      const want = orders.map((o) => o.order_id).sort((a, b) => a - b);
+      assert.deepStrictEqual(await ids(buyerToken, 'buyer', tab), want, `buyer/${tab}`);
+      assert.deepStrictEqual(await ids(sellerToken, 'seller', tab), want, `seller/${tab}`);
+    }
+
+    const count = await request('GET', '/api/orders?role=buyer&tab=awaiting_pickup&limit=1', { token: buyerToken });
+    assert.strictEqual(count.body.data.length, 1);
+    assert.strictEqual(count.body.pagination.total, 3);
+
+    assert.deepStrictEqual(await ids(buyerToken, 'buyer', 'pending_pickup'),
+      [unpaid, waiting, ready, legacyPickup].map((o) => o.order_id).sort((a, b) => a - b));
+    assert.deepStrictEqual(await ids(buyerToken, 'buyer', 'completed'), [collected, done].map((o) => o.order_id).sort((a, b) => a - b));
+    assert.deepStrictEqual(await ids(sellerToken, 'seller', 'on_sale'),
+      [ready, collected, legacyPickup].map((o) => o.order_id).sort((a, b) => a - b));
+  }],
+
   ['訂單詳情僅限買賣雙方與管理員', async () => {
     const { buyer, seller, book, buyerToken } = scene();
     const stranger = addUser();

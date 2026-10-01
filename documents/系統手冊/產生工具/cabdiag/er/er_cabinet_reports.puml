@@ -1,0 +1,76 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  ...
+}
+entity "users" as users {
+  {field} <&key> user_id : int
+  --
+  ...
+}
+entity "orders" as orders {
+  {field} <&key> order_id : int
+  --
+  ...
+}
+entity "books" as books {
+  {field} <&key> book_id : int
+  --
+  ...
+}
+entity "cabinet_manual_reports" as cabinet_manual_reports {
+  {field} <&key> report_id : int
+  --
+  {field} cabinet_id : int
+  {field} user_id : int
+  {field} kind : enum
+  {field} order_id : int
+  {field} book_id : int
+  {field} target_status : varchar(20)
+  {field} reason : varchar(20)
+  {field} status : enum
+  {field} pending_key : varchar(40)
+  {field} held_on_sale : tinyint(1)
+  {field} reviewed_by : int
+  {field} reviewed_at : datetime
+  {field} review_note : varchar(500)
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "cabinet_events" as cabinet_events {
+  {field} <&key> event_id : int
+  --
+  {field} cabinet_id : int
+  {field} device_id : int
+  {field} session_id : int
+  {field} order_id : int
+  {field} book_id : int
+  {field} event_key : varchar(64)
+  {field} source : enum
+  {field} type : varchar(32)
+  {field} lock_channel : tinyint
+  {field} actor_id : int
+  {field} detail : text
+  {field} result : varchar(40)
+  {field} occurred_at : datetime
+  {field} received_at : datetime
+  {field} claimed_at : datetime
+  {field} processed_at : datetime
+}
+smart_cabinets ||--o{ cabinet_manual_reports
+users ||--o{ cabinet_manual_reports
+orders ||--o{ cabinet_manual_reports
+books ||--o{ cabinet_manual_reports
+@enduml

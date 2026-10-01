@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../models/chat.dart';
 import '../../models/member_level.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
@@ -17,8 +18,8 @@ import 'help_center_screen.dart';
 import '../books/favorites_screen.dart';
 import '../auth/login_screen.dart';
 import 'member_level_screen.dart';
-import '../orders/purchase_history_screen.dart';
-import '../selling/sales_history_screen.dart';
+import '../orders/my_reservations_screen.dart';
+import '../orders/order_history_screen.dart';
 import 'settings_screen.dart';
 import 'share_profile_screen.dart';
 import 'wallet_screen.dart';
@@ -40,6 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   MemberLevelInfo _level = MemberLevelInfo.empty;
   int _pendingPickup = 0;
   int _pendingDeposit = 0;
+  int _heldReservations = 0;
   bool _signingOut = false;
   int _levelAnimationKey = 0;
 
@@ -54,15 +56,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _api.fetchUserStats(),
       _api.fetchCurrentUser(),
       _api.fetchMemberLevel(),
-      _api.fetchOrders(role: 'buyer', tab: 'pending_pickup'),
-      _api.fetchOrders(role: 'seller', tab: 'pending_deposit'),
+      _api.fetchOrderCount(role: OrderRole.buyer.name, tab: OrderHistoryScreen.actionFilterOf(OrderRole.buyer)),
+      _api.fetchOrderCount(role: OrderRole.seller.name, tab: OrderHistoryScreen.actionFilterOf(OrderRole.seller)),
+      _api.fetchMyReservations(),
     ]);
     if (!mounted) return;
     setState(() {
       _stats = results[0] as UserStats;
       _level = results[2] as MemberLevelInfo;
-      _pendingPickup = (results[3] as List).length;
-      _pendingDeposit = (results[4] as List).length;
+      _pendingPickup = results[3] as int;
+      _pendingDeposit = results[4] as int;
+      final now = DateTime.now();
+      _heldReservations = (results[5] as List<ChatReservation>).where((r) => isHeldReservation(r, now)).length;
     });
   }
 
@@ -494,14 +499,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         label: S.pickUp,
         badge: _pendingPickup,
         badgeColor: c.danger,
-        onTap: () => _openAndRefresh(const PurchaseHistoryScreen()),
+        onTap: () => _openAndRefresh(const OrderHistoryScreen(filter: OrderHistoryScreen.awaitingPickup)),
       ),
       QuickActionButton(
         icon: Icons.move_to_inbox_outlined,
         label: S.orderPendingDeposit,
         badge: _pendingDeposit,
         badgeColor: c.danger,
-        onTap: () => _openAndRefresh(const SalesHistoryScreen(initialTab: 'pending_deposit')),
+        onTap: () => _openAndRefresh(
+          const OrderHistoryScreen(role: OrderRole.seller, filter: OrderHistoryScreen.awaitingDeposit),
+        ),
       ),
       QuickActionButton(
         icon: Icons.bookmark_outline_rounded,
@@ -510,9 +517,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onTap: () => _openAndRefresh(const FavoritesScreen()),
       ),
       QuickActionButton(
-        icon: Icons.library_books_outlined,
-        label: S.myBooks,
-        onTap: () => _openAndRefresh(const BookManageScreen()),
+        icon: Icons.event_available_outlined,
+        label: S.myReservations,
+        badge: _heldReservations,
+        badgeColor: c.danger,
+        onTap: () => _openAndRefresh(const MyReservationsScreen()),
       ),
     ];
 
@@ -545,15 +554,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   List<Widget> _tradeMenuItems() => [
         AppMenuItem(
-          icon: Icons.shopping_bag_outlined,
-          title: S.purchases,
-          onTap: () => _openAndRefresh(const PurchaseHistoryScreen()),
+          icon: Icons.receipt_long_outlined,
+          title: S.orderHistory,
+          onTap: () => _openAndRefresh(const OrderHistoryScreen()),
         ),
         AppMenuItem(
-          icon: Icons.inventory_2_outlined,
-          title: S.sales,
+          icon: Icons.library_books_outlined,
+          title: S.myBooks,
           isLast: true,
-          onTap: () => _openAndRefresh(const SalesHistoryScreen()),
+          onTap: () => _openAndRefresh(const BookManageScreen()),
         ),
       ];
 

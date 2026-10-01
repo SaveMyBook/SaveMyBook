@@ -168,8 +168,11 @@ const HEADING_RE = /^[【[（(]?\s*(內容簡介|內容介紹|內容說明|書�
 const compareKey = (s) => s.replace(/[\s\p{P}]/gu, '').toLowerCase();
 
 // 來源簡介常夾帶 HTML、書店促銷與活動訊息；模型輸出同樣要過一次，避免整段行銷詞直接進到上架頁。
+// 模型偶爾把換行多跳脫一層，解析後成為字面的「\n」，不先還原會整段顯示在書籍頁上。
+const unescapeBreaks = (s) => s.replace(/\\r\\n|\\n|\\r/g, '\n');
+
 const cleanDescription = (value, { title = '', max = FIELD_LIMITS.description } = {}) => {
-  const base = sanitizeText(decodeEntities(String(value ?? '')));
+  const base = sanitizeText(decodeEntities(unescapeBreaks(String(value ?? ''))));
   if (!base) return '';
   const titleKey = compareKey(sanitizeLine(title, FIELD_LIMITS.title));
   const kept = [];

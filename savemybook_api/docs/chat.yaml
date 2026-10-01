@@ -897,8 +897,9 @@ paths:
       operationId: listMyReservations
       tags: [chat]
       description: |
-        購買紀錄「已預訂」分頁使用。回傳請求者身為買家、等待賣家回覆（`pending`）或保留中（`confirmed` 且未過期限）的預約，
+        會員中心「我的預約」使用。回傳請求者身為買家、等待賣家回覆（`pending`，送出未滿 24 小時）或保留中（`confirmed` 且未過期限）的預約，
         依建立時間由新到舊，最多 50 筆；書籍已非販售中者不列入。保留中者 `is_holding` 為 true。
+        每筆另附賣家暱稱與雙方的一對一聊天室編號。
       security: [{ bearerAuth: [] }]
       responses:
         '200':
@@ -911,7 +912,21 @@ paths:
                   success: { type: boolean, example: true }
                   data:
                     type: array
-                    items: { $ref: '#/components/schemas/Reservation' }
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Reservation'
+                        - type: object
+                          properties:
+                            seller:
+                              type: object
+                              properties:
+                                user_id: { type: integer, example: 8 }
+                                nickname: { type: string, nullable: true, example: 舊書攤 }
+                            room_id:
+                              type: integer
+                              nullable: true
+                              description: 買賣雙方的一對一聊天室，供開啟對話使用。
+                              example: 21
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/ServerError' }
 

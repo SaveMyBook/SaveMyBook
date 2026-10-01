@@ -96,15 +96,15 @@ import 'package:savemybook_app/services/social_auth_service.dart';
 import 'package:savemybook_app/features/account/member_level_screen.dart';
 import 'package:savemybook_app/features/home/notification_screen.dart';
 import 'package:savemybook_app/features/orders/order_detail_screen.dart';
+import 'package:savemybook_app/features/orders/my_reservations_screen.dart';
 import 'package:savemybook_app/features/orders/pickup_book_screen.dart';
 import 'package:savemybook_app/features/cabinet/cabinet_flow_controller.dart';
 import 'package:savemybook_app/features/cabinet/cabinet_flow_screen.dart';
 import 'package:savemybook_app/models/cabinet.dart';
 import 'package:savemybook_app/features/selling/pending_income_screen.dart';
 import 'package:savemybook_app/features/account/profile_screen.dart';
-import 'package:savemybook_app/features/orders/purchase_history_screen.dart';
+import 'package:savemybook_app/features/orders/order_history_screen.dart';
 import 'package:savemybook_app/features/auth/register_screen.dart';
-import 'package:savemybook_app/features/selling/sales_history_screen.dart';
 import 'package:savemybook_app/features/security/login_devices_screen.dart';
 import 'package:savemybook_app/features/security/security_center_screen.dart';
 import 'package:savemybook_app/features/selling/sell_book_screen.dart';
@@ -683,6 +683,8 @@ Object? fakeData(String method, String path) {
           'pickup_deadline': i.isEven ? DateTime.now().add(const Duration(hours: 30)).toIso8601String() : null,
           'is_holding': i.isEven,
           'created_at': now,
+          'seller': {'user_id': 2, 'nickname': longName},
+          'room_id': 1,
         }),
     'GET /ai/status': () => {'support': true, 'listing_assist': true, 'recommend': true, 'book_chat': true, 'web_search': true, 'consented': true, 'providers_in_use': ['DeepSeek', 'Google Gemini', 'OpenAI']},
     'GET /ai/support/session': () => {'session_id': 1, 'status': 'open', 'messages': [for (final (i, m) in aiSupportItems().take(4).indexed) {'message_id': i + 1, 'role': m.isUser ? 'user' : 'assistant', 'content': m.content, 'created_at': now, 'order_nos': m.orderNos, 'message_no': m.messageNo, 'feedback': m.isUser ? null : {'rating': 'helpful', 'reason': null}}]},
@@ -725,7 +727,17 @@ Object? fakeData(String method, String path) {
     'GET /cart': () => many((i) => {'cart_id': i, 'book_id': i, 'quantity': 1, 'books': book(i)}),
     'GET /favorites': () => many((i) => book(i)),
     'GET /favorites/ids': () => [1, 2],
-    'GET /orders': () => many((i) => order(i, statuses[i % statuses.length])),
+    'GET /orders': () => [
+          ...many((i) => order(i, statuses[i % statuses.length])),
+          order(5, 'pending_deposit'),
+          {
+            ...order(6, 'deposited'),
+            'picked_up_at': DateTime.now().toUtc().toIso8601String(),
+            'order_items': [
+              for (final id in [5, 6]) {'item_id': id, 'book_id': id, 'quantity': 1, 'unit_price': 1234567, 'subtotal': 1234567, 'books': book(id)},
+            ],
+          },
+        ],
     'GET /orders/7': () => order(7, 'deposited'),
     'GET /wallet': () => {'balance': 9876543.5, 'frozen_amount': 123456, 'total_income': 98765432, 'total_expense': 12345678, 'pending_income': 7654321},
     'GET /wallet/transactions': () => many((i) => {'txn_id': i, 'type': ['purchase', 'sale_income', 'transfer_in', 'transfer_out', 'refund', 'admin_adjust'][i % 6], 'amount': i.isEven ? 1234567 : -1234567, 'balance_after': 9876543, 'description': 'Order SMB20260914103000123456 refund', 'created_at': now, 'orders': {'order_id': i, 'order_no': 'SMB20260914103000123456', 'order_items': [{'books': book(i)}]}}),
@@ -898,6 +910,8 @@ Map<String, Widget Function()> get screens => {
       'BookManageSeller': () => const AsSeller(child: BookManageScreen()),
       'BookManageSellerSold': () => const AsSeller(child: BookManageScreen(initialFilter: 'reserved')),
       'BookManageSellerRetrieval': () => const AsSeller(child: BookManageScreen(initialFilter: 'pending_retrieval')),
+      'BookManageSellerReview': () => const AsSeller(child: BookManageScreen(initialFilter: 'pending_review')),
+      'MyReservations': () => const MyReservationsScreen(),
       'BookDetailSellerPaused': () => AsSeller(
           child: BookDetailScreen(book: Book.fromJson({...book(8, status: 'removed'), 'deposit': deposit(12, paused: true)}))),
       'BookDetailSellerDeposited': () => AsSeller(child: BookDetailScreen(book: Book.fromJson({...book(9), 'deposit': deposit(0)}))),
@@ -925,9 +939,8 @@ Map<String, Widget Function()> get screens => {
       'InCabinetBuyNowConfirm': () => DialogPreview(show: (context) => confirmInCabinetPurchase(context)),
       'InCabinetCheckoutConfirm': () => DialogPreview(show: (context) => confirmInCabinetPurchase(context, fromCart: true)),
       'SellBook': () => const SellBookScreen(),
-      'PurchaseHistory': () => const PurchaseHistoryScreen(),
-      'SalesHistory': () => const SalesHistoryScreen(),
-      'SalesHistoryOnSale': () => const AsSeller(child: SalesHistoryScreen(initialTab: 'on_sale')),
+      'OrderHistory': () => const OrderHistoryScreen(),
+      'OrderHistorySales': () => const AsSeller(child: OrderHistoryScreen(role: OrderRole.seller)),
       'OrderDetail': () => OrderDetailScreen(order: Order.fromJson(order(7, 'deposited'))),
       'OrderDetailSeller': () => OrderDetailScreen(order: Order.fromJson(order(7, 'refunding')), asSeller: true),
       'OrderDetailCabinetPending': () => OrderDetailScreen(

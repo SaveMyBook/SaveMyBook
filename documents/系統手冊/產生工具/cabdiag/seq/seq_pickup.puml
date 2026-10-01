@@ -1,0 +1,72 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
+
+actor 買家
+participant UI
+participant API
+database DB
+participant IoT
+actor 賣家
+
+買家 -> UI : 掃描書櫃螢幕上的 QR Code
+activate 買家
+activate UI
+UI -> API : POST /api/cabinet-sessions
+activate API
+API -> DB : 驗證 QR 與定位，列出取書項目
+API --> UI : 201 項目清單
+deactivate API
+買家 -> UI : 確認取書訂單，點擊「開啟櫃門」
+UI -> API : POST /api/cabinet-sessions/:no/start
+activate API
+API -> DB : 查詢訂單書籍所在櫃門，產生比對碼
+API --> UI : 200 等待輸入比對碼
+deactivate API
+IoT -> API : GET /api/device/v1/state
+activate IoT
+API --> IoT : 顯示兩位數比對碼
+deactivate IoT
+買家 -> UI : 輸入螢幕上的兩位數字
+UI -> API : POST /api/cabinet-sessions/:no/match
+activate API
+alt 數字相符
+  IoT -> API : 輪詢取得開鎖指令
+  activate IoT
+  IoT -> API : 開門後回報 POST /api/device/v1/events
+  API --> UI : 推送櫃門編號與倒數
+  alt 於手機點擊「完成」
+    買家 -> UI : 取出書籍，關門後點擊「完成」
+    UI -> API : POST /api/cabinet-sessions/:no/close
+    IoT -> API : 輪詢取得結束指令
+    IoT -> API : 回報作業結束
+  else 倒數結束
+    IoT -> API : 回報作業結束（視為完成）
+  end
+  deactivate IoT
+  API -> DB : 記錄取書時間並移除櫃內紀錄\n（買家端顯示「待完成訂單」）
+  API -> 賣家 : 推播「買家已取書」
+  API --> UI : 推送作業結果
+else 數字不符或逾時
+  API --> UI : 作業結束，須重新掃碼
+end
+deactivate API
+alt 買家確認書況無誤
+  買家 -> UI : 點擊「完成訂單」
+  UI -> API : PATCH /api/orders/:id/status
+  activate API
+else 取書滿 24 小時未申請爭議
+  API -> API : 排程自動完成訂單
+end
+API -> DB : 訂單設為「已完成」，款項撥入賣家錢包
+API -> 賣家 : 推播「訂單已完成」
+deactivate API
+deactivate UI
+deactivate 買家
+@enduml

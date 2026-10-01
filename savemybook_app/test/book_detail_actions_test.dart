@@ -87,7 +87,7 @@ void main() {
   for (final (status, reservation, label) in [
     ('reserved', null, '已售出・無法編輯'),
     ('sold', null, '已完成・無法編輯'),
-    ('on_sale', {'reserved_until': DateTime.now().add(const Duration(hours: 3)).toIso8601String()}, '已預約・無法編輯'),
+    ('on_sale', {'reserved_until': DateTime.now().add(const Duration(hours: 3)).toIso8601String()}, '已被預約・無法編輯'),
   ]) {
     testWidgets('自己的書狀態為 $status 時不能編輯', (tester) async {
       final json = _book(sellerId: 1, status: status, reservation: reservation);

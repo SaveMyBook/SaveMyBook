@@ -1,0 +1,42 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（買家）|
+start
+:於聊天室與賣家\n溝通書況並議價;
+if (需要保留書籍？) then ([是])
+  :點擊「預約書籍」;
+  |系統|
+  :送出預約並通知賣家;
+  |使用者（賣家）|
+  :點擊「接受」或「婉拒」;
+  |系統|
+  if (接受預約？) then ([是])
+    :保留書籍並通知買家；\n同書其他預約自動取消;
+  else ([否])
+    :通知買家已婉拒預約;
+  endif
+else ([否])
+endif
+|使用者（買家）|
+:開啟「轉帳」並輸入金額;
+|系統|
+if (錢包餘額足夠？) then ([否])
+  :提示餘額不足;
+  stop
+else ([是])
+endif
+:要求輸入交易密碼\n或生物辨識驗證;
+|使用者（買家）|
+:完成身分驗證;
+|系統|
+:依序完成扣款與入帳;
+:於聊天室貼出轉帳\n紀錄卡片並通知賣家;
+|使用者（賣家）|
+:收到轉帳通知;
+stop
+@enduml

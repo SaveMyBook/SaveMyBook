@@ -1,0 +1,34 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者\n（買家）|
+start
+:開啟首頁;
+|系統|
+if (已同意AI功能\n且AI已啟用？) then ([否])
+  :改用熱門與個人化\n統計排序;
+else ([是])
+  :讀取購買、收藏、購物車\n與最近瀏覽紀錄;
+  if (購買、收藏、購物車未變動\n且快取未逾6小時？) then ([是])
+    :使用快取之推薦;
+  else ([否])
+    :先回傳既有推薦\n並於背景重新產生;
+    :彙整相近書、個人化\n排序與熱門書\n共最多60本候選;
+    |AI服務|
+    :挑選排序並標出\n每本書之依據;
+    |系統|
+    if (產生成功？) then ([否])
+      :保留既有推薦\n15至30分鐘內不重試;
+    else ([是])
+      :儲存新推薦;
+    endif
+  endif
+endif
+:依推薦依據分組\n並帶入書名與分類;
+:於首頁分排顯示\n「為您推薦」;
+stop
+@enduml

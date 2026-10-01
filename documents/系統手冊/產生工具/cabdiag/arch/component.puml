@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam componentStyle uml2
+
+component book
+component order
+component wallet
+component Report
+component user
+component chat
+component notification
+component AI
+component cabinet
+component ESP32
+component API
+component APP
+
+book -0)- order
+order -0)- Report
+wallet -0)- order
+user -0)- order
+user -0)- chat
+notification -0)- chat
+notification -0)- order
+AI -0)- book
+AI -0)- chat
+order -0)- cabinet
+book -0)- cabinet
+notification -0)- cabinet
+cabinet -0)- API
+ESP32 -(0- API
+API -0)- APP
+@enduml

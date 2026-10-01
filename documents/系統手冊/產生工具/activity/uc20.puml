@@ -1,0 +1,39 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+|系統|
+|推播服務|
+|系統|
+start
+:因訂單變更、新訊息、\n降價或公告建立通知;
+:聊天以外之通知依分類\n列入通知中心;
+:每3秒輪詢尚未推播之通知;
+if (依通知偏好、靜音與\n帳號狀態須推播？) then ([否])
+  :不派送推播;
+  stop
+else ([是])
+endif
+|推播服務|
+:將通知送往使用者裝置;
+if (裝置權杖有效？) then ([否])
+  |系統|
+  :移除失效之推播裝置;
+  stop
+else ([是])
+endif
+|使用者（會員）|
+if (App位於前景？) then ([是])
+  :顯示內嵌橫幅;
+else ([否])
+  :顯示系統通知;
+endif
+:點擊通知;
+|系統|
+:標記已讀並導向\n對應頁面;
+stop
+@enduml

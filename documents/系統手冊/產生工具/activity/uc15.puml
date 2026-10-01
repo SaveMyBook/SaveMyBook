@@ -1,0 +1,36 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:執行敏感操作（如結帳、\n綁定登入方式）;
+|系統|
+:要求身分驗證並判斷\n付款、敏感或後台範圍;
+if (可使用生物辨識？) then ([是])
+  |使用者（會員）|
+  :完成生物辨識;
+else ([否])
+  |系統|
+  :顯示通行密鑰、交易密碼\n或密碼驗證面板;
+  |使用者（會員）|
+  :完成其中一種驗證;
+endif
+|系統|
+if (驗證通過且方式\n屬於允許範圍？) then ([否])
+  :拒絕驗證並提示原因;
+  stop
+else ([是])
+endif
+:核發短時效驗證權杖;
+:以權杖重送原請求\n並比對範圍與方式;
+if (原操作執行成功？) then ([是])
+  :完成原操作;
+else ([否])
+  :恢復未消耗之付款權杖\n供重試使用;
+endif
+stop
+@enduml

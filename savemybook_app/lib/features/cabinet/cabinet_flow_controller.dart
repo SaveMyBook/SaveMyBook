@@ -13,7 +13,7 @@ enum CabinetFlowStep { prepare, scan, checking, confirm, match, opening, open, r
 
 enum CabinetFlowOutcome { completed, started, cancelled, manualRequested, dismissed }
 
-enum CabinetFlowAction { rescan, close, reportManually, openMap, viewPurchases, viewSales, contactSupport, resume, retry, openSettings }
+enum CabinetFlowAction { rescan, close, reportManually, openMap, viewPurchases, viewSales, viewBooks, contactSupport, resume, retry, openSettings }
 
 class CabinetFlowError {
   final String code;
@@ -78,7 +78,10 @@ class CabinetFlowError {
           kinds: kinds,
           actions: [
             if (kinds.contains(CabinetItemKind.pickup)) CabinetFlowAction.viewPurchases,
-            if (kinds.any((kind) => kind != CabinetItemKind.pickup)) CabinetFlowAction.viewSales,
+            if (kinds.contains(CabinetItemKind.orderDeposit))
+              CabinetFlowAction.viewSales
+            else if (kinds.any((kind) => kind != CabinetItemKind.pickup))
+              CabinetFlowAction.viewBooks,
             CabinetFlowAction.rescan,
             CabinetFlowAction.close,
           ],

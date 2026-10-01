@@ -51,10 +51,22 @@ paths:
       operationId: listOrders
       tags: [orders]
       description: |
-        購買紀錄與銷售紀錄共用此端點，以 `role` 參數切換。
+        App「訂單紀錄」的購買訂單與銷售訂單共用此端點，以 `role` 參數切換。
 
-        `tab` 對應用戶端的頁籤，伺服器會將其展開為查詢條件。「待確認」指已取書（`picked_up_at` 有值）、
-        狀態仍為 `deposited` 或 `pending_pickup` 的訂單。買賣雙方的頁籤定義不同：
+        `tab` 對應用戶端的狀態篩選，伺服器會將其展開為查詢條件。「待確認」指已取書（`picked_up_at` 有值）、
+        狀態仍為 `deposited` 或 `pending_pickup` 的訂單。
+
+        **訂單紀錄（買賣雙方通用）**
+
+        | `tab` | 條件 | 購買訂單 | 銷售訂單 |
+        | --- | --- | --- | --- |
+        | `awaiting_pickup` | `deposited`, `pending_pickup`（含待確認） | 待取書 | 待買家取書 |
+        | `awaiting_deposit` | `pending_payment`, `pending_deposit` | 待賣家存書 | 待存書 |
+        | `disputing` | `refunding` | 爭議處理中 | 爭議處理中 |
+        | `finished` | `completed` | 已完成 | 已完成 |
+        | `cancelled` | `cancelled`, `refunded` | 已取消 | 已取消 |
+
+        以下為舊版 App 購買紀錄與銷售紀錄的頁籤，條件維持不變：
 
         **買家（`role=buyer`）**
 
@@ -62,8 +74,6 @@ paths:
         | --- | --- |
         | `pending_pickup` | `pending_payment`, `pending_deposit`, `deposited`, `pending_pickup`，且尚未取書 |
         | `completed` | `completed`，以及待確認的訂單 |
-        | `cancelled` | `cancelled`, `refunded` |
-        | `disputing` | `refunding` |
 
         **賣家（`role=seller`）**
 
@@ -71,10 +81,10 @@ paths:
         | --- | --- |
         | `pending_deposit` | `pending_payment`, `pending_deposit` |
         | `deposited` | `deposited`, `pending_pickup`（含待確認） |
-        | `on_sale` | 同 `deposited`，保留給舊版 App |
+        | `on_sale` | 同 `deposited` |
         | `completed` | `completed` |
-        | `cancelled` | `cancelled`, `refunded` |
 
+        列表的 `pagination.total` 為符合條件的總筆數，App 以 `limit=1` 查詢取得頁籤數量徽章。
         未帶入 `tab` 時不套用狀態條件。帶入未定義的 `tab` 將回傳 400。
       security: [{ bearerAuth: [] }]
       parameters:
@@ -85,8 +95,8 @@ paths:
         - in: query
           name: tab
           schema: { type: string }
-          description: 頁籤名稱，可用值依 `role` 而異，詳見上表。
-          example: pending_pickup
+          description: 狀態篩選名稱，詳見上表。
+          example: awaiting_pickup
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Limit'
       responses:

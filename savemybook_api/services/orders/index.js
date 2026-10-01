@@ -19,23 +19,29 @@ const { transition, describeSettlement, storedNotice, statusLabel } = settlement
 const IN_CABINET = ['deposited', 'pending_pickup'];
 const PRE_DEPOSIT = ['pending_payment', 'pending_deposit'];
 
-// 買家取書後訂單仍是「已存書」（picked_up_at 有值），等買家完成訂單或 24 小時後才撥款；
-// 買家端把這類訂單放在「已完成」分頁，賣家端留在「已存書」分頁並標示待買家確認。
+// 買家取書後訂單仍是「已存書」（picked_up_at 有值），等買家完成訂單或 24 小時後才撥款。
 const AWAITING_CONFIRM = { status: { in: IN_CABINET }, picked_up_at: { not: null } };
 
+const STAGE_TABS = {
+  awaiting_deposit: { status: { in: PRE_DEPOSIT } },
+  awaiting_pickup: { status: { in: IN_CABINET } },
+  disputing: { status: 'refunding' },
+  finished: { status: 'completed' },
+  cancelled: { status: { in: ['cancelled', 'refunded'] } }
+};
+
+// 其餘為購買紀錄與銷售紀錄時期的頁籤，舊版 App 仍會帶入，條件不可更動。
 const BUYER_TABS = {
+  ...STAGE_TABS,
   pending_pickup: { status: { in: [...PRE_DEPOSIT, ...IN_CABINET] }, picked_up_at: null },
-  completed: { OR: [{ status: 'completed' }, AWAITING_CONFIRM] },
-  cancelled: { status: { in: ['cancelled', 'refunded'] } },
-  disputing: { status: 'refunding' }
+  completed: { OR: [{ status: 'completed' }, AWAITING_CONFIRM] }
 };
 
 const SELLER_TABS = {
+  ...STAGE_TABS,
   pending_deposit: { status: { in: PRE_DEPOSIT } },
   deposited: { status: { in: IN_CABINET } },
-  // 舊版 App 的「販售中」分頁會帶 on_sale，維持回傳已存書的訂單。
   on_sale: { status: { in: IN_CABINET } },
-  cancelled: { status: { in: ['cancelled', 'refunded'] } },
   completed: { status: 'completed' }
 };
 

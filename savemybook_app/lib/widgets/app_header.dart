@@ -293,8 +293,11 @@ class ChatIconButton extends StatelessWidget {
 class AppTabBar extends StatelessWidget {
   final TabController controller;
   final List<String> tabs;
+  final List<int> badges;
 
-  const AppTabBar({super.key, required this.controller, required this.tabs});
+  const AppTabBar({super.key, required this.controller, required this.tabs, this.badges = const []});
+
+  int _badgeAt(int i) => i < badges.length ? badges[i] : 0;
 
   @override
   Widget build(BuildContext context) {
@@ -312,17 +315,18 @@ class AppTabBar extends StatelessWidget {
         final scaler = MediaQuery.textScalerOf(context);
         final perTab = constraints.maxWidth / tabs.length;
         final style = DefaultTextStyle.of(context).style.merge(labelStyle);
-        final widest = tabs.fold<double>(0, (max, t) {
+        var widest = 0.0;
+        for (var i = 0; i < tabs.length; i++) {
           final painter = TextPainter(
-            text: TextSpan(text: t, style: style),
+            text: TextSpan(text: tabs[i], style: style),
             textDirection: Directionality.of(context),
             textScaler: scaler,
             maxLines: 1,
           )..layout();
-          final w = painter.width;
+          final w = painter.width + (_badgeAt(i) > 0 ? 28 : 0);
           painter.dispose();
-          return w > max ? w : max;
-        });
+          if (w > widest) widest = w;
+        }
         final compact = widest + 32 > perTab;
         final crowded = widest + 20 > perTab;
         final labelPadding = compact && !crowded ? const EdgeInsets.symmetric(horizontal: 10) : null;
@@ -340,7 +344,22 @@ class AppTabBar extends StatelessWidget {
         labelStyle: labelStyle,
         labelPadding: labelPadding,
         unselectedLabelStyle: const TextStyle(fontSize: 14),
-        tabs: tabs.map((t) => Tab(height: 46, text: t)).toList(),
+        tabs: [
+          for (var i = 0; i < tabs.length; i++)
+            _badgeAt(i) > 0
+                ? Tab(
+                    height: 46,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(child: Text(tabs[i], maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        const SizedBox(width: 6),
+                        UnconstrainedBox(child: CountBadge(count: _badgeAt(i))),
+                      ],
+                    ),
+                  )
+                : Tab(height: 46, text: tabs[i]),
+        ],
         );
       }),
       ),

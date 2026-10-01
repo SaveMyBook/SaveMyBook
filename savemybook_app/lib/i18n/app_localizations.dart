@@ -34,6 +34,7 @@ abstract class AppLocalizations {
   String get orderBuyerPendingDeposit;
   String get orderBuyerDeposited;
   String get orderBuyerRefunding;
+  String get orderSellerAwaitingPickup;
   String get orderFlowDeposit;
   String get orderFlowDeposited;
   String get orderFlowPickup;
@@ -434,8 +435,9 @@ abstract class AppLocalizations {
   String get myAccount;
   String get topTierReached;
   String morePointsReach(Object p0, Object p1);
-  String get purchases;
-  String get sales;
+  String get orderHistory;
+  String get purchaseOrders;
+  String get salesOrders;
   String get settings;
   String get signOut2;
   String cancelOrderBookReturnsShop(Object p0);
@@ -2424,6 +2426,7 @@ abstract class AppLocalizations {
   String get tooManyRequestsPleaseTryAgain;
   String get viewPurchases;
   String get viewSales;
+  String get viewMyBooks;
   String get retrievalNotAvailableLockerRightNow;
   String get itemsCouldNotCompleted;
   String onceDelistedP0NoLongerAppear2(Object p0);
@@ -2482,6 +2485,15 @@ abstract class AppLocalizations {
   String get hiddenFromPublic;
   String get afterReviewBookNoLongerShown;
   String get bookWasConfirmedViolateRulesAfter;
+  String get myReservations;
+  String get reservationHeld;
+  String get awaitingSellerReply;
+  String get noHeldReservations;
+  String get noPendingReservations;
+  String reservationTimeLeftHoursMinutes(Object p0, Object p1);
+  String reservationTimeLeftMinutes(Object p0);
+  String reservationSentAtP0(Object p0);
+  String get bookHeldForBuyer;
 }
 
 class _LEn extends AppLocalizations {
@@ -2519,6 +2531,9 @@ class _LEn extends AppLocalizations {
 
   @override
   String get orderBuyerRefunding => 'Under dispute';
+
+  @override
+  String get orderSellerAwaitingPickup => 'Awaiting buyer pickup';
 
   @override
   String get orderFlowDeposit => 'Seller drop-off';
@@ -3721,10 +3736,13 @@ class _LEn extends AppLocalizations {
   String morePointsReach(Object p0, Object p1) => '${p0} more points to reach “${p1}”';
 
   @override
-  String get purchases => 'Purchases';
+  String get orderHistory => 'Order history';
 
   @override
-  String get sales => 'Sales';
+  String get purchaseOrders => 'Purchases';
+
+  @override
+  String get salesOrders => 'Sales';
 
   @override
   String get settings => 'Settings';
@@ -9691,6 +9709,9 @@ class _LEn extends AppLocalizations {
   String get viewSales => 'View sales';
 
   @override
+  String get viewMyBooks => 'Go to My books';
+
+  @override
   String get retrievalNotAvailableLockerRightNow => 'Retrieval is not available at this locker right now. Please contact support.';
 
   @override
@@ -9864,6 +9885,33 @@ class _LEn extends AppLocalizations {
   @override
   String get bookWasConfirmedViolateRulesAfter => 'This book was confirmed to violate the rules after review. Its order is not affected.';
 
+  @override
+  String get myReservations => 'My reservations';
+
+  @override
+  String get reservationHeld => 'Held';
+
+  @override
+  String get awaitingSellerReply => 'Awaiting seller reply';
+
+  @override
+  String get noHeldReservations => 'No held reservations';
+
+  @override
+  String get noPendingReservations => 'No reservations awaiting a seller reply';
+
+  @override
+  String reservationTimeLeftHoursMinutes(Object p0, Object p1) => '${p0} h ${p1} min left';
+
+  @override
+  String reservationTimeLeftMinutes(Object p0) => '${p0} min left';
+
+  @override
+  String reservationSentAtP0(Object p0) => 'Sent: ${p0}';
+
+  @override
+  String get bookHeldForBuyer => 'Reserved by buyer';
+
 }
 
 class _LJa extends AppLocalizations {
@@ -9901,6 +9949,9 @@ class _LJa extends AppLocalizations {
 
   @override
   String get orderBuyerRefunding => '異議申立中';
+
+  @override
+  String get orderSellerAwaitingPickup => '購入者の受け取り待ち';
 
   @override
   String get orderFlowDeposit => '出品者が預け入れ';
@@ -11103,10 +11154,13 @@ class _LJa extends AppLocalizations {
   String morePointsReach(Object p0, Object p1) => 'あと ${p0} ポイントで「${p1}」へ';
 
   @override
-  String get purchases => '購入履歴';
+  String get orderHistory => '注文履歴';
 
   @override
-  String get sales => '販売履歴';
+  String get purchaseOrders => '購入注文';
+
+  @override
+  String get salesOrders => '販売注文';
 
   @override
   String get settings => '設定';
@@ -17067,10 +17121,13 @@ class _LJa extends AppLocalizations {
   String get tooManyRequestsPleaseTryAgain => '操作が頻繁すぎます。しばらくしてから再度お試しください。';
 
   @override
-  String get viewPurchases => '購入履歴を見る';
+  String get viewPurchases => '購入注文を見る';
 
   @override
-  String get viewSales => '販売履歴を見る';
+  String get viewSales => '販売注文を見る';
+
+  @override
+  String get viewMyBooks => '書籍管理を開く';
 
   @override
   String get retrievalNotAvailableLockerRightNow => '現在このロッカーでは回収の手続きができません。サポートにお問い合わせください。';
@@ -17246,6 +17303,33 @@ class _LJa extends AppLocalizations {
   @override
   String get bookWasConfirmedViolateRulesAfter => '審査の結果、この本の違反が確認されました。注文には影響しません。';
 
+  @override
+  String get myReservations => '予約一覧';
+
+  @override
+  String get reservationHeld => '確保中';
+
+  @override
+  String get awaitingSellerReply => '出品者の返信待ち';
+
+  @override
+  String get noHeldReservations => '確保中の予約はありません';
+
+  @override
+  String get noPendingReservations => '出品者の返信待ちの予約はありません';
+
+  @override
+  String reservationTimeLeftHoursMinutes(Object p0, Object p1) => '残り${p0}時間${p1}分';
+
+  @override
+  String reservationTimeLeftMinutes(Object p0) => '残り${p0}分';
+
+  @override
+  String reservationSentAtP0(Object p0) => '送信日時：${p0}';
+
+  @override
+  String get bookHeldForBuyer => '取り置き中';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -17283,6 +17367,9 @@ class _LKo extends AppLocalizations {
 
   @override
   String get orderBuyerRefunding => '이의 제기 중';
+
+  @override
+  String get orderSellerAwaitingPickup => '구매자 수령 대기';
 
   @override
   String get orderFlowDeposit => '판매자 보관';
@@ -18485,10 +18572,13 @@ class _LKo extends AppLocalizations {
   String morePointsReach(Object p0, Object p1) => '${p0}점 더 모으면 “${p1}”';
 
   @override
-  String get purchases => '구매 내역';
+  String get orderHistory => '주문 내역';
 
   @override
-  String get sales => '판매 내역';
+  String get purchaseOrders => '구매 주문';
+
+  @override
+  String get salesOrders => '판매 주문';
 
   @override
   String get settings => '설정';
@@ -24449,10 +24539,13 @@ class _LKo extends AppLocalizations {
   String get tooManyRequestsPleaseTryAgain => '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
 
   @override
-  String get viewPurchases => '구매 내역 보기';
+  String get viewPurchases => '구매 주문 보기';
 
   @override
-  String get viewSales => '판매 내역 보기';
+  String get viewSales => '판매 주문 보기';
+
+  @override
+  String get viewMyBooks => '도서 관리로 이동';
 
   @override
   String get retrievalNotAvailableLockerRightNow => '현재 이 보관함에서는 회수할 수 없습니다. 고객센터에 문의해 주세요.';
@@ -24628,6 +24721,33 @@ class _LKo extends AppLocalizations {
   @override
   String get bookWasConfirmedViolateRulesAfter => '검토 결과 이 책의 위반이 확인되었습니다. 주문에는 영향이 없습니다.';
 
+  @override
+  String get myReservations => '내 예약';
+
+  @override
+  String get reservationHeld => '보류 중';
+
+  @override
+  String get awaitingSellerReply => '판매자 답변 대기';
+
+  @override
+  String get noHeldReservations => '보류 중인 예약이 없습니다';
+
+  @override
+  String get noPendingReservations => '판매자 답변을 기다리는 예약이 없습니다';
+
+  @override
+  String reservationTimeLeftHoursMinutes(Object p0, Object p1) => '${p0}시간 ${p1}분 남음';
+
+  @override
+  String reservationTimeLeftMinutes(Object p0) => '${p0}분 남음';
+
+  @override
+  String reservationSentAtP0(Object p0) => '요청 일시: ${p0}';
+
+  @override
+  String get bookHeldForBuyer => '예약 중';
+
 }
 
 class _LZh extends AppLocalizations {
@@ -24665,6 +24785,9 @@ class _LZh extends AppLocalizations {
 
   @override
   String get orderBuyerRefunding => '爭議處理中';
+
+  @override
+  String get orderSellerAwaitingPickup => '待買家取書';
 
   @override
   String get orderFlowDeposit => '待賣家存書';
@@ -25867,10 +25990,13 @@ class _LZh extends AppLocalizations {
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 點升級為「${p1}」';
 
   @override
-  String get purchases => '購買紀錄';
+  String get orderHistory => '訂單紀錄';
 
   @override
-  String get sales => '銷售紀錄';
+  String get purchaseOrders => '購買訂單';
+
+  @override
+  String get salesOrders => '銷售訂單';
 
   @override
   String get settings => '設定';
@@ -31831,10 +31957,13 @@ class _LZh extends AppLocalizations {
   String get tooManyRequestsPleaseTryAgain => '操作過於頻繁，請稍後再試';
 
   @override
-  String get viewPurchases => '查看購買紀錄';
+  String get viewPurchases => '查看購買訂單';
 
   @override
-  String get viewSales => '查看銷售紀錄';
+  String get viewSales => '查看銷售訂單';
+
+  @override
+  String get viewMyBooks => '前往書籍管理';
 
   @override
   String get retrievalNotAvailableLockerRightNow => '此書櫃目前無法辦理取回，請聯絡客服';
@@ -32010,6 +32139,33 @@ class _LZh extends AppLocalizations {
   @override
   String get bookWasConfirmedViolateRulesAfter => '此書籍經審核確認違規，訂單不受影響。';
 
+  @override
+  String get myReservations => '我的預約';
+
+  @override
+  String get reservationHeld => '已保留';
+
+  @override
+  String get awaitingSellerReply => '待賣家回覆';
+
+  @override
+  String get noHeldReservations => '目前沒有已保留的預約';
+
+  @override
+  String get noPendingReservations => '目前沒有待賣家回覆的預約';
+
+  @override
+  String reservationTimeLeftHoursMinutes(Object p0, Object p1) => '剩餘 ${p0} 小時 ${p1} 分鐘';
+
+  @override
+  String reservationTimeLeftMinutes(Object p0) => '剩餘 ${p0} 分鐘';
+
+  @override
+  String reservationSentAtP0(Object p0) => '送出時間：${p0}';
+
+  @override
+  String get bookHeldForBuyer => '已被預約';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -32047,6 +32203,9 @@ class _LZhHans extends AppLocalizations {
 
   @override
   String get orderBuyerRefunding => '争议处理中';
+
+  @override
+  String get orderSellerAwaitingPickup => '待买家取书';
 
   @override
   String get orderFlowDeposit => '待卖家存书';
@@ -33249,10 +33408,13 @@ class _LZhHans extends AppLocalizations {
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 点升级为“${p1}”';
 
   @override
-  String get purchases => '购买记录';
+  String get orderHistory => '订单记录';
 
   @override
-  String get sales => '销售记录';
+  String get purchaseOrders => '购买订单';
+
+  @override
+  String get salesOrders => '销售订单';
 
   @override
   String get settings => '设置';
@@ -39213,10 +39375,13 @@ class _LZhHans extends AppLocalizations {
   String get tooManyRequestsPleaseTryAgain => '操作过于频繁，请稍后再试';
 
   @override
-  String get viewPurchases => '查看购买记录';
+  String get viewPurchases => '查看购买订单';
 
   @override
-  String get viewSales => '查看销售记录';
+  String get viewSales => '查看销售订单';
+
+  @override
+  String get viewMyBooks => '前往书籍管理';
 
   @override
   String get retrievalNotAvailableLockerRightNow => '此书柜目前无法办理取回，请联系客服';
@@ -39392,6 +39557,33 @@ class _LZhHans extends AppLocalizations {
   @override
   String get bookWasConfirmedViolateRulesAfter => '此书籍经审核确认违规，订单不受影响。';
 
+  @override
+  String get myReservations => '我的预约';
+
+  @override
+  String get reservationHeld => '已保留';
+
+  @override
+  String get awaitingSellerReply => '待卖家回复';
+
+  @override
+  String get noHeldReservations => '目前没有已保留的预约';
+
+  @override
+  String get noPendingReservations => '目前没有待卖家回复的预约';
+
+  @override
+  String reservationTimeLeftHoursMinutes(Object p0, Object p1) => '剩余 ${p0} 小时 ${p1} 分钟';
+
+  @override
+  String reservationTimeLeftMinutes(Object p0) => '剩余 ${p0} 分钟';
+
+  @override
+  String reservationSentAtP0(Object p0) => '送出时间：${p0}';
+
+  @override
+  String get bookHeldForBuyer => '已被预约';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -39429,6 +39621,9 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get orderBuyerRefunding => '爭議處理中';
+
+  @override
+  String get orderSellerAwaitingPickup => '待買家取書';
 
   @override
   String get orderFlowDeposit => '待賣家存書';
@@ -40631,10 +40826,13 @@ class _LZhHant extends AppLocalizations {
   String morePointsReach(Object p0, Object p1) => '再 ${p0} 點升級為「${p1}」';
 
   @override
-  String get purchases => '購買紀錄';
+  String get orderHistory => '訂單紀錄';
 
   @override
-  String get sales => '銷售紀錄';
+  String get purchaseOrders => '購買訂單';
+
+  @override
+  String get salesOrders => '銷售訂單';
 
   @override
   String get settings => '設定';
@@ -46595,10 +46793,13 @@ class _LZhHant extends AppLocalizations {
   String get tooManyRequestsPleaseTryAgain => '操作過於頻繁，請稍後再試';
 
   @override
-  String get viewPurchases => '查看購買紀錄';
+  String get viewPurchases => '查看購買訂單';
 
   @override
-  String get viewSales => '查看銷售紀錄';
+  String get viewSales => '查看銷售訂單';
+
+  @override
+  String get viewMyBooks => '前往書籍管理';
 
   @override
   String get retrievalNotAvailableLockerRightNow => '此書櫃目前無法辦理取回，請聯絡客服';
@@ -46773,6 +46974,33 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get bookWasConfirmedViolateRulesAfter => '此書籍經審核確認違規，訂單不受影響。';
+
+  @override
+  String get myReservations => '我的預約';
+
+  @override
+  String get reservationHeld => '已保留';
+
+  @override
+  String get awaitingSellerReply => '待賣家回覆';
+
+  @override
+  String get noHeldReservations => '目前沒有已保留的預約';
+
+  @override
+  String get noPendingReservations => '目前沒有待賣家回覆的預約';
+
+  @override
+  String reservationTimeLeftHoursMinutes(Object p0, Object p1) => '剩餘 ${p0} 小時 ${p1} 分鐘';
+
+  @override
+  String reservationTimeLeftMinutes(Object p0) => '剩餘 ${p0} 分鐘';
+
+  @override
+  String reservationSentAtP0(Object p0) => '送出時間：${p0}';
+
+  @override
+  String get bookHeldForBuyer => '已被預約';
 
 }
 

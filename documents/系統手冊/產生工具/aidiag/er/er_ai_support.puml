@@ -1,0 +1,84 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "ai_chat_sessions" as ai_chat_sessions {
+  {field} <&key> session_id : int
+  --
+  {field} user_id : int
+  {field} status : enum
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "ai_chat_messages" as ai_chat_messages {
+  {field} <&key> message_id : int
+  --
+  {field} session_id : int
+  {field} role : enum
+  {field} content : text
+  {field} book_ids : varchar(255)
+  {field} meta : text
+  {field} feedback : varchar(10)
+  {field} feedback_reason : varchar(20)
+  {field} feedback_at : datetime
+  {field} created_at : datetime
+}
+entity "ai_support_sessions" as ai_support_sessions {
+  {field} <&key> session_id : int
+  --
+  {field} user_id : int
+  {field} status : enum
+  {field} ticket_id : int
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "ai_support_messages" as ai_support_messages {
+  {field} <&key> message_id : int
+  --
+  {field} session_id : int
+  {field} role : enum
+  {field} content : text
+  {field} meta : text
+  {field} feedback : varchar(10)
+  {field} feedback_reason : varchar(20)
+  {field} feedback_at : datetime
+  {field} created_at : datetime
+}
+entity "ai_message_requests" as ai_message_requests {
+  {field} <&key> request_id : int
+  --
+  {field} user_id : int
+  {field} feature : varchar(20)
+  {field} client_id : varchar(64)
+  {field} status : enum
+  {field} user_message_id : int
+  {field} reply_message_id : int
+  {field} meta : text
+  {field} created_at : datetime
+  {field} updated_at : datetime
+}
+entity "ai_consents" as ai_consents {
+  {field} <&key> user_id : int
+  --
+  {field} granted : tinyint(1)
+  {field} policy_version : int
+  {field} notice_version : tinyint
+  {field} updated_at : datetime
+}
+entity "ai_recommendation_cache" as ai_recommendation_cache {
+  {field} <&key> user_id : int
+  --
+  {field} payload : text
+  {field} created_at : datetime
+}
+ai_chat_sessions ||--o{ ai_chat_messages
+ai_support_sessions ||--o{ ai_support_messages
+@enduml

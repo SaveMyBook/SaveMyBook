@@ -2,10 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../orders/widgets/payment_success_dialog.dart';
-import '../orders/purchase_history_screen.dart';
-import '../../services/verification_service.dart';
-import '../../models/wallet.dart';
+import '../orders/direct_purchase.dart';
+import '../orders/order_history_screen.dart';
 import '../../models/book.dart';
 import '../../services/api_service.dart';
 import '../../services/location_service.dart';
@@ -182,72 +180,19 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Future<void> _buyNow() async {
     if (_isBuying || _isAddingToCart) return;
-    if (ApiService.authToken == null) {
-      showAppSnackBar(context, S.pleaseSignFirst, isError: true);
-      return;
-    }
-    if (_book.status != 'on_sale') {
-      showAppSnackBar(context, S.bookCannotPurchased(_book.statusText), isError: true);
-      return;
-    }
-    if (_book.isReservedByOthers) {
-      showAppSnackBar(context, S.bookReservedAnotherBuyerCanT, isError: true);
-      return;
-    }
-
-    HapticFeedback.lightImpact();
-    setState(() => _isBuying = true);
-    final price = _book.price;
-    final wallet = await _api.fetchWallet();
-    if (!mounted) return;
-    // 讀不到錢包時交由伺服器判斷餘額，避免誤報代幣不足。
-    final known = !identical(wallet, Wallet.empty);
-    if (known && wallet.balance < price) {
-      setState(() => _isBuying = false);
-      showAppSnackBar(
-        context,
-        S.notEnoughCoinsOrderNeedsBut(price.toStringAsFixed(0), wallet.balance.toStringAsFixed(0)),
-        isError: true,
-      );
-      return;
-    }
-
-    if (_book.inCabinet) {
-      final proceed = await confirmInCabinetPurchase(context);
-      if (!mounted) return;
-      if (!proceed) {
-        setState(() => _isBuying = false);
-        return;
-      }
-    }
-
-    VerificationService.paymentSummary = PaymentSummary(
-      amount: price,
-      detail:
-          S.booksTotal(1, price.toStringAsFixed(0)) +
-          (known ? S.balanceAfterPaymentCoins((wallet.balance - price).toStringAsFixed(0)) : ''),
+    final result = await purchaseBookDirectly(
+      context,
+      _book,
+      onBusy: (busy) => setState(() => _isBuying = busy),
+      onPaid: _loadDetail,
     );
-    final ({String? error, bool readyForPickup}) result;
-    try {
-      result = await _api.buyNow(_book.bookId);
-    } finally {
-      VerificationService.paymentSummary = null;
-    }
     if (!mounted) return;
-    setState(() => _isBuying = false);
-
-    final error = result.error;
-    if (error != null) {
-      if (error.isNotEmpty) showAppSnackBar(context, error, isError: true);
-      _loadDetail();
-      return;
-    }
-
-    HapticFeedback.heavyImpact();
-    _loadDetail();
-    final viewOrders = await showPaymentSuccess(context, total: price, readyForPickup: result.readyForPickup);
-    if (!mounted || viewOrders != true) return;
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
+    if (result.outcome == DirectPurchaseOutcome.failed) _loadDetail();
+    if (result.outcome != DirectPurchaseOutcome.viewOrders) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrderHistoryScreen(filter: OrderHistoryScreen.purchaseFilterAfterPayment(result.readyForPickup))),
+    );
   }
 
   Future<void> _chatWithSeller() async {

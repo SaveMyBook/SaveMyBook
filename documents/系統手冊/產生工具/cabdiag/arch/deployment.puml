@@ -1,0 +1,48 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam componentStyle rectangle
+skinparam nodesep 70
+skinparam ranksep 30
+
+node "一、客戶端與維運環境" {
+  component "<<Mobile>>\n行動裝置 App\n(Flutter)" as app
+  component "<<IoT>>\n智慧書櫃終端\n(ESP32、顯示螢幕、\n4 組電磁鎖)" as iot
+  component "<<Browser>>\n模擬書櫃網頁\n(/kiosk，測試用)" as kiosk
+  component "<<Workstation>>\n開發者電腦" as dev
+}
+
+node "二、雲端代理層" {
+  component "<<Proxy>>\nCloudflare 邊緣節點\n(DNS / WAF / SSL)" as cf
+}
+
+node "三、學校伺服器環境\n(Ubuntu 24.04.4)" {
+  component "<<Multiplexer>>\nsslh 多工器\n(Port 80)" as sslh
+  component "<<Service>>\nOpenSSH 服務" as ssh
+  component "<<Web Server>>\nNGINX 網頁伺服器\n(Port 8800)" as nginx
+  component "<<Application>>\nExpress API 服務\n(REST + Socket.IO，Port 3000)" as api
+  component "<<Database>>\nMariaDB 資料庫\n(Port 3306)" as db
+}
+
+cloud "外部雲端服務" as ext {
+  component "Firebase\n(登入驗證 / 推播)\nAI 服務\n書目資料" as fb
+}
+
+app -[hidden]down- iot
+iot -[hidden]down- kiosk
+kiosk -[hidden]down- dev
+
+app .down.> cf : HTTPS / WSS
+iot .right.> cf : HTTPS 輪詢
+kiosk .up.> cf : HTTPS 輪詢
+dev .right.> sslh : 隱蔽連線\n(SSH over 80)
+cf .down.> sslh : <U+00A0>HTTP 流量
+sslh .right.> ssh : SSH 流量
+sslh .down.> nginx : <U+00A0>HTTP 流量
+nginx .down.> api : 轉發 /api、\n/socket.io 與\n/kiosk
+api .down.> db : <U+00A0>資料庫讀寫
+api "HTTPS" .right.> fb
+@enduml

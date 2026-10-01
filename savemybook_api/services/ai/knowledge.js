@@ -67,6 +67,13 @@ const PLATFORM_TOPICS = [
       + '其他狀態：已取消；爭議處理中（舊版 App 顯示為「審核中」），表示訂單有處理中的交易爭議，訂單暫停進行，待管理員裁決；已退款。'
   },
   {
+    id: 'order-history',
+    title: '訂單紀錄',
+    keywords: '訂單紀錄 購買訂單 銷售訂單 購買紀錄 銷售紀錄 查看訂單 查詢訂單 找不到訂單 會員中心 賣出',
+    en: 'history purchases sales',
+    text: '訂單可在「會員中心 › 訂單紀錄」查看，分為「購買訂單」與「銷售訂單」，各依訂單狀態篩選。'
+  },
+  {
     id: 'cabinet',
     title: '智慧書櫃存書與取書',
     keywords: '書櫃 櫃子 置物櫃 存書 放書 先存 先行存書 預先存書 上架後存書 取書 拿書 取件 取貨 取回 暫停販售 取件碼 密碼 營業時間 地點 位置 在哪 打不開 開不了 壞掉 故障 連線中斷 離線 手動回報',
@@ -132,13 +139,14 @@ const PLATFORM_TOPICS = [
   {
     id: 'reservation',
     title: '預約保留',
-    keywords: '預約 保留 留書 先幫我留 等我 幾小時 期限 逾期 取消預約',
+    keywords: '預約 保留 留書 先幫我留 等我 幾小時 期限 逾期 取消預約 我的預約 已保留 待賣家回覆',
     en: 'reserve reserved reservation reservations hold holding aside',
     text: `買家可在與賣家的一對一聊天室預約書籍，保留時間可選 ${policy.RESERVATION_HOLD_HOURS.join('、')} 小時。`
       + `賣家 ${policy.RESERVATION_RESPONSE_HOURS} 小時內未回覆，預約會自動失效。`
       + '賣家接受後，書籍在期限內只保留給該買家，其他買家無法購買，賣家也不得編輯或取消上架；買家須在期限內完成購買，逾期自動取消。'
       + `每位買家同時最多 ${policy.RESERVATION_MAX_ACTIVE} 筆進行中的預約。`
       + '書籍經審核下架時，進行中的預約會自動取消並通知買家。'
+      + '買家可在「會員中心 › 我的預約」查看「已保留」與「待賣家回覆」的預約。'
   },
   {
     id: 'cancel',

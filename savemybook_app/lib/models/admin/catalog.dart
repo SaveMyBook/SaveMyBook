@@ -94,7 +94,7 @@ class AdminBook {
       publisher: json['publisher'] as String?,
       publishDate: json['publish_date'] as String?,
       conditionNote: json['condition_note'] as String?,
-      description: json['description'] as String?,
+      description: unescapeLineBreaks(json['description'] as String?),
     );
   }
 }

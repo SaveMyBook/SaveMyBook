@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+|系統|
+|書櫃裝置|
+start
+:開機後申請配對並\n回報櫃門數與韌體版本;
+|系統|
+:產生8位數配對碼\n（有效10分鐘）;
+|書櫃裝置|
+:螢幕顯示配對碼\n與剩餘時間;
+|管理員|
+:開啟「書櫃裝置」頁面\n並完成身分驗證;
+:輸入書櫃螢幕上之配對碼;
+|系統|
+if (配對碼有效？) then ([否])
+  :拒絕綁定;
+  stop
+else ([是])
+endif
+:綁定書櫃並記錄\n後台操作紀錄;
+|書櫃裝置|
+:輪詢取得配對結果;
+|系統|
+:撤銷原有裝置並\n交付專屬裝置憑證;
+:建立A01至A04櫃門\n並通知管理員;
+|書櫃裝置|
+:定時查詢書櫃狀態\n並顯示QR Code;
+|管理員|
+:查看連線狀態與故障，\n必要時撤銷裝置;
+stop
+@enduml

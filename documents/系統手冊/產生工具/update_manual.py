@@ -1,0 +1,21 @@
+import sys; sys.path.insert(0, '.')
+from doclib import load
+import update_part1, update_part2, update_part3, update_part4, update_fk, update_lists, dedupe, update_final, update_review, update_activity, update_layout, update_terms, update_1001
+doc = load('manual_v3_backup.docx')
+kept = update_lists.capture(doc)
+update_part1.run(doc)
+update_part2.run(doc)
+n = update_part3.run(doc)
+update_part4.run(doc)
+print('fk', update_fk.run(doc))
+print('final', update_final.run(doc))
+print('review', update_review.run(doc))
+print('activity', update_activity.run(doc))
+print('terms', update_terms.run(doc))
+print('lists', update_lists.run(doc, kept))
+print('dedupe', dedupe.run(doc))
+print('layout', update_layout.run(doc))
+print('1001', update_1001.run(doc))
+out = sys.argv[1]
+doc.save(out)
+print('meta tables', n, 'saved', out)

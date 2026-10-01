@@ -1,0 +1,47 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（買家）|
+start
+:掃描書櫃螢幕QR Code;
+|系統|
+if (QR Code、營業狀態\n與位置驗證通過？) then ([否])
+  :顯示錯誤訊息;
+  stop
+else ([是])
+endif
+:列出待取書之訂單;
+|使用者（買家）|
+:確認項目並點擊「開啟櫃門」;
+|實體書櫃|
+:螢幕顯示比對數字;
+|使用者（買家）|
+:於手機輸入比對數字;
+|系統|
+if (數字相符？) then ([否])
+  :取消本次作業;
+  stop
+else ([是])
+endif
+|實體書櫃|
+:開啟櫃門並倒數;
+|使用者（買家）|
+:取出書籍、關門並點擊「完成」;
+|系統|
+:記錄取書時間並釋放櫃門;
+:通知賣家，買家端訂單顯示\n「待完成訂單」;
+|使用者（買家）|
+if (書況相符？) then ([否])
+  :申請爭議;
+  stop
+else ([是])
+  :點擊「完成訂單」;
+endif
+|系統|
+:訂單轉為「已完成」、書籍\n轉為「已售出」並撥款給賣家;
+stop
+@enduml

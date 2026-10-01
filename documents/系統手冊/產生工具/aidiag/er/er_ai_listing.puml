@@ -1,0 +1,102 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam linetype ortho
+skinparam nodesep 30
+skinparam ranksep 40
+hide circle
+hide empty methods
+
+entity "books" as books {
+  {field} <&key> book_id : int
+  --
+  ...
+}
+entity "ai_book_reviews" as ai_book_reviews {
+  {field} <&key> book_id : int
+  --
+  {field} verdict : varchar(10)
+  {field} reasons : text
+  {field} categories : text
+  {field} status : enum
+  {field} provider : varchar(20)
+  {field} model : varchar(80)
+  {field} created_at : datetime
+  {field} reviewed_by : int
+  {field} reviewed_at : datetime
+  {field} skip_reason : varchar(20)
+  {field} attempts : tinyint
+  {field} ai_opinion : text
+  {field} confidence : decimal(4,3)
+  {field} decision_reason : varchar(20)
+}
+entity "ai_review_events" as ai_review_events {
+  {field} <&key> event_id : bigint
+  --
+  {field} book_id : int
+  {field} actor : varchar(12)
+  {field} prior : varchar(10)
+  {field} status : varchar(10)
+  {field} verdict : varchar(10)
+  {field} origin : varchar(10)
+  {field} categories : varchar(255)
+  {field} confidence : decimal(4,3)
+  {field} category : varchar(20)
+  {field} misjudged : tinyint(1)
+  {field} created_at : datetime
+}
+entity "ai_book_enrichments" as ai_book_enrichments {
+  {field} <&key> book_id : int
+  --
+  {field} status : varchar(10)
+  {field} fields : varchar(200)
+  {field} ai_written : tinyint(1)
+  {field} attempted_at : datetime
+  {field} attempts : tinyint
+  {field} next_attempt_at : datetime
+  {field} seller_fields : varchar(100)
+  {field} rejected_fields : varchar(100)
+  {field} sources : text
+  {field} observations : varchar(100)
+  {field} generation : int
+  {field} restarted_at : datetime
+}
+entity "ai_isbn_cache" as ai_isbn_cache {
+  {field} <&key> isbn : char(13)
+  --
+  {field} status : varchar(10)
+  {field} fields : text
+  {field} description : text
+  {field} description_source : varchar(10)
+  {field} original_price : int
+  {field} sources : text
+  {field} missing : varchar(255)
+  {field} prompt_version : varchar(20)
+  {field} hits : int
+  {field} created_at : datetime
+  {field} updated_at : datetime
+  {field} expires_at : datetime
+}
+entity "ai_listing_tokens" as ai_listing_tokens {
+  {field} <&key> token_hash : char(64)
+  --
+  {field} user_id : int
+  {field} created_at : datetime
+  {field} redeemed_at : datetime
+}
+entity "ai_listing_suggestions" as ai_listing_suggestions {
+  {field} <&key> token : char(32)
+  --
+  {field} user_id : int
+  {field} fields : text
+  {field} adopted : varchar(400)
+  {field} used_at : datetime
+  {field} created_at : datetime
+}
+books ||--o| ai_book_reviews
+books ||--o{ ai_review_events
+books ||--o| ai_book_enrichments
+@enduml

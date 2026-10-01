@@ -47,7 +47,7 @@ const RELATIONS = {
   },
   shopping_cart: { books: rel('books', 'book_id'), users: rel('users', 'user_id') },
   favorites: { books: rel('books', 'book_id'), users: rel('users', 'user_id') },
-  reservations: { books: rel('books', 'book_id') },
+  reservations: { books: rel('books', 'book_id'), users_reservations_seller_idTousers: rel('users', 'seller_id', 'user_id') },
   wallet_transactions: { orders: rel('orders', 'related_order_id', 'order_id'), wallets: rel('wallets', 'wallet_id') },
   wallets: { users: rel('users', 'user_id') },
   reports: {

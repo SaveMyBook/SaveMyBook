@@ -6,6 +6,15 @@ extension OrdersApi on ApiService {
     return _mapList(res, Order.fromJson);
   }
 
+  Future<int> fetchOrderCount({required String role, required String tab}) async {
+    final res = await _send('GET', '/orders', query: {'role': role, 'tab': tab, 'limit': '1'});
+    if (res == null || res['success'] != true) return 0;
+    final pagination = res['pagination'];
+    if (pagination is Map) return parseInt(pagination['total']);
+    final data = res['data'];
+    return data is List ? data.length : 0;
+  }
+
   Future<Order?> fetchOrderDetail(int orderId) async {
     final res = await _send('GET', '/orders/$orderId');
     if (res == null || res['success'] != true || res['data'] is! Map) return null;

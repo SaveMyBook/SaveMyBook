@@ -1,0 +1,25 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:於App進行操作;
+|系統|
+if (資料庫還原之維護\n模式中且非狀態查詢？) then ([是])
+  :顯示「系統維護中，\n請稍後再試」;
+  stop
+else ([否])
+endif
+:對受限端點依IP、帳號\n或使用者計算請求次數;
+if (超過上限？) then ([是])
+  :顯示「操作過於頻繁，\n請稍後再試」等提示;
+  stop
+else ([否])
+endif
+:正常處理請求\n並顯示操作結果;
+stop
+@enduml

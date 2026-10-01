@@ -20,10 +20,9 @@ import 'package:savemybook_app/features/cabinet/cabinet_scanner_view.dart';
 import 'package:savemybook_app/features/orders/order_detail_screen.dart';
 import 'package:savemybook_app/features/orders/pickup_book_screen.dart';
 import 'package:savemybook_app/features/orders/pickup_success_screen.dart';
-import 'package:savemybook_app/features/orders/purchase_history_screen.dart';
+import 'package:savemybook_app/features/orders/order_history_screen.dart';
 import 'package:savemybook_app/features/selling/book_deposit_actions.dart' show delistMessage;
 import 'package:savemybook_app/features/selling/book_manage_screen.dart';
-import 'package:savemybook_app/features/selling/sales_history_screen.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
 import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/models/book.dart';
@@ -546,7 +545,16 @@ void main() {
             false,
             S.noItemsHandleLocker,
             S.itemsP0('師大書櫃'),
-            [S.viewSales, S.rescan, S.actionClose],
+            [S.viewMyBooks, S.rescan, S.actionClose],
+          ),
+          (
+            'CABINET_NOTHING_TO_DO',
+            404,
+            {'other_cabinets': [{'cabinet_id': 4, 'cabinet_name': '師大書櫃', 'address': '', 'kinds': ['pickup', 'order_deposit', 'pre_deposit']}]},
+            false,
+            S.noItemsHandleLocker,
+            S.itemsP0('師大書櫃'),
+            [S.viewPurchases, S.viewSales, S.rescan, S.actionClose],
           ),
           ('CABINET_NOTHING_TO_DO', 404, {'other_cabinets': <Object>[]}, false, S.noItemsHandleLocker, null, [S.rescan, S.actionClose]),
           (
@@ -1231,18 +1239,29 @@ void main() {
       }, () => api.client);
     });
 
-    testWidgets('沒有待辦項目時，依其他書櫃的項目開啟購買紀錄或銷售紀錄', (tester) async {
-      final api = _Api()
-        ..onCreate = ((_) => _fail('CABINET_NOTHING_TO_DO', 404, {
-          'other_cabinets': [{'cabinet_id': 4, 'cabinet_name': '師大書櫃', 'address': '', 'kinds': ['order_deposit']}],
-        }));
+    testWidgets('沒有待辦項目時，依其他書櫃的項目開啟訂單紀錄的對應篩選或書籍管理', (tester) async {
+      final api = _Api();
+      final cases = <(List<String>, String, Type, (OrderRole, String?)?)>[
+        (['pickup'], S.viewPurchases, OrderHistoryScreen, (OrderRole.buyer, OrderHistoryScreen.awaitingPickup)),
+        (['order_deposit'], S.viewSales, OrderHistoryScreen, (OrderRole.seller, OrderHistoryScreen.awaitingDeposit)),
+        (['retrieval'], S.viewMyBooks, BookManageScreen, null),
+      ];
       await http.runWithClient(() async {
         _signIn(id: 2);
-        await _pump(tester, const CabinetFlowScreen(code: _code));
-        await tester.tap(find.text(S.viewSales));
-        await _settle(tester);
-        expect(find.byType(SalesHistoryScreen), findsOneWidget);
-        expect(tester.widget<SalesHistoryScreen>(find.byType(SalesHistoryScreen)).initialTab, 'pending_deposit');
+        for (final (kinds, label, screen, target) in cases) {
+          api.onCreate = (_) => _fail('CABINET_NOTHING_TO_DO', 404, {
+            'other_cabinets': [{'cabinet_id': 4, 'cabinet_name': '師大書櫃', 'address': '', 'kinds': kinds}],
+          });
+          await tester.pumpWidget(const SizedBox.shrink());
+          await _pump(tester, const CabinetFlowScreen(code: _code));
+          await tester.tap(find.text(label));
+          await _settle(tester);
+          expect(find.byType(screen), findsOneWidget, reason: label);
+          if (target != null) {
+            final opened = tester.widget<OrderHistoryScreen>(find.byType(OrderHistoryScreen));
+            expect((opened.role, opened.filter), target, reason: label);
+          }
+        }
         await _finish(tester);
       }, () => api.client);
     });
@@ -1566,24 +1585,26 @@ void main() {
       }, () => api.client);
     });
 
-    testWidgets('購買紀錄與銷售紀錄：卡片文字依存取模式，櫃門不足時只顯示訊息', (tester) async {
+    testWidgets('訂單紀錄：卡片文字依存取模式，櫃門不足時只顯示訊息', (tester) async {
       final api = _Api()
         ..other = ((request) {
           if (request.url.path != '/api/orders') return null;
+          final role = request.url.queryParameters['role'];
           return switch (request.url.queryParameters['tab']) {
-            'pending_pickup' => _ok([_order(access: _access('scan'))]),
-            'pending_deposit' => _ok([_order(id: 130, status: 'pending_deposit', access: _access('scan', doors: 0), doors: const [])]),
+            'awaiting_pickup' when role == 'buyer' => _ok([_order(access: _access('scan'))]),
+            'awaiting_deposit' when role == 'seller' =>
+              _ok([_order(id: 130, status: 'pending_deposit', access: _access('scan', doors: 0), doors: const [])]),
             _ => _ok(<Object>[]),
           };
         });
       await http.runWithClient(() async {
-        await _pump(tester, const PurchaseHistoryScreen());
+        await _pump(tester, const OrderHistoryScreen());
         expect(find.text(S.scanLockerCollect), findsOneWidget);
-        expect(find.text(S.doorP0('A02')), findsOneWidget);
+        expect(find.textContaining(S.doorP0('A02')), findsOneWidget);
 
         _signIn(id: 2);
         await tester.pumpWidget(const SizedBox.shrink());
-        await _pump(tester, const SalesHistoryScreen());
+        await _pump(tester, const OrderHistoryScreen(role: OrderRole.seller));
         expect(find.text(S.scanLockerDropOff), findsOneWidget);
         await tester.tap(find.text(S.scanLockerDropOff));
         await _settle(tester);

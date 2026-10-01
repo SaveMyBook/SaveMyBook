@@ -1,0 +1,103 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam classAttributeIconSize 0
+skinparam linetype polyline
+skinparam nodesep 40
+skinparam ranksep 70
+hide circle
+hide empty methods
+
+class "使用者 users" as users {
+  user_id
+  email
+  nickname
+  role
+  is_active
+}
+class "會員錢包 wallets" as wallets {
+  wallet_id
+  balance
+  }
+class "書籍商品 books" as books {
+  book_id
+  isbn
+  title
+  price
+  condition_level
+  status
+}
+class "購物車 shopping_cart" as cart {
+  cart_id
+  book_id
+  quantity
+}
+class "訂單 orders" as orders {
+  order_id
+  order_no
+  total_amount
+  status
+  picked_up_at
+}
+class "交易爭議 transaction_disputes" as disputes {
+  dispute_id
+  reason
+  status
+  result
+}
+class "預約管理 reservations" as reservations {
+  reservation_id
+  pickup_deadline
+  status
+}
+class "智慧書櫃據點 smart_cabinets" as cabinets {
+  cabinet_id
+  cabinet_name
+  address
+  is_maintenance
+}
+class "書櫃櫃門 cabinet_slots" as slots {
+  slot_number
+  status
+}
+class "聊天室 chat_rooms" as rooms {
+  room_id
+  room_type
+  name
+}
+class "聊天訊息 chat_messages" as messages {
+  message_id
+  content
+  is_read
+}
+class "訊息風險紀錄 chat_message_risks" as risks {
+  level
+  categories
+}
+class "推播通知 notifications" as notifications {
+  notification_id
+  type
+  title
+  is_read
+}
+
+users -left- cart
+users -right- rooms
+rooms *-right- messages
+messages -- risks
+cart --> books
+users -- books
+orders -left-> books
+users -- orders
+orders -right-> wallets
+users -- wallets
+users --> notifications
+reservations -up-> books
+reservations -right-> cabinets
+orders --> cabinets
+orders -- disputes
+cabinets *-- slots
+@enduml

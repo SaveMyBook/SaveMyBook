@@ -9,6 +9,7 @@ skinparam nodesep 30
 skinparam ranksep 40
 hide circle
 hide empty methods
+left to right direction
 
 entity "smart_cabinets" as smart_cabinets {
   {field} <&key> cabinet_id : int

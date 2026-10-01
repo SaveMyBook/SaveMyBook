@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+start
+:進入「帳號管理」頁;
+if (欲辦理之項目？) then ([刪除帳號])
+  :點擊「刪除帳號」;
+  :確認警告並輸入密碼;
+  |系統|
+  if (密碼正確、無未結清訂單\n且無書籍存放於書櫃？) then ([否])
+    :拒絕申請並顯示原因;
+    stop
+  else ([是])
+  endif
+  :記錄申請時間並進入\n30天刪除寬限期;
+  if (使用者於寬限期內\n取消申請？) then ([是])
+    :撤銷刪除申請;
+    stop
+  else ([否])
+  endif
+  :期滿且無未結清訂單時\n由排程匿名化帳號;
+  :清除個人資料\n並保留交易紀錄;
+  stop
+else ([匯出我的資料])
+  |使用者（會員）|
+  :點擊「匯出我的資料」\n並完成身分驗證;
+  |系統|
+  :彙整個人資料、交易、\n客服與AI紀錄;
+  :產生JSON檔供下載;
+  stop
+endif
+@enduml

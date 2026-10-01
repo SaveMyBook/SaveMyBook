@@ -1,0 +1,32 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（賣家）|
+start
+:上架具ISBN之書籍;
+|系統|
+:於背景依ISBN查詢\nGoogle Books與Open Library;
+if (書名與刊登相符？) then ([否])
+  :不寫入且不再重試;
+  stop
+else ([是])
+endif
+if (書目有簡介？) then ([是])
+  |AI服務|
+  :依來源整理為\n繁體中文簡介;
+else ([否])
+  |AI服務|
+  :開啟網路搜尋時依ISBN\n上網查詢並附來源網址;
+endif
+|系統|
+:只寫入仍為空白之欄位\n並記錄是否由AI整理;
+if (仍有欄位未補齊？) then ([是])
+  :由排程依1、7、30天\n間隔再查，最多3次;
+else ([否])
+endif
+stop
+@enduml

@@ -13,12 +13,10 @@ import 'package:savemybook_app/features/admin/admin_cabinet_deposit_screen.dart'
 import 'package:savemybook_app/features/books/book_detail_screen.dart';
 import 'package:savemybook_app/features/orders/cart_screen.dart';
 import 'package:savemybook_app/features/orders/order_detail_screen.dart';
-import 'package:savemybook_app/features/orders/purchase_history_screen.dart';
-import 'package:savemybook_app/features/orders/widgets/order_card.dart';
+import 'package:savemybook_app/features/orders/order_history_screen.dart';
 import 'package:savemybook_app/features/selling/book_manage_screen.dart';
 import 'package:savemybook_app/features/selling/edit_book_detail_screen.dart';
 import 'package:savemybook_app/features/selling/edit_book_screen.dart';
-import 'package:savemybook_app/features/selling/sales_history_screen.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
 import 'package:savemybook_app/i18n/strings.dart';
 import 'package:savemybook_app/models/admin_models.dart';
@@ -30,7 +28,6 @@ import 'package:savemybook_app/models/user.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/services/notification_router.dart';
-import 'package:savemybook_app/utils/app_colors.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
 import 'package:savemybook_app/widgets/app_buttons.dart';
 import 'package:savemybook_app/widgets/app_header.dart';
@@ -330,7 +327,7 @@ void main() {
       }
       if (path.endsWith('/orders')) {
         loads.add('orders:${request.url.queryParameters['tab']}');
-        final pending = request.url.queryParameters['tab'] == 'pending_deposit';
+        final pending = const ['pending_deposit', 'awaiting_deposit'].contains(request.url.queryParameters['tab']);
         return _json(orders.where((o) => !pending || const ['pending_payment', 'pending_deposit'].contains(o['status'])).toList());
       }
       if (request.method == 'DELETE') {
@@ -382,15 +379,11 @@ void main() {
       ];
     });
 
-    testWidgets('銷售紀錄：販售中可回報存書，確認視窗指明書櫃，送出後待客服確認並停用同一動作', (tester) async {
+    testWidgets('我的商品：上架書籍可回報存書，確認視窗指明書櫃，送出後待客服確認並停用同一動作', (tester) async {
       await http.runWithClient(() async {
-        await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'));
-        expect(find.text('已售出的書'), findsNothing);
-        expect(find.text('夜間飛行'), findsOneWidget, reason: '逾期暫停販售的書仍列在販售中');
-        expect(find.text(S.salesPaused), findsOneWidget);
-        expect(find.text('已存放 3 天'), findsOneWidget);
-
-        await tester.tap(find.text(S.dropOff).first);
+        await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
+        final card = find.ancestor(of: find.text('小王子'), matching: find.byType(SwipeActionTile));
+        await tester.tap(find.descendant(of: card, matching: find.text(S.dropOff)));
         await _settle(tester);
         expect(find.text('請確認已將《小王子》放入「台大書櫃」。'), findsOneWidget);
         await tester.tap(find.text(S.dropOff).last);
@@ -398,35 +391,15 @@ void main() {
 
         expect(sent, ['POST /api/books/1/deposit']);
         expect(find.text(S.reportSubmittedTakesEffectAfterSupport), findsOneWidget);
-        final card = find.ancestor(of: find.text('小王子'), matching: find.byType(SaleCardFrame));
         expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
-        expect(tester.widget<FilledButton>(find.descendant(of: card, matching: find.byType(FilledButton))).onPressed, isNull);
+        final button = find.descendant(of: card, matching: find.widgetWithText(SmallActionButton, S.dropOff));
+        expect(tester.widget<SmallActionButton>(button).onTap, isNull);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
-
-    testWidgets('銷售紀錄：逾期暫停販售的書回報取回後待客服確認', (tester) async {
+    testWidgets('我的商品：回報存書時取消確認不送出請求', (tester) async {
       await http.runWithClient(() async {
-        await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'));
-        final card = find.ancestor(of: find.text('夜間飛行'), matching: find.byType(SaleCardFrame));
-        expect(find.descendant(of: card, matching: find.text(S.delist)), findsNothing);
-
-        await tester.tap(find.descendant(of: card, matching: find.text(S.retrieve)));
-        await _settle(tester);
-        expect(find.text('請確認已自「台大書櫃」取回《夜間飛行》。'), findsOneWidget);
-        await tester.tap(find.text(S.retrieve).last);
-        await _settle(tester);
-
-        expect(sent, ['POST /api/books/2/retrieve']);
-        expect(find.text(S.reportSubmittedTakesEffectAfterSupport), findsOneWidget);
-        expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
-        await tester.pump(const Duration(seconds: 4));
-      }, server);
-    });
-
-    testWidgets('銷售紀錄：取消確認不送出請求', (tester) async {
-      await http.runWithClient(() async {
-        await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'));
+        await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
         await tester.tap(find.text(S.dropOff).first);
         await _settle(tester);
         await tester.tap(find.text(S.actionCancel));
@@ -435,7 +408,6 @@ void main() {
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
-
     testWidgets('我的商品：暫停販售的書標示狀態並以回報取回取代重新上架', (tester) async {
       await http.runWithClient(() async {
         await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
@@ -557,33 +529,6 @@ void main() {
       }, server);
     });
 
-    for (final locale in const [_zhHant, Locale('ja')]) {
-      for (final scale in const [1.0, 1.3]) {
-        testWidgets('銷售紀錄販售中：寬 360、${locale.languageCode}、字級 $scale 時動作按鈕文字不截斷', (tester) async {
-          await http.runWithClient(() async {
-            await _pumpScreen(
-              tester,
-              const SalesHistoryScreen(initialTab: 'on_sale'),
-              size: const Size(360, 1600),
-              locale: locale,
-              textScale: scale,
-            );
-            final buttons = find.descendant(
-              of: find.byType(SaleCardFrame),
-              matching: find.byWidgetPredicate((w) => w is FilledButton || w is OutlinedButton),
-            );
-            final labels = find.descendant(of: buttons, matching: find.byType(RichText));
-            expect(labels, findsNWidgets(5));
-            for (final element in labels.evaluate()) {
-              final paragraph = element.renderObject! as RenderParagraph;
-              expect(paragraph.didExceedMaxLines, isFalse, reason: paragraph.text.toPlainText());
-            }
-            await tester.pump(const Duration(seconds: 4));
-          }, server);
-        });
-      }
-    }
-
     SwipeAction delistSwipe(WidgetTester tester, int bookId) => tester
         .widget<SwipeActionTile>(
           find.byWidgetPredicate((w) => w is SwipeActionTile && w.itemKey == ValueKey('swipe_$bookId')),
@@ -628,6 +573,22 @@ void main() {
         expect(find.text('《異鄉人》已取消上架'), findsOneWidget);
         expect(find.text(S.undo), findsNothing);
         await tester.pump(const Duration(seconds: 4));
+      }, server);
+    });
+
+    testWidgets('我的商品：存放於書櫃的書停用編輯，已下架且未存放於書櫃的書可編輯', (tester) async {
+      books.add(_book(5, '已下架未存書', status: 'removed'));
+      await http.runWithClient(() async {
+        await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1800));
+        SmallActionButton editOf(String title) => tester.widget<SmallActionButton>(find.descendant(
+              of: find.ancestor(of: find.text(title), matching: find.byType(SwipeActionTile)),
+              matching: find.widgetWithText(SmallActionButton, S.actionEdit),
+            ));
+        expect(editOf('小王子').onTap, isNotNull);
+        expect(editOf('異鄉人').onTap, isNull, reason: '販售中但存放於書櫃');
+        expect(editOf('夜間飛行').onTap, isNull, reason: '已下架但仍存放於書櫃');
+        expect(editOf('已下架未存書').onTap, isNotNull);
+        expect(editOf('已售出的書').onTap, isNull);
       }, server);
     });
 
@@ -705,11 +666,11 @@ void main() {
 
     Finder manageCard(String title) => find.ancestor(of: find.text(title), matching: find.byType(SwipeActionTile));
 
-    testWidgets('我的商品：已預訂且未存書的書可回報存書', (tester) async {
+    testWidgets('我的商品：已被預約且未存書的書可回報存書', (tester) async {
       books.add(held(5, '預約保留的書'));
       await http.runWithClient(() async {
         await _pumpScreen(tester, const BookManageScreen(), size: const Size(390, 1400));
-        await selectFilter(tester, S.bookReserved);
+        await selectFilter(tester, S.bookHeldForBuyer);
         expect(find.text('預約保留的書'), findsOneWidget);
         expect(find.text('小王子'), findsNothing);
 
@@ -720,22 +681,6 @@ void main() {
         await tester.tap(find.text(S.dropOff).last);
         await _settle(tester);
 
-        expect(sent, ['POST /api/books/5/deposit']);
-        expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
-        await tester.pump(const Duration(seconds: 4));
-      }, server);
-    });
-
-    testWidgets('銷售紀錄：預約保留中的上架書籍同樣可回報存書', (tester) async {
-      books.add(held(5, '預約保留的書'));
-      await http.runWithClient(() async {
-        await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'), size: const Size(390, 1600));
-        final card = find.ancestor(of: find.text('預約保留的書'), matching: find.byType(SaleCardFrame));
-        expect(find.descendant(of: card, matching: find.text(S.delist)), findsNothing);
-        await tester.tap(find.descendant(of: card, matching: find.text(S.dropOff)));
-        await _settle(tester);
-        await tester.tap(find.text(S.dropOff).last);
-        await _settle(tester);
         expect(sent, ['POST /api/books/5/deposit']);
         expect(find.descendant(of: card, matching: find.text(S.manualReportAwaitingConfirmation)), findsOneWidget);
         await tester.pump(const Duration(seconds: 4));
@@ -813,13 +758,13 @@ void main() {
       }
     }
 
-    testWidgets('銷售紀錄待存書：單本訂單沿用原確認文字，多本訂單列出全部書名，書名清單靠左而確認文字維持置中', (tester) async {
+    testWidgets('訂單紀錄銷售訂單待存書：單本訂單沿用原確認文字，多本訂單列出全部書名，書名清單靠左而確認文字維持置中', (tester) async {
       orders.addAll([
         sellerOrder(9, [books[3]]),
         sellerOrder(10, [_book(6, '甲書', status: 'reserved'), _book(7, '乙書', status: 'reserved')]),
       ]);
       await http.runWithClient(() async {
-        await _pumpScreen(tester, const SalesHistoryScreen(), size: const Size(390, 1600));
+        await _pumpScreen(tester, const OrderHistoryScreen(role: OrderRole.seller), size: const Size(390, 1600));
         await tester.tap(find.text(S.markAsDroppedOff).first);
         await _settle(tester);
         final dialog = find.byType(AlertDialog);
@@ -888,59 +833,6 @@ void main() {
         await selectFilter(tester, S.actionAll, delta: -80);
         expect(find.text('自行下架的書'), findsOneWidget);
         expect(find.text('夜間飛行'), findsOneWidget);
-        await tester.pump(const Duration(seconds: 4));
-      }, server);
-    });
-
-    testWidgets('銷售紀錄：存書中以回報取回、可登記存書時以登記存書為主要動作，取消上架為次要動作並上下排列，確認視窗說明後果', (tester) async {
-      books.add({..._book(5, '未指定書櫃的書'), 'cabinet_id': null});
-      await http.runWithClient(() async {
-        await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'), size: const Size(390, 1800));
-        Finder card(String title) => find.ancestor(of: find.text(title), matching: find.byType(SaleCardFrame));
-        Finder filled(String title) => find.descendant(of: card(title), matching: find.byType(FilledButton));
-        Finder outlined(String title) => find.descendant(of: card(title), matching: find.byType(OutlinedButton));
-
-        final primary = filled('異鄉人');
-        final secondary = outlined('異鄉人');
-        expect(find.descendant(of: primary, matching: find.text(S.retrieve)), findsOneWidget);
-        expect(find.descendant(of: secondary, matching: find.text(S.delist)), findsOneWidget);
-        expect(tester.getSize(primary).width, tester.getSize(secondary).width);
-        expect(tester.getTopLeft(secondary).dy, greaterThan(tester.getBottomLeft(primary).dy));
-
-        expect(find.descendant(of: filled('小王子'), matching: find.text(S.dropOff)), findsOneWidget);
-        expect(find.descendant(of: outlined('小王子'), matching: find.text(S.delist)), findsOneWidget);
-        expect(find.descendant(of: outlined('小王子'), matching: find.text('取消上架')), findsOneWidget);
-        expect(tester.getTopLeft(outlined('小王子')).dy, greaterThan(tester.getBottomLeft(filled('小王子')).dy));
-
-        expect(find.descendant(of: filled('未指定書櫃的書'), matching: find.text(S.delist)), findsOneWidget);
-        expect(outlined('未指定書櫃的書'), findsNothing);
-
-        await tester.tap(find.descendant(of: secondary, matching: find.text(S.delist)));
-        await _settle(tester);
-        final dialog = find.byType(AlertDialog);
-        expect(find.descendant(of: dialog, matching: find.text('取消上架')), findsNWidgets(2), reason: '標題與確認按鈕皆為取消上架');
-        expect(find.text(S.onceDelistedP0NoLongerAppear2('異鄉人')), findsOneWidget);
-        await tester.tap(find.descendant(of: dialog, matching: find.byType(ElevatedButton)));
-        await _settle(tester);
-        expect(sent, ['DELETE /api/books/3']);
-        expect(find.text('《異鄉人》已取消上架'), findsOneWidget);
-        await tester.pump(const Duration(seconds: 4));
-      }, server);
-    });
-
-    testWidgets('銷售紀錄：暫停販售以警示色標示，並另列已存放天數', (tester) async {
-      await http.runWithClient(() async {
-        await _pumpScreen(tester, const SalesHistoryScreen(initialTab: 'on_sale'), size: const Size(390, 1400));
-        final context = tester.element(find.byType(SalesHistoryScreen));
-        final paused = tester.widget<Text>(find.text(S.salesPaused));
-        expect(paused.style?.color, AppColors.of(context).warning);
-        final card = find.ancestor(of: find.text('夜間飛行'), matching: find.byType(SaleCardFrame));
-        expect(find.descendant(of: card, matching: find.text('已存放 9 天')), findsOneWidget);
-        expect(find.descendant(of: card, matching: find.byIcon(Icons.inventory_2_outlined)), findsOneWidget);
-
-        final onSale = find.ancestor(of: find.text('異鄉人'), matching: find.byType(SaleCardFrame));
-        expect(find.descendant(of: onSale, matching: find.text(S.bookOnSale)), findsOneWidget);
-        expect(find.descendant(of: onSale, matching: find.text('已存放 3 天')), findsOneWidget);
         await tester.pump(const Duration(seconds: 4));
       }, server);
     });
@@ -1280,13 +1172,13 @@ void main() {
 
     testWidgets('訂單直接成立為已存書時可立即取書，不提供取消', (tester) async {
       await http.runWithClient(() async {
-        await _pumpScreen(tester, const PurchaseHistoryScreen());
+        await _pumpScreen(tester, const OrderHistoryScreen());
         expect(find.text('小王子'), findsOneWidget);
         expect(find.text(S.iCollected), findsOneWidget);
         expect(find.text(S.cancelOrder), findsNothing);
         await tester.pump(const Duration(seconds: 4));
       }, () => MockClient((request) async {
-        if (request.url.path.endsWith('/orders') && request.url.queryParameters['tab'] == 'pending_pickup') {
+        if (request.url.path.endsWith('/orders') && request.url.queryParameters['tab'] == 'awaiting_pickup') {
           return _json([
             {
               'order_id': 9,

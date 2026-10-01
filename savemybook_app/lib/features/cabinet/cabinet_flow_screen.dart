@@ -18,8 +18,8 @@ import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../account/support_ticket_screen.dart';
 import '../orders/pickup_success_screen.dart';
-import '../orders/purchase_history_screen.dart';
-import '../selling/sales_history_screen.dart';
+import '../orders/order_history_screen.dart';
+import '../selling/book_manage_screen.dart';
 import 'cabinet_flow_controller.dart';
 import 'cabinet_match_code_field.dart';
 import 'cabinet_messages.dart';
@@ -154,11 +154,17 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         } catch (_) {}
       case CabinetFlowAction.viewPurchases:
-        await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const OrderHistoryScreen(filter: OrderHistoryScreen.awaitingPickup)),
+        );
       case CabinetFlowAction.viewSales:
-        final kinds = _flow.error?.kinds ?? const {};
-        final tab = kinds.contains(CabinetItemKind.orderDeposit) ? 'pending_deposit' : 'on_sale';
-        await Navigator.of(context).push(MaterialPageRoute(builder: (_) => SalesHistoryScreen(initialTab: tab)));
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const OrderHistoryScreen(role: OrderRole.seller, filter: OrderHistoryScreen.awaitingDeposit),
+          ),
+        );
+      case CabinetFlowAction.viewBooks:
+        await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BookManageScreen()));
       case CabinetFlowAction.contactSupport:
         await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SupportTicketScreen()));
       case CabinetFlowAction.resume:
@@ -178,6 +184,7 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
     CabinetFlowAction.openMap => S.openMap,
     CabinetFlowAction.viewPurchases => S.viewPurchases,
     CabinetFlowAction.viewSales => S.viewSales,
+    CabinetFlowAction.viewBooks => S.viewMyBooks,
     CabinetFlowAction.contactSupport => S.contactSupport,
     CabinetFlowAction.resume => S.continueTask,
     CabinetFlowAction.retry => S.retry,

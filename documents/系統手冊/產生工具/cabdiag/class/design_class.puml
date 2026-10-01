@@ -1,0 +1,155 @@
+@startuml
+' 以 render_class.py 輸出 PNG：多重性文字會自動移離連線，直接用 PlantUML 產圖會有文字壓線
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam linetype polyline
+skinparam nodesep 30
+skinparam ranksep 30
+hide circle
+hide empty methods
+
+class "使用者 users" as users {
+  user_id: Int
+  email: String
+  nickname: String
+  role: enum
+  is_active: Boolean
+  is_blacklisted: Boolean
+  --
+  + register()
+  + login()
+  + updateProfile()
+}
+class "會員錢包 wallets" as wallets {
+  wallet_id: Int
+  balance: Decimal
+  total_income: Decimal
+  --
+  + transfer()
+  + settle()
+  + refund()
+}
+class "書籍商品 books" as books {
+  book_id: Int
+  isbn: String?
+  title: String
+  author: String?
+  price: Decimal
+  condition_level: enum
+  status: enum
+  is_approved: Boolean
+  --
+  + list()
+  + edit()
+  + delist()
+  + fillDetails()
+}
+class "購物車 shopping_cart" as cart {
+  cart_id: Int
+  book_id: Int
+  quantity: Int
+  --
+  + addItem()
+  + checkout()
+}
+class "訂單 orders" as orders {
+  order_id: Int
+  order_no: String
+  total_amount: Decimal
+  status: enum
+  deposited_at: DateTime?
+  picked_up_at: DateTime?
+  completed_at: DateTime?
+  --
+  + createOrder()
+  + buyNow()
+  + confirmDeposit()
+  + confirmPickup()
+  + complete()
+  + cancelOrder()
+}
+class "交易爭議 transaction_disputes" as disputes {
+  dispute_id: Int
+  reason: String
+  status: enum
+  result: enum
+  --
+  + submitDispute()
+  + analyze()
+  + arbitrate()
+}
+class "預約管理 reservations" as reservations {
+  reservation_id: Int
+  pickup_deadline: DateTime?
+  status: enum
+  --
+  + request()
+  + respond()
+  + expire()
+}
+class "智慧書櫃據點 smart_cabinets" as cabinets {
+  cabinet_id: Int
+  cabinet_name: String
+  address: String
+  is_maintenance: Boolean
+  --
+  + checkAvailability()
+}
+class "書櫃櫃門 cabinet_slots" as slots {
+  slot_number: String
+  status: enum
+}
+class "聊天室 chat_rooms" as rooms {
+  room_id: Int
+  room_type: enum
+  name: String?
+  --
+  + open()
+  + invite()
+}
+class "聊天訊息 chat_messages" as messages {
+  message_id: Int
+  content: String
+  is_read: Boolean
+  --
+  + sendMessage()
+  + recall()
+  + markAsRead()
+}
+class "訊息風險紀錄 chat_message_risks" as risks {
+  level: enum
+  categories: String
+  --
+  + assess()
+}
+class "推播通知 notifications" as notifications {
+  notification_id: Int
+  type: enum
+  title: String
+  is_read: Boolean
+  --
+  + pushNotification()
+  + markAsRead()
+}
+
+users "1" -up-> "0..*" notifications : receive
+users "1" -left- "0..*" cart : owns
+users "2..*" -right- "0..*" rooms : participates
+rooms "1" *-right- "0..*" messages : contains
+messages "1" -- "0..1" risks : assessedBy
+cart "0..*" ---> "1" books : contains
+users "1" --- "0..*" orders : places
+orders "1" -left-> "1..*" books : includes
+users "1" --- "0..*" books : lists
+orders -right-> wallets : settleTo
+users "1" --- "1" wallets : owns
+reservations "0..*" -up-> "1" books : holds
+orders "1" -- "0..*" disputes : mayTrigger
+orders "0..*" --> "1" cabinets : pickupAt
+wallets -[hidden]- cabinets
+cabinets "1" *-right- "1..*" slots : contains
+@enduml

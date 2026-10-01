@@ -1,0 +1,44 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（賣家）|
+|系統|
+|實體書櫃|
+|系統|
+start
+:排程將存放滿7天仍無訂單\n之書籍暫停販售並通知取回;
+|使用者（賣家）|
+:點擊「掃描書櫃取回」\n並掃描書櫃螢幕QR Code;
+|系統|
+if (QR Code、營業狀態\n與位置驗證通過？) then ([否])
+  :顯示錯誤訊息;
+  stop
+else ([是])
+endif
+:列出可取回之書籍;
+|使用者（賣家）|
+:確認項目並點擊「開啟櫃門」;
+|系統|
+:將販售中之書籍暫停販售;
+|實體書櫃|
+:螢幕顯示比對數字;
+|使用者（賣家）|
+:於手機輸入比對數字;
+|系統|
+if (數字相符？) then ([否])
+  :取消作業並恢復上架;
+  stop
+else ([是])
+endif
+|實體書櫃|
+:開啟櫃門並倒數;
+|使用者（賣家）|
+:取出書籍、關門並點擊「完成」;
+|系統|
+:刪除存書登記並釋放櫃門，\n暫停販售之書籍恢復上架;
+stop
+@enduml

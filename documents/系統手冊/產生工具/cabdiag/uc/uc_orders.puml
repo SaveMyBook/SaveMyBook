@@ -1,0 +1,62 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam usecase {
+  BackgroundColor white
+}
+left to right direction
+
+actor 買家
+actor 賣家
+actor 管理員
+
+rectangle "SaveMyBook - 交易與訂單" {
+  usecase "加入購物車" as cart
+  usecase "結帳" as checkout
+  usecase "直接購買" as buynow
+  usecase "付款驗證" as verify
+  usecase "查看購買訂單" as history
+  usecase "查看我的預約" as myres
+  usecase "完成訂單" as complete
+  usecase "申請爭議" as dispute
+  usecase "取消訂單" as cancel
+  usecase "查看銷售訂單" as sales
+  usecase "掃描書櫃取書" as pickup
+  usecase "掃描書櫃存書" as deposit
+  usecase "上架後先行存書" as predeposit
+  usecase "掃描書櫃取回" as retrieve
+  usecase "掃描書櫃開啟櫃門" as open
+  usecase "手機輸入比對數字" as match
+  usecase "改為手動回報" as manual
+  usecase "裁決爭議" as arbitrate
+  usecase "確認手動回報" as confirm
+}
+
+買家 --> cart
+買家 --> checkout
+買家 --> buynow
+買家 --> history
+買家 --> myres
+買家 --> complete
+買家 --> dispute
+買家 --> cancel
+買家 --> pickup
+checkout ..> verify : <<include>>
+buynow ..> verify : <<include>>
+賣家 --> cancel
+賣家 --> dispute
+賣家 --> sales
+賣家 --> retrieve
+賣家 --> deposit
+deposit <.. predeposit : <<extend>>
+pickup --|> open
+deposit --|> open
+retrieve --|> open
+open ..> match : <<include>>
+open <.. manual : <<extend>>
+管理員 --> arbitrate
+管理員 --> confirm
+@enduml

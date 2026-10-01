@@ -1,0 +1,66 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
+
+actor 管理員
+participant UI
+participant API
+database DB
+participant IoT
+
+IoT -> API : POST /api/device/v1/pair/request\n（裝置種類、櫃門數與韌體版本）
+activate IoT
+activate API
+API -> DB : 建立配對請求，有效 10 分鐘
+API --> IoT : 201 八位數配對碼與輪詢權杖
+deactivate API
+IoT -> IoT : 螢幕顯示配對碼
+loop 每 3 秒，直到完成配對或逾時
+  IoT -> API : POST /api/device/v1/pair/poll
+  API --> IoT : 200 等待配對
+end
+opt 配對碼逾時未輸入
+  IoT -> API : POST /api/device/v1/pair/poll
+  API --> IoT : 410 配對碼已逾時
+  IoT -> API : 重新申請配對碼
+end
+deactivate IoT
+
+管理員 -> UI : 於書櫃裝置頁面輸入配對碼
+activate 管理員
+activate UI
+UI -> API : POST /api/admin/cabinets/:id/device/pair
+activate API
+API -> API : 驗證硬體維護權限與身分
+alt 配對碼有效且未逾時
+  API -> DB : 綁定書櫃，建立待啟用裝置
+  API -> DB : 寫入操作紀錄
+  API --> UI : 201 已送出配對，待裝置連線
+else 配對碼無效或已逾時
+  API --> UI : 400 配對碼無效或已逾時
+end
+deactivate API
+UI --> 管理員 : 顯示配對結果
+deactivate UI
+deactivate 管理員
+
+IoT -> API : POST /api/device/v1/pair/poll
+activate IoT
+activate API
+API -> DB : 撤銷原有效裝置，啟用新裝置
+API -> DB : 建立櫃門 A01～A04 對應
+API -> 管理員 : 通知「書櫃裝置已配對」
+API --> IoT : 200 裝置憑證（僅交付一次）
+deactivate API
+IoT -> IoT : 儲存憑證
+
+IoT -> API : GET /api/device/v1/state
+API --> IoT : 顯示 QR Code，開始服務
+deactivate IoT
+@enduml

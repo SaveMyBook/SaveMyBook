@@ -1,0 +1,40 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（賣家）|
+start
+:點擊「編輯書籍」;
+:修改書名、售價、書況、\n分類或照片後點擊「儲存變更」;
+|系統|
+if (已被預約、已售出、已完成\n或存放於書櫃中？) then ([是])
+  :拒絕編輯並顯示原因;
+  stop
+else ([否])
+endif
+:執行規則式審核;
+if (書名、作者或出版社\n有變更？) then ([是]\n)
+  |AI服務|
+  :審核書籍內容;
+  |系統|
+  if (判定違規且設為\n直接拒絕？) then ([是])
+    :拒絕本次編輯;
+    stop
+  else ([否])
+  endif
+else ([否])
+endif
+if (需人工複核？) then ([是])
+  :更新資料並轉為「審核中」，\n通知賣家與管理員;
+else ([否])
+  :更新書籍資料;
+endif
+if (降價且仍為販售中？) then ([是])
+  :通知收藏此書之使用者;
+else ([否])
+endif
+stop
+@enduml

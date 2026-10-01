@@ -635,7 +635,7 @@ paths:
                 須先取回:
                   value: { success: false, code: RETRIEVAL_REQUIRED, message: 此書籍仍存放於書櫃，請先至書櫃以 App 掃描 QR Code 取回後再重新上架 }
                 預約保留中:
-                  value: { success: false, code: BOOK_HELD, message: 此書籍已預約，保留期間無法編輯或取消上架 }
+                  value: { success: false, code: BOOK_HELD, message: 此書籍已被預約，保留期間無法編輯或取消上架 }
                 訂單已成立:
                   value: { success: false, code: BOOK_LOCKED, message: 此書籍已售出，無法編輯 }
                 訂單未結束:

@@ -11,6 +11,7 @@
   "orderBuyerPendingDeposit": "Waiting for seller drop-off",
   "orderBuyerDeposited": "Ready for pickup",
   "orderBuyerRefunding": "Under dispute",
+  "orderSellerAwaitingPickup": "Awaiting buyer pickup",
   "orderFlowDeposit": "Seller drop-off",
   "orderFlowDeposited": "Placed in locker",
   "orderFlowPickup": "Picked up by buyer",
@@ -586,8 +587,9 @@
       "p1": {}
     }
   },
-  "purchases": "Purchases",
-  "sales": "Sales",
+  "orderHistory": "Order history",
+  "purchaseOrders": "Purchases",
+  "salesOrders": "Sales",
   "settings": "Settings",
   "signOut2": "Sign out?",
   "cancelOrderBookReturnsShop": "Cancel order {p0}? The book returns to the shop.",
@@ -4260,6 +4262,7 @@
   "tooManyRequestsPleaseTryAgain": "Too many requests. Please try again later.",
   "viewPurchases": "View purchases",
   "viewSales": "View sales",
+  "viewMyBooks": "Go to My books",
   "retrievalNotAvailableLockerRightNow": "Retrieval is not available at this locker right now. Please contact support.",
   "itemsCouldNotCompleted": "The items could not be completed",
   "onceDelistedP0NoLongerAppear2": "Once delisted, “{p0}” will no longer appear in the shop. The book is stored in a locker, so you need to retrieve it before relisting it.",
@@ -4353,5 +4356,30 @@
   "removedFromPublicView": "Removed from public view",
   "hiddenFromPublic": "Hidden from public",
   "afterReviewBookNoLongerShown": "After review, this book is no longer shown publicly. Its order is not affected.",
-  "bookWasConfirmedViolateRulesAfter": "This book was confirmed to violate the rules after review. Its order is not affected."
+  "bookWasConfirmedViolateRulesAfter": "This book was confirmed to violate the rules after review. Its order is not affected.",
+  "myReservations": "My reservations",
+  "reservationHeld": "Held",
+  "awaitingSellerReply": "Awaiting seller reply",
+  "noHeldReservations": "No held reservations",
+  "noPendingReservations": "No reservations awaiting a seller reply",
+  "reservationTimeLeftHoursMinutes": "{p0} h {p1} min left",
+  "@reservationTimeLeftHoursMinutes": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "reservationTimeLeftMinutes": "{p0} min left",
+  "@reservationTimeLeftMinutes": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "reservationSentAtP0": "Sent: {p0}",
+  "@reservationSentAtP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "bookHeldForBuyer": "Reserved by buyer"
 }

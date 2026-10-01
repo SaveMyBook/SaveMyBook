@@ -1,0 +1,40 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（買家／賣家）|
+start
+:依客服指示放入或取出書籍;
+:點擊「完成存書」等手動\n回報按鈕並確認回報項目;
+|系統|
+if (書櫃處於手動回報模式？) then ([否])
+  :提示至書櫃掃碼辦理;
+  stop
+else ([是])
+endif
+:建立待確認之手動回報\n並通知管理員;
+:顯示「手動回報待客服確認」\n並停用同一動作;
+|管理員|
+:於「待確認手動回報」\n檢視回報內容;
+if (回報內容屬實？) then ([否])
+  :填寫處理說明並駁回;
+  |系統|
+  :狀態維持不變\n並通知回報者;
+  stop
+else ([是])
+  |管理員|
+  :確認回報（存書須\n指定實際存放櫃門）;
+endif
+|系統|
+if (項目狀態已變更？) then ([是])
+  :回報改為失效;
+  stop
+else ([否])
+endif
+:依回報內容變更\n訂單或存書狀態;
+:通知回報者並記錄\n書櫃事件與操作紀錄;
+stop
+@enduml

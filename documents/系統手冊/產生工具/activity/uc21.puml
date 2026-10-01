@@ -1,0 +1,33 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+start
+:執行後台操作（如停權\n會員、編輯書籍）;
+|系統|
+:將操作摘要與欄位差異\n寫入操作紀錄;
+|管理員|
+:於「管理操作紀錄」頁\n以關鍵字或類型篩選;
+|系統|
+if (該操作可還原？) then ([否])
+  :不提供還原（爭議、訂單等撥款\n退款或不可逆之操作）;
+  stop
+else ([是])
+endif
+:顯示「還原此操作」按鈕;
+|管理員|
+:點擊「還原此操作」並\n完成後台身分驗證;
+|系統|
+if (資料於紀錄後\n已被變更？) then ([是])
+  :拒絕還原並提示衝突;
+  stop
+else ([否])
+endif
+:將對應欄位還原\n至變更前狀態;
+:新增「還原」操作紀錄;
+stop
+@enduml

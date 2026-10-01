@@ -14,7 +14,7 @@ import '../../widgets/state_views.dart';
 import '../../widgets/swipe_action.dart';
 import '../../widgets/buyer/undo_snackbar.dart';
 import '../books/book_detail_screen.dart';
-import 'purchase_history_screen.dart';
+import 'order_history_screen.dart';
 import 'widgets/payment_success_dialog.dart';
 import 'widgets/sticky_pane.dart';
 import '../books/seller_screen.dart';
@@ -262,7 +262,10 @@ class _CartScreenState extends State<CartScreen> {
     );
     if (!mounted) return;
     if (viewOrders == true) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => OrderHistoryScreen(filter: OrderHistoryScreen.purchaseFilterAfterPayment(result.readyForPickup))),
+      );
     }
   }
 

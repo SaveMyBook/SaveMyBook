@@ -1,0 +1,110 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam packageStyle rectangle
+skinparam nodesep 30
+skinparam ranksep 30
+skinparam linetype polyline
+
+package "Presentation Layer (Flutter)" as PL {
+  package "Widgets" as W {
+    component "Book Card" as w1
+    component "Search Bar" as w2
+    component "Bottom Navigation" as w3
+  }
+  package "State & Theme" as ST {
+    component "Theme Provider" as t1
+    component "Locale Provider" as t2
+  }
+  package "Screens" as SC {
+    component "Home Screen" as s1
+    component "Login Screen" as s2
+    component "Book Detail Screen" as s3
+    component "Sell Book Screen" as s4
+    component "Order Screen" as s5
+    component "Chat Screen" as s6
+    component "Wallet Screen" as s7
+    component "Admin Console" as s8
+  }
+}
+
+package "Application Layer (Frontend)" as AL {
+  component "API Service" as apisvc
+  component "Push Service" as pushsvc
+  component "Realtime Service" as rtsvc
+}
+
+package "API Layer (Backend)" as BL {
+  component "Express App" as express
+  component "OpenAPI Docs" as docs
+  component "Device API" as devapi
+  component "Socket.IO Server" as sio
+}
+
+package "Middleware Layer" as ML {
+  component "Auth Middleware" as mauth
+  component "Verification Guard" as mver
+  component "Rate Limit" as mrate
+}
+
+package "Service Layer" as SL {
+  component "Book Service" as a2
+  component "Auth Service" as a1
+  component "Order Service" as a3
+  component "Wallet Service" as a4
+  component "Chat Service" as a5
+  component "AI Service" as a7
+  component "Cabinet Service" as a6
+  component "Scheduler" as a9
+  component "Notification Service" as a8
+}
+
+package "Data Access\nLayer" as DL {
+  component "Prisma ORM" as prisma
+}
+
+package "Database\nLayer" as DB {
+  component "MariaDB" as maria
+}
+
+w1 -[hidden]right- w2
+w2 -[hidden]right- w3
+t1 -[hidden]right- t2
+s1 -[hidden]- s5
+s2 -[hidden]- s6
+s3 -[hidden]- s7
+s4 -[hidden]- s8
+w3 --> s1
+t2 --> s4
+s6 --> apisvc
+s6 --> rtsvc
+apisvc -[hidden]right- pushsvc
+pushsvc -[hidden]right- rtsvc
+apisvc --> express : REST API 呼叫
+rtsvc --> sio : <U+00A0>Socket.IO
+express -right-> docs
+docs -[hidden]right- devapi
+devapi -[hidden]right- sio
+express --> mauth
+sio --> mauth
+mauth -[hidden]right- mver
+mver -[hidden]right- mrate
+mauth --> a2
+a2 -[hidden]right- a1
+a1 -[hidden]right- a3
+a3 -[hidden]right- a4
+a4 -[hidden]right- a5
+a2 -[hidden]- a7
+a1 -[hidden]- a6
+a3 -[hidden]- a9
+a5 -[hidden]- a8
+a7 -[hidden]right- a6
+a6 -[hidden]right- a9
+a9 -[hidden]right- a8
+a7 --> prisma
+a8 --> prisma
+prisma -right-> maria
+@enduml

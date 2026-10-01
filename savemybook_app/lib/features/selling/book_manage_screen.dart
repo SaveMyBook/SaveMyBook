@@ -34,11 +34,14 @@ class BookManageScreen extends StatefulWidget {
 class _BookManageScreenState extends State<BookManageScreen> {
   List<({String key, String label})> get _filters => [
     (key: 'all', label: S.actionAll),
-    for (final key in const ['on_sale', 'held', 'reserved', 'sold', 'removed'])
+    (key: 'on_sale', label: AppLabels.ownerBook('on_sale')),
+    (key: _reviewFilter, label: S.reportReviewing),
+    for (final key in const ['held', 'reserved', 'sold', 'removed'])
       (key: key, label: AppLabels.ownerBook(key)),
     (key: _retrievalFilter, label: S.awaitingRetrieval),
   ];
 
+  static const _reviewFilter = 'pending_review';
   static const _retrievalFilter = 'pending_retrieval';
 
   final ApiService _api = ApiService();
@@ -121,6 +124,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
 
   bool _inFilter(Book b, String key) => switch (key) {
     'all' => true,
+    'on_sale' => _statusOf(b) == 'on_sale' && !b.isPendingReview,
+    _reviewFilter => _statusOf(b) == 'on_sale' && b.isPendingReview,
     _retrievalFilter => b.isDepositPaused || (b.deposit == null && b.canRetrieve),
     _ => _statusOf(b) == key,
   };
@@ -133,6 +138,8 @@ class _BookManageScreenState extends State<BookManageScreen> {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => const SellBookScreen()));
     if (mounted) _load();
   }
+
+  bool _canEdit(Book book, String status) => (status == 'on_sale' || status == 'removed') && !book.isDeposited;
 
   Future<void> _openEdit(Book book) async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => EditBookScreen(book: book)));
@@ -345,7 +352,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
   Widget _buildSwipeable(Book book, AppColors c, {bool fill = false}) {
     final status = _statusOf(book);
     final busy = _busyIds.contains(book.bookId);
-    final canEdit = (status == 'on_sale' || status == 'removed') && !book.isDeposited;
+    final canEdit = _canEdit(book, status);
 
     SwipeAction? statusAction;
     if (!busy && status == 'removed' && !_violationLocked(book) && !book.isDeposited && !book.canRetrieve) {
@@ -674,7 +681,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
                       child: SmallActionButton(
                         label: S.actionEdit,
                         filled: !isRemoved,
-                        onTap: status == 'on_sale' && !isBusy ? () => _openEdit(book) : null,
+                        onTap: _canEdit(book, status) && !isBusy ? () => _openEdit(book) : null,
                       ),
                     ),
                   ],
