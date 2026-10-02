@@ -1,0 +1,34 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|使用者（會員）|
+|系統|
+|使用者（會員）|
+start
+:於書籍詳情、訂單詳情或\n選定書櫃後點擊「交通資訊」;
+|系統|
+:依書櫃位置查詢周邊交通;
+if (快取資料仍有效？) then ([是])
+else ([否])
+  :向臺北市資料大平臺\n下載交通開放資料;
+  if (下載成功？) then ([是])
+    :更新快取;
+  else ([否])
+    :沿用上次資料，\n從未取得時標示無法取得;
+  endif
+endif
+:依直線距離列出捷運、公車、\nYouBike、停車與計程車招呼站;
+if (已選過出發車站？) then ([否])
+  :以手機定位於手機上\n算出最近之捷運站;
+else ([是])
+endif
+:查詢出發車站至書櫃\n附近車站之票價;
+|使用者（會員）|
+:查看「前往書櫃」頁，\n可更改出發車站;
+:點選項目以地圖導航;
+stop
+@enduml

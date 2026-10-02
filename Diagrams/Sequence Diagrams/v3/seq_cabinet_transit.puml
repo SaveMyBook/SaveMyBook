@@ -1,0 +1,47 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+hide footbox
+
+actor 會員
+participant UI
+participant API
+database DB
+participant "臺北市\n資料大平臺" as ODP
+
+會員 -> UI : 點擊「交通資訊」
+activate 會員
+activate UI
+UI -> API : GET /api/cabinets/:id/nearby
+activate API
+API -> DB : 查詢書櫃座標
+loop 捷運、公車、YouBike、停車場、路邊停車、路況、計程車招呼站
+  opt 快取已過期
+    API -> ODP : 下載公開資料
+    activate ODP
+    ODP --> API : 資料檔
+    deactivate ODP
+    API -> API : 解析並更新快取\n（失敗時沿用上次資料）
+  end
+end
+API -> API : 依直線距離篩選書櫃周邊項目
+API --> UI : 各區塊資料與資料時間
+opt 尚未選擇出發車站
+  UI -> API : GET /api/cabinets/mrt-stations
+  API --> UI : 捷運車站與座標
+  UI -> UI : 以手機定位計算最近車站\n（位置不傳送至伺服器）
+end
+UI -> API : GET /api/cabinets/mrt-fares
+API --> UI : 票價與里程
+deactivate API
+UI --> 會員 : 顯示「前往書櫃」頁
+會員 -> UI : 點選項目
+UI -> UI : 開啟地圖導航
+deactivate UI
+deactivate 會員
+@enduml

@@ -60,6 +60,7 @@ package "Service Layer" as SL {
   component "Cabinet Service" as a6
   component "Scheduler" as a9
   component "Notification Service" as a8
+  component "Transit Service" as a10
 }
 
 package "Data Access\nLayer" as DL {
@@ -104,6 +105,7 @@ a5 -[hidden]- a8
 a7 -[hidden]right- a6
 a6 -[hidden]right- a9
 a9 -[hidden]right- a8
+a8 -[hidden]right- a10
 a7 --> prisma
 a8 --> prisma
 prisma -right-> maria

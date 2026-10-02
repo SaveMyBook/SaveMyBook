@@ -190,7 +190,7 @@ for label in ('圖', '表'):
     block = [p._p for p in list_ps if p.text.startswith(label)]
     instr = ''.join(x.text or '' for x in block[0].iter(qn('w:instrText')))
     kinds = [x.get(qn('w:fldCharType')) for p in block for x in p.iter(qn('w:fldChar'))]
-    if f'TOC \\h \\z \\c "{label}"' not in instr or kinds != ['begin', 'separate', 'end']:
+    if f'TOC \\h \\z \\c "{label}" \\f ' not in instr or kinds != ['begin', 'separate', 'end']:
         fail(f'{label}目錄 is not a TOC \\c field: {instr!r} {kinds}')
 no_seq = [p.text.strip()[:12] for p in figs + tabs if p.text.strip()[0] not in update_lists._seq_labels(p._p)]
 if no_seq: fail(f'captions without SEQ field: {no_seq[:5]}')

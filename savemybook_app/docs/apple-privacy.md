@@ -11,7 +11,7 @@
 | 相簿（寫入） | `NSPhotoLibraryAddUsageDescription` | 將個人檔案 QR Code 儲存至相簿（`features/account/share_profile_screen.dart`）、儲存聊天室圖片（`widgets/image_viewer.dart` 的儲存按鈕與訊息長按選單 → `services/image_save_service.dart`），皆經由 `AppDelegate.swift` `saveImage` 寫入 | iOS |
 | 下載項目資料夾（寫入） | entitlement `com.apple.security.files.downloads.read-write` | macOS 儲存聊天室圖片時直接寫入「下載項目」（`MainFlutterWindow.swift` `saveImage`），不需相簿權限 | macOS |
 | 麥克風 | `NSMicrophoneUsageDescription` | 錄製聊天室語音訊息（`services/voice_service.dart`） | iOS、macOS |
-| 定位（使用 App 期間） | `NSLocationWhenInUseUsageDescription`（macOS 另有 `NSLocationUsageDescription`） | 書籍詳情顯示與智慧書櫃的距離（`features/books/book_detail_screen.dart`）、選擇書櫃時依距離排序（`widgets/app_forms.dart`） | iOS、macOS |
+| 定位（使用 App 期間） | `NSLocationWhenInUseUsageDescription`（macOS 另有 `NSLocationUsageDescription`）；iOS 暫時精確位置 `NSLocationTemporaryUsageDescriptionDictionary`（`CabinetUse`：書櫃作業；`CabinetSetup`：管理員填入書櫃座標） | 書籍詳情顯示與智慧書櫃的距離（`features/books/book_detail_screen.dart`）、選擇書櫃時依距離排序（`widgets/app_forms.dart`）、辦理書櫃作業時確認位於書櫃旁（`features/cabinet/cabinet_flow_controller.dart`）、「前往書櫃」頁在手機上計算最近捷運站作為預設出發車站（`features/cabinet/cabinet_guide_screen.dart`，只使用已授權的位置，不另行請求授權）、管理員新增或編輯書櫃時「使用目前位置」填入書櫃座標（`features/admin/admin_cabinet_edit_screen.dart`） | iOS、macOS |
 | Face ID | `NSFaceIDUsageDescription` | 開啟 App 解鎖、快速登入、生物辨識付款（`services/biometric_service.dart`） | iOS |
 | 推播通知 | 無用途說明鍵值；`UIBackgroundModes` 含 `remote-notification`，entitlement `aps-environment` | 訂單、聊天、公告推播（`services/push_service.dart`，Firebase Cloud Messaging） | iOS |
 | 深層連結 | `CFBundleURLTypes`（`savemybook://`） | 個人檔案與書籍分享連結、LINE／Discord 登入回呼（`services/deep_link_service.dart`） | iOS、macOS |
@@ -67,6 +67,9 @@ Flutter 引擎、shared_preferences、firebase_messaging、permission_handler �
 未宣告的項目與理由：
 
 - 位置：座標只隨查詢書櫃的請求送出，伺服器僅即時計算距離，不寫入資料庫也不記錄，依 Apple 定義不屬於「蒐集」。
+  - 「前往書櫃」頁：最近捷運站在手機上計算，座標不送出；`GET /api/cabinets/{id}/nearby` 只送出書櫃編號，票價查詢（`GET /api/cabinets/mrt-fares`）只送出出發與目的車站名稱，伺服器不保存。
+  - 管理員「附近交通預覽」（`GET /api/admin/cabinets/nearby-preview`）送出的是表單上的書櫃座標；以「使用目前位置」填入的座標儲存後即為書櫃位置，屬營運資料，不是使用者的行蹤。
+  - 結論：新增上述功能後，「App 隱私權」問卷與 `NSPrivacyCollectedDataTypes` 仍不需新增「精確位置」或「大略位置」。若日後保存使用者座標或出發車站，須重新評估。
 - 搜尋記錄、瀏覽記錄：搜尋關鍵字僅用於當次篩選；最近瀏覽與搜尋紀錄只存在裝置上。
 - 付款資訊：無信用卡或第三方金流，錢包儲值由客服作業處理。
 - 當機與效能資料：App 未整合 Crashlytics、Sentry 等工具。

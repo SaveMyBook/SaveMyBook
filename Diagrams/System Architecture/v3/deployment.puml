@@ -28,7 +28,7 @@ node "三、學校伺服器環境\n(Ubuntu 24.04.4)" {
 }
 
 cloud "外部雲端服務" as ext {
-  component "Firebase\n(登入驗證 / 推播)\nAI 服務\n書目資料" as fb
+  component "Firebase\n(登入驗證 / 推播)\nAI 服務\n書目資料\n臺北市資料大平臺\n(交通開放資料)" as fb
 }
 
 app -[hidden]down- iot

@@ -12,6 +12,7 @@ left to right direction
 actor 買家
 actor 賣家
 actor 管理員
+actor "臺北市資料大平臺" as ODP
 
 rectangle "SaveMyBook - 交易與訂單" {
   usecase "加入購物車" as cart
@@ -32,6 +33,7 @@ rectangle "SaveMyBook - 交易與訂單" {
   usecase "手機輸入比對數字" as match
   usecase "改為手動回報" as manual
   usecase "裁決爭議" as arbitrate
+  usecase "查看前往書櫃交通資訊" as transit
   usecase "確認手動回報" as confirm
 }
 
@@ -57,6 +59,9 @@ deposit --|> open
 retrieve --|> open
 open ..> match : <<include>>
 open <.. manual : <<extend>>
+open <.. transit : <<extend>>
+transit -- ODP
+match -[hidden]- ODP
 管理員 --> arbitrate
 管理員 --> confirm
 @enduml

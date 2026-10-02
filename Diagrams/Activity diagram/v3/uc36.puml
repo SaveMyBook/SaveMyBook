@@ -1,0 +1,35 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 220
+skinparam defaultFontName "PingFang TC"
+skinparam defaultFontSize 13
+skinparam swimlaneWidth same
+|管理員|
+|系統|
+|管理員|
+start
+:於「書櫃監控」新增書櫃，\n或點擊書櫃之編輯;
+:填寫書櫃名稱與地址;
+if (使用目前位置？) then ([是])
+  |系統|
+  :以精確位置填入經緯度\n並顯示定位精確度;
+  :誤差逾50公尺時\n建議重新定位;
+else ([否])
+  |管理員|
+  :手動輸入經緯度;
+endif
+|系統|
+:預覽附近捷運站、公車站、\nYouBike與停車資訊;
+|管理員|
+:確認座標與地址相符，\n必要時於地圖上確認;
+:設定櫃位數量與開放時間\n並送出;
+|系統|
+if (欄位格式正確？) then ([否])
+  :標示錯誤欄位;
+  stop
+else ([是])
+endif
+:儲存書櫃（新增時建立櫃位）\n並記錄後台操作紀錄;
+stop
+@enduml

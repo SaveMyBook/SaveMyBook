@@ -7,12 +7,13 @@ skinparam defaultFontSize 13
 skinparam usecase {
   BackgroundColor white
 }
-skinparam nodesep 30
-skinparam ranksep 80
+skinparam nodesep 24
+skinparam ranksep 100
 left to right direction
 
 actor 管理員
 actor "AI 服務" as AI
+actor "臺北市資料大平臺" as ODP
 
 rectangle "SaveMyBook - 後台管理" {
   usecase "查看營運總覽" as overview
@@ -31,6 +32,7 @@ rectangle "SaveMyBook - 後台管理" {
   usecase "處理待確認作業與櫃門" as cabreview
   usecase "確認手動回報" as cabmanual
   usecase "登記取出存書" as clear
+  usecase "設定書櫃座標\n並預覽附近交通" as curloc
   usecase "管理公告與文件" as content
   usecase "處理客服工單" as tickets
   usecase "系統維運" as settings
@@ -57,6 +59,9 @@ cabinets <.. remote : <<extend>>
 cabinets <.. cabreview : <<extend>>
 cabinets <.. cabmanual : <<extend>>
 clear "«extend»" .> cabinets
+管理員 --> curloc
+curloc -- ODP
+aianalysis -[hidden]- ODP
 管理員 --> content
 管理員 --> tickets
 管理員 --> settings

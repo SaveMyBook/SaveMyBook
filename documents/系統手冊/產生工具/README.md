@@ -19,7 +19,11 @@ curl -L -o plantuml.jar https://repo1.maven.org/maven2/net/sourceforge/plantuml/
 .venv/bin/python selfcheck.py 輸出.docx
 ```
 
-自動檢查須顯示 `ALL OK`。產生後於 Word 開啟，全選按 F9 更新目錄與圖表目錄，再匯出 PDF。
+自動檢查須顯示 `ALL OK`。產生後於 Word 開啟，更新目錄與圖表目錄（全選按 F9），存檔後再匯出 PDF。
+
+圖目錄與表目錄為 `TOC \c \f` 功能變數：前幾章之說明以可見 SEQ 欄位收錄，其餘說明另有 TC 欄位（`update_lists.py`）；只用隱藏 SEQ 欄位時 Word 更新後只會列出前 4 章。
+
+書櫃交通資訊（2026-10-02）之內文、UC-35／UC-36 與循序圖 6-1-32 由 `transit_part4.py` 加入，分三段在 `update_manual.py` 中呼叫。
 
 ## 修改圖
 

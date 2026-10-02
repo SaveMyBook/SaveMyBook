@@ -92,7 +92,7 @@ def run(doc, kept):
         block = [e._p for e in _entries(doc) if e.text.startswith(label)]
         ppr = block[0].find(W('pPr'))
         at = list(block[0]).index(ppr) + 1 if ppr is not None else 0
-        for i, r in enumerate((_fld('begin'), _instr(f' TOC \\h \\z \\c "{label}" '), _fld('separate'))):
+        for i, r in enumerate((_fld('begin'), _instr(f' TOC \\h \\z \\c "{label}" \\f {TC_ID[label]} '), _fld('separate'))):
             block[0].insert(at + i, r)
         block[-1].append(_fld('end'))
     counts['hidden_seq'] = _tag_captions(doc)
@@ -114,8 +114,12 @@ def _seq_labels(p_el):
     return set(re.findall(r'SEQ\s+(\S+)', instr))
 
 
+# Word 更新目錄時不收錄只有隱藏 SEQ 欄位（\\h）之說明，這些說明另加 TC 欄位，由 TOC \\f 收錄。
+TC_ID = {'圖': 'F', '表': 'T'}
+
+
 def _tag_captions(doc):
-    """沒有 SEQ 欄位的圖表說明補上隱藏的 SEQ 欄位，供 TOC \\c 收錄。
+    """沒有 SEQ 欄位的圖表說明補上隱藏的 SEQ 欄位與 TC 欄位（目錄文字為說明全文）。
     同一個標題 2 小節內，隱藏欄位若排在可見的 SEQ 編號之前會使其編號加一，因此遇到這種情形即中止。"""
     added, hidden_in_section = 0, set()
     for p in doc.paragraphs:
@@ -126,6 +130,8 @@ def _tag_captions(doc):
         if label in _seq_labels(p._p):
             assert label not in hidden_in_section, f'visible SEQ after hidden SEQ in same section: {p.text}'
             continue
-        p._p.extend([_fld('begin'), _instr(f' SEQ {label} \\h '), _fld('end')])
+        text = p.text.strip().replace('"', '＂')
+        p._p.extend([_fld('begin'), _instr(f' SEQ {label} \\h '), _fld('end'),
+                     _fld('begin'), _instr(f' TC "{text}" \\f {TC_ID[label]} \\l 1 '), _fld('end')])
         hidden_in_section.add(label); added += 1
     return added
