@@ -72,7 +72,6 @@ export class Book {
   private right: Leaf[] = [];
   private left: Leaf[] = [];
   private flips: Leaf[] = [];
-  private ribbon: THREE.Mesh;
 
   constructor() {
     const paper = new THREE.MeshStandardMaterial({ color: 0xedf1f4, roughness: 0.9, metalness: 0, side: THREE.DoubleSide, map: paperTexture(), envMapIntensity: 0.28, vertexColors: true });
@@ -94,11 +93,6 @@ export class Book {
       this.flips.push(leaf);
       this.group.add(leaf.mesh, leaf.edge);
     }
-    const ribbon = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.42, 3.4),
-      new THREE.MeshStandardMaterial({ color: 0x627d8d, roughness: 0.6, side: THREE.DoubleSide }),
-    );
-    ribbon.position.set(PW * 0.62, -PH / 2 - 1.2, 0.3);
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = shadowCanvas.height = 128;
     const sg = shadowCanvas.getContext('2d')!;
@@ -110,9 +104,6 @@ export class Book {
     const shadow = new THREE.Mesh(new THREE.PlaneGeometry(PW * 2.6, PH * 1.5), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shadowCanvas), transparent: true, depthWrite: false, opacity: 0.55 }));
     shadow.position.set(0, -0.2, -0.9);
     this.group.add(shadow);
-    ribbon.rotation.z = 0.18;
-    this.ribbon = ribbon;
-    this.group.add(ribbon);
     this.set(0, 0);
   }
 
@@ -133,6 +124,5 @@ export class Book {
       const f = opened + (restL - opened) * k;
       leaf.set(f, 1.5 * Math.sin(Math.PI * k) + 0.4 * (1 - open));
     });
-    this.ribbon.visible = open > 0.6;
   }
 }

@@ -37,7 +37,7 @@
     <ol></ol>
   </nav>
 
-  <div class="toc" id="toc" role="dialog" aria-modal="true" aria-labelledby="toc-title" hidden>
+  <div class="toc" id="toc" role="dialog" aria-modal="true" aria-labelledby="toc-title" data-lenis-prevent hidden>
     <div class="toc__page">
       <p class="toc__eyebrow">救「舊」我的書</p>
       <h2 class="toc__title" id="toc-title">目錄</h2>
@@ -54,10 +54,10 @@
           <p class="cover__series">SaveMyBook</p>
           <h1 class="cover__title" aria-label="救「舊」我的書"><span class="ch-char">救</span><span class="ch-char ch-char--quote">「</span><span class="ch-char">舊</span><span class="ch-char ch-char--quote">」</span><span class="ch-char">我</span><span class="ch-char">的</span><span class="ch-char">書</span></h1>
           <p class="cover__subtitle">結合智慧書櫃的二手書交易平台</p>
+          <ul class="cover__keys" aria-label="三項核心">
+            <li>掃碼存取</li><li>款項暫管</li><li>AI 輔助</li>
+          </ul>
         </div>
-        <ul class="cover__spine" aria-label="三項核心">
-          <li>掃碼存取</li><li>款項暫管</li><li><span class="tcy">AI</span>輔助</li>
-        </ul>
         <a class="cover__turn magnetic" href="#problem" data-jump>
           <span class="cover__turn-curl" aria-hidden="true"></span>
           <span class="cover__turn-text">向下翻頁</span>
@@ -139,7 +139,7 @@
             </ol>
           </article>
         </div>
-        <figure class="still"><img src="/screens/sell_ai-s.webp" alt="App 上架畫面：AI 判斷書況並建議售價" loading="lazy"></figure>
+        <figure class="still"><img src="/screens/sell_ai-s.webp" alt="App 上架畫面：AI 判斷書況並建議售價" width="393" height="852" loading="lazy"></figure>
         <p class="folio">p. 3</p>
       </div>
     </section>
@@ -165,7 +165,7 @@
           <ol class="shelf__row"></ol>
           <p class="shelf__hint">拖曳書架或繼續捲動</p>
         </div>
-        <figure class="still"><img src="/screens/ai_chat-s.webp" alt="App 的 AI 書籍顧問對話畫面" loading="lazy"></figure>
+        <figure class="still"><img src="/screens/ai_chat-s.webp" alt="App 的 AI 書籍顧問對話畫面" width="393" height="852" loading="lazy"></figure>
         <p class="folio">p. 4</p>
       </div>
     </section>
@@ -199,7 +199,7 @@
             <p class="body">已保留與待賣家回覆的預約集中於「我的預約」，可直接購買已保留的書籍，或取消預約。</p>
           </article>
         </div>
-        <figure class="still"><img src="/screens/chat_room-s.webp" alt="App 聊天室畫面，訊息下方顯示防詐提醒" loading="lazy"></figure>
+        <figure class="still"><img src="/screens/chat_room-s.webp" alt="App 聊天室畫面，訊息下方顯示防詐提醒" width="393" height="852" loading="lazy"></figure>
         <p class="folio">p. 5</p>
       </div>
     </section>
@@ -246,7 +246,7 @@
           <p class="notice__title">書籍已存入書櫃</p>
           <p class="notice__body">訂單 ODNMX0225 的書籍已存入「圖書館大廳」書櫃，請於營業時間內至書櫃以 App 掃描 QR Code 取書。</p>
         </div>
-        <figure class="still"><img src="/screens/cabinet_match-s.webp" alt="App 輸入書櫃比對數字的畫面" loading="lazy"></figure>
+        <figure class="still"><img src="/screens/cabinet_match-s.webp" alt="App 輸入書櫃比對數字的畫面" width="393" height="852" loading="lazy"></figure>
         <p class="folio">p. 6</p>
       </div>
     </section>
@@ -285,7 +285,7 @@
           <span class="coin" aria-hidden="true"><b>280</b><i>代幣</i></span>
           <span class="escrow__gain" aria-hidden="true">+280 代幣</span>
         </div>
-        <figure class="still"><img src="/screens/pay_verify-s.webp" alt="App 付款前輸入交易密碼的畫面" loading="lazy"></figure>
+        <figure class="still"><img src="/screens/pay_verify-s.webp" alt="App 付款前輸入交易密碼的畫面" width="393" height="852" loading="lazy"></figure>
         <p class="folio">p. 7</p>
       </div>
     </section>
@@ -322,7 +322,7 @@
       <div class="stage">
         <header class="runhead"><span>第八章</span><span>全部匯集</span></header>
         <div class="orbit" aria-label="七項 AI 功能">
-          <div class="orbit__core"><img src="/apple-touch-icon.png" alt="" width="96" height="96"></div>
+          <div class="orbit__core"><img src="/icon-512.png" alt="" width="512" height="512"></div>
           <ol class="orbit__ring"></ol>
           <div class="rings" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
@@ -345,7 +345,7 @@
           <article class="beat beat--wide" data-beat="3">
             <p class="eyebrow">開發成果</p>
             <h2 class="h-scene">完整實作，逐項驗證</h2>
-            <p class="body">後端 10 組測試群組與 App 測試全數通過。</p>
+            <p class="body">後端 11 組測試群組與 App 測試全數通過。</p>
           </article>
         </div>
         <div class="arch" aria-label="系統架構">
@@ -363,9 +363,9 @@
           </ul>
         </div>
         <dl class="stats">
-          <div><dt><span class="count" data-to="296">296</span></dt><dd>個 API 端點<small>RESTful API</small></dd></div>
-          <div><dt><span class="count" data-to="1536" data-sep="1">1,536</span></dt><dd>項後端測試<small>10 組測試群組全數通過</small></dd></div>
-          <div><dt><span class="count" data-to="2563" data-sep="1">2,563</span></dt><dd>項 App 測試<small>49 個測試檔全數通過</small></dd></div>
+          <div><dt><span class="count" data-to="300">300</span></dt><dd>個 API 端點<small>RESTful API</small></dd></div>
+          <div><dt><span class="count" data-to="1557" data-sep="1">1,557</span></dt><dd>項後端測試<small>11 組測試群組全數通過</small></dd></div>
+          <div><dt><span class="count" data-to="2570" data-sep="1">2,570</span></dt><dd>項 App 測試<small>50 個測試檔全數通過</small></dd></div>
           <div><dt><span class="count" data-to="5">5</span></dt><dd>種介面語言<small>繁中・簡中・英・日・韓</small></dd></div>
         </dl>
         <p class="folio">p. 9</p>
@@ -391,7 +391,7 @@
     </section>
   </main>
 
-  <dialog class="film" aria-label="介紹影片">
+  <dialog class="film" aria-label="介紹影片" data-lenis-prevent>
     <div class="film__frame">
       <video controls playsinline preload="none" poster="/media/intro-poster.webp">
         <source src="/media/intro.mp4" type="video/mp4">

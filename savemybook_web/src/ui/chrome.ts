@@ -9,7 +9,7 @@ export function chapters(): Chapter[] {
 
 type Jump = (id: string) => void;
 
-export function buildChrome(list: Chapter[], jump: Jump) {
+export function buildChrome(list: Chapter[], jump: Jump, hold: (on: boolean) => void) {
   const edge = document.querySelector('.fore-edge ol')!;
   const toc = document.querySelector<HTMLElement>('.toc')!;
   const tocList = toc.querySelector('.toc__list')!;
@@ -30,6 +30,7 @@ export function buildChrome(list: Chapter[], jump: Jump) {
     toc.classList.remove('is-closing');
     button.setAttribute('aria-expanded', 'true');
     document.documentElement.classList.add('toc-open');
+    hold(true);
     (toc.querySelector('[aria-current="true"]') as HTMLElement | null ?? toc.querySelector('a'))?.focus();
   };
   const close = (restore = true) => {
@@ -37,6 +38,7 @@ export function buildChrome(list: Chapter[], jump: Jump) {
     toc.classList.add('is-closing');
     button.setAttribute('aria-expanded', 'false');
     document.documentElement.classList.remove('toc-open');
+    hold(false);
     setTimeout(() => { toc.hidden = true; toc.classList.remove('is-closing'); }, 380);
     if (restore) button.focus();
   };
@@ -143,15 +145,16 @@ export function magnetic() {
   });
 }
 
-export function filmDialog() {
+export function filmDialog(hold: (on: boolean) => void) {
   const dialog = document.querySelector<HTMLDialogElement>('.film')!;
   const video = dialog.querySelector('video')!;
   document.querySelector('.film-button')!.addEventListener('click', () => {
     dialog.showModal();
+    hold(true);
     video.play().catch(() => {});
   });
   const close = () => { video.pause(); dialog.close(); };
   dialog.querySelector('.film__close')!.addEventListener('click', close);
   dialog.addEventListener('click', (e) => { if (e.target === dialog) close(); });
-  dialog.addEventListener('close', () => video.pause());
+  dialog.addEventListener('close', () => { video.pause(); hold(false); });
 }

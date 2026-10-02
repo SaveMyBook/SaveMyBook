@@ -1,5 +1,5 @@
 // 沿各章節進度逐格截圖並拼成總覽，供人工逐張檢查版面。
-// 用法：node scripts/shoot.mjs [網址] [寬度...]，預設 http://127.0.0.1:5280/、1440 與 390。
+// 用法：node scripts/shoot.mjs [網址] [寬度或寬x高...]，預設 http://127.0.0.1:5280/、1440 與 390。
 import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -12,8 +12,11 @@ const require = createRequire(import.meta.url);
 const puppeteer = require(resolve(web, '../presentation/介紹動畫/src/node_modules/puppeteer'));
 
 const url = process.argv[2] || 'http://127.0.0.1:5280/';
-const widths = process.argv.slice(3).map(Number).filter(Boolean);
-const sizes = (widths.length ? widths : [1440, 390]).map((w) => (w < 700 ? { w, h: 844, mobile: true } : { w, h: 900, mobile: false }));
+const specs = process.argv.slice(3).filter(Boolean);
+const sizes = (specs.length ? specs : ['1440', '390']).map((spec) => {
+  const [w, h] = spec.split('x').map(Number);
+  return w < 700 ? { w, h: h || 844, mobile: true } : { w, h: h || 900, mobile: false };
+});
 const out = join(web, '.shots');
 mkdirSync(out, { recursive: true });
 
@@ -48,7 +51,7 @@ for (const size of sizes) {
         await page.evaluate((i, k) => window.__go(i, k), id, p);
       }
       await new Promise((r) => setTimeout(r, 900));
-      const f = join(out, `${size.w}-${id}-${String(p).replace('.', '_')}.png`);
+      const f = join(out, `${size.w}x${size.h}-${id}-${String(p).replace('.', '_')}.png`);
       await page.screenshot({ path: f });
       files.push({ f, label: `${id} ${p}` });
     }
@@ -66,7 +69,7 @@ for (const size of sizes) {
     return { input: tile, left: (i % cols) * (tw + 6), top: Math.floor(i / cols) * (th + 6) };
   }));
   await sharp({ create: { width: cols * (tw + 6), height: rows * (th + 6), channels: 3, background: '#222' } })
-    .composite(tiles).png().toFile(join(out, `sheet-${size.w}.png`));
+    .composite(tiles).png().toFile(join(out, `sheet-${size.w}x${size.h}.png`));
   console.log('sheet', size.w, files.length);
 }
 await browser.close();

@@ -7,7 +7,6 @@ import { Cabinet } from './three/cabinet';
 import { screenTexture, type KioskState } from './three/textures';
 import { keyframes, span, beatAt, clamp, lerp, easeOut, type Frame, type Pose } from './lib/kf';
 import { chapters, buildChrome, splitLines, revealOnView, magnetic, filmDialog, countUp, type Chapter } from './ui/chrome';
-import { SHELF, AI_FEATURES } from './data/content';
 
 /* ---------------- 共用 ---------------- */
 
@@ -24,32 +23,29 @@ function webglOK() {
   } catch { return false; }
 }
 
-function buildShelf() {
-  const row = $('.shelf__row');
-  row.innerHTML = SHELF.map((b) => `
-    <li class="book" style="--c:${b.color};--w:${b.w}px;--h:${b.h}px;${b.text ? `--t:${b.text};` : ''}${b.band ? `--band:${b.band};` : ''}" tabindex="0">
-      <div class="book__cover"><p class="book__title">${b.title}</p><p class="book__author">${b.author}</p></div>
-      <p class="book__note"><b>推薦理由</b>${b.reason}</p>
-    </li>`).join('');
-}
-
-function buildOrbit() {
-  $('.orbit__ring').innerHTML = AI_FEATURES.map((f) => `<li><span class="ico">${f.icon}</span><b>${f.name}</b><small>${f.note}</small></li>`).join('');
+/** 只在值改變時寫入 style，避免每格重複觸發樣式計算。 */
+const styleCache = new WeakMap<HTMLElement, Record<string, string>>();
+function css(el: HTMLElement, prop: string, value: string) {
+  let cache = styleCache.get(el);
+  if (!cache) styleCache.set(el, (cache = {}));
+  if (cache[prop] === value) return;
+  cache[prop] = value;
+  el.style.setProperty(prop, value);
 }
 
 /** 系統架構圖連線：依節點實際位置畫在 SVG 上。 */
-function drawWires() {
+function drawWires(): { path: SVGPathElement; len: number; dash: boolean }[] {
   const arch = $('.arch');
   const svg = $<SVGSVGElement>('.arch__wires');
   const box = arch.getBoundingClientRect();
-  if (!box.width) return [] as SVGPathElement[];
+  if (!box.width) return [];
   const at = (n: string) => {
     const r = $(`.arch__nodes [data-n="${n}"]`).getBoundingClientRect();
     return { x: (r.left + r.width / 2 - box.left) / box.width * 1000, y: (r.top + r.height / 2 - box.top) / box.height * 560, visible: r.width > 0 };
   };
   const links: [string, string, boolean?][] = [['app', 'edge'], ['cab', 'edge'], ['edge', 'api'], ['edge', 'io'], ['api', 'db'], ['io', 'db'], ['api', 'ai', true], ['io', 'fb', true]];
   svg.innerHTML = '';
-  const paths: SVGPathElement[] = [];
+  const paths: { path: SVGPathElement; len: number; dash: boolean }[] = [];
   for (const [a, b, dash] of links) {
     const p = at(a), q = at(b);
     if (!p.visible || !q.visible) continue;
@@ -58,7 +54,7 @@ function drawWires() {
     path.setAttribute('d', `M${p.x},${p.y} C${mx},${p.y} ${mx},${q.y} ${q.x},${q.y}`);
     if (dash) path.setAttribute('class', 'dash');
     svg.append(path);
-    paths.push(path);
+    paths.push({ path, len: path.getTotalLength(), dash: !!dash });
   }
   return paths;
 }
@@ -70,10 +66,22 @@ function stillMode(list: Chapter[], chrome: ReturnType<typeof buildChrome>) {
     for (const en of entries) if (en.isIntersecting) chrome.setCurrent(list.findIndex((c) => c.el === en.target));
   }, { rootMargin: '-45% 0px -50% 0px' });
   list.forEach((c) => io.observe(c.el));
+  // 刊頭底色跟著目前位於刊頭下方的章節
+  const root = document.documentElement;
+  let raf = 0;
+  const tone = () => {
+    raf = 0;
+    const under = list.find((c) => { const r = c.el.getBoundingClientRect(); return r.top <= 32 && r.bottom > 32; });
+    const dark = !!under && (under.id === 'cover' || under.id === 'end');
+    root.dataset.tone = dark ? 'dark' : 'light';
+    root.style.setProperty('--bg', dark ? '#627D8D' : '#F3F5F7');
+  };
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tone); }, { passive: true });
+  tone();
   $$('.count').forEach((c) => countUp(c, 1));
   $$('.reveal, .reveal-lines, .fee').forEach((el) => el.classList.add('is-in'));
   $$('.beat').forEach((b) => b.classList.add('is-on'));
-  requestAnimationFrame(() => drawWires());
+  requestAnimationFrame(() => drawWires().forEach(({ path, dash }) => { if (dash) path.style.strokeDasharray = '3 5'; }));
 }
 
 /* ---------------- App 畫面與浮出卡片 ---------------- */
@@ -111,8 +119,6 @@ export function boot() {
   const root = document.documentElement;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   splitLines();
-  buildShelf();
-  buildOrbit();
   const list = chapters();
   const motion = !reduce && webglOK();
   root.classList.add(motion ? 'motion' : 'still-mode');
@@ -123,18 +129,22 @@ export function boot() {
     if (lenis) lenis.scrollTo(el, { duration: 1.6, easing: (t) => 1 - Math.pow(1 - t, 4) });
     else el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
   };
-  const chrome = buildChrome(list, jump);
+  // 目錄與影片開啟時停住背景捲動
+  const hold = (on: boolean) => { if (on) lenis?.stop(); else lenis?.start(); };
+  const chrome = buildChrome(list, jump, hold);
   revealOnView();
   magnetic();
-  filmDialog();
+  filmDialog(hold);
   if (!motion) { stillMode(list, chrome); return; }
 
-  lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.95, touchMultiplier: 1.1 });
+  lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 0.9, touchMultiplier: 1.1 });
   const backdrop = document.createElement('div');
   backdrop.className = 'backdrop';
   document.body.prepend(backdrop);
 
   const stage = new Stage($<HTMLCanvasElement>('#gl'));
+  // Lenis 預設不自行推進，未呼叫 raf 時滾輪事件會被攔下而無法捲動
+  stage.onFrame((t) => lenis!.raf(t * 1000));
   const phone = new Phone();
   const book = new Book();
   const cabinet = new Cabinet();
@@ -146,19 +156,43 @@ export function boot() {
   const want = (name: string) => {
     if (!textures.has(name)) {
       textures.set(name, null as unknown as THREE.Texture);
-      screenTexture(name, small).then((t) => textures.set(name, t)).catch(() => {});
+      screenTexture(name, small).then((t) => {
+        // 先上傳到 GPU，避免畫面第一次出現時才上傳而頓一下
+        stage.renderer.initTexture(t);
+        textures.set(name, t);
+      }).catch(() => {});
     }
     return textures.get(name) || null;
   };
   want('home');
   setTimeout(() => SCREENS.forEach(want), 600);
   for (const [id, def] of Object.entries(POPS)) phone.addPop(id, def.rect);
+  // 著色器要到第一次實際繪製才完成連結，會讓手機與書櫃首次出現時頓一下：載入時先以 1 像素的剪裁區把所有物件畫一次
+  const warm = () => {
+    const r = stage.renderer;
+    const cards = [...phone.pops.values()];
+    cards.forEach((c) => { c.group.visible = true; });
+    for (const g of [phone.group, book.group, cabinet.group]) { g.visible = true; g.position.set(0, 0, 0); }
+    r.setScissorTest(true);
+    r.setScissor(0, 0, 1, 1);
+    r.render(stage.scene, stage.camera);
+    r.setScissorTest(false);
+    cards.forEach((c) => { c.group.visible = false; });
+  };
+  stage.renderer.compileAsync(stage.scene, stage.camera).catch(() => {}).finally(warm);
 
   /* ---- 量測 ---- */
   let vh = innerHeight;
   const metric = new Map<string, { top: number; height: number }>();
   let stops: number[] = [];
-  let wirePaths: SVGPathElement[] = [];
+  let wirePaths: ReturnType<typeof drawWires> = [];
+  let shelfW = 0;
+  let bookCenters: number[] = [];
+  let nodePts: { x: number; y: number }[] = [];
+  const labelSize = new Map<HTMLElement, { w: number; h: number }>();
+  let noticeW = 300;
+  let coinSize = 64;
+  let togetherTextRight = 0;
   const measure = () => {
     vh = innerHeight;
     for (const c of list) {
@@ -176,8 +210,19 @@ export function boot() {
     }
     stops.sort((a, b) => a - b);
     wirePaths = drawWires();
+    shelfW = shelfRow.scrollWidth;
+    bookCenters = shelfBooks.map((b) => b.offsetLeft + b.offsetWidth / 2);
+    const e = escrow.getBoundingClientRect();
+    nodePts = nodes.map((n) => {
+      const r = n.getBoundingClientRect();
+      const ring = parseFloat(getComputedStyle(n, '::before').height) || 76;
+      return { x: r.left - e.left + r.width / 2, y: r.top - e.top + ring / 2 };
+    });
+    labels.forEach((li) => labelSize.set(li, { w: li.offsetWidth, h: li.offsetHeight }));
+    noticeW = notice.offsetWidth;
+    coinSize = coin.offsetWidth;
+    togetherTextRight = $('.ch-together .beat').getBoundingClientRect().right;
   };
-  measure();
   addEventListener('resize', () => { measure(); lenis!.resize(); });
   // 檢查用：直接跳到某章節的指定進度（截圖腳本使用）
   (window as unknown as { __go: (id: string, p: number) => void }).__go = (id: string, p: number) => {
@@ -185,8 +230,6 @@ export function boot() {
     const target = m.top + p * Math.max(0, m.height - vh);
     lenis!.scrollTo(target, { immediate: true, force: true });
   };
-  document.fonts?.ready.then(measure);
-  addEventListener('load', measure);
 
   const sticky = (id: string, y: number) => {
     const m = metric.get(id)!;
@@ -248,9 +291,16 @@ export function boot() {
   const beatsOf = (id: string) => $$('.beat', document.getElementById(id)!);
   const beats: Record<string, HTMLElement[]> = {};
   for (const id of ['listing', 'discover', 'chat', 'cabinet', 'payment', 'together']) beats[id] = beatsOf(id);
-  const setBeat = (id: string, i: number) => beats[id].forEach((b, k) => b.classList.toggle('is-on', k === i));
+  const current: Record<string, number> = {};
+  const setBeat = (id: string, i: number) => {
+    if (current[id] === i) return;
+    current[id] = i;
+    beats[id].forEach((b, k) => {
+      b.classList.toggle('is-on', k === i);
+      b.classList.toggle('is-past', k < i);
+    });
+  };
   const coverText = $('.cover__text');
-  const coverSpine = $('.cover__spine');
   const coverTurn = $('.cover__turn');
   const shelfBooks = $$('.book', shelfRow);
   const labels = $$('.xray-labels li');
@@ -279,13 +329,24 @@ export function boot() {
   const stats = $('.stats');
   const endMark = $('.end__mark');
   endMark.style.visibility = 'hidden';
+  const endStage = $('.ch-end .stage');
   let statsCounted = false;
+
+  measure();
+  document.fonts?.ready.then(measure);
+  addEventListener('load', measure);
 
   // 開場：書本攤開、書名落定
   const intro = { open: 0, t0: 0 };
-  document.fonts?.ready.then(() => {
-    $('.ch-cover .stage').classList.add('is-ready');
+  const titleFonts = document.fonts
+    ? Promise.all([
+      document.fonts.load('900 1em "Noto Serif TC"', '救「舊」我的書'),
+      document.fonts.load('400 1em "Noto Sans TC"', '結合智慧書櫃的二手書交易平台掃碼存取款項暫管輔助'),
+    ])
+    : Promise.resolve();
+  Promise.race([titleFonts, new Promise((r) => setTimeout(r, 1200))]).finally(() => {
     $$('.ch-char').forEach((c, i) => c.style.setProperty('--i', String(i)));
+    $('.ch-cover .stage').classList.add('is-ready');
     intro.t0 = performance.now();
   });
 
@@ -293,10 +354,12 @@ export function boot() {
   const v2 = new THREE.Vector2();
   const project = (obj: THREE.Object3D) => stage.toScreen(obj.getWorldPosition(v3), v2.clone());
 
+  // 位置依畫面寬度、大小依高度：比 16:10 方的寬版畫面要等比縮小物件，才不會壓到文字欄
+  const fit = () => (stage.narrow ? 1 : clamp(stage.width / stage.height / 1.6, 0.6, 1));
   const place = (obj: THREE.Object3D, p: Pose) => {
     obj.position.set((p.x ?? 0) * stage.halfW, (p.y ?? 0) * stage.halfH, p.z ?? 0);
     obj.rotation.set(p.rx ?? 0, p.ry ?? 0, p.rz ?? 0);
-    obj.scale.setScalar(p.s ?? 1);
+    obj.scale.setScalar((p.s ?? 1) * fit());
   };
 
   /* ---------------- 各章節 ---------------- */
@@ -320,10 +383,9 @@ export function boot() {
     const sink = span(p, 0.4, 0.8);
     const base: Pose = N() ? { x: 0, y: 0.2, z: 0, rx: -0.98, ry: 0, rz: 0.06, s: 0.62 } : { x: 0.07, y: 0.12, z: 0, rx: -0.98, ry: 0, rz: 0.1, s: 1 };
     bookPose = { ...base, y: base.y - sink * 1.5, rx: base.rx - sink * 0.3, s: base.s * (1 - sink * 0.15) };
-    coverText.style.opacity = String(1 - span(p, 0.22, 0.42));
-    coverText.style.transform = `translateY(${-span(p, 0.22, 0.5) * 60}px)`;
-    coverSpine.style.opacity = String(1 - span(p, 0.15, 0.35));
-    coverTurn.style.opacity = String(1 - span(p, 0.02, 0.08));
+    css(coverText, 'opacity', (1 - span(p, 0.22, 0.42)).toFixed(3));
+    css(coverText, 'transform', `translateY(${(-span(p, 0.22, 0.5) * 60).toFixed(1)}px)`);
+    css(coverTurn, 'opacity', (1 - span(p, 0.02, 0.08)).toFixed(3));
     const rise = span(p, 0.38, 0.92);
     if (rise > 0) {
       const end = coverEnd();
@@ -357,25 +419,23 @@ export function boot() {
 
   function discover(p: number) {
     const move = span(p, 0.03, 0.5);
-    const rowW = shelfRow.scrollWidth;
-    const minX = Math.min(0, innerWidth - rowW);
+    const minX = Math.min(0, innerWidth - shelfW);
     if (!drag.active) { drag.offset += drag.v; drag.v *= 0.92; }
     const base = minX * move;
     drag.offset = clamp(drag.offset, minX - base, -base);
     const x = base + drag.offset;
     const out = span(p, 0.5, 0.58);
-    shelfRow.style.transform = `translate3d(${x}px, 0, 0)`;
-    shelf.style.opacity = String(1 - out);
-    shelf.style.transform = `translateY(${out * 30}vh)`;
-    shelf.style.visibility = out >= 1 ? 'hidden' : 'visible';
+    css(shelfRow, 'transform', `translate3d(${x.toFixed(1)}px, 0, 0)`);
+    css(shelf, 'opacity', (1 - out).toFixed(3));
+    css(shelf, 'transform', `translateY(${(out * 30).toFixed(2)}vh)`);
+    css(shelf, 'visibility', out >= 1 ? 'hidden' : 'visible');
     const mid = innerWidth / 2;
-    let best: HTMLElement | null = null, dist = Infinity;
-    for (const b of shelfBooks) {
-      const r = b.getBoundingClientRect();
-      const d = Math.abs(r.left + r.width / 2 - mid);
-      if (d < dist) { dist = d; best = b; }
-    }
-    shelfBooks.forEach((b) => b.classList.toggle('is-noted', b === best && p > 0.04 && p < 0.5));
+    let best = -1, dist = Infinity;
+    bookCenters.forEach((c, i) => {
+      const d = Math.abs(x + c - mid);
+      if (d < dist) { dist = d; best = i; }
+    });
+    shelfBooks.forEach((b, i) => b.classList.toggle('is-noted', i === best && p > 0.04 && p < 0.5));
     const wide: Frame[] = [[0, { x: 0.42, y: -1.8, z: 0, rx: 0.2, ry: -0.5, rz: 0.08, s: 1.22 }], [0.5, {}], [0.6, { y: -0.02, rx: 0.05, ry: -0.36, rz: 0.02 }], [0.88, { ry: -0.3 }], [1, { x: -0.38, ry: 0.36, rz: -0.02 }]];
     const narrow: Frame[] = [[0, { x: 0, y: -1.8, z: 0, rx: 0.2, ry: -0.3, rz: 0, s: 0.95 }], [0.5, {}], [0.6, { y: -0.42, rx: 0.04, ry: -0.2 }], [0.9, {}], [1, { ry: 0.2 }]];
     if (p > 0.48) {
@@ -401,7 +461,7 @@ export function boot() {
 
   let kioskState: KioskState = 'qr';
   function cabinetScene(p: number, t: number) {
-    const cw: Frame[] = [[0, { x: 0.12, y: -1.9, z: 0, rx: 0.12, ry: 0.72, rz: 0, s: 1.55 }], [0.08, { y: -0.04, rx: 0.06, ry: 0.42 }], [0.3, { ry: 0.16 }], [0.36, { x: -0.02, ry: 0.24, s: 1.42 }], [0.92, {}], [1, { x: -0.1, y: -1.9 }]];
+    const cw: Frame[] = [[0, { x: 0.12, y: -1.9, z: 0, rx: 0.12, ry: 0.72, rz: 0, s: 1.55 }], [0.08, { y: -0.04, rx: 0.06, ry: 0.42 }], [0.3, { ry: 0.16 }], [0.36, { x: 0.04, ry: 0.24, s: 1.42 }], [0.92, {}], [1, { x: -0.04, y: -1.9 }]];
     const cn: Frame[] = [[0, { x: 0, y: -1.9, z: 0, rx: 0.1, ry: 0.6, rz: 0, s: 0.8 }], [0.08, { y: -0.34, ry: 0.36 }], [0.11, { x: -0.44, ry: 0.22, s: 0.72 }], [0.3, { ry: 0.14 }], [0.36, { x: -0.4, y: -0.36, ry: 0.22, s: 0.6 }], [0.92, {}], [1, { y: -1.9 }]];
     cabinetPose = keyframes(p, N() ? cn : cw);
     const xray = span(p, 0.1, 0.16) * (1 - span(p, 0.25, 0.3));
@@ -432,24 +492,18 @@ export function boot() {
     const toHold = span(k, 0.06, 0.3);
     const toSeller = span(k, 0.72, 0.95);
     const out = span(p, 0.48, 0.55);
-    escrow.style.opacity = String(1 - out);
-    escrow.style.visibility = out >= 1 ? 'hidden' : 'visible';
-    escrow.style.translate = `${out * 40}px 0`;
-    const pts = nodes.map((n) => {
-      const r = n.getBoundingClientRect();
-      const e = escrow.getBoundingClientRect();
-      const d = n.querySelector<HTMLElement>('b')!;
-      const top = r.top - e.top;
-      return { x: r.left - e.left + r.width / 2, y: top + (parseFloat(getComputedStyle(n, '::before').height) || 54) / 2, h: d };
-    });
+    css(escrow, 'opacity', (1 - out).toFixed(3));
+    css(escrow, 'visibility', out >= 1 ? 'hidden' : 'visible');
+    css(escrow, 'translate', `${(out * 40).toFixed(1)}px 0`);
+    const pts = nodePts;
     if (pts.length === 3) {
       const a = toSeller > 0 ? pts[1] : pts[0];
       const b = toSeller > 0 ? pts[2] : pts[1];
       const m = toSeller > 0 ? toSeller : toHold;
       const cx = lerp(a.x, b.x, easeOut(m));
       const cy = lerp(a.y, b.y, m) - Math.sin(Math.PI * m) * 46;
-      const size = coin.offsetWidth;
-      coin.style.transform = `translate(${cx - size / 2}px, ${cy - size / 2}px)`;
+      const size = coinSize;
+      css(coin, 'transform', `translate(${(cx - size / 2).toFixed(1)}px, ${(cy - size / 2).toFixed(1)}px)`);
     }
     nodes.forEach((n, i) => n.classList.toggle('is-hot', (i === 0 && toHold < 1) || (i === 1 && toHold >= 1 && toSeller <= 0) || (i === 2 && toSeller >= 1)));
     const done = [0.18, 0.4, 0.52, 0.64, 0.95];
@@ -466,13 +520,15 @@ export function boot() {
 
   function together(p: number) {
     const w = innerWidth, h = innerHeight;
-    const cx = N() ? w / 2 : w * 0.685;
+    // 寬版時環繞範圍不可越過左側文字欄
+    const rx = N() ? w * 0.3 : Math.max(120, Math.min(w * 0.22, 400, (w - 140 - togetherTextRight - 100) / 2));
+    const cx = N() ? w / 2 : Math.max(w * 0.685, togetherTextRight + rx + 100);
     const cy = N() ? h * 0.66 : h * 0.54;
-    const rx = N() ? w * 0.3 : Math.min(w * 0.22, 400);
-    const ry = rx * (N() ? 0.62 : 0.62);
+    const ry = rx * 0.62;
+    orbit.classList.toggle('is-compact', !N() && rx < 260);
     const gather = span(p, 0.26, 0.38);
     const visible = p < 0.46;
-    orbit.style.visibility = visible ? 'visible' : 'hidden';
+    css(orbit, 'visibility', visible ? 'visible' : 'hidden');
     const spin = p * Math.PI * 1.4;
     orbitItems.forEach((li, i) => {
       const a = spin + (i / orbitItems.length) * Math.PI * 2;
@@ -481,27 +537,27 @@ export function boot() {
       const x = cx + Math.cos(a) * rx * r - w / 2;
       const y = cy + Math.sin(a) * ry * r - h / 2;
       const s = (0.86 + depth * 0.3) * (1 - gather * 0.6);
-      li.style.transform = `translate(${x}px, ${y - 40}px) scale(${s})`;
-      li.style.opacity = String((0.62 + depth * 0.38) * (1 - gather) * span(p, 0, 0.05));
-      li.style.zIndex = String(Math.round(depth * 10));
+      const fade = Math.pow(1 - span(gather, 0, 0.7), 2);
+      css(li, 'transform', `translate(${x.toFixed(1)}px, ${(y - 40).toFixed(1)}px) scale(${s.toFixed(3)})`);
+      css(li, 'opacity', ((0.62 + depth * 0.38) * fade * span(p, 0, 0.05)).toFixed(3));
+      css(li, 'z-index', String(Math.round(depth * 10)));
       li.classList.toggle('is-front', Math.sin(a) > Math.sin(Math.PI / 2 - Math.PI / orbitItems.length));
     });
     const coreS = 1 + easeOut(span(p, 0.28, 0.4)) * (N() ? 1.1 : 1.6);
-    core.style.transform = `translate(${cx - w / 2}px, ${cy - h / 2}px) scale(${coreS})`;
-    core.style.opacity = String(span(p, 0, 0.05) * (1 - span(p, 0.33, 0.39)));
+    css(core, 'transform', `translate(${(cx - w / 2).toFixed(1)}px, ${(cy - h / 2).toFixed(1)}px) scale(${coreS.toFixed(3)})`);
+    css(core, 'opacity', (span(p, 0, 0.05) * (1 - span(p, 0.33, 0.39))).toFixed(3));
     rings.forEach((r, i) => {
       const k = span(p, 0.3 + i * 0.018, 0.46 + i * 0.018);
-      r.style.transform = `translate(${cx - w / 2}px, ${cy - h / 2}px) scale(${0.25 + k * k * 6})`;
-      r.style.opacity = String(Math.sin(Math.PI * k) * 0.9);
+      css(r, 'transform', `translate(${(cx - w / 2).toFixed(1)}px, ${(cy - h / 2).toFixed(1)}px) scale(${(0.25 + k * k * 6).toFixed(3)})`);
+      css(r, 'opacity', (Math.sin(Math.PI * k) * 0.9).toFixed(3));
     });
     const archOn = p >= 0.5 && p < 0.76;
     arch.classList.toggle('is-on', archOn);
     const draw = span(p, 0.52, 0.62);
-    for (const path of wirePaths) {
-      const len = path.getTotalLength();
-      path.style.strokeDasharray = path.classList.contains('dash') ? '3 5' : `${len}`;
-      path.style.strokeDashoffset = path.classList.contains('dash') ? '0' : `${len * (1 - draw)}`;
-      path.style.opacity = path.classList.contains('dash') ? String(draw) : '1';
+    for (const { path, len, dash } of wirePaths) {
+      css(path as unknown as HTMLElement, 'stroke-dasharray', dash ? '3 5' : `${len}`);
+      css(path as unknown as HTMLElement, 'stroke-dashoffset', dash ? '0' : (len * (1 - draw)).toFixed(1));
+      css(path as unknown as HTMLElement, 'opacity', dash ? draw.toFixed(3) : '1');
     }
     const statsOn = p >= 0.76;
     stats.classList.toggle('is-on', statsOn);
@@ -538,12 +594,12 @@ export function boot() {
 
     // 背景色：封面與終章為石板藍
     const slate = Math.max(1 - span(pc, 0.5, 0.8), span(qEnd, 0.25, 0.5));
-    const col = PAPER.clone().lerp(SLATE, slate);
-    const css = `#${col.getHexString()}`;
-    backdrop.style.backgroundColor = css;
-    document.body.style.backgroundColor = css;
-    root.style.setProperty('--bg', css);
-    root.dataset.tone = slate > 0.5 ? 'dark' : 'light';
+    const bg = `#${PAPER.clone().lerp(SLATE, slate).getHexString()}`;
+    css(backdrop, 'background-color', bg);
+    css(document.body, 'background-color', bg);
+    css(root, '--bg', bg);
+    const tone = slate > 0.5 ? 'dark' : 'light';
+    if (root.dataset.tone !== tone) root.dataset.tone = tone;
 
     const id = list[idx].id;
     const inRange = (key: string) => {
@@ -597,7 +653,8 @@ export function boot() {
       cabinet.group.position.y += Math.sin(t * 0.8) * 0.06;
     }
     updateCabinetDom(cab);
-    updateBookEnd(pEnd, qEnd);
+    updateBookEnd(qEnd);
+    stage.active = phone.group.visible || book.group.visible || cabinet.group.visible;
   });
 
   /* ---------------- 書櫃章節的 DOM ---------------- */
@@ -611,30 +668,30 @@ export function boot() {
     for (const li of labels) {
       const key = li.dataset.part!;
       const anchor = cabinet.anchors[key];
-      if (!showLabels || !anchor) { li.style.opacity = '0'; continue; }
+      if (!showLabels || !anchor) { css(li, 'opacity', '0'); continue; }
       const a = project(anchor);
       const left = !N() && a.x < center.x;
       const edgeX = left ? center.x - halfPx - 26 : center.x + halfPx + 26;
       li.classList.toggle('is-left', left);
-      placed.push({ li, left, x: left ? edgeX - li.offsetWidth : edgeX, y: a.y - 10, ax: a.x, edgeX });
+      placed.push({ li, left, x: left ? edgeX - (labelSize.get(li)?.w ?? 0) : edgeX, y: a.y - 10, ax: a.x, edgeX });
     }
     // 同側標註依高度排序後往下推開，避免重疊
     for (const side of [true, false]) {
       const group = placed.filter((q) => q.left === side).sort((a, b) => a.y - b.y);
       for (let i = 1; i < group.length; i++) {
         const prev = group[i - 1];
-        group[i].y = Math.max(group[i].y, prev.y + prev.li.offsetHeight + 8);
+        group[i].y = Math.max(group[i].y, prev.y + (labelSize.get(prev.li)?.h ?? 0) + 8);
       }
     }
     for (const q of placed) {
-      q.li.style.transform = `translate(${q.x}px, ${q.y}px)`;
-      q.li.style.setProperty('--lead', `${Math.max(8, Math.abs(q.edgeX - q.ax))}px`);
-      q.li.style.opacity = String(span(cab.xray, 0.6, 1));
+      css(q.li, 'transform', `translate(${q.x.toFixed(1)}px, ${q.y.toFixed(1)}px)`);
+      css(q.li, '--lead', `${Math.max(8, Math.abs(q.edgeX - q.ax)).toFixed(1)}px`);
+      css(q.li, 'opacity', span(cab.xray, 0.6, 1).toFixed(3));
     }
     // 比對數字飛進手機：兩個數字各自飛向對應的輸入格
     const flying = cabinet.group.visible && phone.group.visible && cab.fly > 0 && cab.fly < 1;
     flyers.forEach((el, i) => {
-      if (!flying) { el.style.opacity = '0'; return; }
+      if (!flying) { css(el, 'opacity', '0'); return; }
       const local = cabinet.anchors.digits.position.clone();
       local.x += (i === 0 ? -1 : 1) * 0.27;
       const from = stage.toScreen(cabinet.group.localToWorld(local), new THREE.Vector2());
@@ -644,10 +701,10 @@ export function boot() {
       const yy = lerp(from.y, to.y, k) - Math.sin(Math.PI * k) * 90;
       const fromSize = (0.9 * cabinet.group.scale.x) / (stage.halfH * 2) * innerHeight;
       const toSize = (30 * 6.61 / 393 * phone.group.scale.x) / (stage.halfH * 2) * innerHeight;
-      el.style.fontSize = `${lerp(fromSize, toSize, k)}px`;
-      el.style.color = `rgb(${lerp(238, 21, span(k, 0.18, 0.4)).toFixed(0)}, ${lerp(242, 30, span(k, 0.18, 0.4)).toFixed(0)}, ${lerp(245, 39, span(k, 0.18, 0.4)).toFixed(0)})`;
-      el.style.transform = `translate(${x}px, ${yy}px) translate(-50%, -50%)`;
-      el.style.opacity = String(span(cab.fly, 0, 0.06) * (1 - span(k, 0.9, 1)));
+      css(el, 'font-size', `${lerp(fromSize, toSize, k).toFixed(1)}px`);
+      css(el, 'color', `rgb(${lerp(238, 21, span(k, 0.18, 0.4)).toFixed(0)}, ${lerp(242, 30, span(k, 0.18, 0.4)).toFixed(0)}, ${lerp(245, 39, span(k, 0.18, 0.4)).toFixed(0)})`);
+      css(el, 'transform', `translate(${x.toFixed(1)}px, ${yy.toFixed(1)}px) translate(-50%, -50%)`);
+      css(el, 'opacity', (span(cab.fly, 0, 0.06) * (1 - span(k, 0.9, 1))).toFixed(3));
     });
     // A01 已開鎖
     if (cabinet.group.visible && cab.door > 0.3) {
@@ -660,15 +717,14 @@ export function boot() {
     const showNotice = phone.group.visible && pc > 0.85 && pc < 0.95;
     if (showNotice) {
       const top = stage.toScreen(phone.screenPoint(196, 64), new THREE.Vector2());
-      const w = notice.offsetWidth;
+      const w = noticeW;
       notice.style.left = `${clamp(top.x - w / 2, 12, innerWidth - w - 12)}px`;
       notice.style.top = `${top.y}px`;
     }
     notice.classList.toggle('is-on', showNotice);
   }
 
-  function updateBookEnd(p: number, q: number) {
-    $('.ch-end .stage').style.opacity = String(span(q, 0.3, 0.5));
-    void p;
+  function updateBookEnd(q: number) {
+    css(endStage, 'opacity', span(q, 0.3, 0.5).toFixed(3));
   }
 }

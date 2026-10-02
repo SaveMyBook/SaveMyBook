@@ -12,8 +12,15 @@ export class Stage {
   width = 1;
   height = 1;
   narrow = false;
+  /** 有物件在畫面上時才需要重繪；最後一次仍會清空畫面。 */
+  active = true;
+  private drawn = true;
   private tasks: ((t: number, dt: number) => void)[] = [];
   private last = performance.now();
+  // 持續掉格時逐步降低畫布解析度（只降不升，避免來回切換）
+  private dprCap = 1.75;
+  private slow = 0;
+  private sampled = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -45,11 +52,12 @@ export class Stage {
     this.width = innerWidth;
     this.height = innerHeight;
     this.narrow = this.width < 820 || this.width / this.height < 0.9;
-    const dpr = Math.min(devicePixelRatio || 1, this.narrow ? 1.6 : 2);
+    const dpr = Math.min(devicePixelRatio || 1, this.narrow ? 1.6 : 2, this.dprCap);
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(this.width, this.height, false);
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
+    this.drawn = true;
   }
 
   /** 鏡頭距離 z=0 平面上可見的半高與半寬（世界單位）。 */
@@ -59,10 +67,26 @@ export class Stage {
   onFrame(fn: (t: number, dt: number) => void) { this.tasks.push(fn); }
 
   private frame(now: number) {
-    const dt = Math.min(0.05, (now - this.last) / 1000);
+    const raw = now - this.last;
+    const dt = Math.min(0.05, raw / 1000);
     this.last = now;
+    if (this.active && document.visibilityState === 'visible' && raw < 250) this.adapt(raw);
     for (const fn of this.tasks) fn(now / 1000, dt);
+    if (!this.active && !this.drawn) return;
     this.renderer.render(this.scene, this.camera);
+    this.drawn = this.active;
+  }
+
+  private adapt(ms: number) {
+    this.sampled++;
+    if (ms > 24) this.slow++;
+    if (this.sampled < 90) return;
+    if (this.slow > 30 && this.renderer.getPixelRatio() > 1) {
+      this.dprCap = Math.max(1, this.renderer.getPixelRatio() - 0.25);
+      this.resize();
+    }
+    this.sampled = 0;
+    this.slow = 0;
   }
 
   /** 世界座標 → 視窗像素座標。 */

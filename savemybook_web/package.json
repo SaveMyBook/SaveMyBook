@@ -7,7 +7,8 @@
     "build": "node scripts/fonts.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "assets": "node scripts/prepare-assets.mjs",
-    "check": "node scripts/shoot.mjs"
+    "check": "node scripts/shoot.mjs",
+    "perf": "node scripts/perf.mjs"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +24,10 @@
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
+    "budoux": "^0.9.3",
+    "linkedom": "^0.18.13",
     "sharp": "^0.35.5",
+    "subset-font": "^2.9.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.2"
   },
