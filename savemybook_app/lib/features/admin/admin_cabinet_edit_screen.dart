@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
+import '../../models/transit.dart';
 import '../../services/api_service.dart';
+import '../../services/location_service.dart';
+import '../../utils/map_links.dart';
+import '../../utils/motion.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
@@ -11,6 +17,7 @@ import '../../widgets/guards.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import '../../widgets/responsive.dart';
+import '../cabinet/cabinet_guide_screen.dart' show mrtStationLabel, transitDistance;
 import 'admin_layout.dart';
 
 class AdminCabinetEditScreen extends StatefulWidget {
@@ -41,6 +48,14 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
   bool _dirty = false;
   Map<String, String> _errors = {};
 
+  bool _locating = false;
+  // 只有座標仍是「使用目前位置」填入的值時才顯示精確度，手動改過就不適用。
+  ({String lat, String lng, double accuracy})? _located;
+  Timer? _previewTimer;
+  String? _previewKey;
+  bool _previewLoading = false;
+  TransitResult<TransitNearby>? _preview;
+
   bool get _isEdit => widget.cabinet != null;
 
   @override
@@ -70,10 +85,14 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
     for (final controller in _all) {
       controller.addListener(_onChanged);
     }
+    _latController.addListener(_schedulePreview);
+    _lngController.addListener(_schedulePreview);
+    _schedulePreview(immediate: true);
   }
 
   @override
   void dispose() {
+    _previewTimer?.cancel();
     for (final controller in _all) {
       controller.dispose();
     }
@@ -135,6 +154,77 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
       }
     }
     return errors;
+  }
+
+  ({double lat, double lng})? get _coordinates {
+    final lat = double.tryParse(_latController.text.trim());
+    final lng = double.tryParse(_lngController.text.trim());
+    if (lat == null || lng == null || lat.abs() > 90 || lng.abs() > 180 || (lat == 0 && lng == 0)) return null;
+    return (lat: lat, lng: lng);
+  }
+
+  void _schedulePreview({bool immediate = false}) {
+    _previewTimer?.cancel();
+    final point = _coordinates;
+    if (point == null) {
+      if (_previewKey != null || _preview != null) {
+        setState(() {
+          _previewKey = null;
+          _preview = null;
+          _previewLoading = false;
+        });
+      }
+      return;
+    }
+    final key = '${point.lat},${point.lng}';
+    if (key == _previewKey) return;
+    _previewTimer = Timer(immediate ? Duration.zero : const Duration(milliseconds: 700), () => _loadPreview(point.lat, point.lng, key));
+  }
+
+  Future<void> _loadPreview(double lat, double lng, String key) async {
+    if (!mounted) return;
+    setState(() {
+      _previewKey = key;
+      _previewLoading = true;
+    });
+    final result = await _api.previewNearby(lat, lng);
+    if (!mounted || _previewKey != key) return;
+    setState(() {
+      _preview = result;
+      _previewLoading = false;
+    });
+  }
+
+  Future<void> _useCurrentLocation() async {
+    if (_locating) return;
+    FocusScope.of(context).unfocus();
+    HapticFeedback.selectionClick();
+    setState(() => _locating = true);
+    final location = await LocationService.fresh(
+      purposeKey: LocationService.setupPurposeKey,
+      timeLimit: const Duration(seconds: 10),
+    );
+    if (!mounted) return;
+    setState(() => _locating = false);
+    if (!location.isGranted) {
+      showAppSnackBar(
+        context,
+        location.isImprecise ? S.preciseLocationRequiredCabinetSetup : S.couldnTGetLocationCheckLocation,
+        isError: true,
+      );
+      return;
+    }
+    final lat = location.lat!.toStringAsFixed(7);
+    final lng = location.lng!.toStringAsFixed(7);
+    _latController.text = lat;
+    _lngController.text = lng;
+    setState(() {
+      _errors = {..._errors}
+        ..remove('lat')
+        ..remove('lng');
+      _located = (lat: lat, lng: lng, accuracy: location.accuracyM ?? 0);
+    });
+    showAppSnackBar(context, S.currentLocationFilled);
   }
 
   Future<void> _pickTime(TextEditingController controller, String errorKey) async {
@@ -228,6 +318,8 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
         keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
         inputFormatters: [coordinate],
       ),
+      _buildLocationTools(c),
+      _buildPreview(c),
       if (!_isEdit)
         _field(
           S.slotCount,
@@ -271,6 +363,148 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLocationTools(AppColors c) {
+    final located = _located;
+    final accuracy = located != null && located.lat == _latController.text.trim() && located.lng == _lngController.text.trim()
+        ? located.accuracy
+        : null;
+    final point = _coordinates;
+    final low = accuracy != null && accuracy > 50;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  label: _locating ? S.locating : S.useCurrentLocation,
+                  icon: Icons.my_location_rounded,
+                  isLoading: _locating,
+                  onPressed: _useCurrentLocation,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SecondaryButton(
+                  label: S.checkOnMap,
+                  icon: Icons.map_outlined,
+                  onPressed: point == null ? null : () => openMapAt(point.lat, point.lng),
+                ),
+              ),
+            ],
+          ),
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.standard,
+            alignment: Alignment.topLeft,
+            child: accuracy == null
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1),
+                          child: Icon(
+                            low ? Icons.warning_amber_rounded : Icons.gps_fixed_rounded,
+                            size: 14,
+                            color: low ? c.warning : c.success,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            [S.locationAccuracyP0(accuracy.round()), if (low) S.locationAccuracyLow].join('，'),
+                            style: TextStyle(fontSize: 12, height: 1.4, color: low ? c.warning : c.textSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreview(AppColors c) {
+    final data = _preview?.data;
+    final List<String> lines;
+    if (_coordinates == null) {
+      lines = [S.nearbyPreviewHint];
+    } else if (_preview?.error != null) {
+      lines = [_preview!.error!];
+    } else if (data == null) {
+      lines = const [];
+    } else {
+      final station = data.mrt.items.firstOrNull;
+      final roadside = [...data.roadsideCar, ...data.roadsideMotorcycle]..sort((a, b) => a.distanceM.compareTo(b.distanceM));
+      final roads = <String>[];
+      for (final s in roadside) {
+        if (!roads.contains(s.name)) roads.add(s.name);
+        if (roads.length == 3) break;
+      }
+      lines = [
+        if (station != null) S.nearestMrtP0P1(mrtStationLabel(station.name), transitDistance(station.distanceM)),
+        if (data.bus.items.isNotEmpty || data.youbike.items.isNotEmpty || data.parkingLots.items.isNotEmpty)
+          [
+            if (data.bus.items.isNotEmpty) S.busStopsP0(data.bus.items.length),
+            if (data.youbike.items.isNotEmpty) S.youbikeStationsP0(data.youbike.items.length),
+            if (data.parkingLots.items.isNotEmpty) S.parkingLotsP0(data.parkingLots.items.length),
+          ].join('・'),
+        if (roads.isNotEmpty) S.roadsideNearP0(roads.join('、')),
+        if (data.bus.items.isEmpty && data.youbike.items.isEmpty && data.parkingLots.items.isEmpty && roads.isEmpty) S.noNearbyTransit,
+      ];
+    }
+
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.directions_rounded, size: 16, color: c.accent),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(S.nearbyPreview, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
+              ),
+              if (_previewLoading)
+                SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent)),
+            ],
+          ),
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.standard,
+            alignment: Alignment.topLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final line in lines)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      line,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: _coordinates == null || data == null ? c.textHint : c.textSecondary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -129,6 +129,50 @@ paths:
         '403': { $ref: '#/components/responses/AdminForbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/cabinets/nearby-preview:
+    get:
+      summary: 座標附近交通預覽
+      operationId: adminPreviewCabinetNearby
+      tags: [admin-cabinets]
+      description: |
+        新增或編輯書櫃時，以填入的座標預覽附近的捷運站、YouBike、停車場與路邊停車格，
+        協助確認座標與地址相符。回傳格式與 `GET /api/cabinets/{id}/nearby` 相同。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: lat
+          required: true
+          schema: { type: number, minimum: -90, maximum: 90 }
+          example: 25.0245
+        - in: query
+          name: lng
+          required: true
+          schema: { type: number, minimum: -180, maximum: 180 }
+          example: 121.5288
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/TransitNearby' }
+        '400':
+          description: 座標不正確。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                格式不正確:
+                  value: { success: false, message: 緯度格式不正確 }
+                無效座標:
+                  value: { success: false, message: 座標不正確 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/cabinets/deposits:
     get:
       summary: 訂單成立前的存書列表

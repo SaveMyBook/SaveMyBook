@@ -4381,5 +4381,282 @@
       "p0": {}
     }
   },
-  "bookHeldForBuyer": "Reserved by buyer"
+  "bookHeldForBuyer": "Reserved by buyer",
+  "transitInfo": "Getting there",
+  "getToLocker": "Getting to the locker",
+  "navigate": "Directions",
+  "transitMrt": "MRT",
+  "transitYoubike": "YouBike 2.0",
+  "transitParking": "Parking",
+  "parkingLots": "Parking lots",
+  "roadsideParking": "Street parking",
+  "mrtStationP0": "{p0} Station",
+  "@mrtStationP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtExitP0": "Exit {p0}",
+  "@mrtExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleExitP0": "Accessible exit {p0}",
+  "@accessibleExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtFare": "Fare",
+  "departFromP0": "From {p0}",
+  "@departFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chooseDepartureStation": "Choose departure station",
+  "departureStation": "Departure station",
+  "departureStationHint": "Defaults to the station nearest you. Your location is only used on this device.",
+  "fareToP0": "To {p0}",
+  "@fareToP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullFareP0": "Regular ${p0}",
+  "@fullFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "concessionFareP0": "Senior, disability, child ${p0}",
+  "@concessionFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aboutP0Km": "About {p0} km",
+  "@aboutP0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fareNotFound": "Fare not available",
+  "rentReturnP0P1": "{p0} bikes・{p1} docks",
+  "@rentReturnP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "stationSuspended": "Suspended",
+  "noYoubikeWithinP0": "No YouBike stations within {p0}",
+  "@noYoubikeWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noParkingLotsWithinP0": "No parking lots within {p0}",
+  "@noParkingLotsWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noRoadsideWithinP0": "No street parking within {p0}",
+  "@noRoadsideWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitDataUnavailable": "Data is temporarily unavailable. Please try again later.",
+  "carP0": "Cars {p0}",
+  "@carP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "motorcycleP0": "Scooters {p0}",
+  "@motorcycleP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "vacantOfTotalP0P1": "{p0} free of {p1}",
+  "@vacantOfTotalP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "totalSpacesP0": "{p0} spaces",
+  "@totalSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "carSpaces": "Car spaces",
+  "motorcycleSpaces": "Scooter spaces",
+  "spacesNearbyP0": "{p0} spaces nearby",
+  "@spacesNearbyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleSpacesP0": "{p0} accessible",
+  "@accessibleSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "liveVacancyP0P1": "{p0} of {p1} free now",
+  "@liveVacancyP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noLiveVacancy": "No live availability",
+  "chargeHoursP0P1": "Charged {p0}–{p1}",
+  "@chargeHoursP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "motorcycleAreaNearby": "Scooter parking area nearby",
+  "roadsideNoteP0": "Street parking spaces within {p0} of the locker, based on each space's mapped location.",
+  "@roadsideNoteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dataTimeP0": "Updated {p0}",
+  "@dataTimeP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitAttribution": "Source: Taipei City Open Data Platform (data.taipei). Bus, YouBike and parking data cover Taipei City only. Distances are straight-line.",
+  "useCurrentLocation": "Use current location",
+  "locationAccuracyP0": "Accuracy about ±{p0} m",
+  "@locationAccuracyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locationAccuracyLow": "Accuracy is low. Move outdoors or to an open area and try again.",
+  "currentLocationFilled": "Current location filled in",
+  "nearbyPreview": "Nearby transport preview",
+  "nearbyPreviewHint": "Enter coordinates to see nearby MRT stations, YouBike and parking, and check that they match the address.",
+  "checkOnMap": "Check on map",
+  "youbikeStationsP0": "YouBike: {p0} stations",
+  "@youbikeStationsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "parkingLotsP0": "Parking lots: {p0}",
+  "@parkingLotsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadsideNearP0": "Street parking: {p0}",
+  "@roadsideNearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearestMrtP0P1": "Nearest MRT: {p0} ({p1})",
+  "@nearestMrtP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNearbyTransit": "No Taipei open data transport information near this location",
+  "preciseLocationRequiredCabinetSetup": "Precise location is required to set locker coordinates. Turn it on in system settings and try again.",
+  "transitBus": "Bus",
+  "towardsP0": "To {p0}",
+  "@towardsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busArriving": "Arriving",
+  "busMinutesP0": "{p0} min",
+  "@busMinutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busNotDeparted": "Not departed",
+  "busNotStopping": "Not stopping",
+  "busLastPassed": "Last bus passed",
+  "busNoService": "No service today",
+  "busNoEstimate": "No arrival info",
+  "showAllRoutesP0": "Show all {p0} routes",
+  "@showAllRoutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBusWithinP0": "No bus stops within {p0}",
+  "@noBusWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busStopsP0": "Bus stops: {p0}",
+  "@busStopsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "drivingAndTaxi": "Driving & taxis",
+  "taxiStands": "Taxi stands",
+  "taxiSpacesP0": "{p0} waiting spaces",
+  "@taxiSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "taxiHoursP0": "Hours {p0}",
+  "@taxiHoursP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noTaxiWithinP0": "No taxi stands within {p0}",
+  "@noTaxiWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadConditions": "Nearby traffic",
+  "speedP0": "{p0} km/h",
+  "@speedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "trafficSmooth": "Smooth",
+  "trafficBusy": "Busy",
+  "trafficCongested": "Congested",
+  "accessibleElevatorP0": "Elevator at exit {p0}",
+  "@accessibleElevatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleElevator": "Elevator",
+  "accessibleRampP0": "Ramp at exit {p0}",
+  "@accessibleRampP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleRamp": "Ramp",
+  "singleExit": "Single exit"
 }

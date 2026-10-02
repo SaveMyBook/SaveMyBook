@@ -24,6 +24,7 @@ import '../models/security.dart';
 import '../models/auth_social.dart';
 import '../models/passkey.dart';
 import '../models/cabinet.dart';
+import '../models/transit.dart';
 import '../i18n/strings.dart';
 import 'ai_image_prep.dart';
 import 'cabinet_code.dart';
@@ -58,6 +59,7 @@ part 'api/reports_api.dart';
 part 'api/security_api.dart';
 part 'api/status_api.dart';
 part 'api/support_api.dart';
+part 'api/transit_api.dart';
 part 'api/wallet_api.dart';
 
 enum _RefreshResult { refreshed, failed, offline }

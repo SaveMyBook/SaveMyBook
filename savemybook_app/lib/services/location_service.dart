@@ -32,6 +32,7 @@ enum LocationAccess { granted, denied, imprecise, unavailable }
 
 class LocationService {
   static const precisePurposeKey = 'CabinetUse';
+  static const setupPurposeKey = 'CabinetSetup';
 
   static Position? _last;
   static DateTime? _lastAt;
@@ -69,9 +70,13 @@ class LocationService {
 
   // 書櫃距離檢查只能用當次取得的座標：current() 會回傳 5 分鐘內的快取並退回 getLastKnownPosition()，
   // 剛走到書櫃的人會因舊座標被判定距離過遠。
-  static Future<FreshLocation> fresh({DateTime Function()? clock}) async {
+  static Future<FreshLocation> fresh({
+    DateTime Function()? clock,
+    String purposeKey = precisePurposeKey,
+    Duration timeLimit = const Duration(seconds: 5),
+  }) async {
     try {
-      final allowed = await access();
+      final allowed = await access(purposeKey: purposeKey);
       if (allowed != LocationAccess.granted) {
         return FreshLocation(
           status: switch (allowed) {
@@ -82,7 +87,7 @@ class LocationService {
         );
       }
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 5)),
+        locationSettings: LocationSettings(accuracy: LocationAccuracy.high, timeLimit: timeLimit),
       );
       final now = (clock ?? DateTime.now)();
       final age = now.difference(position.timestamp).inMilliseconds;
@@ -100,7 +105,7 @@ class LocationService {
     }
   }
 
-  static Future<LocationAccess?> access() async {
+  static Future<LocationAccess?> access({String purposeKey = precisePurposeKey}) async {
     // geolocator 對從未詢問過的權限也回傳 denied，只有 request 才會跳出系統詢問。
     final allowed = await permission(request: true);
     if (allowed == null) return null;
@@ -110,15 +115,15 @@ class LocationService {
     } catch (_) {
       return null;
     }
-    return await _precise() ? LocationAccess.granted : LocationAccess.imprecise;
+    return await _precise(purposeKey) ? LocationAccess.granted : LocationAccess.imprecise;
   }
 
   // 只允許「大約位置」時座標誤差約 1–3 公里，伺服器一律以精度不足拒絕，重試不會改善。
-  static Future<bool> _precise() async {
+  static Future<bool> _precise(String purposeKey) async {
     try {
       if (await Geolocator.getLocationAccuracy() != LocationAccuracyStatus.reduced) return true;
       final upgraded = defaultTargetPlatform == TargetPlatform.iOS
-          ? await Geolocator.requestTemporaryFullAccuracy(purposeKey: precisePurposeKey)
+          ? await Geolocator.requestTemporaryFullAccuracy(purposeKey: purposeKey)
           : await Geolocator.requestPermission().then((_) => Geolocator.getLocationAccuracy());
       return upgraded != LocationAccuracyStatus.reduced;
     } catch (_) {

@@ -26,6 +26,7 @@ import '../orders/widgets/sticky_pane.dart';
 import '../chat/chat_room_screen.dart';
 import '../selling/book_deposit_actions.dart';
 import '../cabinet/cabinet_entry.dart';
+import '../cabinet/cabinet_guide_screen.dart';
 import '../selling/edit_book_screen.dart';
 import '../home/home_screen.dart';
 import '../home/search_screen.dart';
@@ -1008,6 +1009,18 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   ),
                 ),
               ],
+            ),
+          ],
+          if (_book.cabinetId != null) ...[
+            const SizedBox(height: 4),
+            Transform.translate(
+              offset: const Offset(-8, 0),
+              child: CabinetGuideButton(
+                cabinetId: _book.cabinetId!,
+                name: _book.cabinetName,
+                address: _book.cabinetAddress,
+                openHours: _book.cabinetOpenHours,
+              ),
             ),
           ],
           if (!_isOwnBook && _book.inCabinet) ...[

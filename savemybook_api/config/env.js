@@ -49,7 +49,8 @@ const env = {
     .filter(Boolean),
   cabinetSimulator: process.env.CABINET_SIMULATOR === 'true',
   cabinetQrSecret: process.env.CABINET_QR_SECRET || '',
-  cabinetTimezone: process.env.CABINET_TIMEZONE || 'Asia/Taipei'
+  cabinetTimezone: process.env.CABINET_TIMEZONE || 'Asia/Taipei',
+  transitDataDir: process.env.TRANSIT_DATA_DIR || ''
 };
 
 const assertEnv = () => {

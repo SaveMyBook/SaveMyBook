@@ -292,6 +292,217 @@ components:
         current_order_id: { type: integer, nullable: true }
         updated_at: { type: string, format: date-time }
 
+    TransitNearby:
+      type: object
+      description: |
+        書櫃（或指定座標）附近的交通資訊，資料全部取自臺北市資料大平臺（data.taipei）。各區塊獨立，
+        某一來源暫時無法取得時該區塊的 `status` 為 `unavailable`、清單為空，不影響其他區塊；
+        曾成功取得過的來源在故障期間沿用上一份資料。YouBike 與停車資料僅涵蓋臺北市。
+      properties:
+        mrt:
+          type: object
+          description: 1.5 公里內最近的兩個捷運站；範圍內沒有車站時列出最近的一站。距離皆為直線距離。
+          properties:
+            status: { type: string, enum: [ok, unavailable] }
+            updated_at: { type: string, format: date-time, nullable: true, description: 伺服器取得出入口資料的時間 }
+            stations:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string, description: 站名，與票價查詢使用的站名相同, example: 台電大樓 }
+                  distance_m: { type: integer, example: 382 }
+                  nearest_exit: { $ref: '#/components/schemas/TransitExit' }
+                  accessible_exit:
+                    allOf: [{ $ref: '#/components/schemas/TransitExit' }]
+                    nullable: true
+                    description: |
+                      最近的無障礙出口：優先為有無障礙電梯的出口，其次為無障礙坡道（「臺北捷運車站出入口無障礙電梯、無障礙坡道GPS座標」）；
+                      該資料無法取得時退回出入口資料的無障礙標示，此時 `facility` 為 null。該站沒有無障礙出口資料時為 null。
+        bus:
+          type: object
+          description: |
+            300 公尺內最多 4 個公車站位（同一站位的各路線站牌合併），由近到遠。路線名稱取自「臺北市公車結構性票價資訊」，
+            方向為該方向的終點站，到站時間取自「臺北市預估到站時間(公車)」並快取 30 秒；到站資料無法取得時各路線的 `status` 為 `unknown`。
+            僅涵蓋臺北市聯營公車。
+          properties:
+            status: { type: string, enum: [ok, unavailable] }
+            updated_at: { type: string, format: date-time, nullable: true, description: 預估到站資料時間 }
+            realtime_available: { type: boolean }
+            stops:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string, example: 師大綜合大樓 }
+                  address: { type: string, example: 和平東路一段184號同向(向東) }
+                  latitude: { type: number, example: 25.026362 }
+                  longitude: { type: number, example: 121.529958 }
+                  distance_m: { type: integer, example: 238 }
+                  routes:
+                    type: array
+                    description: 依到站狀態與分鐘數排序：即將進站、N 分鐘、尚未發車、無資料、交管不停靠、末班已過、今日未營運
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string, example: '235' }
+                        direction: { type: string, nullable: true, description: 往此終點站, example: 交通部觀光署 }
+                        status:
+                          type: string
+                          enum: [arriving, minutes, not_departed, unknown, not_stopping, last_passed, no_service]
+                          description: arriving 一分鐘內到站、minutes 約 `minutes` 分鐘、not_departed 尚未發車、not_stopping 交管不停靠、last_passed 末班已過、no_service 今日未營運
+                        minutes: { type: integer, nullable: true, example: 4 }
+        youbike:
+          type: object
+          description: 500 公尺內最多 5 個 YouBike 2.0 站點，由近到遠。快取 60 秒。
+          properties:
+            status: { type: string, enum: [ok, unavailable] }
+            updated_at: { type: string, format: date-time, nullable: true }
+            stations:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string, example: 臺灣師範大學(浦城街) }
+                  address: { type: string, example: 浦城街1號對側 }
+                  latitude: { type: number, example: 25.02476 }
+                  longitude: { type: number, example: 121.52803 }
+                  distance_m: { type: integer, example: 83 }
+                  available_rent: { type: integer, description: 可借車輛數, example: 19 }
+                  available_return: { type: integer, description: 可還空位數, example: 0 }
+                  total: { type: integer, example: 20 }
+                  is_active: { type: boolean, description: false 表示站點暫停營運, example: true }
+                  updated_at: { type: string, format: date-time, nullable: true }
+        parking_lots:
+          type: object
+          description: 800 公尺內最多 5 處停車場，由近到遠。剩餘車位快取 2 分鐘。
+          properties:
+            status: { type: string, enum: [ok, unavailable] }
+            updated_at: { type: string, format: date-time, nullable: true }
+            realtime_available: { type: boolean, description: 剩餘車位資料是否取得成功 }
+            lots:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string, example: Times師大夜市 }
+                  address: { type: string, example: 泰順街38巷25號旁 }
+                  tel: { type: string, example: '0809008924' }
+                  fee: { type: string, description: 收費說明原文, example: 小型車：計時 200元/時，停車全程以半小時計。 }
+                  hours: { type: string, description: 營業時間原文, example: '00:00:00-23:59:59' }
+                  latitude: { type: number, description: 導航位置；入口座標可信時為入口, example: 25.0246 }
+                  longitude: { type: number, example: 121.5297 }
+                  distance_m: { type: integer, example: 78 }
+                  car: { $ref: '#/components/schemas/TransitCapacity' }
+                  motorcycle: { $ref: '#/components/schemas/TransitCapacity' }
+        roadside:
+          type: object
+          description: |
+            300 公尺內的路邊停車格，以「臺北市路邊停車格位」圖層（每月更新）的格位位置計算。
+            汽車格依路段編號分組並對上「路邊停車格位使用情形」的即時資料（快取 5 分鐘）；
+            機車格大多沒有路段編號，依路名分組，只提供格數。各最多 5 筆，由近到遠。
+          properties:
+            status: { type: string, enum: [ok, unavailable], description: 格位索引尚未建立時為 unavailable }
+            radius_m: { type: integer, example: 300 }
+            layer_updated_at: { type: string, format: date-time, nullable: true, description: 格位圖層的產製時間 }
+            updated_at: { type: string, format: date-time, nullable: true, description: 即時資料時間 }
+            car:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string, example: 師大路C }
+                  segment_id: { type: string, nullable: true, example: 30540C0 }
+                  distance_m: { type: integer, description: 與最近一格的距離, example: 28 }
+                  latitude: { type: number, description: 最近一格的位置, example: 25.024494 }
+                  longitude: { type: number, example: 121.52852 }
+                  spaces_nearby: { type: integer, description: 範圍內的汽車格數（含身心障礙專用）, example: 13 }
+                  accessible_nearby: { type: integer, description: 範圍內的身心障礙專用格數, example: 4 }
+                  live:
+                    type: object
+                    nullable: true
+                    description: 整個路段的即時資料；路段不在即時資料中時為 null
+                    properties:
+                      total: { type: integer, nullable: true, example: 3 }
+                      available: { type: integer, nullable: true, description: 目前空位；路段沒有即時偵測時為 null, example: 1 }
+                      fee: { type: string, nullable: true, example: 40元 }
+                      start: { type: string, nullable: true, description: 收費開始時間, example: '07:00' }
+                      end: { type: string, nullable: true, description: 收費結束時間, example: '20:00' }
+                      updated_at: { type: string, format: date-time, nullable: true }
+            motorcycle:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string, example: 師大路A(機車) }
+                  distance_m: { type: integer, example: 34 }
+                  latitude: { type: number }
+                  longitude: { type: number }
+                  spaces_nearby: { type: integer, example: 168 }
+                  accessible_nearby: { type: integer, example: 0 }
+                  has_parking_area: { type: boolean, description: 範圍內另有機慢車停放區（不劃格，無法計算格數） }
+        road_speed:
+          type: object
+          description: 600 公尺內最多 3 個道路路段的即時平均車速與路況（「臺北市道路速率」，快取 2 分鐘），依路段中點距離排序。
+          properties:
+            status: { type: string, enum: [ok, unavailable] }
+            updated_at: { type: string, format: date-time, nullable: true }
+            sections:
+              type: array
+              items:
+                type: object
+                properties:
+                  road: { type: string, example: 和平東路 }
+                  between: { type: string, description: 路段起訖, example: 羅斯福路-師大路 }
+                  speed_kph: { type: integer, example: 39 }
+                  level: { type: string, enum: [smooth, busy, congested], description: 交控中心判定的順暢、車多、壅塞 }
+                  latitude: { type: number }
+                  longitude: { type: number }
+                  distance_m: { type: integer, example: 430 }
+        taxi_stands:
+          type: object
+          description: 800 公尺內最多 3 處計程車招呼站（「計程車招呼站」），由近到遠。
+          properties:
+            status: { type: string, enum: [ok, unavailable] }
+            updated_at: { type: string, format: date-time, nullable: true }
+            stands:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: { type: string, description: 設置地點, example: 經濟部工業局 }
+                  street: { type: string, example: 信義路3段41-3號 }
+                  spaces: { type: integer, nullable: true, description: 排班格位, example: 2 }
+                  hours: { type: string, description: 排班時間原文, example: '0~24' }
+                  latitude: { type: number }
+                  longitude: { type: number }
+                  distance_m: { type: integer, example: 33 }
+        attribution: { type: string, example: 資料來源：臺北市資料大平臺（data.taipei），依政府資料開放授權條款第 1 版使用 }
+        sources:
+          type: array
+          description: 使用的資料集，供用戶端顯示來源連結
+          items:
+            type: object
+            properties:
+              title: { type: string, example: 臺北捷運車站出入口座標 }
+              url: { type: string, example: 'https://data.taipei/dataset/detail?id=cfa4778c-62c1-497b-b704-756231de348b' }
+
+    TransitExit:
+      type: object
+      properties:
+        exit: { type: string, nullable: true, description: 出口編號，臺北車站為 M1–M8；只有一個出口的車站為 null, example: '3' }
+        accessible: { type: boolean, description: 出入口資料的無障礙標示（僅 nearest_exit）, example: false }
+        facility: { type: string, nullable: true, enum: [elevator, ramp], description: 無障礙設施種類（僅 accessible_exit） }
+        latitude: { type: number, example: 25.021179 }
+        longitude: { type: number, example: 121.527849 }
+        distance_m: { type: integer, example: 382 }
+
+    TransitCapacity:
+      type: object
+      properties:
+        total: { type: integer, description: 總格數，0 表示沒有此車種, example: 18 }
+        available: { type: integer, nullable: true, description: 剩餘車位；靜態停車場、無此車種或即時資料無法取得時為 null, example: 0 }
+
     # ---------- 購物車 ----------
     CartItem:
       type: object

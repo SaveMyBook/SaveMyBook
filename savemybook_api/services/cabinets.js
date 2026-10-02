@@ -2,17 +2,7 @@ const prisma = require('../lib/prisma');
 const { HttpError, conflict, notFound } = require('../lib/errors');
 const { SLOT_STATUSES, SLOT_STATUS_LABELS } = require('../constants/domain');
 const audit = require('./audit');
-
-const EARTH_RADIUS_M = 6371000;
-
-const toRad = (deg) => (deg * Math.PI) / 180;
-
-const distanceMeters = (lat1, lng1, lat2, lng2) => {
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(a))));
-};
+const { distanceMeters } = require('../lib/geo');
 
 const formatTime = (v) => (v instanceof Date ? v.toISOString().slice(11, 16) : String(v).slice(11, 16));
 
@@ -243,6 +233,15 @@ const setSlotStatus = async (cabinetId, slotId, status, { adminId, req }) => {
   return slot;
 };
 
+const locationOf = async (cabinetId) => {
+  const cabinet = await prisma.smart_cabinets.findUnique({
+    where: { cabinet_id: cabinetId },
+    select: { cabinet_id: true, latitude: true, longitude: true }
+  });
+  if (!cabinet) throw notFound('找不到此書櫃');
+  return { lat: Number(cabinet.latitude), lng: Number(cabinet.longitude) };
+};
+
 module.exports = {
-  listActive, adminList, create, update, setMaintenance, maintenanceIds, isUnderMaintenance, setSlotStatus, distanceMeters
+  listActive, adminList, create, update, setMaintenance, maintenanceIds, isUnderMaintenance, setSlotStatus, distanceMeters, locationOf
 };

@@ -5,6 +5,7 @@ const { actorOf } = require('../../lib/request-context');
 const { badRequest } = require('../../lib/errors');
 const { SLOT_STATUSES } = require('../../constants/domain');
 const cabinets = require('../../services/cabinets');
+const transit = require('../../services/transit');
 const deposits = require('../../services/book-deposits');
 
 const router = express.Router();
@@ -26,6 +27,14 @@ const longitude = (value) => v.number(value, { label: '經度', min: -180, max: 
 
 router.get('/cabinets', canManage, async (req, res) => {
   res.status(200).json({ success: true, data: await cabinets.adminList() });
+});
+
+// 新增或編輯書櫃時預覽座標附近的交通資訊，協助確認座標與地址相符。
+router.get('/cabinets/nearby-preview', canManage, async (req, res) => {
+  const lat = latitude(req.query.lat);
+  const lng = longitude(req.query.lng);
+  if (lat === 0 && lng === 0) throw badRequest('座標不正確');
+  res.status(200).json({ success: true, data: await transit.nearby(lat, lng) });
 });
 
 router.get('/cabinets/deposits', canManage, async (req, res) => {

@@ -4381,5 +4381,282 @@
       "p0": {}
     }
   },
-  "bookHeldForBuyer": "已被预约"
+  "bookHeldForBuyer": "已被预约",
+  "transitInfo": "交通信息",
+  "getToLocker": "前往书柜",
+  "navigate": "导航",
+  "transitMrt": "地铁",
+  "transitYoubike": "YouBike 2.0",
+  "transitParking": "停车",
+  "parkingLots": "停车场",
+  "roadsideParking": "路边停车",
+  "mrtStationP0": "{p0}站",
+  "@mrtStationP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtExitP0": "出口 {p0}",
+  "@mrtExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleExitP0": "无障碍出口 {p0}",
+  "@accessibleExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtFare": "票价",
+  "departFromP0": "从{p0}出发",
+  "@departFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chooseDepartureStation": "选择出发车站",
+  "departureStation": "出发车站",
+  "departureStationHint": "默认为离您最近的车站，位置只在手机上计算",
+  "fareToP0": "到{p0}",
+  "@fareToP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullFareP0": "全票 ${p0}",
+  "@fullFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "concessionFareP0": "敬老・爱心・儿童 ${p0}",
+  "@concessionFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aboutP0Km": "约 {p0} 公里",
+  "@aboutP0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fareNotFound": "查无票价",
+  "rentReturnP0P1": "可借 {p0}・可还 {p1}",
+  "@rentReturnP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "stationSuspended": "暂停营运",
+  "noYoubikeWithinP0": "{p0}内没有 YouBike 站点",
+  "@noYoubikeWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noParkingLotsWithinP0": "{p0}内没有停车场",
+  "@noParkingLotsWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noRoadsideWithinP0": "{p0}内没有路边停车位",
+  "@noRoadsideWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitDataUnavailable": "暂时无法获取数据，请稍后再试",
+  "carP0": "汽车 {p0}",
+  "@carP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "motorcycleP0": "摩托车 {p0}",
+  "@motorcycleP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "vacantOfTotalP0P1": "空 {p0}／共 {p1}",
+  "@vacantOfTotalP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "totalSpacesP0": "共 {p0} 个车位",
+  "@totalSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "carSpaces": "汽车位",
+  "motorcycleSpaces": "摩托车位",
+  "spacesNearbyP0": "附近 {p0} 个车位",
+  "@spacesNearbyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleSpacesP0": "无障碍 {p0} 个",
+  "@accessibleSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "liveVacancyP0P1": "实时空位 {p0}／{p1}",
+  "@liveVacancyP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noLiveVacancy": "无实时空位数据",
+  "chargeHoursP0P1": "收费 {p0}–{p1}",
+  "@chargeHoursP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "motorcycleAreaNearby": "另有摩托车停放区",
+  "roadsideNoteP0": "依路边停车位的实际位置，列出书柜 {p0}内的车位",
+  "@roadsideNoteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dataTimeP0": "数据时间 {p0}",
+  "@dataTimeP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitAttribution": "数据来源：台北市资料大平台（data.taipei）。公交、YouBike 与停车信息仅涵盖台北市，距离均为直线距离。",
+  "useCurrentLocation": "使用当前位置",
+  "locationAccuracyP0": "定位精度约 ±{p0} 米",
+  "@locationAccuracyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locationAccuracyLow": "误差较大，建议移至户外或空旷处后重新定位",
+  "currentLocationFilled": "已填入当前位置",
+  "nearbyPreview": "附近交通预览",
+  "nearbyPreviewHint": "填入坐标后显示附近的地铁站、YouBike 与停车信息，可用来确认坐标与地址是否相符",
+  "checkOnMap": "在地图上确认",
+  "youbikeStationsP0": "YouBike {p0} 个站点",
+  "@youbikeStationsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "parkingLotsP0": "停车场 {p0} 处",
+  "@parkingLotsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadsideNearP0": "路边停车：{p0}",
+  "@roadsideNearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearestMrtP0P1": "最近地铁站：{p0}（{p1}）",
+  "@nearestMrtP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNearbyTransit": "附近没有台北市开放数据涵盖的交通信息",
+  "preciseLocationRequiredCabinetSetup": "设置书柜坐标须开启精确位置，请在系统设置中开启后再试",
+  "transitBus": "公交",
+  "towardsP0": "往{p0}",
+  "@towardsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busArriving": "即将进站",
+  "busMinutesP0": "约 {p0} 分",
+  "@busMinutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busNotDeparted": "尚未发车",
+  "busNotStopping": "交管不停靠",
+  "busLastPassed": "末班已过",
+  "busNoService": "今日未运营",
+  "busNoEstimate": "无到站数据",
+  "showAllRoutesP0": "显示全部 {p0} 条路线",
+  "@showAllRoutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBusWithinP0": "{p0}内没有公交站牌",
+  "@noBusWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busStopsP0": "公交站 {p0} 处",
+  "@busStopsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "drivingAndTaxi": "开车与出租车",
+  "taxiStands": "出租车招呼站",
+  "taxiSpacesP0": "排班 {p0} 个车位",
+  "@taxiSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "taxiHoursP0": "排班时间 {p0}",
+  "@taxiHoursP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noTaxiWithinP0": "{p0}内没有出租车招呼站",
+  "@noTaxiWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadConditions": "周边路况",
+  "speedP0": "时速 {p0} 公里",
+  "@speedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "trafficSmooth": "顺畅",
+  "trafficBusy": "车多",
+  "trafficCongested": "拥堵",
+  "accessibleElevatorP0": "无障碍电梯 出口 {p0}",
+  "@accessibleElevatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleElevator": "无障碍电梯",
+  "accessibleRampP0": "无障碍坡道 出口 {p0}",
+  "@accessibleRampP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleRamp": "无障碍坡道",
+  "singleExit": "单一出口"
 }

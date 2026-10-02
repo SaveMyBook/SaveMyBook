@@ -13,6 +13,7 @@ import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../books/book_detail_screen.dart';
 import '../cabinet/cabinet_entry.dart';
+import '../cabinet/cabinet_guide_screen.dart';
 import '../selling/book_deposit_actions.dart';
 import 'dispute_screen.dart';
 import '../../utils/app_labels.dart';
@@ -610,6 +611,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             fontSize: 13,
             labelMinWidth: labelWidth,
           ),
+          if (_order.cabinetId != null) ...[
+            const SizedBox(height: 6),
+            Transform.translate(
+              offset: const Offset(-8, 0),
+              child: CabinetGuideButton(
+                cabinetId: _order.cabinetId!,
+                name: _order.cabinetName,
+                address: _order.cabinetAddress,
+                openHours: _order.cabinetOpenHours,
+              ),
+            ),
+          ],
         ],
       ),
     );

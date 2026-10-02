@@ -2494,6 +2494,88 @@ abstract class AppLocalizations {
   String reservationTimeLeftMinutes(Object p0);
   String reservationSentAtP0(Object p0);
   String get bookHeldForBuyer;
+  String get transitInfo;
+  String get getToLocker;
+  String get navigate;
+  String get transitMrt;
+  String get transitYoubike;
+  String get transitParking;
+  String get parkingLots;
+  String get roadsideParking;
+  String mrtStationP0(Object p0);
+  String mrtExitP0(Object p0);
+  String accessibleExitP0(Object p0);
+  String get mrtFare;
+  String departFromP0(Object p0);
+  String get chooseDepartureStation;
+  String get departureStation;
+  String get departureStationHint;
+  String fareToP0(Object p0);
+  String fullFareP0(Object p0);
+  String concessionFareP0(Object p0);
+  String aboutP0Km(Object p0);
+  String get fareNotFound;
+  String rentReturnP0P1(Object p0, Object p1);
+  String get stationSuspended;
+  String noYoubikeWithinP0(Object p0);
+  String noParkingLotsWithinP0(Object p0);
+  String noRoadsideWithinP0(Object p0);
+  String get transitDataUnavailable;
+  String carP0(Object p0);
+  String motorcycleP0(Object p0);
+  String vacantOfTotalP0P1(Object p0, Object p1);
+  String totalSpacesP0(Object p0);
+  String get carSpaces;
+  String get motorcycleSpaces;
+  String spacesNearbyP0(Object p0);
+  String accessibleSpacesP0(Object p0);
+  String liveVacancyP0P1(Object p0, Object p1);
+  String get noLiveVacancy;
+  String chargeHoursP0P1(Object p0, Object p1);
+  String get motorcycleAreaNearby;
+  String roadsideNoteP0(Object p0);
+  String dataTimeP0(Object p0);
+  String get transitAttribution;
+  String get useCurrentLocation;
+  String locationAccuracyP0(Object p0);
+  String get locationAccuracyLow;
+  String get currentLocationFilled;
+  String get nearbyPreview;
+  String get nearbyPreviewHint;
+  String get checkOnMap;
+  String youbikeStationsP0(Object p0);
+  String parkingLotsP0(Object p0);
+  String roadsideNearP0(Object p0);
+  String nearestMrtP0P1(Object p0, Object p1);
+  String get noNearbyTransit;
+  String get preciseLocationRequiredCabinetSetup;
+  String get transitBus;
+  String towardsP0(Object p0);
+  String get busArriving;
+  String busMinutesP0(Object p0);
+  String get busNotDeparted;
+  String get busNotStopping;
+  String get busLastPassed;
+  String get busNoService;
+  String get busNoEstimate;
+  String showAllRoutesP0(Object p0);
+  String noBusWithinP0(Object p0);
+  String busStopsP0(Object p0);
+  String get drivingAndTaxi;
+  String get taxiStands;
+  String taxiSpacesP0(Object p0);
+  String taxiHoursP0(Object p0);
+  String noTaxiWithinP0(Object p0);
+  String get roadConditions;
+  String speedP0(Object p0);
+  String get trafficSmooth;
+  String get trafficBusy;
+  String get trafficCongested;
+  String accessibleElevatorP0(Object p0);
+  String get accessibleElevator;
+  String accessibleRampP0(Object p0);
+  String get accessibleRamp;
+  String get singleExit;
 }
 
 class _LEn extends AppLocalizations {
@@ -9911,6 +9993,252 @@ class _LEn extends AppLocalizations {
 
   @override
   String get bookHeldForBuyer => 'Reserved by buyer';
+
+  @override
+  String get transitInfo => 'Getting there';
+
+  @override
+  String get getToLocker => 'Getting to the locker';
+
+  @override
+  String get navigate => 'Directions';
+
+  @override
+  String get transitMrt => 'MRT';
+
+  @override
+  String get transitYoubike => 'YouBike 2.0';
+
+  @override
+  String get transitParking => 'Parking';
+
+  @override
+  String get parkingLots => 'Parking lots';
+
+  @override
+  String get roadsideParking => 'Street parking';
+
+  @override
+  String mrtStationP0(Object p0) => '${p0} Station';
+
+  @override
+  String mrtExitP0(Object p0) => 'Exit ${p0}';
+
+  @override
+  String accessibleExitP0(Object p0) => 'Accessible exit ${p0}';
+
+  @override
+  String get mrtFare => 'Fare';
+
+  @override
+  String departFromP0(Object p0) => 'From ${p0}';
+
+  @override
+  String get chooseDepartureStation => 'Choose departure station';
+
+  @override
+  String get departureStation => 'Departure station';
+
+  @override
+  String get departureStationHint => 'Defaults to the station nearest you. Your location is only used on this device.';
+
+  @override
+  String fareToP0(Object p0) => 'To ${p0}';
+
+  @override
+  String fullFareP0(Object p0) => 'Regular \$${p0}';
+
+  @override
+  String concessionFareP0(Object p0) => 'Senior, disability, child \$${p0}';
+
+  @override
+  String aboutP0Km(Object p0) => 'About ${p0} km';
+
+  @override
+  String get fareNotFound => 'Fare not available';
+
+  @override
+  String rentReturnP0P1(Object p0, Object p1) => '${p0} bikes・${p1} docks';
+
+  @override
+  String get stationSuspended => 'Suspended';
+
+  @override
+  String noYoubikeWithinP0(Object p0) => 'No YouBike stations within ${p0}';
+
+  @override
+  String noParkingLotsWithinP0(Object p0) => 'No parking lots within ${p0}';
+
+  @override
+  String noRoadsideWithinP0(Object p0) => 'No street parking within ${p0}';
+
+  @override
+  String get transitDataUnavailable => 'Data is temporarily unavailable. Please try again later.';
+
+  @override
+  String carP0(Object p0) => 'Cars ${p0}';
+
+  @override
+  String motorcycleP0(Object p0) => 'Scooters ${p0}';
+
+  @override
+  String vacantOfTotalP0P1(Object p0, Object p1) => '${p0} free of ${p1}';
+
+  @override
+  String totalSpacesP0(Object p0) => '${p0} spaces';
+
+  @override
+  String get carSpaces => 'Car spaces';
+
+  @override
+  String get motorcycleSpaces => 'Scooter spaces';
+
+  @override
+  String spacesNearbyP0(Object p0) => '${p0} spaces nearby';
+
+  @override
+  String accessibleSpacesP0(Object p0) => '${p0} accessible';
+
+  @override
+  String liveVacancyP0P1(Object p0, Object p1) => '${p0} of ${p1} free now';
+
+  @override
+  String get noLiveVacancy => 'No live availability';
+
+  @override
+  String chargeHoursP0P1(Object p0, Object p1) => 'Charged ${p0}–${p1}';
+
+  @override
+  String get motorcycleAreaNearby => 'Scooter parking area nearby';
+
+  @override
+  String roadsideNoteP0(Object p0) => 'Street parking spaces within ${p0} of the locker, based on each space\'s mapped location.';
+
+  @override
+  String dataTimeP0(Object p0) => 'Updated ${p0}';
+
+  @override
+  String get transitAttribution => 'Source: Taipei City Open Data Platform (data.taipei). Bus, YouBike and parking data cover Taipei City only. Distances are straight-line.';
+
+  @override
+  String get useCurrentLocation => 'Use current location';
+
+  @override
+  String locationAccuracyP0(Object p0) => 'Accuracy about ±${p0} m';
+
+  @override
+  String get locationAccuracyLow => 'Accuracy is low. Move outdoors or to an open area and try again.';
+
+  @override
+  String get currentLocationFilled => 'Current location filled in';
+
+  @override
+  String get nearbyPreview => 'Nearby transport preview';
+
+  @override
+  String get nearbyPreviewHint => 'Enter coordinates to see nearby MRT stations, YouBike and parking, and check that they match the address.';
+
+  @override
+  String get checkOnMap => 'Check on map';
+
+  @override
+  String youbikeStationsP0(Object p0) => 'YouBike: ${p0} stations';
+
+  @override
+  String parkingLotsP0(Object p0) => 'Parking lots: ${p0}';
+
+  @override
+  String roadsideNearP0(Object p0) => 'Street parking: ${p0}';
+
+  @override
+  String nearestMrtP0P1(Object p0, Object p1) => 'Nearest MRT: ${p0} (${p1})';
+
+  @override
+  String get noNearbyTransit => 'No Taipei open data transport information near this location';
+
+  @override
+  String get preciseLocationRequiredCabinetSetup => 'Precise location is required to set locker coordinates. Turn it on in system settings and try again.';
+
+  @override
+  String get transitBus => 'Bus';
+
+  @override
+  String towardsP0(Object p0) => 'To ${p0}';
+
+  @override
+  String get busArriving => 'Arriving';
+
+  @override
+  String busMinutesP0(Object p0) => '${p0} min';
+
+  @override
+  String get busNotDeparted => 'Not departed';
+
+  @override
+  String get busNotStopping => 'Not stopping';
+
+  @override
+  String get busLastPassed => 'Last bus passed';
+
+  @override
+  String get busNoService => 'No service today';
+
+  @override
+  String get busNoEstimate => 'No arrival info';
+
+  @override
+  String showAllRoutesP0(Object p0) => 'Show all ${p0} routes';
+
+  @override
+  String noBusWithinP0(Object p0) => 'No bus stops within ${p0}';
+
+  @override
+  String busStopsP0(Object p0) => 'Bus stops: ${p0}';
+
+  @override
+  String get drivingAndTaxi => 'Driving & taxis';
+
+  @override
+  String get taxiStands => 'Taxi stands';
+
+  @override
+  String taxiSpacesP0(Object p0) => '${p0} waiting spaces';
+
+  @override
+  String taxiHoursP0(Object p0) => 'Hours ${p0}';
+
+  @override
+  String noTaxiWithinP0(Object p0) => 'No taxi stands within ${p0}';
+
+  @override
+  String get roadConditions => 'Nearby traffic';
+
+  @override
+  String speedP0(Object p0) => '${p0} km/h';
+
+  @override
+  String get trafficSmooth => 'Smooth';
+
+  @override
+  String get trafficBusy => 'Busy';
+
+  @override
+  String get trafficCongested => 'Congested';
+
+  @override
+  String accessibleElevatorP0(Object p0) => 'Elevator at exit ${p0}';
+
+  @override
+  String get accessibleElevator => 'Elevator';
+
+  @override
+  String accessibleRampP0(Object p0) => 'Ramp at exit ${p0}';
+
+  @override
+  String get accessibleRamp => 'Ramp';
+
+  @override
+  String get singleExit => 'Single exit';
 
 }
 
@@ -17330,6 +17658,252 @@ class _LJa extends AppLocalizations {
   @override
   String get bookHeldForBuyer => '取り置き中';
 
+  @override
+  String get transitInfo => 'アクセス';
+
+  @override
+  String get getToLocker => 'ロッカーへのアクセス';
+
+  @override
+  String get navigate => '経路';
+
+  @override
+  String get transitMrt => 'MRT';
+
+  @override
+  String get transitYoubike => 'YouBike 2.0';
+
+  @override
+  String get transitParking => '駐車';
+
+  @override
+  String get parkingLots => '駐車場';
+
+  @override
+  String get roadsideParking => '路上駐車';
+
+  @override
+  String mrtStationP0(Object p0) => '${p0}駅';
+
+  @override
+  String mrtExitP0(Object p0) => '出口 ${p0}';
+
+  @override
+  String accessibleExitP0(Object p0) => 'バリアフリー出口 ${p0}';
+
+  @override
+  String get mrtFare => '運賃';
+
+  @override
+  String departFromP0(Object p0) => '${p0}から';
+
+  @override
+  String get chooseDepartureStation => '出発駅を選択';
+
+  @override
+  String get departureStation => '出発駅';
+
+  @override
+  String get departureStationHint => '最寄り駅が初期値です。位置情報はこの端末内でのみ使用されます。';
+
+  @override
+  String fareToP0(Object p0) => '${p0}まで';
+
+  @override
+  String fullFareP0(Object p0) => '普通 \$${p0}';
+
+  @override
+  String concessionFareP0(Object p0) => '高齢者・障害者・子ども \$${p0}';
+
+  @override
+  String aboutP0Km(Object p0) => '約 ${p0} km';
+
+  @override
+  String get fareNotFound => '運賃情報なし';
+
+  @override
+  String rentReturnP0P1(Object p0, Object p1) => '貸出 ${p0}・返却 ${p1}';
+
+  @override
+  String get stationSuspended => '休止中';
+
+  @override
+  String noYoubikeWithinP0(Object p0) => '${p0}以内に YouBike ステーションはありません';
+
+  @override
+  String noParkingLotsWithinP0(Object p0) => '${p0}以内に駐車場はありません';
+
+  @override
+  String noRoadsideWithinP0(Object p0) => '${p0}以内に路上駐車枠はありません';
+
+  @override
+  String get transitDataUnavailable => 'データを取得できません。しばらくしてからお試しください。';
+
+  @override
+  String carP0(Object p0) => '自動車 ${p0}';
+
+  @override
+  String motorcycleP0(Object p0) => 'バイク ${p0}';
+
+  @override
+  String vacantOfTotalP0P1(Object p0, Object p1) => '空き ${p0}／全 ${p1}';
+
+  @override
+  String totalSpacesP0(Object p0) => '全 ${p0} 台';
+
+  @override
+  String get carSpaces => '自動車枠';
+
+  @override
+  String get motorcycleSpaces => 'バイク枠';
+
+  @override
+  String spacesNearbyP0(Object p0) => '付近 ${p0} 枠';
+
+  @override
+  String accessibleSpacesP0(Object p0) => '障害者用 ${p0} 枠';
+
+  @override
+  String liveVacancyP0P1(Object p0, Object p1) => '現在の空き ${p0}／${p1}';
+
+  @override
+  String get noLiveVacancy => 'リアルタイムの空き情報なし';
+
+  @override
+  String chargeHoursP0P1(Object p0, Object p1) => '有料 ${p0}–${p1}';
+
+  @override
+  String get motorcycleAreaNearby => 'バイク駐輪エリアあり';
+
+  @override
+  String roadsideNoteP0(Object p0) => '各駐車枠の位置をもとに、ロッカーから ${p0}以内の枠を表示しています。';
+
+  @override
+  String dataTimeP0(Object p0) => '更新 ${p0}';
+
+  @override
+  String get transitAttribution => '出典：台北市オープンデータプラットフォーム（data.taipei）。バス、YouBike、駐車場の情報は台北市内のみ対象です。距離はすべて直線距離です。';
+
+  @override
+  String get useCurrentLocation => '現在地を使用';
+
+  @override
+  String locationAccuracyP0(Object p0) => '精度 約 ±${p0} m';
+
+  @override
+  String get locationAccuracyLow => '誤差が大きいため、屋外や開けた場所で再度測位してください。';
+
+  @override
+  String get currentLocationFilled => '現在地を入力しました';
+
+  @override
+  String get nearbyPreview => '周辺の交通プレビュー';
+
+  @override
+  String get nearbyPreviewHint => '座標を入力すると周辺の MRT 駅、YouBike、駐車情報を表示します。住所と一致しているか確認できます。';
+
+  @override
+  String get checkOnMap => '地図で確認';
+
+  @override
+  String youbikeStationsP0(Object p0) => 'YouBike ${p0} か所';
+
+  @override
+  String parkingLotsP0(Object p0) => '駐車場 ${p0} か所';
+
+  @override
+  String roadsideNearP0(Object p0) => '路上駐車：${p0}';
+
+  @override
+  String nearestMrtP0P1(Object p0, Object p1) => '最寄りの MRT：${p0}（${p1}）';
+
+  @override
+  String get noNearbyTransit => 'この付近には台北市オープンデータの交通情報がありません';
+
+  @override
+  String get preciseLocationRequiredCabinetSetup => 'ロッカーの座標を設定するには正確な位置情報が必要です。システム設定でオンにしてから再度お試しください。';
+
+  @override
+  String get transitBus => 'バス';
+
+  @override
+  String towardsP0(Object p0) => '${p0}行き';
+
+  @override
+  String get busArriving => 'まもなく到着';
+
+  @override
+  String busMinutesP0(Object p0) => '約 ${p0} 分';
+
+  @override
+  String get busNotDeparted => '未発車';
+
+  @override
+  String get busNotStopping => '交通規制のため通過';
+
+  @override
+  String get busLastPassed => '終車済み';
+
+  @override
+  String get busNoService => '本日運休';
+
+  @override
+  String get busNoEstimate => '到着情報なし';
+
+  @override
+  String showAllRoutesP0(Object p0) => '全 ${p0} 路線を表示';
+
+  @override
+  String noBusWithinP0(Object p0) => '${p0}以内にバス停はありません';
+
+  @override
+  String busStopsP0(Object p0) => 'バス停 ${p0} か所';
+
+  @override
+  String get drivingAndTaxi => '車・タクシー';
+
+  @override
+  String get taxiStands => 'タクシー乗り場';
+
+  @override
+  String taxiSpacesP0(Object p0) => '待機 ${p0} 台';
+
+  @override
+  String taxiHoursP0(Object p0) => '待機時間 ${p0}';
+
+  @override
+  String noTaxiWithinP0(Object p0) => '${p0}以内にタクシー乗り場はありません';
+
+  @override
+  String get roadConditions => '周辺の交通状況';
+
+  @override
+  String speedP0(Object p0) => '時速 ${p0} km';
+
+  @override
+  String get trafficSmooth => '順調';
+
+  @override
+  String get trafficBusy => 'やや混雑';
+
+  @override
+  String get trafficCongested => '渋滞';
+
+  @override
+  String accessibleElevatorP0(Object p0) => 'エレベーター 出口 ${p0}';
+
+  @override
+  String get accessibleElevator => 'エレベーター';
+
+  @override
+  String accessibleRampP0(Object p0) => 'スロープ 出口 ${p0}';
+
+  @override
+  String get accessibleRamp => 'スロープ';
+
+  @override
+  String get singleExit => '出口は 1 か所';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -24747,6 +25321,252 @@ class _LKo extends AppLocalizations {
 
   @override
   String get bookHeldForBuyer => '예약 중';
+
+  @override
+  String get transitInfo => '교통 정보';
+
+  @override
+  String get getToLocker => '보관함 가는 길';
+
+  @override
+  String get navigate => '길찾기';
+
+  @override
+  String get transitMrt => 'MRT';
+
+  @override
+  String get transitYoubike => 'YouBike 2.0';
+
+  @override
+  String get transitParking => '주차';
+
+  @override
+  String get parkingLots => '주차장';
+
+  @override
+  String get roadsideParking => '노상 주차';
+
+  @override
+  String mrtStationP0(Object p0) => '${p0}역';
+
+  @override
+  String mrtExitP0(Object p0) => '출구 ${p0}';
+
+  @override
+  String accessibleExitP0(Object p0) => '무장애 출구 ${p0}';
+
+  @override
+  String get mrtFare => '요금';
+
+  @override
+  String departFromP0(Object p0) => '${p0}에서 출발';
+
+  @override
+  String get chooseDepartureStation => '출발역 선택';
+
+  @override
+  String get departureStation => '출발역';
+
+  @override
+  String get departureStationHint => '가장 가까운 역이 기본값이며 위치는 이 기기에서만 사용됩니다.';
+
+  @override
+  String fareToP0(Object p0) => '${p0}까지';
+
+  @override
+  String fullFareP0(Object p0) => '일반 \$${p0}';
+
+  @override
+  String concessionFareP0(Object p0) => '경로・장애인・어린이 \$${p0}';
+
+  @override
+  String aboutP0Km(Object p0) => '약 ${p0}km';
+
+  @override
+  String get fareNotFound => '요금 정보 없음';
+
+  @override
+  String rentReturnP0P1(Object p0, Object p1) => '대여 ${p0}・반납 ${p1}';
+
+  @override
+  String get stationSuspended => '운영 중지';
+
+  @override
+  String noYoubikeWithinP0(Object p0) => '${p0} 이내에 YouBike 대여소가 없습니다';
+
+  @override
+  String noParkingLotsWithinP0(Object p0) => '${p0} 이내에 주차장이 없습니다';
+
+  @override
+  String noRoadsideWithinP0(Object p0) => '${p0} 이내에 노상 주차면이 없습니다';
+
+  @override
+  String get transitDataUnavailable => '데이터를 일시적으로 가져올 수 없습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String carP0(Object p0) => '자동차 ${p0}';
+
+  @override
+  String motorcycleP0(Object p0) => '오토바이 ${p0}';
+
+  @override
+  String vacantOfTotalP0P1(Object p0, Object p1) => '빈자리 ${p0}／전체 ${p1}';
+
+  @override
+  String totalSpacesP0(Object p0) => '총 ${p0}면';
+
+  @override
+  String get carSpaces => '자동차 주차면';
+
+  @override
+  String get motorcycleSpaces => '오토바이 주차면';
+
+  @override
+  String spacesNearbyP0(Object p0) => '인근 ${p0}면';
+
+  @override
+  String accessibleSpacesP0(Object p0) => '장애인용 ${p0}면';
+
+  @override
+  String liveVacancyP0P1(Object p0, Object p1) => '실시간 빈자리 ${p0}／${p1}';
+
+  @override
+  String get noLiveVacancy => '실시간 빈자리 정보 없음';
+
+  @override
+  String chargeHoursP0P1(Object p0, Object p1) => '유료 ${p0}–${p1}';
+
+  @override
+  String get motorcycleAreaNearby => '오토바이 주차 구역 있음';
+
+  @override
+  String roadsideNoteP0(Object p0) => '각 주차면의 실제 위치를 기준으로 보관함 ${p0} 이내의 주차면을 표시합니다.';
+
+  @override
+  String dataTimeP0(Object p0) => '업데이트 ${p0}';
+
+  @override
+  String get transitAttribution => '출처: 타이베이시 공공데이터 플랫폼(data.taipei). 버스, YouBike, 주차 정보는 타이베이시만 해당하며, 거리는 모두 직선거리입니다.';
+
+  @override
+  String get useCurrentLocation => '현재 위치 사용';
+
+  @override
+  String locationAccuracyP0(Object p0) => '정확도 약 ±${p0}m';
+
+  @override
+  String get locationAccuracyLow => '오차가 큽니다. 실외나 탁 트인 곳에서 다시 측정해 주세요.';
+
+  @override
+  String get currentLocationFilled => '현재 위치를 입력했습니다';
+
+  @override
+  String get nearbyPreview => '주변 교통 미리보기';
+
+  @override
+  String get nearbyPreviewHint => '좌표를 입력하면 주변 MRT역, YouBike, 주차 정보를 표시하여 주소와 일치하는지 확인할 수 있습니다.';
+
+  @override
+  String get checkOnMap => '지도에서 확인';
+
+  @override
+  String youbikeStationsP0(Object p0) => 'YouBike ${p0}곳';
+
+  @override
+  String parkingLotsP0(Object p0) => '주차장 ${p0}곳';
+
+  @override
+  String roadsideNearP0(Object p0) => '노상 주차: ${p0}';
+
+  @override
+  String nearestMrtP0P1(Object p0, Object p1) => '가장 가까운 MRT: ${p0} (${p1})';
+
+  @override
+  String get noNearbyTransit => '이 위치 주변에는 타이베이시 공공데이터 교통 정보가 없습니다';
+
+  @override
+  String get preciseLocationRequiredCabinetSetup => '보관함 좌표를 설정하려면 정확한 위치가 필요합니다. 시스템 설정에서 켠 후 다시 시도해 주세요.';
+
+  @override
+  String get transitBus => '버스';
+
+  @override
+  String towardsP0(Object p0) => '${p0} 방면';
+
+  @override
+  String get busArriving => '곧 도착';
+
+  @override
+  String busMinutesP0(Object p0) => '약 ${p0}분';
+
+  @override
+  String get busNotDeparted => '출발 전';
+
+  @override
+  String get busNotStopping => '교통 통제로 미정차';
+
+  @override
+  String get busLastPassed => '막차 종료';
+
+  @override
+  String get busNoService => '오늘 운행 없음';
+
+  @override
+  String get busNoEstimate => '도착 정보 없음';
+
+  @override
+  String showAllRoutesP0(Object p0) => '전체 ${p0}개 노선 보기';
+
+  @override
+  String noBusWithinP0(Object p0) => '${p0} 이내에 버스 정류장이 없습니다';
+
+  @override
+  String busStopsP0(Object p0) => '버스 정류장 ${p0}곳';
+
+  @override
+  String get drivingAndTaxi => '자동차・택시';
+
+  @override
+  String get taxiStands => '택시 승강장';
+
+  @override
+  String taxiSpacesP0(Object p0) => '대기 ${p0}면';
+
+  @override
+  String taxiHoursP0(Object p0) => '대기 시간 ${p0}';
+
+  @override
+  String noTaxiWithinP0(Object p0) => '${p0} 이내에 택시 승강장이 없습니다';
+
+  @override
+  String get roadConditions => '주변 교통 상황';
+
+  @override
+  String speedP0(Object p0) => '시속 ${p0}km';
+
+  @override
+  String get trafficSmooth => '원활';
+
+  @override
+  String get trafficBusy => '혼잡';
+
+  @override
+  String get trafficCongested => '정체';
+
+  @override
+  String accessibleElevatorP0(Object p0) => '엘리베이터 출구 ${p0}';
+
+  @override
+  String get accessibleElevator => '엘리베이터';
+
+  @override
+  String accessibleRampP0(Object p0) => '경사로 출구 ${p0}';
+
+  @override
+  String get accessibleRamp => '경사로';
+
+  @override
+  String get singleExit => '단일 출구';
 
 }
 
@@ -32166,6 +32986,252 @@ class _LZh extends AppLocalizations {
   @override
   String get bookHeldForBuyer => '已被預約';
 
+  @override
+  String get transitInfo => '交通資訊';
+
+  @override
+  String get getToLocker => '前往書櫃';
+
+  @override
+  String get navigate => '導航';
+
+  @override
+  String get transitMrt => '捷運';
+
+  @override
+  String get transitYoubike => 'YouBike 2.0';
+
+  @override
+  String get transitParking => '停車';
+
+  @override
+  String get parkingLots => '停車場';
+
+  @override
+  String get roadsideParking => '路邊停車';
+
+  @override
+  String mrtStationP0(Object p0) => '${p0}站';
+
+  @override
+  String mrtExitP0(Object p0) => '出口 ${p0}';
+
+  @override
+  String accessibleExitP0(Object p0) => '無障礙出口 ${p0}';
+
+  @override
+  String get mrtFare => '票價';
+
+  @override
+  String departFromP0(Object p0) => '從${p0}出發';
+
+  @override
+  String get chooseDepartureStation => '選擇出發車站';
+
+  @override
+  String get departureStation => '出發車站';
+
+  @override
+  String get departureStationHint => '預設為離您最近的車站，位置只在手機上計算';
+
+  @override
+  String fareToP0(Object p0) => '到${p0}';
+
+  @override
+  String fullFareP0(Object p0) => '全票 \$${p0}';
+
+  @override
+  String concessionFareP0(Object p0) => '敬老・愛心・兒童 \$${p0}';
+
+  @override
+  String aboutP0Km(Object p0) => '約 ${p0} 公里';
+
+  @override
+  String get fareNotFound => '查無票價';
+
+  @override
+  String rentReturnP0P1(Object p0, Object p1) => '可借 ${p0}・可還 ${p1}';
+
+  @override
+  String get stationSuspended => '暫停營運';
+
+  @override
+  String noYoubikeWithinP0(Object p0) => '${p0}內沒有 YouBike 站點';
+
+  @override
+  String noParkingLotsWithinP0(Object p0) => '${p0}內沒有停車場';
+
+  @override
+  String noRoadsideWithinP0(Object p0) => '${p0}內沒有路邊停車格';
+
+  @override
+  String get transitDataUnavailable => '暫時無法取得資料，請稍後再試';
+
+  @override
+  String carP0(Object p0) => '汽車 ${p0}';
+
+  @override
+  String motorcycleP0(Object p0) => '機車 ${p0}';
+
+  @override
+  String vacantOfTotalP0P1(Object p0, Object p1) => '空 ${p0}／共 ${p1}';
+
+  @override
+  String totalSpacesP0(Object p0) => '共 ${p0} 格';
+
+  @override
+  String get carSpaces => '汽車格';
+
+  @override
+  String get motorcycleSpaces => '機車格';
+
+  @override
+  String spacesNearbyP0(Object p0) => '附近 ${p0} 格';
+
+  @override
+  String accessibleSpacesP0(Object p0) => '身障 ${p0} 格';
+
+  @override
+  String liveVacancyP0P1(Object p0, Object p1) => '即時空位 ${p0}／${p1}';
+
+  @override
+  String get noLiveVacancy => '無即時空位資料';
+
+  @override
+  String chargeHoursP0P1(Object p0, Object p1) => '收費 ${p0}–${p1}';
+
+  @override
+  String get motorcycleAreaNearby => '另有機慢車停放區';
+
+  @override
+  String roadsideNoteP0(Object p0) => '依路邊停車格位的實際位置，列出書櫃 ${p0}內的格位';
+
+  @override
+  String dataTimeP0(Object p0) => '資料時間 ${p0}';
+
+  @override
+  String get transitAttribution => '資料來源：臺北市資料大平臺（data.taipei）。公車、YouBike 與停車資訊僅涵蓋臺北市，距離皆為直線距離。';
+
+  @override
+  String get useCurrentLocation => '使用目前位置';
+
+  @override
+  String locationAccuracyP0(Object p0) => '定位精確度約 ±${p0} 公尺';
+
+  @override
+  String get locationAccuracyLow => '誤差較大，建議移至戶外或空曠處後重新定位';
+
+  @override
+  String get currentLocationFilled => '已填入目前位置';
+
+  @override
+  String get nearbyPreview => '附近交通預覽';
+
+  @override
+  String get nearbyPreviewHint => '填入座標後顯示附近的捷運站、YouBike 與停車資訊，可用來確認座標與地址是否相符';
+
+  @override
+  String get checkOnMap => '在地圖上確認';
+
+  @override
+  String youbikeStationsP0(Object p0) => 'YouBike ${p0} 站';
+
+  @override
+  String parkingLotsP0(Object p0) => '停車場 ${p0} 處';
+
+  @override
+  String roadsideNearP0(Object p0) => '路邊停車：${p0}';
+
+  @override
+  String nearestMrtP0P1(Object p0, Object p1) => '最近捷運站：${p0}（${p1}）';
+
+  @override
+  String get noNearbyTransit => '附近沒有臺北市開放資料涵蓋的交通資訊';
+
+  @override
+  String get preciseLocationRequiredCabinetSetup => '設定書櫃座標須開啟精確位置，請於系統設定中開啟後再試';
+
+  @override
+  String get transitBus => '公車';
+
+  @override
+  String towardsP0(Object p0) => '往${p0}';
+
+  @override
+  String get busArriving => '即將進站';
+
+  @override
+  String busMinutesP0(Object p0) => '約 ${p0} 分';
+
+  @override
+  String get busNotDeparted => '尚未發車';
+
+  @override
+  String get busNotStopping => '交管不停靠';
+
+  @override
+  String get busLastPassed => '末班已過';
+
+  @override
+  String get busNoService => '今日未營運';
+
+  @override
+  String get busNoEstimate => '無到站資料';
+
+  @override
+  String showAllRoutesP0(Object p0) => '顯示全部 ${p0} 條路線';
+
+  @override
+  String noBusWithinP0(Object p0) => '${p0}內沒有公車站牌';
+
+  @override
+  String busStopsP0(Object p0) => '公車站 ${p0} 處';
+
+  @override
+  String get drivingAndTaxi => '開車與計程車';
+
+  @override
+  String get taxiStands => '計程車招呼站';
+
+  @override
+  String taxiSpacesP0(Object p0) => '排班 ${p0} 格';
+
+  @override
+  String taxiHoursP0(Object p0) => '排班時間 ${p0}';
+
+  @override
+  String noTaxiWithinP0(Object p0) => '${p0}內沒有計程車招呼站';
+
+  @override
+  String get roadConditions => '周邊路況';
+
+  @override
+  String speedP0(Object p0) => '時速 ${p0} 公里';
+
+  @override
+  String get trafficSmooth => '順暢';
+
+  @override
+  String get trafficBusy => '車多';
+
+  @override
+  String get trafficCongested => '壅塞';
+
+  @override
+  String accessibleElevatorP0(Object p0) => '無障礙電梯 出口 ${p0}';
+
+  @override
+  String get accessibleElevator => '無障礙電梯';
+
+  @override
+  String accessibleRampP0(Object p0) => '無障礙坡道 出口 ${p0}';
+
+  @override
+  String get accessibleRamp => '無障礙坡道';
+
+  @override
+  String get singleExit => '單一出口';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -39584,6 +40650,252 @@ class _LZhHans extends AppLocalizations {
   @override
   String get bookHeldForBuyer => '已被预约';
 
+  @override
+  String get transitInfo => '交通信息';
+
+  @override
+  String get getToLocker => '前往书柜';
+
+  @override
+  String get navigate => '导航';
+
+  @override
+  String get transitMrt => '地铁';
+
+  @override
+  String get transitYoubike => 'YouBike 2.0';
+
+  @override
+  String get transitParking => '停车';
+
+  @override
+  String get parkingLots => '停车场';
+
+  @override
+  String get roadsideParking => '路边停车';
+
+  @override
+  String mrtStationP0(Object p0) => '${p0}站';
+
+  @override
+  String mrtExitP0(Object p0) => '出口 ${p0}';
+
+  @override
+  String accessibleExitP0(Object p0) => '无障碍出口 ${p0}';
+
+  @override
+  String get mrtFare => '票价';
+
+  @override
+  String departFromP0(Object p0) => '从${p0}出发';
+
+  @override
+  String get chooseDepartureStation => '选择出发车站';
+
+  @override
+  String get departureStation => '出发车站';
+
+  @override
+  String get departureStationHint => '默认为离您最近的车站，位置只在手机上计算';
+
+  @override
+  String fareToP0(Object p0) => '到${p0}';
+
+  @override
+  String fullFareP0(Object p0) => '全票 \$${p0}';
+
+  @override
+  String concessionFareP0(Object p0) => '敬老・爱心・儿童 \$${p0}';
+
+  @override
+  String aboutP0Km(Object p0) => '约 ${p0} 公里';
+
+  @override
+  String get fareNotFound => '查无票价';
+
+  @override
+  String rentReturnP0P1(Object p0, Object p1) => '可借 ${p0}・可还 ${p1}';
+
+  @override
+  String get stationSuspended => '暂停营运';
+
+  @override
+  String noYoubikeWithinP0(Object p0) => '${p0}内没有 YouBike 站点';
+
+  @override
+  String noParkingLotsWithinP0(Object p0) => '${p0}内没有停车场';
+
+  @override
+  String noRoadsideWithinP0(Object p0) => '${p0}内没有路边停车位';
+
+  @override
+  String get transitDataUnavailable => '暂时无法获取数据，请稍后再试';
+
+  @override
+  String carP0(Object p0) => '汽车 ${p0}';
+
+  @override
+  String motorcycleP0(Object p0) => '摩托车 ${p0}';
+
+  @override
+  String vacantOfTotalP0P1(Object p0, Object p1) => '空 ${p0}／共 ${p1}';
+
+  @override
+  String totalSpacesP0(Object p0) => '共 ${p0} 个车位';
+
+  @override
+  String get carSpaces => '汽车位';
+
+  @override
+  String get motorcycleSpaces => '摩托车位';
+
+  @override
+  String spacesNearbyP0(Object p0) => '附近 ${p0} 个车位';
+
+  @override
+  String accessibleSpacesP0(Object p0) => '无障碍 ${p0} 个';
+
+  @override
+  String liveVacancyP0P1(Object p0, Object p1) => '实时空位 ${p0}／${p1}';
+
+  @override
+  String get noLiveVacancy => '无实时空位数据';
+
+  @override
+  String chargeHoursP0P1(Object p0, Object p1) => '收费 ${p0}–${p1}';
+
+  @override
+  String get motorcycleAreaNearby => '另有摩托车停放区';
+
+  @override
+  String roadsideNoteP0(Object p0) => '依路边停车位的实际位置，列出书柜 ${p0}内的车位';
+
+  @override
+  String dataTimeP0(Object p0) => '数据时间 ${p0}';
+
+  @override
+  String get transitAttribution => '数据来源：台北市资料大平台（data.taipei）。公交、YouBike 与停车信息仅涵盖台北市，距离均为直线距离。';
+
+  @override
+  String get useCurrentLocation => '使用当前位置';
+
+  @override
+  String locationAccuracyP0(Object p0) => '定位精度约 ±${p0} 米';
+
+  @override
+  String get locationAccuracyLow => '误差较大，建议移至户外或空旷处后重新定位';
+
+  @override
+  String get currentLocationFilled => '已填入当前位置';
+
+  @override
+  String get nearbyPreview => '附近交通预览';
+
+  @override
+  String get nearbyPreviewHint => '填入坐标后显示附近的地铁站、YouBike 与停车信息，可用来确认坐标与地址是否相符';
+
+  @override
+  String get checkOnMap => '在地图上确认';
+
+  @override
+  String youbikeStationsP0(Object p0) => 'YouBike ${p0} 个站点';
+
+  @override
+  String parkingLotsP0(Object p0) => '停车场 ${p0} 处';
+
+  @override
+  String roadsideNearP0(Object p0) => '路边停车：${p0}';
+
+  @override
+  String nearestMrtP0P1(Object p0, Object p1) => '最近地铁站：${p0}（${p1}）';
+
+  @override
+  String get noNearbyTransit => '附近没有台北市开放数据涵盖的交通信息';
+
+  @override
+  String get preciseLocationRequiredCabinetSetup => '设置书柜坐标须开启精确位置，请在系统设置中开启后再试';
+
+  @override
+  String get transitBus => '公交';
+
+  @override
+  String towardsP0(Object p0) => '往${p0}';
+
+  @override
+  String get busArriving => '即将进站';
+
+  @override
+  String busMinutesP0(Object p0) => '约 ${p0} 分';
+
+  @override
+  String get busNotDeparted => '尚未发车';
+
+  @override
+  String get busNotStopping => '交管不停靠';
+
+  @override
+  String get busLastPassed => '末班已过';
+
+  @override
+  String get busNoService => '今日未运营';
+
+  @override
+  String get busNoEstimate => '无到站数据';
+
+  @override
+  String showAllRoutesP0(Object p0) => '显示全部 ${p0} 条路线';
+
+  @override
+  String noBusWithinP0(Object p0) => '${p0}内没有公交站牌';
+
+  @override
+  String busStopsP0(Object p0) => '公交站 ${p0} 处';
+
+  @override
+  String get drivingAndTaxi => '开车与出租车';
+
+  @override
+  String get taxiStands => '出租车招呼站';
+
+  @override
+  String taxiSpacesP0(Object p0) => '排班 ${p0} 个车位';
+
+  @override
+  String taxiHoursP0(Object p0) => '排班时间 ${p0}';
+
+  @override
+  String noTaxiWithinP0(Object p0) => '${p0}内没有出租车招呼站';
+
+  @override
+  String get roadConditions => '周边路况';
+
+  @override
+  String speedP0(Object p0) => '时速 ${p0} 公里';
+
+  @override
+  String get trafficSmooth => '顺畅';
+
+  @override
+  String get trafficBusy => '车多';
+
+  @override
+  String get trafficCongested => '拥堵';
+
+  @override
+  String accessibleElevatorP0(Object p0) => '无障碍电梯 出口 ${p0}';
+
+  @override
+  String get accessibleElevator => '无障碍电梯';
+
+  @override
+  String accessibleRampP0(Object p0) => '无障碍坡道 出口 ${p0}';
+
+  @override
+  String get accessibleRamp => '无障碍坡道';
+
+  @override
+  String get singleExit => '单一出口';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -47001,6 +48313,252 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get bookHeldForBuyer => '已被預約';
+
+  @override
+  String get transitInfo => '交通資訊';
+
+  @override
+  String get getToLocker => '前往書櫃';
+
+  @override
+  String get navigate => '導航';
+
+  @override
+  String get transitMrt => '捷運';
+
+  @override
+  String get transitYoubike => 'YouBike 2.0';
+
+  @override
+  String get transitParking => '停車';
+
+  @override
+  String get parkingLots => '停車場';
+
+  @override
+  String get roadsideParking => '路邊停車';
+
+  @override
+  String mrtStationP0(Object p0) => '${p0}站';
+
+  @override
+  String mrtExitP0(Object p0) => '出口 ${p0}';
+
+  @override
+  String accessibleExitP0(Object p0) => '無障礙出口 ${p0}';
+
+  @override
+  String get mrtFare => '票價';
+
+  @override
+  String departFromP0(Object p0) => '從${p0}出發';
+
+  @override
+  String get chooseDepartureStation => '選擇出發車站';
+
+  @override
+  String get departureStation => '出發車站';
+
+  @override
+  String get departureStationHint => '預設為離您最近的車站，位置只在手機上計算';
+
+  @override
+  String fareToP0(Object p0) => '到${p0}';
+
+  @override
+  String fullFareP0(Object p0) => '全票 \$${p0}';
+
+  @override
+  String concessionFareP0(Object p0) => '敬老・愛心・兒童 \$${p0}';
+
+  @override
+  String aboutP0Km(Object p0) => '約 ${p0} 公里';
+
+  @override
+  String get fareNotFound => '查無票價';
+
+  @override
+  String rentReturnP0P1(Object p0, Object p1) => '可借 ${p0}・可還 ${p1}';
+
+  @override
+  String get stationSuspended => '暫停營運';
+
+  @override
+  String noYoubikeWithinP0(Object p0) => '${p0}內沒有 YouBike 站點';
+
+  @override
+  String noParkingLotsWithinP0(Object p0) => '${p0}內沒有停車場';
+
+  @override
+  String noRoadsideWithinP0(Object p0) => '${p0}內沒有路邊停車格';
+
+  @override
+  String get transitDataUnavailable => '暫時無法取得資料，請稍後再試';
+
+  @override
+  String carP0(Object p0) => '汽車 ${p0}';
+
+  @override
+  String motorcycleP0(Object p0) => '機車 ${p0}';
+
+  @override
+  String vacantOfTotalP0P1(Object p0, Object p1) => '空 ${p0}／共 ${p1}';
+
+  @override
+  String totalSpacesP0(Object p0) => '共 ${p0} 格';
+
+  @override
+  String get carSpaces => '汽車格';
+
+  @override
+  String get motorcycleSpaces => '機車格';
+
+  @override
+  String spacesNearbyP0(Object p0) => '附近 ${p0} 格';
+
+  @override
+  String accessibleSpacesP0(Object p0) => '身障 ${p0} 格';
+
+  @override
+  String liveVacancyP0P1(Object p0, Object p1) => '即時空位 ${p0}／${p1}';
+
+  @override
+  String get noLiveVacancy => '無即時空位資料';
+
+  @override
+  String chargeHoursP0P1(Object p0, Object p1) => '收費 ${p0}–${p1}';
+
+  @override
+  String get motorcycleAreaNearby => '另有機慢車停放區';
+
+  @override
+  String roadsideNoteP0(Object p0) => '依路邊停車格位的實際位置，列出書櫃 ${p0}內的格位';
+
+  @override
+  String dataTimeP0(Object p0) => '資料時間 ${p0}';
+
+  @override
+  String get transitAttribution => '資料來源：臺北市資料大平臺（data.taipei）。公車、YouBike 與停車資訊僅涵蓋臺北市，距離皆為直線距離。';
+
+  @override
+  String get useCurrentLocation => '使用目前位置';
+
+  @override
+  String locationAccuracyP0(Object p0) => '定位精確度約 ±${p0} 公尺';
+
+  @override
+  String get locationAccuracyLow => '誤差較大，建議移至戶外或空曠處後重新定位';
+
+  @override
+  String get currentLocationFilled => '已填入目前位置';
+
+  @override
+  String get nearbyPreview => '附近交通預覽';
+
+  @override
+  String get nearbyPreviewHint => '填入座標後顯示附近的捷運站、YouBike 與停車資訊，可用來確認座標與地址是否相符';
+
+  @override
+  String get checkOnMap => '在地圖上確認';
+
+  @override
+  String youbikeStationsP0(Object p0) => 'YouBike ${p0} 站';
+
+  @override
+  String parkingLotsP0(Object p0) => '停車場 ${p0} 處';
+
+  @override
+  String roadsideNearP0(Object p0) => '路邊停車：${p0}';
+
+  @override
+  String nearestMrtP0P1(Object p0, Object p1) => '最近捷運站：${p0}（${p1}）';
+
+  @override
+  String get noNearbyTransit => '附近沒有臺北市開放資料涵蓋的交通資訊';
+
+  @override
+  String get preciseLocationRequiredCabinetSetup => '設定書櫃座標須開啟精確位置，請於系統設定中開啟後再試';
+
+  @override
+  String get transitBus => '公車';
+
+  @override
+  String towardsP0(Object p0) => '往${p0}';
+
+  @override
+  String get busArriving => '即將進站';
+
+  @override
+  String busMinutesP0(Object p0) => '約 ${p0} 分';
+
+  @override
+  String get busNotDeparted => '尚未發車';
+
+  @override
+  String get busNotStopping => '交管不停靠';
+
+  @override
+  String get busLastPassed => '末班已過';
+
+  @override
+  String get busNoService => '今日未營運';
+
+  @override
+  String get busNoEstimate => '無到站資料';
+
+  @override
+  String showAllRoutesP0(Object p0) => '顯示全部 ${p0} 條路線';
+
+  @override
+  String noBusWithinP0(Object p0) => '${p0}內沒有公車站牌';
+
+  @override
+  String busStopsP0(Object p0) => '公車站 ${p0} 處';
+
+  @override
+  String get drivingAndTaxi => '開車與計程車';
+
+  @override
+  String get taxiStands => '計程車招呼站';
+
+  @override
+  String taxiSpacesP0(Object p0) => '排班 ${p0} 格';
+
+  @override
+  String taxiHoursP0(Object p0) => '排班時間 ${p0}';
+
+  @override
+  String noTaxiWithinP0(Object p0) => '${p0}內沒有計程車招呼站';
+
+  @override
+  String get roadConditions => '周邊路況';
+
+  @override
+  String speedP0(Object p0) => '時速 ${p0} 公里';
+
+  @override
+  String get trafficSmooth => '順暢';
+
+  @override
+  String get trafficBusy => '車多';
+
+  @override
+  String get trafficCongested => '壅塞';
+
+  @override
+  String accessibleElevatorP0(Object p0) => '無障礙電梯 出口 ${p0}';
+
+  @override
+  String get accessibleElevator => '無障礙電梯';
+
+  @override
+  String accessibleRampP0(Object p0) => '無障礙坡道 出口 ${p0}';
+
+  @override
+  String get accessibleRamp => '無障礙坡道';
+
+  @override
+  String get singleExit => '單一出口';
 
 }
 

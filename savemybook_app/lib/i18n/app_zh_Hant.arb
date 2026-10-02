@@ -4381,5 +4381,282 @@
       "p0": {}
     }
   },
-  "bookHeldForBuyer": "已被預約"
+  "bookHeldForBuyer": "已被預約",
+  "transitInfo": "交通資訊",
+  "getToLocker": "前往書櫃",
+  "navigate": "導航",
+  "transitMrt": "捷運",
+  "transitYoubike": "YouBike 2.0",
+  "transitParking": "停車",
+  "parkingLots": "停車場",
+  "roadsideParking": "路邊停車",
+  "mrtStationP0": "{p0}站",
+  "@mrtStationP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtExitP0": "出口 {p0}",
+  "@mrtExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleExitP0": "無障礙出口 {p0}",
+  "@accessibleExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtFare": "票價",
+  "departFromP0": "從{p0}出發",
+  "@departFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chooseDepartureStation": "選擇出發車站",
+  "departureStation": "出發車站",
+  "departureStationHint": "預設為離您最近的車站，位置只在手機上計算",
+  "fareToP0": "到{p0}",
+  "@fareToP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullFareP0": "全票 ${p0}",
+  "@fullFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "concessionFareP0": "敬老・愛心・兒童 ${p0}",
+  "@concessionFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aboutP0Km": "約 {p0} 公里",
+  "@aboutP0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fareNotFound": "查無票價",
+  "rentReturnP0P1": "可借 {p0}・可還 {p1}",
+  "@rentReturnP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "stationSuspended": "暫停營運",
+  "noYoubikeWithinP0": "{p0}內沒有 YouBike 站點",
+  "@noYoubikeWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noParkingLotsWithinP0": "{p0}內沒有停車場",
+  "@noParkingLotsWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noRoadsideWithinP0": "{p0}內沒有路邊停車格",
+  "@noRoadsideWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitDataUnavailable": "暫時無法取得資料，請稍後再試",
+  "carP0": "汽車 {p0}",
+  "@carP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "motorcycleP0": "機車 {p0}",
+  "@motorcycleP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "vacantOfTotalP0P1": "空 {p0}／共 {p1}",
+  "@vacantOfTotalP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "totalSpacesP0": "共 {p0} 格",
+  "@totalSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "carSpaces": "汽車格",
+  "motorcycleSpaces": "機車格",
+  "spacesNearbyP0": "附近 {p0} 格",
+  "@spacesNearbyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleSpacesP0": "身障 {p0} 格",
+  "@accessibleSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "liveVacancyP0P1": "即時空位 {p0}／{p1}",
+  "@liveVacancyP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noLiveVacancy": "無即時空位資料",
+  "chargeHoursP0P1": "收費 {p0}–{p1}",
+  "@chargeHoursP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "motorcycleAreaNearby": "另有機慢車停放區",
+  "roadsideNoteP0": "依路邊停車格位的實際位置，列出書櫃 {p0}內的格位",
+  "@roadsideNoteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dataTimeP0": "資料時間 {p0}",
+  "@dataTimeP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitAttribution": "資料來源：臺北市資料大平臺（data.taipei）。公車、YouBike 與停車資訊僅涵蓋臺北市，距離皆為直線距離。",
+  "useCurrentLocation": "使用目前位置",
+  "locationAccuracyP0": "定位精確度約 ±{p0} 公尺",
+  "@locationAccuracyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locationAccuracyLow": "誤差較大，建議移至戶外或空曠處後重新定位",
+  "currentLocationFilled": "已填入目前位置",
+  "nearbyPreview": "附近交通預覽",
+  "nearbyPreviewHint": "填入座標後顯示附近的捷運站、YouBike 與停車資訊，可用來確認座標與地址是否相符",
+  "checkOnMap": "在地圖上確認",
+  "youbikeStationsP0": "YouBike {p0} 站",
+  "@youbikeStationsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "parkingLotsP0": "停車場 {p0} 處",
+  "@parkingLotsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadsideNearP0": "路邊停車：{p0}",
+  "@roadsideNearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearestMrtP0P1": "最近捷運站：{p0}（{p1}）",
+  "@nearestMrtP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNearbyTransit": "附近沒有臺北市開放資料涵蓋的交通資訊",
+  "preciseLocationRequiredCabinetSetup": "設定書櫃座標須開啟精確位置，請於系統設定中開啟後再試",
+  "transitBus": "公車",
+  "towardsP0": "往{p0}",
+  "@towardsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busArriving": "即將進站",
+  "busMinutesP0": "約 {p0} 分",
+  "@busMinutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busNotDeparted": "尚未發車",
+  "busNotStopping": "交管不停靠",
+  "busLastPassed": "末班已過",
+  "busNoService": "今日未營運",
+  "busNoEstimate": "無到站資料",
+  "showAllRoutesP0": "顯示全部 {p0} 條路線",
+  "@showAllRoutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBusWithinP0": "{p0}內沒有公車站牌",
+  "@noBusWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busStopsP0": "公車站 {p0} 處",
+  "@busStopsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "drivingAndTaxi": "開車與計程車",
+  "taxiStands": "計程車招呼站",
+  "taxiSpacesP0": "排班 {p0} 格",
+  "@taxiSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "taxiHoursP0": "排班時間 {p0}",
+  "@taxiHoursP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noTaxiWithinP0": "{p0}內沒有計程車招呼站",
+  "@noTaxiWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadConditions": "周邊路況",
+  "speedP0": "時速 {p0} 公里",
+  "@speedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "trafficSmooth": "順暢",
+  "trafficBusy": "車多",
+  "trafficCongested": "壅塞",
+  "accessibleElevatorP0": "無障礙電梯 出口 {p0}",
+  "@accessibleElevatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleElevator": "無障礙電梯",
+  "accessibleRampP0": "無障礙坡道 出口 {p0}",
+  "@accessibleRampP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleRamp": "無障礙坡道",
+  "singleExit": "單一出口"
 }

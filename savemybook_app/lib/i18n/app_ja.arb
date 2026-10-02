@@ -4381,5 +4381,282 @@
       "p0": {}
     }
   },
-  "bookHeldForBuyer": "取り置き中"
+  "bookHeldForBuyer": "取り置き中",
+  "transitInfo": "アクセス",
+  "getToLocker": "ロッカーへのアクセス",
+  "navigate": "経路",
+  "transitMrt": "MRT",
+  "transitYoubike": "YouBike 2.0",
+  "transitParking": "駐車",
+  "parkingLots": "駐車場",
+  "roadsideParking": "路上駐車",
+  "mrtStationP0": "{p0}駅",
+  "@mrtStationP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtExitP0": "出口 {p0}",
+  "@mrtExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleExitP0": "バリアフリー出口 {p0}",
+  "@accessibleExitP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "mrtFare": "運賃",
+  "departFromP0": "{p0}から",
+  "@departFromP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "chooseDepartureStation": "出発駅を選択",
+  "departureStation": "出発駅",
+  "departureStationHint": "最寄り駅が初期値です。位置情報はこの端末内でのみ使用されます。",
+  "fareToP0": "{p0}まで",
+  "@fareToP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fullFareP0": "普通 ${p0}",
+  "@fullFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "concessionFareP0": "高齢者・障害者・子ども ${p0}",
+  "@concessionFareP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "aboutP0Km": "約 {p0} km",
+  "@aboutP0Km": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "fareNotFound": "運賃情報なし",
+  "rentReturnP0P1": "貸出 {p0}・返却 {p1}",
+  "@rentReturnP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "stationSuspended": "休止中",
+  "noYoubikeWithinP0": "{p0}以内に YouBike ステーションはありません",
+  "@noYoubikeWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noParkingLotsWithinP0": "{p0}以内に駐車場はありません",
+  "@noParkingLotsWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noRoadsideWithinP0": "{p0}以内に路上駐車枠はありません",
+  "@noRoadsideWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitDataUnavailable": "データを取得できません。しばらくしてからお試しください。",
+  "carP0": "自動車 {p0}",
+  "@carP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "motorcycleP0": "バイク {p0}",
+  "@motorcycleP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "vacantOfTotalP0P1": "空き {p0}／全 {p1}",
+  "@vacantOfTotalP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "totalSpacesP0": "全 {p0} 台",
+  "@totalSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "carSpaces": "自動車枠",
+  "motorcycleSpaces": "バイク枠",
+  "spacesNearbyP0": "付近 {p0} 枠",
+  "@spacesNearbyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleSpacesP0": "障害者用 {p0} 枠",
+  "@accessibleSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "liveVacancyP0P1": "現在の空き {p0}／{p1}",
+  "@liveVacancyP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noLiveVacancy": "リアルタイムの空き情報なし",
+  "chargeHoursP0P1": "有料 {p0}–{p1}",
+  "@chargeHoursP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "motorcycleAreaNearby": "バイク駐輪エリアあり",
+  "roadsideNoteP0": "各駐車枠の位置をもとに、ロッカーから {p0}以内の枠を表示しています。",
+  "@roadsideNoteP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "dataTimeP0": "更新 {p0}",
+  "@dataTimeP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "transitAttribution": "出典：台北市オープンデータプラットフォーム（data.taipei）。バス、YouBike、駐車場の情報は台北市内のみ対象です。距離はすべて直線距離です。",
+  "useCurrentLocation": "現在地を使用",
+  "locationAccuracyP0": "精度 約 ±{p0} m",
+  "@locationAccuracyP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "locationAccuracyLow": "誤差が大きいため、屋外や開けた場所で再度測位してください。",
+  "currentLocationFilled": "現在地を入力しました",
+  "nearbyPreview": "周辺の交通プレビュー",
+  "nearbyPreviewHint": "座標を入力すると周辺の MRT 駅、YouBike、駐車情報を表示します。住所と一致しているか確認できます。",
+  "checkOnMap": "地図で確認",
+  "youbikeStationsP0": "YouBike {p0} か所",
+  "@youbikeStationsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "parkingLotsP0": "駐車場 {p0} か所",
+  "@parkingLotsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadsideNearP0": "路上駐車：{p0}",
+  "@roadsideNearP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "nearestMrtP0P1": "最寄りの MRT：{p0}（{p1}）",
+  "@nearestMrtP0P1": {
+    "placeholders": {
+      "p0": {},
+      "p1": {}
+    }
+  },
+  "noNearbyTransit": "この付近には台北市オープンデータの交通情報がありません",
+  "preciseLocationRequiredCabinetSetup": "ロッカーの座標を設定するには正確な位置情報が必要です。システム設定でオンにしてから再度お試しください。",
+  "transitBus": "バス",
+  "towardsP0": "{p0}行き",
+  "@towardsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busArriving": "まもなく到着",
+  "busMinutesP0": "約 {p0} 分",
+  "@busMinutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busNotDeparted": "未発車",
+  "busNotStopping": "交通規制のため通過",
+  "busLastPassed": "終車済み",
+  "busNoService": "本日運休",
+  "busNoEstimate": "到着情報なし",
+  "showAllRoutesP0": "全 {p0} 路線を表示",
+  "@showAllRoutesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noBusWithinP0": "{p0}以内にバス停はありません",
+  "@noBusWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "busStopsP0": "バス停 {p0} か所",
+  "@busStopsP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "drivingAndTaxi": "車・タクシー",
+  "taxiStands": "タクシー乗り場",
+  "taxiSpacesP0": "待機 {p0} 台",
+  "@taxiSpacesP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "taxiHoursP0": "待機時間 {p0}",
+  "@taxiHoursP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "noTaxiWithinP0": "{p0}以内にタクシー乗り場はありません",
+  "@noTaxiWithinP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "roadConditions": "周辺の交通状況",
+  "speedP0": "時速 {p0} km",
+  "@speedP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "trafficSmooth": "順調",
+  "trafficBusy": "やや混雑",
+  "trafficCongested": "渋滞",
+  "accessibleElevatorP0": "エレベーター 出口 {p0}",
+  "@accessibleElevatorP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleElevator": "エレベーター",
+  "accessibleRampP0": "スロープ 出口 {p0}",
+  "@accessibleRampP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "accessibleRamp": "スロープ",
+  "singleExit": "出口は 1 か所"
 }

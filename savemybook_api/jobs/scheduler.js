@@ -26,6 +26,7 @@ const recommendationEvents = require('../services/recommendation-events');
 const listingScreening = require('../services/listing-screening');
 const notificationCenter = require('../services/notifications');
 const cabinetDevices = require('../services/cabinet-devices');
+const transit = require('../services/transit');
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -239,6 +240,17 @@ const runCabinetPurge = async ({ daily = false } = {}) => {
   }
 };
 
+const runTransitLayerRefresh = async () => {
+  if (maintenance.current().active) return;
+  try {
+    await transit.warm();
+    const spaces = await transit.refreshRoadsideLayer();
+    if (spaces > 0) console.log(`🅿️  已更新路邊停車格位索引：${spaces} 格`);
+  } catch (err) {
+    console.error('[更新路邊停車格位索引失敗]:', err.message);
+  }
+};
+
 const startScheduler = () => {
   let stopDispatcher = () => {};
   push.init()
@@ -277,7 +289,9 @@ const startScheduler = () => {
     setInterval(runCabinetDeviceSweep, MINUTE),
     setInterval(runCabinetPurge, 10 * MINUTE),
     setInterval(() => runCabinetPurge({ daily: true }), 24 * HOUR),
-    setTimeout(() => runCabinetPurge({ daily: true }), 6 * MINUTE)
+    setTimeout(() => runCabinetPurge({ daily: true }), 6 * MINUTE),
+    setInterval(runTransitLayerRefresh, 24 * HOUR),
+    setTimeout(runTransitLayerRefresh, 2 * MINUTE)
   ];
 
   if (env.backupEnabled) {
@@ -295,5 +309,5 @@ const startScheduler = () => {
 
 module.exports = {
   startScheduler, runBackupIfDue, runCabinetSessionSweep, runCabinetDeviceSweep, runCabinetPurge, runListingRecheck, runAiBudgetAlerts,
-  runAiConversationCleanup
+  runAiConversationCleanup, runTransitLayerRefresh
 };

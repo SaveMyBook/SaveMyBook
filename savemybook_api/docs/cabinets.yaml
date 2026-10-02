@@ -78,3 +78,170 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
               example: { success: false, message: 系統發生錯誤，請稍後再試 }
+
+  /api/cabinets/mrt-stations:
+    get:
+      summary: 捷運車站清單
+      operationId: listMrtStations
+      tags: [cabinets]
+      description: |
+        回傳臺北捷運車站與座標（各出入口座標的平均），供「前往書櫃」頁選擇起站。
+        App 以這份座標在手機上自行計算使用者最近的車站，使用者位置不會傳到伺服器。
+        資料取自 data.taipei「臺北捷運車站出入口座標」，每日更新一次；臺北車站的 M1–M8 出口合併為「台北車站」。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      updated_at: { type: string, format: date-time }
+                      stations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name: { type: string, example: 台電大樓 }
+                            latitude: { type: number, example: 25.020553 }
+                            longitude: { type: number, example: 121.528111 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429':
+          description: 查詢過於頻繁（每位使用者每分鐘 60 次，與票價、附近交通資訊合併計算）。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: RATE_LIMITED, message: 查詢交通資訊過於頻繁，請稍後再試 }
+        '503':
+          description: 捷運資料暫時無法取得。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: TRANSIT_UNAVAILABLE, message: 暫時無法取得捷運資料，請稍後再試 }
+
+  /api/cabinets/mrt-fares:
+    get:
+      summary: 捷運票價
+      operationId: getMrtFares
+      tags: [cabinets]
+      description: |
+        查詢起站到一至三個訖站的票價與里程，資料取自 data.taipei「臺北捷運系統票價」，每日更新一次。
+        `fare` 為一般票價，`concession_fare` 為敬老卡、愛心卡、愛心陪伴卡及臺北市與新北市兒童的優惠票價。
+        查無起訖組合時該筆的票價欄位為 null。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string }
+          description: 起站名稱，須為 `GET /api/cabinets/mrt-stations` 回傳的站名。
+          example: 台北車站
+        - in: query
+          name: to
+          required: true
+          schema: { type: string }
+          description: 訖站名稱，最多 3 站，以逗號分隔。
+          example: 台電大樓,古亭
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      updated_at: { type: string, format: date-time }
+                      fares:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            from: { type: string, example: 台北車站 }
+                            to: { type: string, example: 台電大樓 }
+                            fare: { type: integer, nullable: true, example: 20 }
+                            concession_fare: { type: integer, nullable: true, example: 8 }
+                            distance_km: { type: number, nullable: true, example: 3.43 }
+        '400':
+          description: 參數不正確。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              examples:
+                缺少參數:
+                  value: { success: false, message: 請提供起站與訖站 }
+                訖站過多:
+                  value: { success: false, message: 訖站最多 3 站 }
+                起站不存在:
+                  value: { success: false, message: 查無此捷運站 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429':
+          description: 查詢過於頻繁。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: RATE_LIMITED, message: 查詢交通資訊過於頻繁，請稍後再試 }
+        '503':
+          description: 票價資料暫時無法取得。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: TRANSIT_UNAVAILABLE, message: 暫時無法取得捷運資料，請稍後再試 }
+
+  /api/cabinets/{id}/nearby:
+    get:
+      summary: 書櫃附近的交通資訊
+      operationId: getCabinetNearby
+      tags: [cabinets]
+      description: |
+        供「前往書櫃」頁使用，一次回傳書櫃附近的捷運站與出口、公車站與即時到站、YouBike 站點、停車場、路邊停車格、
+        周邊道路路況與計程車招呼站。
+        不限啟用中的書櫃，已成立訂單的書櫃即使維修中仍可查詢。票價請另以 `GET /api/cabinets/mrt-fares` 查詢。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          example: 2
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    allOf:
+                      - type: object
+                        properties:
+                          cabinet:
+                            type: object
+                            description: 書櫃座標，供導航使用
+                            properties:
+                              latitude: { type: number, example: 25.0245 }
+                              longitude: { type: number, example: 121.5288 }
+                      - $ref: '#/components/schemas/TransitNearby'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: 書櫃不存在。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, message: 找不到此書櫃 }
+        '429':
+          description: 查詢過於頻繁。
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+              example: { success: false, code: RATE_LIMITED, message: 查詢交通資訊過於頻繁，請稍後再試 }

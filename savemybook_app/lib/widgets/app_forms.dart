@@ -10,6 +10,7 @@ import 'state_views.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
 import '../i18n/strings.dart';
+import '../features/cabinet/cabinet_guide_screen.dart';
 
 enum FieldState { normal, empty, locked }
 
@@ -806,7 +807,8 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
       if (distance != null) LocationService.formatDistance(distance),
       if (address.isNotEmpty) address,
     ];
-    if (parts.isEmpty && !full) return const SizedBox.shrink();
+    final id = CabinetSelectField.idOf(cab);
+    if (parts.isEmpty && !full && id == null) return const SizedBox.shrink();
 
     return FadeSlideIn(
       key: ValueKey(CabinetSelectField.idOf(cab)),
@@ -842,6 +844,16 @@ class _CabinetSelectFieldState extends State<CabinetSelectField> with WidgetsBin
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.warning),
               ),
             ],
+            if (id != null)
+              Transform.translate(
+                offset: const Offset(-8, 0),
+                child: CabinetGuideButton(
+                  cabinetId: id,
+                  name: CabinetSelectField.nameOf(cab),
+                  address: address,
+                  openHours: formatTimeRange(cab['open_time'], cab['close_time']),
+                ),
+              ),
           ],
         ),
       ),
