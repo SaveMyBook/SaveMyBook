@@ -1,0 +1,1030 @@
+{
+ "lat": 25.02924,
+ "lng": 121.53833,
+ "nearby": {
+  "mrt": {
+   "status": "ok",
+   "updated_at": "2026-10-02T20:23:47.367Z",
+   "stations": [
+    {
+     "name": "大安森林公園",
+     "distance_m": 516,
+     "nearest_exit": {
+      "exit": "5",
+      "accessible": true,
+      "latitude": 25.033369,
+      "longitude": 121.535989,
+      "distance_m": 516
+     },
+     "accessible_exit": {
+      "exit": "5",
+      "facility": "elevator",
+      "latitude": 25.033337,
+      "longitude": 121.536211,
+      "distance_m": 503
+     }
+    },
+    {
+     "name": "大安",
+     "distance_m": 590,
+     "nearest_exit": {
+      "exit": "2",
+      "accessible": false,
+      "latitude": 25.03364917,
+      "longitude": 121.5415899,
+      "distance_m": 590
+     },
+     "accessible_exit": {
+      "exit": "3",
+      "facility": "elevator",
+      "latitude": 25.0332333,
+      "longitude": 121.5428162,
+      "distance_m": 634
+     }
+    }
+   ]
+  },
+  "bus": {
+   "status": "ok",
+   "updated_at": "2026-10-02T20:23:45.000Z",
+   "realtime_available": true,
+   "stops": [
+    {
+     "name": "大安國宅",
+     "address": "建國南路二段109號前(向北)",
+     "latitude": 25.029775296009,
+     "longitude": 121.53800596197,
+     "distance_m": 68,
+     "routes": [
+      {
+       "name": "38",
+       "direction": "大安國宅",
+       "status": "not_departed",
+       "minutes": null
+      },
+      {
+       "name": "298",
+       "direction": "建國錦州街口",
+       "status": "not_departed",
+       "minutes": null
+      },
+      {
+       "name": "紅57",
+       "direction": "吉林路底",
+       "status": "no_service",
+       "minutes": null
+      }
+     ]
+    },
+    {
+     "name": "大安國宅",
+     "address": "建國南路二段大安森林公園四號出入口(向南)",
+     "latitude": 25.02976279,
+     "longitude": 121.537445,
+     "distance_m": 106,
+     "routes": [
+      {
+       "name": "298",
+       "direction": "萬芳社區",
+       "status": "not_departed",
+       "minutes": null
+      },
+      {
+       "name": "紅57",
+       "direction": "復興南路口",
+       "status": "no_service",
+       "minutes": null
+      }
+     ]
+    },
+    {
+     "name": "建國南路",
+     "address": "建國南路2段大安森林公園信箱前",
+     "latitude": 25.03134398,
+     "longitude": 121.5374388,
+     "distance_m": 251,
+     "routes": [
+      {
+       "name": "298",
+       "direction": "萬芳社區",
+       "status": "not_departed",
+       "minutes": null
+      },
+      {
+       "name": "紅57",
+       "direction": "復興南路口",
+       "status": "no_service",
+       "minutes": null
+      }
+     ]
+    }
+   ]
+  },
+  "youbike": {
+   "status": "ok",
+   "updated_at": "2026-10-02T20:22:19.000Z",
+   "stations": [
+    {
+     "name": "臺北市立圖書館(總館)",
+     "address": "建國南路二段/建國南路二段151巷(橋下空間)",
+     "latitude": 25.02895,
+     "longitude": 121.5379,
+     "distance_m": 54,
+     "available_rent": 62,
+     "available_return": 37,
+     "total": 99,
+     "is_active": true,
+     "updated_at": "2026-10-02T20:22:03.000Z"
+    },
+    {
+     "name": "瑞安街208巷",
+     "address": "瑞安街208巷39號對面",
+     "latitude": 25.02979,
+     "longitude": 121.54053,
+     "distance_m": 230,
+     "available_rent": 9,
+     "available_return": 6,
+     "total": 15,
+     "is_active": true,
+     "updated_at": "2026-10-02T20:22:03.000Z"
+    },
+    {
+     "name": "建國南路二段瑞安街264巷口",
+     "address": "建國南路二段197號(對面)",
+     "latitude": 25.02716,
+     "longitude": 121.53782,
+     "distance_m": 237,
+     "available_rent": 7,
+     "available_return": 26,
+     "total": 33,
+     "is_active": true,
+     "updated_at": "2026-10-02T20:22:03.000Z"
+    },
+    {
+     "name": "建國和平路口西北側",
+     "address": "建國南路二段與和平東路二段口西北側",
+     "latitude": 25.02606,
+     "longitude": 121.53738,
+     "distance_m": 366,
+     "available_rent": 9,
+     "available_return": 40,
+     "total": 50,
+     "is_active": true,
+     "updated_at": "2026-10-02T20:22:03.000Z"
+    },
+    {
+     "name": "龍圖公園",
+     "address": "復興南路二段78巷42弄5號對面",
+     "latitude": 25.0305,
+     "longitude": 121.54184,
+     "distance_m": 380,
+     "available_rent": 14,
+     "available_return": 6,
+     "total": 20,
+     "is_active": true,
+     "updated_at": "2026-10-02T20:22:03.000Z"
+    }
+   ]
+  },
+  "parking_lots": {
+   "status": "ok",
+   "updated_at": "2026-10-02T20:17:00.000Z",
+   "realtime_available": true,
+   "lots": [
+    {
+     "name": "建國南路高架橋下停車場B區",
+     "address": "建國南路橋下(建國南路二段79巷-151巷)",
+     "tel": "2655-0818",
+     "fee": "計時：機車10元/時，當日單次停車最高收費上限20元/次，隔日另計，以00時為基準，停車全程以半小時計，小型車（含大型重型機車）：A區至H區 30元/時(0730-2130)、10元/時(2130-0730)。I區 2小時內40元/時，第3小時起50元/時(0730-2130)、10元/時(2130-0730)，全程以半小時計費。月租：小型車全日4,800元/月，小型車平日月票3,000元/月(限周日19時至周五21時30分)，夜間月票2,000元/月(限周一至周五18時至8時及周六、周日全日)，夜間特定區段月票1,500元/月(限周一至周五18時至8時停放EFGHI區及周六、日全日限停放於H區2樓)。",
+     "hours": "00:00:00-23:59:59",
+     "latitude": 25.029155839472633,
+     "longitude": 121.53780687352905,
+     "distance_m": 54,
+     "car": {
+      "total": 236,
+      "available": 38
+     },
+     "motorcycle": {
+      "total": 0,
+      "available": null
+     }
+    },
+    {
+     "name": "臺北市大安福邸公寓大廈社區中庭地下停車場",
+     "address": "信義路3段134巷40號地下1層",
+     "tel": "2601-6611",
+     "fee": "小型車：計時 40元/時，停車全程以半小時計；月租 全日4,800元。",
+     "hours": "臨停：上午7時至下午6時；月租：24小時",
+     "latitude": 25.030557423283046,
+     "longitude": 121.53860218299694,
+     "distance_m": 149,
+     "car": {
+      "total": 204,
+      "available": 4
+     },
+     "motorcycle": {
+      "total": 0,
+      "available": 0
+     }
+    },
+    {
+     "name": "建國南路高架橋下停車場A區",
+     "address": "建國南路橋下(和平東路-瑞安街244巷)",
+     "tel": "2655-0818",
+     "fee": "計時：機車10元/時，當日單次停車最高收費上限20元/次，隔日另計，以00時為基準，停車全程以半小時計，小型車（含大型重型機車）：A區至H區 30元/時(0730-2130)、10元/時(2130-0730)。I區 2小時內40元/時，第3小時起50元/時(0730-2130)、10元/時(2130-0730)，全程以半小時計費。月租：小型車全日4,800元/月，小型車平日月票3,000元/月(限周日19時至周五21時30分)，夜間月票2,000元/月(限周一至周五18時至8時及周六、周日全日)，夜間特定區段月票1,500元/月(限周一至周五18時至8時停放EFGHI區及周六、日全日限停放於H區2樓)。",
+     "hours": "00:00:00-23:59:59",
+     "latitude": 25.02789618323224,
+     "longitude": 121.53779268313782,
+     "distance_m": 159,
+     "car": {
+      "total": 287,
+      "available": 43
+     },
+     "motorcycle": {
+      "total": 0,
+      "available": 0
+     }
+    },
+    {
+     "name": "Times瑞安街第2",
+     "address": "瑞安街208巷35弄2號對面",
+     "tel": "0800-88-8924；2504-6098",
+     "fee": "計時：100元/時，停車未滿1小時以1小時計；逾1小時以上者，未滿半小時以半小時計。月租：全日10,000元/月。",
+     "hours": "00:00:00-23:59:59",
+     "latitude": 25.0296,
+     "longitude": 121.5406,
+     "distance_m": 243,
+     "car": {
+      "total": 5,
+      "available": null
+     },
+     "motorcycle": {
+      "total": 0,
+      "available": null
+     }
+    },
+    {
+     "name": "建國南路高架橋下停車場C區",
+     "address": "建國南路橋下(建國南路二段39巷-79巷)",
+     "tel": "2655-0818",
+     "fee": "計時：機車10元/時，當日單次停車最高收費上限20元/次，隔日另計，以00時為基準，停車全程以半小時計，小型車（含大型重型機車）：A區至H區 30元/時(0730-2130)、10元/時(2130-0730)。I區 2小時內40元/時，第3小時起50元/時(0730-2130)、10元/時(2130-0730)，全程以半小時計費。月租：小型車全日4,800元/月，小型車平日月票3,000元/月(限周日19時至周五21時30分)，夜間月票2,000元/月(限周一至周五18時至8時及周六、周日全日)，夜間特定區段月票1,500元/月(限周一至周五18時至8時停放EFGHI區及周六、日全日限停放於H區2樓)。",
+     "hours": "00:00:00-23:59:59",
+     "latitude": 25.031642507087042,
+     "longitude": 121.53786232412132,
+     "distance_m": 271,
+     "car": {
+      "total": 108,
+      "available": 19
+     },
+     "motorcycle": {
+      "total": 0,
+      "available": null
+     }
+    }
+   ]
+  },
+  "roadside": {
+   "status": "unavailable",
+   "car": [],
+   "motorcycle": [],
+   "layer_updated_at": null,
+   "updated_at": null
+  },
+  "road_speed": {
+   "status": "ok",
+   "updated_at": "2026-10-02T20:23:47.428Z",
+   "sections": [
+    {
+     "road": "建國快往北",
+     "between": "和平信義",
+     "speed_kph": 71,
+     "level": "smooth",
+     "latitude": 25.029249,
+     "longitude": 121.537886,
+     "distance_m": 45
+    },
+    {
+     "road": "建國快往北",
+     "between": "辛亥信義",
+     "speed_kph": 62,
+     "level": "smooth",
+     "latitude": 25.029249,
+     "longitude": 121.537886,
+     "distance_m": 45
+    },
+    {
+     "road": "建國南路",
+     "between": "和平東路-信義路",
+     "speed_kph": 41,
+     "level": "smooth",
+     "latitude": 25.029556499999998,
+     "longitude": 121.53773749999999,
+     "distance_m": 69
+    }
+   ]
+  },
+  "taxi_stands": {
+   "status": "ok",
+   "updated_at": "2026-10-02T20:23:47.358Z",
+   "stands": [
+    {
+     "name": "經濟部工業局",
+     "street": "信義路3段41-3號",
+     "spaces": 2,
+     "hours": "0~24",
+     "latitude": 25.033687,
+     "longitude": 121.535252,
+     "distance_m": 584
+    },
+    {
+     "name": "大安森林公園北側",
+     "street": "信義路3段",
+     "spaces": 4,
+     "hours": "0~24",
+     "latitude": 25.033443,
+     "longitude": 121.534537,
+     "distance_m": 604
+    },
+    {
+     "name": "捷運科技大樓站出口",
+     "street": "復興南路",
+     "spaces": 1,
+     "hours": "0~24",
+     "latitude": 25.026059,
+     "longitude": 121.543586,
+     "distance_m": 637
+    }
+   ]
+  },
+  "attribution": "資料來源：臺北市資料大平臺（data.taipei），依政府資料開放授權條款第 1 版使用",
+  "sources": [
+   {
+    "title": "臺北捷運車站出入口座標",
+    "url": "https://data.taipei/dataset/detail?id=cfa4778c-62c1-497b-b704-756231de348b"
+   },
+   {
+    "title": "臺北捷運車站出入口無障礙電梯、無障礙坡道GPS座標",
+    "url": "https://data.taipei/dataset/detail?id=0a3bb422-9eb5-459b-a9d4-138456516183"
+   },
+   {
+    "title": "臺北捷運系統票價",
+    "url": "https://data.taipei/dataset/detail?id=4acb4911-0360-4063-808d-fcee629508b3"
+   },
+   {
+    "title": "臺北市站牌",
+    "url": "https://data.taipei/dataset/detail?id=62bc76da-6e6b-46ee-8976-c1945092d504"
+   },
+   {
+    "title": "臺北市預估到站時間(公車)",
+    "url": "https://data.taipei/dataset/detail?id=f11a5af0-7b37-48ef-98cc-f6f102ed43c6"
+   },
+   {
+    "title": "臺北市公車結構性票價資訊",
+    "url": "https://data.taipei/dataset/detail?id=651f6f05-074c-4f7a-a9cf-a367c32aa60b"
+   },
+   {
+    "title": "YouBike2.0臺北市公共自行車即時資訊",
+    "url": "https://data.taipei/dataset/detail?id=c6bc8aed-557d-41d5-bfb1-8da24f78f2fb"
+   },
+   {
+    "title": "臺北市停車場資訊",
+    "url": "https://data.taipei/dataset/detail?id=d5c0656b-5250-4179-a491-c94daa56ef2c"
+   },
+   {
+    "title": "臺北市路邊停車格位",
+    "url": "https://data.taipei/dataset/detail?id=5a911ea5-1694-4301-808e-e1780d971611"
+   },
+   {
+    "title": "臺北市路邊停車格位使用情形",
+    "url": "https://data.taipei/dataset/detail?id=434638ca-8770-42c1-940d-0386a74f6eb9"
+   },
+   {
+    "title": "臺北市道路速率",
+    "url": "https://data.taipei/dataset/detail?id=b5aaf33a-a6dc-4836-bce6-09986241fe11"
+   },
+   {
+    "title": "計程車招呼站",
+    "url": "https://data.taipei/dataset/detail?id=a0cf5e08-2b46-46be-aaa6-ac894b439156"
+   }
+  ]
+ },
+ "fares": {
+  "updated_at": "2026-10-02T20:23:54.035Z",
+  "fares": [
+   {
+    "from": "台北車站",
+    "to": "大安森林公園",
+    "fare": 20,
+    "concession_fare": 8,
+    "distance_km": 3.49
+   },
+   {
+    "from": "台北車站",
+    "to": "大安",
+    "fare": 20,
+    "concession_fare": 8,
+    "distance_km": 3.63
+   }
+  ]
+ },
+ "stations": {
+  "updated_at": "2026-10-02T20:23:47.367Z",
+  "stations": [
+   {
+    "name": "七張",
+    "latitude": 24.975968,
+    "longitude": 121.542855
+   },
+   {
+    "name": "十四張",
+    "latitude": 24.984467,
+    "longitude": 121.527701
+   },
+   {
+    "name": "三民高中",
+    "latitude": 25.085665,
+    "longitude": 121.473131
+   },
+   {
+    "name": "三和國中",
+    "latitude": 25.076785,
+    "longitude": 121.486441
+   },
+   {
+    "name": "三重",
+    "latitude": 25.055701,
+    "longitude": 121.484246
+   },
+   {
+    "name": "三重國小",
+    "latitude": 25.070646,
+    "longitude": 121.496702
+   },
+   {
+    "name": "土城",
+    "latitude": 24.973209,
+    "longitude": 121.44437
+   },
+   {
+    "name": "士林",
+    "latitude": 25.093483,
+    "longitude": 121.526203
+   },
+   {
+    "name": "大安",
+    "latitude": 25.033414,
+    "longitude": 121.542894
+   },
+   {
+    "name": "大安森林公園",
+    "latitude": 25.033482,
+    "longitude": 121.535174
+   },
+   {
+    "name": "大坪林",
+    "latitude": 24.982837,
+    "longitude": 121.541736
+   },
+   {
+    "name": "大直",
+    "latitude": 25.079795,
+    "longitude": 121.54692
+   },
+   {
+    "name": "大湖公園",
+    "latitude": 25.083785,
+    "longitude": 121.602294
+   },
+   {
+    "name": "大橋頭",
+    "latitude": 25.063362,
+    "longitude": 121.512688
+   },
+   {
+    "name": "小南門",
+    "latitude": 25.035676,
+    "longitude": 121.510515
+   },
+   {
+    "name": "小碧潭",
+    "latitude": 24.972498,
+    "longitude": 121.529923
+   },
+   {
+    "name": "中山",
+    "latitude": 25.052689,
+    "longitude": 121.520194
+   },
+   {
+    "name": "中山國小",
+    "latitude": 25.062653,
+    "longitude": 121.526548
+   },
+   {
+    "name": "中山國中",
+    "latitude": 25.060826,
+    "longitude": 121.543979
+   },
+   {
+    "name": "中正紀念堂",
+    "latitude": 25.033889,
+    "longitude": 121.517488
+   },
+   {
+    "name": "中和",
+    "latitude": 25.002212,
+    "longitude": 121.496491
+   },
+   {
+    "name": "中原",
+    "latitude": 25.00841,
+    "longitude": 121.484159
+   },
+   {
+    "name": "丹鳳",
+    "latitude": 25.028866,
+    "longitude": 121.422463
+   },
+   {
+    "name": "內湖",
+    "latitude": 25.083691,
+    "longitude": 121.594439
+   },
+   {
+    "name": "公館",
+    "latitude": 25.014949,
+    "longitude": 121.534187
+   },
+   {
+    "name": "六張犁",
+    "latitude": 25.023852,
+    "longitude": 121.552737
+   },
+   {
+    "name": "文德",
+    "latitude": 25.078512,
+    "longitude": 121.585119
+   },
+   {
+    "name": "木柵",
+    "latitude": 24.998174,
+    "longitude": 121.573417
+   },
+   {
+    "name": "北投",
+    "latitude": 25.131676,
+    "longitude": 121.498656
+   },
+   {
+    "name": "北門",
+    "latitude": 25.049462,
+    "longitude": 121.51024
+   },
+   {
+    "name": "古亭",
+    "latitude": 25.026695,
+    "longitude": 121.522662
+   },
+   {
+    "name": "台大醫院",
+    "latitude": 25.041955,
+    "longitude": 121.516313
+   },
+   {
+    "name": "台北101/世貿",
+    "latitude": 25.032965,
+    "longitude": 121.562933
+   },
+   {
+    "name": "台北小巨蛋",
+    "latitude": 25.05166,
+    "longitude": 121.551952
+   },
+   {
+    "name": "台北車站",
+    "latitude": 25.046778,
+    "longitude": 121.517707
+   },
+   {
+    "name": "台北橋",
+    "latitude": 25.062966,
+    "longitude": 121.500281
+   },
+   {
+    "name": "台電大樓",
+    "latitude": 25.020553,
+    "longitude": 121.528111
+   },
+   {
+    "name": "市政府",
+    "latitude": 25.041136,
+    "longitude": 121.566213
+   },
+   {
+    "name": "民權西路",
+    "latitude": 25.062541,
+    "longitude": 121.519789
+   },
+   {
+    "name": "永安市場",
+    "latitude": 25.002375,
+    "longitude": 121.510962
+   },
+   {
+    "name": "永春",
+    "latitude": 25.040813,
+    "longitude": 121.575971
+   },
+   {
+    "name": "永寧",
+    "latitude": 24.966863,
+    "longitude": 121.436334
+   },
+   {
+    "name": "石牌",
+    "latitude": 25.114242,
+    "longitude": 121.515752
+   },
+   {
+    "name": "先嗇宮",
+    "latitude": 25.046292,
+    "longitude": 121.471423
+   },
+   {
+    "name": "江子翠",
+    "latitude": 25.030249,
+    "longitude": 121.47253
+   },
+   {
+    "name": "竹圍",
+    "latitude": 25.136902,
+    "longitude": 121.459548
+   },
+   {
+    "name": "行天宮",
+    "latitude": 25.059282,
+    "longitude": 121.533193
+   },
+   {
+    "name": "西門",
+    "latitude": 25.042197,
+    "longitude": 121.508381
+   },
+   {
+    "name": "西湖",
+    "latitude": 25.082181,
+    "longitude": 121.566894
+   },
+   {
+    "name": "秀朗橋",
+    "latitude": 24.990537,
+    "longitude": 121.525165
+   },
+   {
+    "name": "辛亥",
+    "latitude": 25.005119,
+    "longitude": 121.557021
+   },
+   {
+    "name": "亞東醫院",
+    "latitude": 24.998687,
+    "longitude": 121.452613
+   },
+   {
+    "name": "奇岩",
+    "latitude": 25.125427,
+    "longitude": 121.501111
+   },
+   {
+    "name": "幸福",
+    "latitude": 25.049943,
+    "longitude": 121.460191
+   },
+   {
+    "name": "府中",
+    "latitude": 25.008864,
+    "longitude": 121.459183
+   },
+   {
+    "name": "忠孝復興",
+    "latitude": 25.041652,
+    "longitude": 121.544102
+   },
+   {
+    "name": "忠孝敦化",
+    "latitude": 25.041478,
+    "longitude": 121.550316
+   },
+   {
+    "name": "忠孝新生",
+    "latitude": 25.041813,
+    "longitude": 121.53276
+   },
+   {
+    "name": "忠義",
+    "latitude": 25.131021,
+    "longitude": 121.473408
+   },
+   {
+    "name": "昆陽",
+    "latitude": 25.050473,
+    "longitude": 121.593245
+   },
+   {
+    "name": "明德",
+    "latitude": 25.109757,
+    "longitude": 121.518806
+   },
+   {
+    "name": "東門",
+    "latitude": 25.033903,
+    "longitude": 121.5288
+   },
+   {
+    "name": "東湖",
+    "latitude": 25.067146,
+    "longitude": 121.611386
+   },
+   {
+    "name": "松山",
+    "latitude": 25.050128,
+    "longitude": 121.57731
+   },
+   {
+    "name": "松山機場",
+    "latitude": 25.063446,
+    "longitude": 121.551624
+   },
+   {
+    "name": "松江南京",
+    "latitude": 25.051878,
+    "longitude": 121.53316
+   },
+   {
+    "name": "板新",
+    "latitude": 25.014491,
+    "longitude": 121.472212
+   },
+   {
+    "name": "板橋",
+    "latitude": 25.014317,
+    "longitude": 121.463269
+   },
+   {
+    "name": "芝山",
+    "latitude": 25.102943,
+    "longitude": 121.522486
+   },
+   {
+    "name": "信義安和",
+    "latitude": 25.033104,
+    "longitude": 121.552954
+   },
+   {
+    "name": "南京三民",
+    "latitude": 25.051441,
+    "longitude": 121.563895
+   },
+   {
+    "name": "南京復興",
+    "latitude": 25.052016,
+    "longitude": 121.543489
+   },
+   {
+    "name": "南港",
+    "latitude": 25.051968,
+    "longitude": 121.606894
+   },
+   {
+    "name": "南港展覽館",
+    "latitude": 25.05509,
+    "longitude": 121.617612
+   },
+   {
+    "name": "南港軟體園區",
+    "latitude": 25.060253,
+    "longitude": 121.616097
+   },
+   {
+    "name": "南勢角",
+    "latitude": 24.990059,
+    "longitude": 121.508829
+   },
+   {
+    "name": "後山埤",
+    "latitude": 25.044753,
+    "longitude": 121.582246
+   },
+   {
+    "name": "科技大樓",
+    "latitude": 25.026007,
+    "longitude": 121.543466
+   },
+   {
+    "name": "紅樹林",
+    "latitude": 25.154547,
+    "longitude": 121.458883
+   },
+   {
+    "name": "徐匯中學",
+    "latitude": 25.080318,
+    "longitude": 121.480232
+   },
+   {
+    "name": "海山",
+    "latitude": 24.985674,
+    "longitude": 121.448901
+   },
+   {
+    "name": "迴龍",
+    "latitude": 25.02185,
+    "longitude": 121.41151
+   },
+   {
+    "name": "動物園",
+    "latitude": 24.998135,
+    "longitude": 121.579632
+   },
+   {
+    "name": "唭哩岸",
+    "latitude": 25.120782,
+    "longitude": 121.506404
+   },
+   {
+    "name": "國父紀念館",
+    "latitude": 25.041347,
+    "longitude": 121.557578
+   },
+   {
+    "name": "淡水",
+    "latitude": 25.167876,
+    "longitude": 121.445622
+   },
+   {
+    "name": "頂埔",
+    "latitude": 24.959508,
+    "longitude": 121.418986
+   },
+   {
+    "name": "頂溪",
+    "latitude": 25.013559,
+    "longitude": 121.51543
+   },
+   {
+    "name": "善導寺",
+    "latitude": 25.044577,
+    "longitude": 121.523955
+   },
+   {
+    "name": "復興崗",
+    "latitude": 25.137497,
+    "longitude": 121.485266
+   },
+   {
+    "name": "景平",
+    "latitude": 24.991926,
+    "longitude": 121.51625
+   },
+   {
+    "name": "景安",
+    "latitude": 24.993731,
+    "longitude": 121.50456
+   },
+   {
+    "name": "景美",
+    "latitude": 24.992649,
+    "longitude": 121.540919
+   },
+   {
+    "name": "港墘",
+    "latitude": 25.080098,
+    "longitude": 121.575252
+   },
+   {
+    "name": "菜寮",
+    "latitude": 25.059851,
+    "longitude": 121.491297
+   },
+   {
+    "name": "象山",
+    "latitude": 25.032786,
+    "longitude": 121.569958
+   },
+   {
+    "name": "圓山",
+    "latitude": 25.071281,
+    "longitude": 121.520071
+   },
+   {
+    "name": "新北投",
+    "latitude": 25.136901,
+    "longitude": 121.50299
+   },
+   {
+    "name": "新北產業園區",
+    "latitude": 25.061564,
+    "longitude": 121.459774
+   },
+   {
+    "name": "新店",
+    "latitude": 24.95784,
+    "longitude": 121.53758
+   },
+   {
+    "name": "新店區公所",
+    "latitude": 24.967689,
+    "longitude": 121.541426
+   },
+   {
+    "name": "新埔",
+    "latitude": 25.023206,
+    "longitude": 121.46822
+   },
+   {
+    "name": "新埔民生",
+    "latitude": 25.026125,
+    "longitude": 121.466839
+   },
+   {
+    "name": "新莊",
+    "latitude": 25.036158,
+    "longitude": 121.452472
+   },
+   {
+    "name": "萬芳社區",
+    "latitude": 24.998581,
+    "longitude": 121.568409
+   },
+   {
+    "name": "萬芳醫院",
+    "latitude": 24.999383,
+    "longitude": 121.557737
+   },
+   {
+    "name": "萬隆",
+    "latitude": 25.001942,
+    "longitude": 121.539056
+   },
+   {
+    "name": "葫洲",
+    "latitude": 25.072522,
+    "longitude": 121.607633
+   },
+   {
+    "name": "輔大",
+    "latitude": 25.03276,
+    "longitude": 121.435904
+   },
+   {
+    "name": "劍南路",
+    "latitude": 25.084802,
+    "longitude": 121.555541
+   },
+   {
+    "name": "劍潭",
+    "latitude": 25.084196,
+    "longitude": 121.524962
+   },
+   {
+    "name": "廣慈/奉天宮",
+    "latitude": 25.037892,
+    "longitude": 121.582567
+   },
+   {
+    "name": "橋和",
+    "latitude": 25.004803,
+    "longitude": 121.490278
+   },
+   {
+    "name": "頭前庄",
+    "latitude": 25.039756,
+    "longitude": 121.461438
+   },
+   {
+    "name": "龍山寺",
+    "latitude": 25.035338,
+    "longitude": 121.500317
+   },
+   {
+    "name": "雙連",
+    "latitude": 25.057662,
+    "longitude": 121.520602
+   },
+   {
+    "name": "關渡",
+    "latitude": 25.125451,
+    "longitude": 121.467038
+   },
+   {
+    "name": "蘆洲",
+    "latitude": 25.091635,
+    "longitude": 121.464629
+   },
+   {
+    "name": "麟光",
+    "latitude": 25.018554,
+    "longitude": 121.558606
+   }
+  ]
+ }
+}

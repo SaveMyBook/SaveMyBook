@@ -36,6 +36,17 @@
         "preview"
       ],
       "port": 4173
+    },
+    {
+      "name": "intro-v2",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "/Users/xukaijun/Desktop/SaveMyBook/presentation/介紹動畫/v2",
+        "run",
+        "dev"
+      ],
+      "port": 5290
     }
   ]
 }

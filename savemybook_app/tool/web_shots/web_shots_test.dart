@@ -18,9 +18,16 @@ import 'package:http/http.dart' as http;
 import 'package:local_auth_platform_interface/local_auth_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:savemybook_app/features/account/ai_support_screen.dart';
 import 'package:savemybook_app/features/account/wallet_screen.dart';
+import 'package:savemybook_app/features/admin/admin_cabinet_edit_screen.dart';
+import 'package:savemybook_app/features/admin/admin_dispute_screen.dart';
+import 'package:savemybook_app/features/admin/admin_image_strip.dart';
+import 'package:savemybook_app/features/admin/admin_report_screen.dart';
+import 'package:savemybook_app/features/admin/dispute_ai_panel.dart';
 import 'package:savemybook_app/features/books/book_detail_screen.dart';
 import 'package:savemybook_app/features/cabinet/cabinet_flow_screen.dart';
+import 'package:savemybook_app/features/cabinet/cabinet_guide_screen.dart';
 import 'package:savemybook_app/features/cabinet/cabinet_match_code_field.dart';
 import 'package:savemybook_app/features/cabinet/cabinet_scanner_view.dart';
 import 'package:savemybook_app/features/chat/ai/ai_book_chat_screen.dart';
@@ -43,6 +50,7 @@ import 'package:savemybook_app/models/cabinet.dart';
 import 'package:savemybook_app/models/order.dart';
 import 'package:savemybook_app/models/security.dart';
 import 'package:savemybook_app/models/user.dart';
+import 'package:savemybook_app/services/ai_status.dart';
 import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/biometric_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
@@ -122,7 +130,125 @@ List<Shot> get shots => [
   const Shot('wallet', WalletScreen.new),
   const Shot('security', SecurityCenterScreen.new, act: _securityPasskeys),
   const Shot('notifications', NotificationScreen.new),
+  Shot('cabinet_guide', _cabinetGuide, prefs: _departurePrefs),
+  Shot('cabinet_guide_more', _cabinetGuide, prefs: _departurePrefs, act: _cabinetGuideMore),
+  Shot('admin_cabinet_edit', AdminCabinetEditScreen.new, act: _adminCabinetLocate),
+  const Shot('ai_support', AiSupportScreen.new),
+  Shot('dispute_ai', _disputes, act: _disputeAi),
+  Shot('listing_review', _listingReview, act: _listingReviewDetails),
+  Shot('ai_consent', AiBookChatScreen.new, act: _aiConsent),
 ];
+
+Map<String, Object> _departurePrefs() => {'transit.departure_station': departureStation};
+
+Widget _cabinetGuide() {
+  final b = _book(statsBookId);
+  return CabinetGuideScreen(cabinetId: b.cabinetId!, name: b.cabinetName, address: b.cabinetAddress, openHours: b.cabinetOpenHours);
+}
+
+Future<void> _cabinetGuideMore(WidgetTester tester, Snap snap) async {
+  final youbike = find.text(S.transitYoubike);
+  while (youbike.evaluate().isEmpty) {
+    await _scrollBy(tester, 300);
+  }
+  await Scrollable.ensureVisible(tester.element(youbike), alignment: 0);
+  await _scrollBy(tester, -34);
+  await snap('cabinet_guide_more');
+}
+
+Future<void> _adminCabinetLocate(WidgetTester tester, Snap snap) async {
+  final fields = find.descendant(of: find.byType(AdminCabinetEditScreen), matching: find.byType(TextField));
+  for (final (i, text) in [(0, '綜合教學館'), (1, '臺北市大安區學府路 102 號 綜合教學館一樓'), (4, '4'), (5, '08:00'), (6, '22:00')]) {
+    await tester.enterText(fields.at(i), text);
+  }
+  FocusManager.instance.primaryFocus?.unfocus();
+  await _settle(tester, const Duration(milliseconds: 600));
+  tester.state<ScrollableState>(find.byType(Scrollable).first).position.jumpTo(0);
+  await _settle(tester, const Duration(milliseconds: 600));
+  await tester.tap(find.text(S.useCurrentLocation));
+  await _settle(tester, const Duration(seconds: 5));
+  await snap('admin_cabinet_edit');
+}
+
+Widget _disputes() {
+  final book = bookOf(disputeBookId);
+  const body = [
+    (
+      '第 3 章　堆疊與佇列',
+      '堆疊是一種後進先出（LIFO）的資料結構，只允許在同一端進行插入與刪除。常見的操作包括 push、pop 與 peek，三者的時間複雜度皆為 O(1)。'
+          '以陣列實作時須預先配置容量，元素數量超過容量時需要擴充；以鏈結串列實作則可動態增減節點。佇列則是先進先出（FIFO）的結構，常用於排程與廣度優先搜尋。',
+      63,
+    ),
+    (
+      '第 5 章　二元搜尋樹',
+      '二元搜尋樹中，每個節點左子樹的鍵值皆小於該節點，右子樹的鍵值皆大於該節點。搜尋、插入與刪除的平均時間複雜度為 O(log n)，'
+          '但資料依序插入時可能退化為鏈結串列，最差情況為 O(n)。為避免退化，可改用 AVL 樹或紅黑樹等自平衡結構，透過旋轉維持樹高。',
+      91,
+    ),
+  ];
+  for (final (i, (heading, text, page)) in body.indexed) {
+    seedPhoto(
+      disputeEvidence[i],
+      () => paintInsidePage(book, heading: heading, body: text, seed: page, marked: true),
+      cacheWidths: [for (final size in [52, 88]) (size * _pixelRatio).round()],
+    );
+  }
+  return const AdminDisputeScreen();
+}
+
+Future<void> _disputeAi(WidgetTester tester, Snap snap) async {
+  await tester.tap(find.text(S.handle).first);
+  await _settle(tester, const Duration(seconds: 3));
+  // 底部單高度超過畫面時會延伸到狀態列下方；讓佐證照片停在最上方，狀態列只疊在照片上。
+  final evidence = find.ancestor(of: find.byType(DisputeAiPanel), matching: find.byType(Column)).first;
+  await Scrollable.ensureVisible(tester.element(find.descendant(of: evidence, matching: find.byType(AdminImageStrip))), alignment: 0);
+  await _settle(tester, const Duration(seconds: 1));
+  await snap('dispute_ai');
+}
+
+Widget _listingReview() {
+  final book = bookOf(reviewBookId);
+  seedPhoto(reviewPhotos[0], () => paintLibraryBack(book, reviewSynopsis));
+  seedPhoto(
+    reviewPhotos[1],
+    () => paintInsidePage(
+      book,
+      heading: '第 7 章　親核取代反應',
+      body: 'SN2 反應為一步完成的協同反應，親核基由離去基的背面進攻，產物的立體組態因而反轉。反應速率同時取決於受質與親核基的濃度，'
+          '一級鹵烷的反應最快，三級鹵烷則因立體障礙幾乎不發生。極性非質子溶劑能提高親核基的反應性。',
+      seed: 17,
+    ),
+  );
+  return const AdminReportScreen(initialTab: AdminReportScreen.listingReviewTab);
+}
+
+Future<void> _listingReviewDetails(WidgetTester tester, Snap snap) async {
+  await tester.tap(find.text(S.showPhotosFullDetails).first);
+  await _settle(tester, const Duration(seconds: 1));
+  await snap('listing_review');
+}
+
+Future<void> _aiConsent(WidgetTester tester, Snap snap) async {
+  final previous = AiStatus.value;
+  // ignore: invalid_use_of_visible_for_testing_member
+  AiStatus.debugSet(
+    const AiStatusInfo(
+      support: true,
+      listingAssist: true,
+      recommend: true,
+      bookChat: true,
+      webSearch: true,
+      providersInUse: ['OpenAI'],
+      embeddingProvider: 'OpenAI',
+    ),
+  );
+  await tester.tap(find.text(S.mysteryNovelMyCommute));
+  await _settle(tester, const Duration(seconds: 2));
+  await snap('ai_consent');
+  // ignore: invalid_use_of_visible_for_testing_member
+  AiStatus.debugSet(previous);
+  AiStatus.invalidate();
+}
 
 Shot _matchShot(String name, String digits) => Shot(
   name,

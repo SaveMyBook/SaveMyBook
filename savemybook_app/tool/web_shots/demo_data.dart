@@ -720,6 +720,371 @@ Map<String, dynamic> passkeyRow(String id, String label, String created, String 
   'backed_up': true,
 };
 
+const departureStation = '台北車站';
+
+// 書櫃周邊交通資訊，格式比照 GET /cabinets/:id/nearby（data.taipei 資料整理後的回應）。
+Map<String, dynamic> cabinetNearby() {
+  Map<String, dynamic> at(double lat, double lng, int distance) => {'latitude': lat, 'longitude': lng, 'distance_m': distance};
+  Map<String, dynamic> route(String name, String direction, String status, [int? minutes]) =>
+      {'name': name, 'direction': direction, 'status': status, 'minutes': minutes};
+  Map<String, dynamic> bike(String name, String address, double lat, double lng, int distance, int rent, int giveBack) => {
+    'name': name,
+    'address': address,
+    ...at(lat, lng, distance),
+    'available_rent': rent,
+    'available_return': giveBack,
+    'total': rent + giveBack,
+    'is_active': true,
+  };
+  final cabinet = cabinets.first;
+  return {
+    'cabinet': {'latitude': cabinet.lat, 'longitude': cabinet.lng},
+    'mrt': {
+      'status': 'ok',
+      'updated_at': todayAt(13, 43),
+      'stations': [
+        {
+          'name': '公館',
+          'distance_m': 556,
+          'nearest_exit': {'exit': '3', 'accessible': false, ...at(25.0153, 121.5351, 556)},
+          'accessible_exit': {'exit': '2', 'facility': 'elevator', ...at(25.0151, 121.5346, 612)},
+        },
+        {
+          'name': '台電大樓',
+          'distance_m': 1113,
+          'nearest_exit': {'exit': '2', 'accessible': false, ...at(25.020192, 121.529093, 1113)},
+          'accessible_exit': {'exit': '5', 'facility': 'elevator', ...at(25.020758, 121.527739, 1262)},
+        },
+      ],
+    },
+    'bus': {
+      'status': 'ok',
+      'updated_at': todayAt(14, 24),
+      'realtime_available': true,
+      'stops': [
+        {
+          'name': '學府路口',
+          'address': '辛亥路二段170號同向(向東)',
+          ...at(25.0189, 121.5401, 172),
+          'routes': [
+            route('0東', '捷運市政府站', 'arriving', 0),
+            route('284', '松山車站', 'minutes', 4),
+            route('52', '捷運南京三民站', 'minutes', 9),
+            route('棕11', '捷運六張犁站', 'minutes', 13),
+            route('611', '捷運大安站', 'not_departed'),
+            route('敦化幹線', '捷運南港展覽館站', 'minutes', 18),
+          ],
+        },
+        {
+          'name': '學生活動中心',
+          'address': '學府路102號旁(向北)',
+          ...at(25.0166, 121.5414, 196),
+          'routes': [
+            route('棕11', '捷運公館站', 'minutes', 6),
+            route('0東', '臺大', 'minutes', 11),
+          ],
+        },
+      ],
+    },
+    'road_speed': {
+      'status': 'ok',
+      'updated_at': todayAt(14, 23),
+      'sections': [
+        {'road': '辛亥路', 'between': '新生南路-復興南路', 'speed_kph': 42, 'level': 'smooth', 'distance_m': 286},
+        {'road': '基隆路', 'between': '辛亥路-羅斯福路', 'speed_kph': 23, 'level': 'busy', 'distance_m': 512},
+      ],
+    },
+    'taxi_stands': {
+      'status': 'ok',
+      'updated_at': todayAt(14, 23),
+      'stands': [
+        {'name': '學府路招呼站', 'street': '學府路102號前', 'spaces': 3, 'hours': '0~24', ...at(25.0171, 121.5409, 128)},
+      ],
+    },
+    'youbike': {
+      'status': 'ok',
+      'updated_at': todayAt(14, 22),
+      'stations': [
+        bike('學府路圖書館前', '學府路102號圖書館前', 25.0170, 121.5399, 48, 12, 18),
+        bike('學生活動中心', '學府路102號學生活動中心旁', 25.0167, 121.5413, 168, 5, 25),
+        bike('辛亥學府路口', '辛亥路二段/學府路口東南側', 25.0188, 121.5405, 172, 21, 9),
+        bike('第二教學大樓東側', '學府路102號第二教學大樓東側', 25.0181, 121.5424, 284, 7, 23),
+      ],
+    },
+    'parking_lots': {
+      'status': 'ok',
+      'updated_at': todayAt(14, 21),
+      'realtime_available': true,
+      'lots': [
+        {
+          'name': '學府路地下停車場',
+          'address': '學府路102號地下',
+          'fee': '小型車：計時 30元/時',
+          'hours': '00:00:00-23:59:59',
+          ...at(25.0179, 121.5409, 214),
+          'car': {'total': 180, 'available': 46},
+          'motorcycle': {'total': 0, 'available': null},
+        },
+        {
+          'name': '辛亥路立體停車場',
+          'address': '辛亥路二段158號',
+          'fee': '小型車：計時 40元/時',
+          'hours': '07:00:00-23:00:00',
+          ...at(25.0195, 121.5386, 418),
+          'car': {'total': 96, 'available': 17},
+          'motorcycle': {'total': 0, 'available': null},
+        },
+        {
+          'name': '辛亥路二段停車場',
+          'address': '辛亥路二段126巷旁空地',
+          'fee': '',
+          'hours': '',
+          ...at(25.0201, 121.5377, 486),
+          'car': {'total': 24, 'available': null},
+          'motorcycle': {'total': 0, 'available': null},
+        },
+      ],
+    },
+    'roadside': {
+      'status': 'ok',
+      'radius_m': 300,
+      'updated_at': todayAt(14, 21),
+      'car': [
+        {
+          'name': '學府路A',
+          ...at(25.0176, 121.5401, 42),
+          'spaces_nearby': 18,
+          'accessible_nearby': 2,
+          'live': {'total': 6, 'available': 2, 'fee': '30元', 'start': '08:00', 'end': '20:00'},
+        },
+        {
+          'name': '辛亥路二段C',
+          ...at(25.0190, 121.5392, 208),
+          'spaces_nearby': 9,
+          'accessible_nearby': 0,
+          'live': {'total': 9, 'available': null, 'fee': '40元', 'start': '09:00', 'end': '21:00'},
+        },
+      ],
+      'motorcycle': [
+        {'name': '學府路(機車)', ...at(25.0172, 121.5402, 56), 'spaces_nearby': 120, 'accessible_nearby': 0, 'has_parking_area': true},
+      ],
+    },
+    'attribution': '資料來源：臺北市資料大平臺（data.taipei），依政府資料開放授權條款第 1 版使用',
+    'sources': <Object>[],
+  };
+}
+
+const mrtStations = [
+  {'name': '公館', 'latitude': 25.014908, 'longitude': 121.534216},
+  {'name': '台電大樓', 'latitude': 25.020553, 'longitude': 121.528111},
+  {'name': '科技大樓', 'latitude': 25.026125, 'longitude': 121.543437},
+  {'name': '台北車站', 'latitude': 25.046778, 'longitude': 121.517707},
+];
+
+Map<String, dynamic> mrtFares(String from) => {
+  'fares': [
+    {'from': from, 'to': '公館', 'fare': 25, 'concession_fare': 10, 'distance_km': 5.53},
+    {'from': from, 'to': '台電大樓', 'fare': 20, 'concession_fare': 8, 'distance_km': 4.38},
+  ],
+};
+
+Map<String, dynamic> aiSupportSession() {
+  final cabinet = bookOf(statsBookId).cabinet;
+  return {
+    'session_id': 4,
+    'status': 'open',
+    'messages': [
+      {'message_id': 41, 'role': 'user', 'content': '訂單 $pickupOrderNo 要怎麼取書？', 'created_at': ago(minutes: 6)},
+      {
+        'message_id': 42,
+        'role': 'assistant',
+        'content':
+            '請於 7 天內至「${cabinet.name}」書櫃取書：\n'
+            '1. 於開放時間 08:00–22:00 前往書櫃\n'
+            '2. 以 App 掃描書櫃螢幕上的 QR Code\n'
+            '3. 輸入螢幕顯示的兩位數字開啟櫃門\n'
+            '4. 取出書籍並關上櫃門',
+        'message_no': 'AS4QK7M2D',
+        'feedback': {'rating': 'helpful'},
+        'created_at': ago(minutes: 6),
+      },
+      {'message_id': 43, 'role': 'user', 'content': '取書後發現有缺頁，可以退款嗎？', 'created_at': ago(minutes: 2)},
+      {
+        'message_id': 44,
+        'role': 'assistant',
+        'content': '可在取書後 24 小時內、完成訂單前，於訂單頁面申請爭議並附上照片，由管理員裁決是否退款。',
+        'message_no': 'AS9WT3R6H',
+        'suggest_handoff': true,
+        'created_at': ago(minutes: 2),
+      },
+    ],
+  };
+}
+
+const disputeId = 4;
+const disputeBookId = 5;
+
+const disputeEvidence = ['/uploads/disputes/demo-evidence-1.png', '/uploads/disputes/demo-evidence-2.png'];
+
+List<Map<String, dynamic>> adminDisputes() {
+  Map<String, dynamic> dispute(
+    int id,
+    String orderNo,
+    int bookId,
+    int buyerId,
+    String reason,
+    String createdAt, {
+    List<String> evidence = const [],
+  }) {
+    final b = bookOf(bookId);
+    return {
+      'dispute_id': id,
+      'order_id': id + 20,
+      'applicant_id': buyerId,
+      'reason': reason,
+      'status': 'pending',
+      'result': null,
+      'admin_note': null,
+      'created_at': createdAt,
+      'evidence_images': evidence,
+      'users_transaction_disputes_applicant_idTousers': {'nickname': users[buyerId]},
+      'orders': {
+        'order_id': id + 20,
+        'order_no': orderNo,
+        'total_amount': b.price,
+        'status': 'disputed',
+        'users_orders_buyer_idTousers': {'nickname': users[buyerId]},
+        'users_orders_seller_idTousers': {'nickname': users[b.sellerId]},
+        'order_items': [
+          {
+            'books': {
+              'title': b.title,
+              'book_images': [
+                {'image_url': b.coverPath},
+              ],
+            },
+          },
+        ],
+      },
+    };
+  }
+
+  return [
+    dispute(
+      disputeId,
+      'OD6TQ4H8N',
+      disputeBookId,
+      6,
+      '第 3 至 5 章有大量螢光筆畫線與筆記，與商品描述「近全新、內頁無畫線」不符。',
+      ago(hours: 3, minutes: 20),
+      evidence: disputeEvidence,
+    ),
+    dispute(3, 'OD2LM8C5W', 8, 10, '書櫃取出的書籍封底有水漬，商品照片與描述皆未提及。', ago(days: 1, hours: 6)),
+  ];
+}
+
+Map<String, dynamic> disputeAnalysis() {
+  final title = bookOf(disputeBookId).title;
+  return {
+    'analysis_no': 'DA7NQ2X5K',
+    'summary': '買家表示第 3 至 5 章有大量螢光筆畫線與筆記；商品描述為「近全新、內頁無畫線」，上架照片僅含封面、封底與第 1 章內頁。',
+    'finding_details': [
+      {'content': '佐證照片可見多頁螢光筆畫線與手寫筆記，範圍涵蓋數個章節', 'basis': 'evidence_photo', 'photos': [4, 5], 'favors': 'buyer'},
+      {'content': '上架內頁照片乾淨無畫線，但未呈現爭議所指的章節', 'basis': 'listing_photo', 'photos': [3], 'favors': 'neutral'},
+      {'content': '封面與書背狀況和上架照片相符', 'basis': 'listing_photo', 'photos': [1, 2], 'favors': 'seller'},
+    ],
+    'suggestion': 'refund',
+    'confidence_level': 'medium',
+    'rationale': '佐證所見的畫線範圍明顯超出「近全新」的描述，屬於重大書況落差；若賣家能提供存書前的內頁照片，可再重新評估。',
+    'images': {'listing': 3, 'evidence': 2, 'skipped': 0},
+    'photos': [
+      {'no': 1, 'source': 'listing', 'type': 'cover', 'title': title},
+      {'no': 2, 'source': 'listing', 'type': 'back', 'title': title},
+      {'no': 3, 'source': 'listing', 'type': 'inside', 'title': title},
+      {'no': 4, 'source': 'evidence'},
+      {'no': 5, 'source': 'evidence'},
+    ],
+    'helpful': null,
+    'created_at': ago(minutes: 6),
+  };
+}
+
+const reviewBookId = 8;
+const reviewSynopsis = '以反應機構為主軸，系統介紹官能基的性質與合成方法，並附大量練習題。';
+const reviewPhotos = ['/uploads/books/demo-8-back.png', '/uploads/books/demo-8-inside.png'];
+
+List<Map<String, dynamic>> listingReviews() {
+  Map<String, dynamic> item(
+    int bookId, {
+    required String verdict,
+    required List<String> reasons,
+    required List<String> categories,
+    required String origin,
+    required double confidence,
+    required String createdAt,
+    Map<String, dynamic>? opinion,
+    List<String> photos = const [],
+    String description = '',
+    String conditionNote = '',
+  }) {
+    final b = bookOf(bookId);
+    final card = b.toJson()..remove('users');
+    return {
+      'book_id': bookId,
+      'book': {
+        ...card,
+        if (description.isNotEmpty) 'description': description,
+        'condition_note': conditionNote,
+        'book_images': [
+          {'image_id': bookId * 10, 'image_url': b.coverPath, 'image_type': 'cover'},
+          for (final (i, p) in photos.indexed) {'image_id': bookId * 10 + i + 1, 'image_url': p, 'image_type': 'other'},
+        ],
+      },
+      'seller': {'user_id': b.sellerId, 'nickname': users[b.sellerId], 'avatar_url': null},
+      'verdict': verdict,
+      'reasons': reasons,
+      'categories': categories,
+      'status': 'pending',
+      'origin': origin,
+      'confidence': confidence,
+      'decision_reason': null,
+      'created_at': createdAt,
+      'reviewed_at': null,
+      'ai_opinion': opinion,
+    };
+  }
+
+  return [
+    item(
+      reviewBookId,
+      verdict: 'review',
+      reasons: ['疑似圖書館館藏或非正規來源書籍'],
+      categories: ['source'],
+      origin: 'rules',
+      confidence: 1,
+      createdAt: ago(minutes: 18),
+      photos: reviewPhotos,
+      description: '封底貼有館藏標籤，為系上圖書室汰換的複本。內頁有少量鉛筆筆記，不影響閱讀。',
+      conditionNote: '書角輕微磨損',
+      opinion: {
+        'verdict': 'review',
+        'confidence': 0.82,
+        'categories': ['source'],
+        'reasons': ['封底照片可見圖書館館藏標籤、索書號與館藏章，未見除籍章', '書名、封面與商品資料相符，書況與描述一致'],
+      },
+    ),
+    item(
+      2,
+      verdict: 'reject',
+      reasons: ['內頁照片可見影印裝訂與黑邊，疑似整本影印的盜版書'],
+      categories: ['prohibited'],
+      origin: 'ai',
+      confidence: 0.91,
+      createdAt: ago(hours: 2, minutes: 40),
+    ),
+  ];
+}
+
 Map<String, dynamic>? _route(String method, String path, Map<String, String> query, String body) {
   final routes = <String, Object? Function()>{
     'GET /status': () => {'api_revision': 99, 'commit': 'demo'},
@@ -842,6 +1207,14 @@ Map<String, dynamic>? _route(String method, String path, Map<String, String> que
     'GET /cabinet-sessions/active': () => null,
     'GET /cabinet-sessions/CS4N7Q2KX': () => currentCabinetSession(),
     'GET /books/isbn/${bookOf(listingBookId).isbn}': () => null,
+    'GET /cabinets/${cabinets.first.id}/nearby': cabinetNearby,
+    'GET /admin/cabinets/nearby-preview': cabinetNearby,
+    'GET /cabinets/mrt-stations': () => {'stations': mrtStations},
+    'GET /cabinets/mrt-fares': () => mrtFares(query['from'] ?? departureStation),
+    'GET /ai/support/session': aiSupportSession,
+    'GET /admin/disputes': adminDisputes,
+    'GET /admin/disputes/$disputeId/ai-analysis': disputeAnalysis,
+    'GET /admin/ai/reviews': listingReviews,
   };
 
   final key = '$method $path';

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:savemybook_app/utils/api_helpers.dart';
 
 import 'demo_data.dart';
 
@@ -199,6 +200,174 @@ ui.Image paintPhoto(DemoBook book, String kind, {int width = 900, int height = 1
   final image = picture.toImageSync(width, height);
   picture.dispose();
   return image;
+}
+
+ui.Image _framedPhoto(String seed, void Function(ui.Canvas canvas, Rect rect) content, {double tilt = 0}) {
+  const width = 900;
+  const height = 1200;
+  final recorder = ui.PictureRecorder();
+  final canvas = ui.Canvas(recorder);
+  const w = 900.0;
+  const h = 1200.0;
+  canvas.drawRect(
+    const Rect.fromLTWH(0, 0, w, h),
+    Paint()..shader = ui.Gradient.linear(Offset.zero, const Offset(w, h), const [Color(0xFFD9CBB5), Color(0xFFB9A88F)]),
+  );
+  final rng = math.Random(seed.hashCode);
+  final grain = Paint()..color = const Color(0x0F000000);
+  for (var i = 0; i < 40; i++) {
+    canvas.drawLine(Offset(0, rng.nextDouble() * h), Offset(w, rng.nextDouble() * h), grain..strokeWidth = rng.nextDouble() * 3);
+  }
+  final rect = Rect.fromCenter(center: const Offset(w / 2, h / 2), width: w * 0.8, height: w * 0.8 * 4 / 3);
+  canvas.save();
+  canvas.translate(w / 2, h / 2);
+  canvas.rotate(tilt);
+  canvas.translate(-w / 2, -h / 2);
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(rect.shift(const Offset(14, 18)), const Radius.circular(10)),
+    Paint()
+      ..color = const Color(0x40000000)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
+  );
+  canvas.clipRRect(RRect.fromRectAndRadius(rect, const Radius.circular(8)));
+  content(canvas, rect);
+  canvas.restore();
+  final picture = recorder.endRecording();
+  final image = picture.toImageSync(width, height);
+  picture.dispose();
+  return image;
+}
+
+void _barcode(ui.Canvas canvas, Rect code, int seed) {
+  canvas.drawRect(code, Paint()..color = const Color(0xFFFFFFFF));
+  final bars = math.Random(seed);
+  var x = code.left + code.width * 0.08;
+  while (x < code.right - code.width * 0.08) {
+    final bw = 1.5 + bars.nextInt(3) * 1.5;
+    canvas.drawRect(Rect.fromLTWH(x, code.top + code.height * 0.12, bw, code.height * 0.62), Paint()..color = const Color(0xFF111111));
+    x += bw + 1.5 + bars.nextInt(3) * 1.5;
+  }
+}
+
+// 封底貼有圖書館館藏標籤與館藏章的照片，用於上架審核畫面。
+ui.Image paintLibraryBack(DemoBook book, String synopsis) => _framedPhoto('library-${book.id}', (canvas, rect) {
+  canvas.drawRect(rect, Paint()..color = book.color);
+  final text = _paragraph(synopsis, rect.width * 0.76, size: rect.width * 0.045, weight: FontWeight.w500, color: const Color(0xE6FFFFFF), height: 1.6);
+  canvas.drawParagraph(text, Offset(rect.left + rect.width * 0.12, rect.top + rect.height * 0.42));
+  text.dispose();
+  _barcode(canvas, Rect.fromLTWH(rect.left + rect.width * 0.5, rect.bottom - rect.height * 0.2, rect.width * 0.4, rect.height * 0.13), book.isbn.hashCode);
+
+  final label = Rect.fromLTWH(rect.left + rect.width * 0.1, rect.top + rect.height * 0.07, rect.width * 0.52, rect.height * 0.26);
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(label.shift(const Offset(3, 4)), const Radius.circular(6)),
+    Paint()
+      ..color = const Color(0x33000000)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+  );
+  canvas.drawRRect(RRect.fromRectAndRadius(label, const Radius.circular(6)), Paint()..color = const Color(0xFFF7F5EF));
+  canvas.drawRect(Rect.fromLTWH(label.left, label.top, label.width, label.height * 0.2), Paint()..color = const Color(0xFF2F5D8A));
+  _text(canvas, '圖書館 館藏', Offset(label.left + label.width * 0.08, label.top + label.height * 0.03), label.width,
+      size: label.height * 0.11, weight: FontWeight.w700, color: const Color(0xFFFFFFFF), spacing: 2);
+  _barcode(canvas, Rect.fromLTWH(label.left + label.width * 0.08, label.top + label.height * 0.27, label.width * 0.84, label.height * 0.38), 7310);
+  _text(canvas, '346.1 8472  c.2', Offset(label.left + label.width * 0.08, label.top + label.height * 0.7), label.width,
+      size: label.height * 0.12, weight: FontWeight.w600, color: const Color(0xFF333333));
+
+  final stamp = Offset(rect.left + rect.width * 0.76, rect.top + rect.height * 0.2);
+  final ink = Paint()
+    ..color = const Color(0xB3C0392B)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = rect.width * 0.012;
+  canvas.drawCircle(stamp, rect.width * 0.11, ink);
+  canvas.drawCircle(stamp, rect.width * 0.088, ink..strokeWidth = rect.width * 0.005);
+  final mark = _paragraph('館藏', rect.width, size: rect.width * 0.06, weight: FontWeight.w800, color: const Color(0xB3C0392B));
+  canvas.drawParagraph(mark, stamp - Offset(mark.maxIntrinsicWidth / 2, mark.height / 2));
+  mark.dispose();
+});
+
+// 書本內頁照片；marked 為買家佐證照片中的大量螢光筆畫線與筆記。
+ui.Image paintInsidePage(DemoBook book, {required String heading, required String body, required int seed, bool marked = false}) =>
+    _framedPhoto('page-${book.id}-$seed', tilt: marked ? -0.035 : 0.02, (canvas, rect) {
+      canvas.drawRect(rect, Paint()..color = const Color(0xFFF6F1E6));
+      canvas.drawRect(
+        Rect.fromLTWH(rect.left, rect.top, rect.width * 0.12, rect.height),
+        Paint()..shader = ui.Gradient.linear(rect.topLeft, Offset(rect.left + rect.width * 0.12, rect.top), const [Color(0x33000000), Color(0x00000000)]),
+      );
+      final left = rect.left + rect.width * 0.12;
+      final width = rect.width * 0.78;
+      final title = _paragraph(heading, width, size: rect.width * 0.055, weight: FontWeight.w700, color: const Color(0xFF2B2B2B));
+      final titleTop = rect.top + rect.height * 0.08;
+      canvas.drawParagraph(title, Offset(left, titleTop));
+      final bodyTop = titleTop + title.height + rect.height * 0.04;
+      title.dispose();
+
+      final builder = ui.ParagraphBuilder(ui.ParagraphStyle(fontFamily: 'NotoSansTC', textDirection: TextDirection.ltr))
+        ..pushStyle(ui.TextStyle(fontFamily: 'NotoSansTC', fontSize: rect.width * 0.037, color: const Color(0xFF3A3A3A), height: 1.9))
+        ..addText(body);
+      final paragraph = builder.build()..layout(ui.ParagraphConstraints(width: width));
+      final lines = paragraph.computeLineMetrics();
+      if (marked) {
+        final rng = math.Random(seed);
+        final highlight = Paint()..color = const Color(0x80FFE14D);
+        for (final line in lines) {
+          if (rng.nextDouble() < 0.3) continue;
+          final start = rng.nextDouble() < 0.5 ? 0.0 : line.width * rng.nextDouble() * 0.4;
+          final end = rng.nextDouble() < 0.6 ? line.width : start + (line.width - start) * (0.5 + rng.nextDouble() * 0.5);
+          final top = bodyTop + line.baseline - line.ascent * 1.05;
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(Rect.fromLTRB(left + start - 4, top, left + end + 4, top + line.ascent * 1.35), const Radius.circular(4)),
+            highlight,
+          );
+        }
+      }
+      canvas.drawParagraph(paragraph, Offset(left, bodyTop));
+      if (marked) {
+        final pen = Paint()
+          ..color = const Color(0xCC1F4FA8)
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = rect.width * 0.006;
+        final rng = math.Random(seed * 7);
+        for (final line in lines.where((l) => l.lineNumber.isOdd)) {
+          final y = bodyTop + line.baseline + 6;
+          final path = Path()..moveTo(left, y);
+          for (var x = 0.0; x < line.width * 0.8; x += 18) {
+            path.lineTo(left + x, y + (rng.nextDouble() - 0.5) * 3);
+          }
+          canvas.drawPath(path, pen);
+        }
+        final note = Path();
+        final noteTop = bodyTop + paragraph.height + rect.height * 0.04;
+        for (var row = 0; row < 3; row++) {
+          final y = noteTop + row * rect.height * 0.045;
+          note.moveTo(left + rect.width * 0.04, y);
+          for (var x = 0.0; x < width * (0.75 - row * 0.15); x += 10) {
+            note.lineTo(left + rect.width * 0.04 + x, y + math.sin(x / 7 + row) * 6);
+          }
+        }
+        canvas.drawPath(note, pen..color = const Color(0xCC2B2B2B));
+      }
+      paragraph.dispose();
+      final folio = _paragraph('$seed', rect.width, size: rect.width * 0.032, weight: FontWeight.w400, color: const Color(0xFF8A8577));
+      canvas.drawParagraph(folio, Offset(rect.right - rect.width * 0.12, rect.bottom - rect.height * 0.07));
+      folio.dispose();
+    });
+
+final Map<String, ui.Image> _photos = {};
+
+// 以 cacheWidth 縮圖顯示的圖片（例如 AdminImageStrip）實際以 ResizeImage 為快取鍵，須一併放入快取。
+void seedPhoto(String path, ui.Image Function() paint, {List<int> cacheWidths = const []}) {
+  final url = resolveAssetUrl(path)!;
+  final image = _photos.putIfAbsent(url, paint);
+  final cache = PaintingBinding.instance.imageCache;
+  for (final provider in <ImageProvider<Object>>[
+    NetworkImage(url),
+    for (final width in cacheWidths) ResizeImage(NetworkImage(url), width: width),
+  ]) {
+    provider.obtainKey(ImageConfiguration.empty).then((key) {
+      cache.evict(key);
+      cache.putIfAbsent(key, () => OneFrameImageStreamCompleter(SynchronousFuture(ImageInfo(image: image.clone()))));
+    });
+  }
 }
 
 final Map<String, ui.Image> _covers = {};

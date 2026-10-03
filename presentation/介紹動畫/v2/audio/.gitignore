@@ -1,0 +1,8 @@
+.venv/
+stems/
+out/
+fonts/
+tts/
+cues.json
+cue_boost.json
+__pycache__/
