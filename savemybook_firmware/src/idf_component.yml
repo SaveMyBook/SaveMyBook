@@ -1,0 +1,5 @@
+dependencies:
+  idf: ">=6.0"
+  espressif/cjson: "*"
+  espressif/network_provisioning: "*"
+  espressif/qrcode: "*"

@@ -1,0 +1,8 @@
+.pio/
+managed_components/
+sdkconfig.esp32s3
+sdkconfig.hwtest
+sdkconfig.old
+tools/preview/out/
+tools/preview/build/
+tools/devtest/build/

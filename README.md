@@ -56,7 +56,7 @@ flowchart LR
 | 行動端 | Flutter（Dart） | iOS 15.5+ / Android 8.0+，買賣家功能與管理後台共用同一份程式碼，支援繁中、簡中、英、日、韓 |
 | 後端 API | Node.js、Express 5、Socket.IO | 依 `routes/` → `services/` 分層；REST API 搭配 Socket.IO 即時推送聊天與書櫃狀態，API 文件以 OpenAPI + Scalar 提供（`/api-docs`） |
 | 資料庫 | MariaDB / MySQL、Prisma 7 | 資料表定義於 `prisma/schema.prisma` |
-| 智慧書櫃 | ESP32（C/C++、Arduino Core） | 透過 2.4GHz Wi-Fi 以 HTTPS 輪詢後端，控制電磁鎖開關；`/kiosk` 網頁可模擬書櫃進行測試 |
+| 智慧書櫃 | ESP32-S3（C++、ESP-IDF、PlatformIO） | 透過 2.4GHz Wi-Fi 以 HTTPS 輪詢後端，控制四組電磁鎖與 2.8 吋橫向螢幕；`/kiosk` 網頁可模擬書櫃進行測試 |
 | 伺服器與網路 | Ubuntu 24.04、NGINX、sslh、Cloudflare | Cloudflare 負責 DNS 解析、WAF 與 SSL，NGINX 將 `/api`、`/socket.io`、`/kiosk` 轉發至 API |
 | 外部服務 | Firebase、DeepSeek / Gemini / OpenAI、Google Books / Open Library | 社群登入與推播、AI 上架輔助與客服、ISBN 書目查詢 |
 | 硬體設計 | SolidWorks 2025、Bambu Studio | 書櫃 3D 建模與切片列印 |
@@ -120,6 +120,7 @@ SaveMyBook/
 │   ├── views/                    # 模擬書櫃（/kiosk）、法律條款與公開頁面
 │   ├── app.js                    # Express 應用程式設定
 │   └── index.js                  # 伺服器進入點
+├── savemybook_firmware/          # 智慧書櫃韌體（ESP32-S3），含接線說明與電腦上的畫面預覽、邏輯測試
 └── savemybook_app/               # 行動端 App（Flutter）
     ├── lib/
     │   ├── features/             # 功能畫面（帳號、後台、登入、書籍、書櫃、聊天、首頁、訂單、上架…）
