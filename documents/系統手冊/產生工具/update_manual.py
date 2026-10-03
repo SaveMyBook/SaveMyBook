@@ -1,6 +1,6 @@
 import sys; sys.path.insert(0, '.')
 from doclib import load
-import update_part1, update_part2, update_part3, update_part4, update_fk, update_lists, dedupe, update_final, update_review, update_activity, update_layout, update_terms, update_1001, transit_part4
+import update_part1, update_part2, update_part3, update_part4, update_fk, update_lists, dedupe, update_final, update_review, update_activity, update_layout, update_terms, update_1001, transit_part4, acknowledgements
 doc = load('manual_v3_backup.docx')
 kept = update_lists.capture(doc)
 update_part1.run(doc)
@@ -19,6 +19,7 @@ print('transit', transit_part4.run(doc))
 print('layout', update_layout.run(doc))
 print('1001', update_1001.run(doc))
 print('transit figures', transit_part4.finalize(doc))
+print('acknowledgements', acknowledgements.run(doc))
 out = sys.argv[1]
 doc.save(out)
 print('meta tables', n, 'saved', out)

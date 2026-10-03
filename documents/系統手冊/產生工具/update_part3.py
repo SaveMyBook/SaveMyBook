@@ -123,7 +123,7 @@ NEW_TABLES = [
       ('used_at', '兌換時間', 'DATETIME', '', '', ''), ('used_by', '兌換之會員編號', 'INT', '', '', ''),
       ('created_at', '建立時間', 'DATETIME', '', 'V', '')],
      ['device_id　→　cabinet_devices.device_id']),
-    ('cabinet_devices', '書櫃裝置表', 'device_id', '記錄控制智慧書櫃之裝置（ESP32實體書櫃或模擬書櫃）、裝置憑證雜湊、櫃門數與連線、故障狀態；一台書櫃同時僅有一台有效裝置，一台裝置同時僅有一個進行中之作業',
+    ('cabinet_devices', '書櫃裝置表', 'device_id', '記錄控制智慧書櫃之裝置（ESP32-S3實體書櫃或模擬書櫃）、裝置憑證雜湊、櫃門數與連線、故障狀態；一台書櫃同時僅有一台有效裝置，一台裝置同時僅有一個進行中之作業',
      [('device_id', '裝置編號', 'INT', 'V', 'V', ''), ('cabinet_id', '所屬書櫃編號', 'INT', '', 'V', 'V'),
       ('active_cabinet_id', '有效裝置之書櫃編號（有效時等於cabinet_id，其餘為空）', 'INT', 'V', '', ''),
       ('active_session_id', '進行中之書櫃作業編號', 'INT', 'V', '', ''),

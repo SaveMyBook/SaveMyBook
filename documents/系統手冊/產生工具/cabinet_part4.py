@@ -3,7 +3,11 @@
 由 update_part4.run() 在 9-2 各表重新編號之前呼叫，因此 9-2 各表沿用原稿編號（權限鍵 9-2-7、路由 9-2-8）。
 """
 import copy
+import os
+from docx.shared import Cm
 from doctools import *
+
+WIRING_PNG = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cabdiag', 'wiring', 'wiring.png')
 
 
 def _row(tbl, prefix, col=0):
@@ -37,25 +41,31 @@ def _para(doc, prefix):
 def run(doc, t, manual_table, steps_replace):
     # 3-1 系統架構
     set_para(_para(doc, '物聯網控制終端：')._p,
-             '物聯網控制終端：每台實體智慧書櫃搭載一片ESP32微控制器，控制四組電磁鎖（對應A01至A04四扇櫃門）與書櫃螢幕；螢幕僅供顯示QR Code、比對數字、櫃門編號與倒數等提示，使用者之操作皆於App完成。終端以專屬之裝置憑證透過HTTPS定時向伺服器查詢書櫃狀態、接收開鎖指令，並回報開門、關門與故障等事件；另提供於瀏覽器執行相同裝置邏輯之模擬書櫃網頁，供測試使用。')
+             '物聯網控制終端：每台實體智慧書櫃搭載一片ESP32-S3微控制器，控制四組電磁鎖（對應A01至A04四扇櫃門）與書櫃螢幕；螢幕僅供顯示QR Code、比對數字、櫃門編號與倒數等提示，使用者之操作皆於App完成。終端以專屬之裝置憑證透過HTTPS定時向伺服器查詢書櫃狀態、接收開鎖指令，並回報開門、關門與故障等事件；另提供於瀏覽器執行相同裝置邏輯之模擬書櫃網頁，供測試使用。')
 
     # 3-2 軟硬體需求
     _set(_row(t('表 3-2-3'), '硬體功能要求'), [None, '具備後置相機鏡頭（用於掃描QR Code與拍攝書況）與定位功能（使用智慧書櫃時須允許存取位置資訊）'])
     x = t('表 3-2-4')
-    _set(_row(x, '微控制器'), [None, 'ESP32開發板或同等級具備Wi-Fi聯網能力之晶片，每台書櫃一片'])
-    _set(_row(x, '周邊元件'), [None, '電磁鎖4組及其驅動電路（對應A01至A04四扇櫃門）；240×320 TFT顯示模組（僅供顯示QR Code、比對數字與櫃門提示，不需觸控）；門磁感測器（選配）'])
+    _set(_row(x, '微控制器'), [None, 'ESP32-S3開發板或同等級具備Wi-Fi聯網能力之晶片，每台書櫃一片'])
+    _set(_row(x, '周邊元件'), [None, '電磁鎖4組及繼電器驅動電路（對應A01至A04四扇櫃門）；2.8吋320×240 TFT顯示模組（橫向，僅供顯示QR Code、比對數字與櫃門提示，不需觸控）；門磁感測器（選配）'])
     _set(_row(x, '通訊介面'), [None, '內建Wi-Fi（2.4 GHz, 802.11 b/g/n），以HTTPS連線伺服器'])
-    _set(_row(x, '電源供應'), [None, 'DC 5V/2A以上穩壓電源（控制板與顯示模組）；電磁鎖依其額定規格供電'])
+    _set(_row(x, '電源供應'), [None, 'DC 12V電源供應電磁鎖（每只約0.6A），經降壓模組提供5V予控制板、繼電器與顯示模組'])
     x = t('表 3-2-5')
     fw = _row(x, '韌體開發', col=1)
     _set(fw, [None, None, None, '編寫微控制器之電磁鎖、顯示螢幕與網路通訊控制程式。'])
     hw = _row(x, '硬體環境', col=1)
-    _set(hw, [None, None, None, '負責電磁鎖、顯示螢幕與門磁感測器之控制，並以HTTPS定時與後端伺服器同步狀態、回報事件。'])
+    _set(hw, [None, None, 'ESP-IDF（ESP32-S3）', '負責電磁鎖與顯示螢幕之控制，並以HTTPS定時與後端伺服器同步狀態、回報事件。'])
     _after(hw, [None, '模擬書櫃', 'HTML5網頁（/kiosk）', '於瀏覽器執行與韌體相同之裝置邏輯，供測試書櫃存取流程。'])
 
-    # 附錄二 硬體接線圖：內文依最終硬體改寫；接線圖圖檔須由硬體負責人依電磁鎖設計重畫後替換
-    set_para(_para(doc, '本系統硬體以ESP32')._p,
-             '本系統每台智慧書櫃以一片ESP32作為主控制器，經驅動電路控制4組電磁鎖（對應A01至A04四扇櫃門），另接240×320 TFT顯示模組（僅供顯示，不需觸控）與選配之門磁感測器。各模組與主控制器間之腳位連接方式如下：')
+    # 附錄二 硬體接線圖
+    p = _para(doc, '本系統硬體以ESP32')
+    set_para(p._p,
+             '本系統每台智慧書櫃以一片ESP32-S3作為主控制器，經4路繼電器控制4組12V電磁鎖（對應A01至A04四扇櫃門），另接2.8吋320×240 TFT顯示模組'
+             '（橫向，僅供顯示，觸控與SD卡座不連接）。12V電源經2A保險絲供應電磁鎖，並經降壓模組轉為5V供應控制板、繼電器與顯示模組；'
+             '各電磁鎖並聯1N4007整流二極體，吸收斷電時之反向電壓。各模組與主控制器間之腳位連接方式如下：')
+    sec = doc.sections[-1]
+    replace_image(doc, p._p.getnext(), WIRING_PNG, sec.page_width - sec.left_margin - sec.right_margin,
+                  sec.page_height - sec.top_margin - sec.bottom_margin - Cm(6))
 
     # 4-2 組織分工：書櫃以電磁鎖開關櫃門
     for node in doc.element.body.iter(W('t')):
@@ -72,7 +82,7 @@ def run(doc, t, manual_table, steps_replace):
         ('services/cabinet-doors.js, cabinet-release.js', '後端', '櫃門與電磁鎖通道之對應、櫃門分配與狀態判定、櫃內書籍紀錄與待確認櫃門；訂單取消、逾期與作業進行中之櫃門處理。'),
         ('services/cabinet-manual.js, cabinet-admin.js, cabinet-events.js', '後端', '故障備援之手動回報與管理員確認、後台櫃門處理（登記存放內容、清空存放紀錄）、書櫃事件紀錄與管理員通知。'),
         ('routes/device.js, middleware/device-auth.js', '後端', '書櫃裝置API（/api/device/v1）：配對申請與輪詢、狀態查詢、事件回報與解除配對；以Device憑證與開機代碼驗證裝置，並依裝置限流。'),
-        ('routes/kiosk.js, views/kiosk/（device-core.js, kiosk.js）', '後端', '模擬書櫃網頁（/kiosk）：以240×320畫面模擬書櫃螢幕，device-core.js實作與ESP32韌體相同之配對、輪詢、事件佇列、開鎖與倒數邏輯；控制台可模擬開關門、門磁、櫃門故障、離線、網路延遲與重新開機。'),
+        ('routes/kiosk.js, views/kiosk/（device-core.js, kiosk.js）', '後端', '模擬書櫃網頁（/kiosk）：以240×320畫面模擬書櫃螢幕，device-core.js實作與ESP32-S3韌體相同之配對、輪詢、事件佇列、開鎖與倒數邏輯；控制台可模擬開關門、門磁、櫃門故障、離線、網路延遲與重新開機。'),
         ('features/cabinet（Flutter）', '前端', '書櫃掃碼流程：相機掃描書櫃QR Code、取得定位、確認項目、輸入比對數字、顯示櫃門與倒數、完成或取消、接續進行中之作業與顯示結果，以及故障備援之手動回報。'),
         ('features/admin/admin_cabinet_device_screen.dart（Flutter）', '前端', '後台書櫃裝置管理：輸入配對碼、裝置狀態與撤銷、櫃門卡片（遠端開啟、確認內容、登記與清空存放紀錄、維修與故障）、待確認手動回報與作業、最近作業與事件紀錄。'),
     ]:
@@ -183,7 +193,7 @@ def run(doc, t, manual_table, steps_replace):
 
     # 11-1-1 系統元件
     x = t('表 11-1-1')
-    r = _after(row_by_key(x, '行動應用執行環境'), ['智慧書櫃終端', 'ESP32（Arduino Core for ESP32）＋電磁鎖4組＋240×320 TFT顯示模組', '每台書櫃一片ESP32，以裝置憑證經HTTPS定時查詢書櫃狀態（閒置每2秒、作業中每1秒）並回報事件；事件先保存於本機佇列，連線恢復後補送'])
+    r = _after(row_by_key(x, '行動應用執行環境'), ['智慧書櫃終端', 'ESP32-S3（ESP-IDF）＋電磁鎖4組＋2.8吋320×240 TFT顯示模組（橫向）', '每台書櫃一片ESP32-S3，以裝置憑證經HTTPS定時查詢書櫃狀態（閒置每2秒、作業中每1秒）並回報事件；事件先保存於本機佇列，連線恢復後補送'])
     _after(r, ['模擬書櫃網頁', '瀏覽器（HTML5 Canvas），由API於/kiosk提供', '於瀏覽器執行與韌體相同之裝置邏輯，須經管理員輸入配對碼後啟用；僅於CABINET_SIMULATOR=true時開放'])
 
     # 11-2-1 後端安裝：NGINX 步驟之後加入書櫃設定
@@ -192,7 +202,7 @@ def run(doc, t, manual_table, steps_replace):
     for tr in x.findall(W('tr'))[1:]:
         n = text_of(tcs(tr)[0]).strip()
         if n.isdigit() and int(n) >= 9: set_cell(tcs(tr)[0], str(int(n) + 1))
-    _after(step8, ['9', '設定智慧書櫃：於.env設定CABINET_SIMULATOR（是否開放模擬書櫃網頁/kiosk）與CABINET_TIMEZONE，並確認NGINX將/kiosk轉發至API；書櫃裝置（ESP32或模擬書櫃）開機後螢幕顯示8位數配對碼，由管理員於App後台之「書櫃裝置」頁面輸入完成配對'])
+    _after(step8, ['9', '設定智慧書櫃：於.env設定CABINET_SIMULATOR（是否開放模擬書櫃網頁/kiosk）與CABINET_TIMEZONE，並確認NGINX將/kiosk轉發至API；書櫃裝置（ESP32-S3或模擬書櫃）開機後螢幕顯示8位數配對碼，由管理員於App後台之「書櫃裝置」頁面輸入完成配對'])
 
     # 11-2-3 環境變數
     x = t('表 11-2-3')

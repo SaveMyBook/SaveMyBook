@@ -17,7 +17,7 @@ component AI
 component cabinet
 component transit
 component "data.taipei" as opendata
-component ESP32
+component "ESP32-S3" as ESP32
 component API
 component APP
 

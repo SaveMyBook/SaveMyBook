@@ -2,16 +2,18 @@
 USD = 31.92
 WAGE = 196  # 2026 最低工資時薪
 
-# 單台書櫃建置（典型價）
-ELEC = [('ESP32開發板', 1, 200), ('12V櫃門電控鎖', 4, 340), ('4路繼電器模組', 1, 160), ('2.4吋TFT顯示模組（240×320）', 1, 280),
-        ('12V 5A電源供應器', 1, 239), ('5V降壓模組', 1, 100), ('門磁感測器（選配）', 4, 29), ('配線與端子耗材', 1, 320)]
+# 單台書櫃建置（2026-10-04 查價）
+ELEC = [('ESP32-S3開發板', 1, 350), ('12V櫃門電控鎖', 4, 350), ('4路繼電器模組', 1, 160), ('2.8吋TFT顯示模組（320×240）', 1, 580),
+        ('12V 5A電源供應器', 1, 239), ('5V降壓模組', 1, 100), ('保護元件（估計）', 1, 60), ('配線與端子耗材', 1, 320)]
 ELEC_TOTAL = sum(q * p for _, q, p in ELEC)
-BODY = [('9mm合板（3×6尺）', 2, 370), ('5mm壓克力門板（60×90cm）', 1, 678)]
+PRICE = {name: p for name, _, p in ELEC}
+BODY = [('9mm合板（3×6尺）', 1, 350), ('5mm壓克力（60×90cm）', 1, 678)]
 BODY_TOTAL = sum(q * p for _, q, p in BODY)
-LASER_MIN, LASER_RATE = 90, 15
-LASER = LASER_MIN * LASER_RATE
+WOOD_CUTS, CUT_RATE = 12, 25
+LASER_MIN, LASER_RATE = 20, 15
+PROCESS = WOOD_CUTS * CUT_RATE + LASER_MIN * LASER_RATE
 CONTINGENCY = round((ELEC_TOTAL + BODY_TOTAL) * 0.10)
-CABINET = ELEC_TOTAL + BODY_TOTAL + LASER + CONTINGENCY
+CABINET = ELEC_TOTAL + BODY_TOTAL + PROCESS + CONTINGENCY
 
 # 年度固定營運費用
 SERVER_M = round(48 * USD)
@@ -25,7 +27,7 @@ SUPPORT_H_WEEK = {1: 10, 2: 10, 3: 20}
 
 # 單台年度維護
 INSPECT_H, REPAIR_H = 12, 4
-SPARES = 340 + 160 + 72
+SPARES = PRICE['12V櫃門電控鎖'] + PRICE['4路繼電器模組'] + 72
 POWER_KWH = round(2 * 24 * 365 / 1000, 1)  # 平均 2 瓦
 POWER = round(POWER_KWH * 2.71)
 MAINT = INSPECT_H * WAGE + REPAIR_H * WAGE + SPARES + POWER
@@ -71,7 +73,7 @@ def breakeven(orders_per_day, aov, y=3):
 
 
 if __name__ == '__main__':
-    print('ELEC', ELEC_TOTAL, 'BODY', BODY_TOTAL, 'LASER', LASER, 'CONT', CONTINGENCY, 'CABINET', CABINET)
+    print('ELEC', ELEC_TOTAL, 'BODY', BODY_TOTAL, 'PROCESS', PROCESS, 'CONT', CONTINGENCY, 'CABINET', CABINET)
     print('SERVER_M', SERVER_M, 'SERVER_Y', SERVER_Y, 'DOMAIN', DOMAIN_Y, 'APPLE', APPLE_Y, 'GOOGLE', GOOGLE_ONCE)
     print('MAINT', MAINT, 'POWER', POWER_KWH, POWER, 'DEV', DEV_HOURS, DEV_LABOR)
     cum = 0

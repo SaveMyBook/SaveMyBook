@@ -5,7 +5,7 @@
 
 **核心特色**
 * 📷 **ISBN 掃描快速上架**：掃描條碼自動帶入書名、作者、出版社等書目資料，賣家只需補上書況照片與價格；AI 協助填寫書況描述，並預先審核上架內容。
-* 🗄️ **智慧書櫃實體交付**：自製 3D 列印書櫃搭配 ESP32 控制電磁鎖，賣家掃 QR Code 存書，買家隨時自行取書，提供 24 小時非同步交付。
+* 🗄️ **智慧書櫃實體交付**：自製木作書櫃（正面面板與櫃門為壓克力雷射切割）搭配 ESP32-S3 控制電磁鎖，賣家掃 QR Code 存書，買家隨時自行取書，提供 24 小時非同步交付。
 * 🛡️ **先驗收、後撥款**：買家取書並確認書況後，系統才將款項撥給賣家；書況不符時可提出申訴、暫停交易，由管理員介入處理。
 * 💬 **即時互動**：買賣雙方即時聊天、訂單推播通知，另有 AI 客服回答平台使用問題。
 * 🏅 **會員經營**：會員等級、成就徽章與錢包制度，提升使用者參與感。
@@ -19,7 +19,7 @@
 flowchart LR
     subgraph Client["客戶端"]
         App["📱 行動 App<br/>Flutter（iOS / Android）<br/>含管理後台"]
-        IoT["🗄️ 智慧書櫃終端<br/>ESP32 + 顯示螢幕 + 電磁鎖"]
+        IoT["🗄️ 智慧書櫃終端<br/>ESP32-S3 + 顯示螢幕 + 電磁鎖"]
         Kiosk["🖥️ 模擬書櫃網頁<br/>/kiosk（測試用）"]
     end
 
@@ -59,7 +59,7 @@ flowchart LR
 | 智慧書櫃 | ESP32-S3（C++、ESP-IDF、PlatformIO） | 透過 2.4GHz Wi-Fi 以 HTTPS 輪詢後端，控制四組電磁鎖與 2.8 吋橫向螢幕；`/kiosk` 網頁可模擬書櫃進行測試 |
 | 伺服器與網路 | Ubuntu 24.04、NGINX、sslh、Cloudflare | Cloudflare 負責 DNS 解析、WAF 與 SSL，NGINX 將 `/api`、`/socket.io`、`/kiosk` 轉發至 API |
 | 外部服務 | Firebase、DeepSeek / Gemini / OpenAI、Google Books / Open Library | 社群登入與推播、AI 上架輔助與客服、ISBN 書目查詢 |
-| 硬體設計 | SolidWorks 2025、Bambu Studio | 書櫃 3D 建模與切片列印 |
+| 硬體設計 | SolidWorks 2025 | 書櫃建模與壓克力雷射切割圖檔 |
 | 設計與協作 | Figma、Git / GitHub | UI/UX 設計、版本控管與團隊協作 |
 
 ## 👥 團隊成員

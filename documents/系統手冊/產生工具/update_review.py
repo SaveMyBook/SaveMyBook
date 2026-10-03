@@ -69,7 +69,7 @@ def edit_chapter1(doc, T):
     # 1-4 預期成果
     _set_text(ch1, '本系統預期能透過ISBN條碼掃描技術',
               '本系統預期能透過ISBN條碼掃描技術與AI上架輔助，實現二手書籍的快速上架，大幅簡化賣方的操作流程。在硬體整合方面，'
-              '本專案以雷射切割之壓克力或木板製作櫃體，結合ESP32微控制器、電磁鎖與顯示螢幕，自主開發每台四扇櫃門之實體智慧書櫃，'
+              '本系統以合板製作櫃體、以壓克力雷射切割正面面板與櫃門，結合ESP32-S3微控制器、電磁鎖與顯示螢幕，自主開發每台四扇櫃門之實體智慧書櫃，'
               '藉此提供低成本的實物驗證機制與非同步取貨服務，有效突破傳統面交的時空限制。此外，透過會員等級制度的設計，'
               '不僅能賦予使用者專屬的尊榮感，更能有效提升平台黏著度。')
     _set_text(ch1, '在後續開發階段，本專案將進一步導入區塊鏈',
@@ -98,14 +98,14 @@ def edit_chapter2(doc, T):
     _set_text(ch2, 'API開發與調試：',
               'API開發與調試：以OpenAPI規格撰寫API文件並透過Scalar提供線上文件，搭配Postman進行介面測試，確保後端邏輯的正確性與介接便利性。')
     _set_text(ch2, '物聯網與硬體整合：',
-              '物聯網與硬體整合：書櫃櫃體採雷射切割之壓克力或木板組裝，先以CAD建模確認尺寸與公差，具備高度客製化與低成本模組化優勢。'
-              '每台書櫃以一片ESP32微控制器控制四組電磁鎖與顯示螢幕，透過HTTPS與雲端後台同步狀態，實現掃碼開櫃、關門回報與故障告警等自動化功能'
+              '物聯網與硬體整合：書櫃主體以合板組裝，正面面板與櫃門以壓克力雷射切割，先以CAD建模確認尺寸與公差，具備高度客製化與低成本模組化優勢。'
+              '每台書櫃以一片ESP32-S3微控制器控制四組電磁鎖與顯示螢幕，透過HTTPS與雲端後台同步狀態，實現掃碼開櫃、關門回報與故障告警等自動化功能'
               '（設備可行性與妥善率詳見2-7節）。')
     _insert_bullet_after(ch2, '物聯網與硬體整合：',
                          'AI服務整合：串接OpenAI、Google Gemini與DeepSeek等服務並可切換供應商，提供上架內容審核、書籍資料補齊、'
                          'AI客服、AI書籍顧問與個人化推薦，並設有每月預算上限與服務異常時之備援處理。')
     _set_text(ch2, '低成本開發模式：',
-              '低成本開發模式：不同於傳統二手書店需負擔高昂店租與人力成本，本系統以雷射切割之壓克力或木板製作櫃體，搭配低價之ESP32微控制器與電磁鎖，'
+              '低成本開發模式：不同於傳統二手書店需負擔高昂店租與人力成本，本系統以合板與雷射切割之壓克力製作櫃體，搭配低價之ESP32-S3微控制器與電磁鎖，'
               '大幅降低實體書櫃的建置費用；建置與營運成本之量化評估詳見2-6節。')
     _set_text(ch2, '明確驗證機制：',
               '安全存取機制：使用者須於書櫃旁以App掃描書櫃螢幕上的QR Code、輸入螢幕顯示之兩位數字並通過定位檢查（200公尺內）後始開啟櫃門，'
@@ -133,7 +133,7 @@ def edit_chapter2(doc, T):
     bm = table_after(para(ch2, '表 2-2-1 '))
     rows = bm.findall(W('tr'))
     c0, c1, c2 = tcs(rows[0]), tcs(rows[1]), tcs(rows[2])
-    _set_items(c0[0], '關鍵合作夥伴', ['場域提供者', '雷射切割與材料供應商', '圖書數據API供應商', 'AI服務供應商', '雲端與推播服務', '第三方支付機構（規劃）'])
+    _set_items(c0[0], '關鍵合作夥伴', ['場域提供者', '木材與壓克力加工供應商', '圖書數據API供應商', 'AI服務供應商', '雲端與推播服務', '第三方支付機構（規劃）'])
     _set_items(c0[1], '關鍵活動', ['技術開發', '硬體整合', '場域驗證', '維修巡檢', '客服與爭議處理'])
     _set_items(c0[2], '價值主張', ['交易透明', '全自動無人化', '自助取件', '低抽成、快速撥款', '綠色校園永續'])
     _set_items(c0[3], '顧客關係', ['爭議處理機制', '會員等級制度', 'AI客服'])
@@ -173,17 +173,21 @@ def run(doc):
 REF_COST_GROUP = '成本估算、硬體規格與法規'
 REF_COST = [
     'DigitalOcean. (n.d.). Droplet pricing. https://www.digitalocean.com/pricing/droplets',
-    'Espressif Systems. (2022). ESP32-WROOM-32E & ESP32-WROOM-32UE datasheet (Version 2.1). https://documentation.espressif.com/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.html',
+    'Espressif Systems. (2026). ESP32-S3 series datasheet (Version 2.2). https://documentation.espressif.com/esp32-s3_datasheet_en.pdf',
     'Handson Technology. (n.d.). SRD-05VDC-SL-C relay datasheet. https://www.handsontec.com/dataspecs/relay/SRD-05VDC-SL-C.pdf',
     'Kendrion. (n.d.). Locking solenoids [Product brochure]. https://www.kendrion.com/fileadmin/user_upload/Downloads/Brochures_and_Flyers/Electromagnets_Actuators/Locking-Solenoids-Kendrion-EN.pdf',
     'UCI電子（無日期）。（D-53）LY-03電磁鎖 小型電控鎖防水櫃門鎖。https://www.ucielectronics.com/products/%E3%80%90uci%E9%9B%BB%E5%AD%90%E3%80%91d-53-ly-03%E9%9B%BB%E7%A3%81%E9%8E%96-%E5%B0%8F%E5%9E%8B%E9%9B%BB%E6%8E%A7%E9%8E%96%E9%98%B2%E6%B0%B4%E6%AB%83%E9%96%80%E9%8E%96-%E9%9B%BB%E5%AD%90%E9%96%80%E7%A6%81%E9%8E%96-%E7%A3%81%E5%8A%9B%E9%8E%9612v%E9%9B%BB%E5%AD%90%E9%8E%96',
     '木百貨（無日期）。5mm 透明壓克力 60x90cm。https://woodmall.com.tw/shop/product/5mm-%E9%80%8F%E6%98%8E-%E5%A3%93%E5%85%8B%E5%8A%9B-60x90cm/',
+    '米羅科技（無日期）。2.8寸觸控式螢幕。https://shop.mirotek.com.tw/shop/400300/',
     '全國法規資料庫（2023）。電子支付機構管理條例。https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0380237',
     '開店趣 Bboss（2026）。營業用電一度多少錢？營業用電試算。https://www.bboss.com.tw/article/%E9%9B%BB%E5%83%B9-%E7%87%9F%E6%A5%AD%E7%94%A8%E9%9B%BB-%E4%B8%80%E5%BA%A6%E9%9B%BB%E5%A4%9A%E5%B0%91%E9%8C%A2/',
     '勞動部（2025）。最低工資連十漲！審議會決定自115年1月1日起，每月最低工資調升至29,500元，每小時最低工資調升至196元。https://www.mol.gov.tw/1607/1632/1633/84947/post',
     '極客雷射（無日期）。關於極客。https://geeklaser1111.com/%E9%97%9C%E6%96%BC%E6%A5%B5%E5%AE%A2/',
     '綠界科技（無日期）。服務費率表。https://www.ecpay.com.tw/Business/payment_fees',
+    '網建行興業（無日期）。木板3尺*6尺*厚9mm足。https://www.wj-design.com.tw/products/info.php?id=1276&title_id=154',
     '臺灣銀行（2026）。新臺幣匯率牌告。https://rate.bot.com.tw/xrt?Lang=zh-TW',
+    '廣華電子（無日期）。12V 54x41x27mm迷你電鎖。https://shop.cpu.com.tw/product/52725/info/',
+    '聯騰電子（無日期）。ESP32-S3-N16R8 WiFi藍牙開發板。https://www.ltc.com.tw/products/esp32-s3-n16r8-wifi%E8%97%8D%E7%89%99-%E9%96%8B%E7%99%BC%E6%9D%BF',
 ]
 
 
@@ -210,15 +214,29 @@ def heading1_el(doc, title):
 
 
 def edit_chapters34(doc):
-    """櫃體改採雷射切割（不再使用 3D 列印）。"""
+    """櫃體改為合板加壓克力雷射切割（不再使用 3D 列印），控制板改為 ESP32-S3。"""
     ch3 = chapter_range(doc, '系統規格', '專案時程與組織分工')
     ch4 = chapter_range(doc, '專案時程與組織分工', '需求模型')
     tools = table_after(para(ch3, '表 3-3-1 '))
     replace_in(tools, '圖形與3D設計', '圖形與機構設計')
     replace_in(tools, '3D建模與切片', '機構建模與雷切圖檔')
     replace_in(tools, 'SolidWorks 2025、Tinkercad、Bambu Studio', 'SolidWorks 2025（繪製櫃體並輸出雷射切割用DXF圖檔）')
+    replace_in(tools, 'Arduino', 'PlatformIO、ESP-IDF')
     duty = table_after(para(ch4, '表 4-2-1 '))
-    for old, new in (('3D建模', '機構建模'), ('3D切片', '雷切圖檔製作'), ('列印後處理', '櫃體組裝'), ('3D列印', '雷射切割')):
+    for old, new in (('ESP32韌體', 'ESP32-S3韌體'), ('3D建模', '機構建模'), ('3D切片', '雷切圖檔製作'), ('列印後處理', '櫃體組裝'),
+                     ('3D列印', '壓克力雷射切割')):
         replace_in(duty, old, new)
+    # 木作裁切另列一項，負責人待團隊填寫
+    laser = next(tr for tr in duty.findall(W('tr')) if '壓克力雷射切割' in text_of(tr))
+    wood = copy.deepcopy(laser)
+    cells = tcs(wood)
+    for t in cells[1].iter(W('t')):
+        t.text = ''
+    next(cells[1].iter(W('t'))).text = '木作裁切'
+    for tc in cells[2:]:
+        for t in tc.iter(W('t')):
+            t.text = ''
+    laser.addprevious(wood)
     work = table_after(para(ch4, '表 4-2-2 '))
-    replace_in(work, '電磁鎖控制與3D列印全流程', '電磁鎖控制與櫃體設計、雷射切割及組裝全流程')
+    replace_in(work, 'ESP32韌體', 'ESP32-S3韌體')
+    replace_in(work, '電磁鎖控制與3D列印全流程', '電磁鎖控制與櫃體設計、壓克力雷射切割及組裝全流程')

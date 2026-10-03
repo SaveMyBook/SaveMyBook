@@ -10,7 +10,7 @@ skinparam ranksep 30
 
 node "一、客戶端與維運環境" {
   component "<<Mobile>>\n行動裝置 App\n(Flutter)" as app
-  component "<<IoT>>\n智慧書櫃終端\n(ESP32、顯示螢幕、\n4 組電磁鎖)" as iot
+  component "<<IoT>>\n智慧書櫃終端\n(ESP32-S3、顯示螢幕、\n4 組電磁鎖)" as iot
   component "<<Browser>>\n模擬書櫃網頁\n(/kiosk，測試用)" as kiosk
   component "<<Workstation>>\n開發者電腦" as dev
 }

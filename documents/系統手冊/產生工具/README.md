@@ -19,11 +19,13 @@ curl -L -o plantuml.jar https://repo1.maven.org/maven2/net/sourceforge/plantuml/
 .venv/bin/python selfcheck.py 輸出.docx
 ```
 
-自動檢查須顯示 `ALL OK`。產生後於 Word 開啟，更新目錄與圖表目錄（全選按 F9），存檔後再匯出 PDF。
+自動檢查須顯示 `ALL OK`。產生後執行 `.venv/bin/python word_final.py 輸出.docx 系統簡介.docx`，由 Word 更新目錄與圖表目錄、存檔並匯出 PDF（不會跳出更新欄位視窗），再將 `_render/` 內之檔案複製回 `documents/`。Word 存檔後之手冊再跑 selfcheck 會出現目錄欄位結構不符，屬正常。
 
 圖目錄與表目錄為 `TOC \c \f` 功能變數：前幾章之說明以可見 SEQ 欄位收錄，其餘說明另有 TC 欄位（`update_lists.py`）；只用隱藏 SEQ 欄位時 Word 更新後只會列出前 4 章。
 
 書櫃交通資訊（2026-10-02）之內文、UC-35／UC-36 與循序圖 6-1-32 由 `transit_part4.py` 加入，分三段在 `update_manual.py` 中呼叫。
+
+書櫃實機規格（2026-10-04：ESP32-S3、合板櫃體加壓克力雷射切割）之成本由 `review_model.py` 計算；附錄二接線圖由 `cabdiag/wiring/wiring.py` 產生 `wiring.png`（腳位與 `savemybook_firmware/README.md` 一致）。誌謝由 `acknowledgements.py` 在最後改寫。
 
 ## 修改圖
 

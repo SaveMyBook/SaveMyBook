@@ -107,6 +107,24 @@ def _cells(t):
     return [['\n'.join(text_of(p) for p in tc.findall(W('p'))) for tc in tr.findall(W('tc'))] for tr in t.findall(W('tr'))]
 
 
+def _same_element(a, b, ka, kb):
+    """同類元素且文字相近，或開頭12字以上相同（段落內容改寫較多時，圖表標號除外），或表頭與欄數相同之表格。"""
+    if ka[:2] != kb[:2]:
+        return False
+    if difflib.SequenceMatcher(None, ka, kb).ratio() >= 0.75:
+        return True
+    if ka.startswith('P|') and not ka.startswith(('P|圖 ', 'P|表 ')) and len(os.path.commonprefix([ka, kb])) >= 2 + 12:
+        return True
+    return _same_table_shape(a, b)
+
+
+def _same_table_shape(a, b):
+    if a.tag != W('tbl') or b.tag != W('tbl'):
+        return False
+    ga, gb = a.find(W('tblGrid')), b.find(W('tblGrid'))
+    return ga is not None and gb is not None and len(ga) == len(gb) and _cells(a)[:1] == _cells(b)[:1]
+
+
 def _replace_child(parent, tag, src):
     old = parent.find(W(tag))
     if src is None:
@@ -332,8 +350,16 @@ def run(doc):
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, ka, kb, autojunk=False).get_opcodes():
         pairs = list(zip(ours[i1:i2], theirs[j1:j2], ka[i1:i2], kb[j1:j2]))
         if op == 'replace' and i2 - i1 == j2 - j1:
-            # 文字僅小幅修改之段落（如更名、改數字）仍沿用複評版之格式。
-            pairs = [x for x in pairs if x[2][:2] == x[3][:2] and difflib.SequenceMatcher(None, x[2], x[3]).ratio() >= 0.75]
+            # 文字僅小幅修改之段落（如更名、改數字）仍沿用複評版之格式；表格只比對前60字，內容改動較多時以表頭與欄數相同為準。
+            pairs = [x for x in pairs if _same_element(*x)]
+        elif op == 'replace':
+            # 前後段落有增減時，依序找出對應之段落
+            pairs, j = [], j1
+            for i in range(i1, i2):
+                hit = next((jj for jj in range(j, j2) if _same_element(ours[i], theirs[jj], ka[i], kb[jj])), None)
+                if hit is not None:
+                    pairs.append((ours[i], theirs[hit], ka[i], kb[hit]))
+                    j = hit + 1
         elif op != 'equal':
             continue
         for a, b, key, _ in pairs:
@@ -352,6 +378,10 @@ def run(doc):
                 stats['shrunk'] += _shrink_for_longer_text(a, b)
             stats['paragraphs'] += bool(_copy_format(a, b))
             stats['footnotes'] += _copy_footnote(a, b, fours, ftheirs)
+    # 複評版此小標未與下段綁定，本版前頁內容較短時會單獨落在頁尾
+    for e in ours:
+        if e.tag == W('p') and text_of(e).strip() == '金流規劃補強':
+            keep_next(e)
     fpart._blob = etree.tostring(fours, xml_declaration=True, encoding='UTF-8', standalone=True)
     return stats
 
