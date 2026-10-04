@@ -54,3 +54,5 @@ cd audio && bash build.sh
 依序產生：穿模檢查、音效時間、旁白、配樂、音效與混音、中英字幕、4K60 畫面，最後合成 4K、1080p 與中英字幕版到 `成品/`。4K 檔超過 GitHub 單檔上限，不進版控。
 
 音訊需要 Python 環境：`cd audio && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`。
+
+YouTube 封面（3840×2160）：`cover.html` 用與動畫相同的書櫃與手機模型排版，書櫃與手機的位置在 `src/cover.ts`。開著 dev server 執行 `node tools/cover.mjs`，輸出到 `成品/YouTube封面_3840x2160.png`。手機不可擋到書櫃右上角的螢幕。
