@@ -6,7 +6,7 @@ const { kioskPage } = require('../views/kiosk-page');
 const router = express.Router();
 
 const ASSET_DIR = path.join(__dirname, '../views/kiosk');
-const ASSETS = new Set(['device-core.js', 'kiosk.js', 'qrcode.js', 'kiosk.css']);
+const ASSETS = new Set(['device-core.js', 'kiosk.js', 'qrcode.js', 'kiosk.css', 'book-slate-128.png']);
 
 const HEADERS = {
   'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",

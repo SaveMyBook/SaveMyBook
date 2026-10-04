@@ -4,7 +4,7 @@
 
 - 規格：邏輯 393×852、pixelRatio 3（1179×2556）、zh-Hant、淺色主題、上 59／下 34 安全區（狀態列留白，由動畫自行疊 2:25）。
 - 長圖：`b_guide_long.png` 為邏輯 393×2414（1179×7242）。
-- 40 個測試全數通過，無例外、無版面溢出；官網 PNG md5 前後一致；pubspec.lock 已還原。
+- 51 個測試全數通過，無例外、無版面溢出；官網 PNG md5 前後一致；pubspec.lock 已還原。
 - `rects.json`：各元件的邏輯座標 `[x, y, w, h]`（數字鍵為中心點 `[x, y]`），另含 `_transit_daytime_changes`（交通即時值改動清單）。
 
 ## 檔案
@@ -42,6 +42,21 @@
 - `a_cabinet_edit`：新增書櫃：圖書館總館一樓、臺北市大安區建國南路二段 125 號、按「使用目前位置」後緯度 25.0292374／經度 121.5383324、定位精確度約 ±6 公尺、附近交通預覽（大安森林公園站 520 公尺；公車站 3 處・YouBike 5 站・停車場 5 處）。
 - `a_dispute_ai`：爭議 AI 分析（《秒懂資料結構》，買家王思涵、賣家張家豪）：建議退款・可信度中、摘要、三項觀察、理由。
 - `a_listing_review`：上架審核：吳品妤上架的《有機化學的反應機構論》，規則判定館藏來源、AI 判定「需人工確認」，含封底館藏標籤與內頁照片。
+
+## 逐步操作畫面
+
+播放順序寫在 `sequences.json`（每組最後一格為上方既有的完成畫面）。輸入框一律未聚焦、無鍵盤；`_tNN` 為輸入框內已輸入的前 NN 個字。等待 AI 的畫面是攔住假 API 回應後截取，進度圈已對齊到弧形明顯的時間點；使用者泡泡在等待回覆期間依 App 實際行為呈 70% 不透明度。
+
+- `isbn_type`：`s_sell_isbn_t00`（空白，顯示「請輸入 ISBN」）／`_t03`／`_t06`／`_t09`／`_t13`（與 `s_sell_isbn` 相同）→ `s_sell_isbn_loading`（按「AI 帶入」後的「AI 分析中」進度單，第 1 步「查詢書籍資料」）→ `s_sell_fill`。
+- `sell_ai_loading`：上架第 2 步按「AI 帶入」後的進度單，`s_sell_ai_loading_1`「查詢定價」→ `_2`「分析照片」→ `_3`「判斷書況與售價」→ `s_sell_ai_sheet_220`。
+- `advisor_type`：`b_advisor_empty`（尚無對話，顯示建議問題與「描述您想找的書籍」）→ `b_advisor_t03`～`_t42`（每 3 字一格）→ `b_advisor_wait`（需求泡泡送出中、AI 輸入中動畫、送出鈕轉圈）→ `b_advisor`。
+- `support_q1`：`b_support_empty`（「請問有什麼需要協助的地方？」）→ `b_support_q1_t03`～`_t24` → `b_support_wait1` → `b_support_a1`（第 1 題與回覆）。
+- `support_q2`：`b_support_a1` → `b_support_q2_t03`～`_t15`、`_t17` → `b_support_wait2` → `b_support`。
+- `warn`：`b_chat_warn_0`（對方訊息尚未送達）→ `b_chat_warn_1`（訊息與下方防詐提醒，頂部橫幅尚未出現）→ `b_chat_warn`。
+- `cab_deposit`／`cab_pickup`：掃描與數字比對之間新增 `s_cab_select`、`b_cab_select`（確認書櫃作業：勾選《普通化學》、「請於 0:56 內確認」、「開啟櫃門」）。存書時尚未配置櫃門，所以 `s_cab_select` 沒有櫃門標籤；取書顯示「櫃門 A01」。
+- `dispute_ai`：`a_dispute_loading`（尚無分析結果，按「開始分析」後面板只有標題與轉圈）→ `a_dispute_ai`。內容較短，底單未捲動，版面位置與 `a_dispute_ai` 不同（面板 [20, 321, 353, 56]）。
+
+新增對位座標（`rects.json`）：`s_sell_isbn_t00` isbn field、button AI 帶入；`b_advisor_empty` input bar、messages area；`b_advisor_wait`、`b_support_wait1`、`b_support_wait2` user bubble、typing bubble；`b_support_empty` input bar；`b_support_a1` ai reply 1 bubble；`b_chat_warn_1` stranger message、risk note under message；`s_cab_select`、`b_cab_select` item card、confirm button；`a_dispute_loading` ai panel。
 
 ## 使用的真實書籍
 

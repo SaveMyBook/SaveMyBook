@@ -9,8 +9,9 @@
   const LOCK_NAME = 'smb-kiosk-device';
   const LOG_LIMIT = 100;
   const FONT = '-apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif';
-  const ANIMATED = new Set(['booting', 'processing', 'offline', 'opening']);
-  const CODE_FONT = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+  const NO_LINE_START = new Set('，。、：；！？）」』》…,.:;!?)');
+  const NO_LINE_END = new Set('（「『《(');
+  const isWordChar = (ch) => ch !== undefined && ch.charCodeAt(0) < 0x80 && ch !== ' ';
 
   const C = {
     bg: '#0e1318',
@@ -81,303 +82,361 @@
   };
 
   const createScreen = (core) => {
-    const { LAYOUT, format } = Core;
+    const { LAYOUT } = Core;
+    const { WIDTH: W, HEIGHT: H, HEADER_HEIGHT: HEADER, TEXT_WIDTH: TW, FONTS } = LAYOUT;
+    const CX = W / 2;
+    const MID_Y = (HEADER + H) / 2;
+    const F = {
+      small: { size: FONTS.SMALL, weight: 400 },
+      body: { size: FONTS.BODY, weight: 400 },
+      title: { size: FONTS.TITLE, weight: 500 },
+      code: { size: FONTS.CODE, weight: 500 },
+      label: { size: FONTS.LABEL, weight: 500 },
+      labelSm: { size: FONTS.LABEL_SM, weight: 500 },
+      ring: { size: FONTS.RING, weight: 500 },
+      huge: { size: FONTS.HUGE, weight: 500 }
+    };
     const canvas = el('canvas', 'screen');
-    canvas.width = LAYOUT.WIDTH;
-    canvas.height = LAYOUT.HEIGHT;
+    canvas.width = W;
+    canvas.height = H;
     canvas.setAttribute('role', 'img');
     const ctx = canvas.getContext('2d');
-    const state = { view: core.view, ratio: 1, dirty: true, qrCache: { payload: null, matrix: null } };
-
-    const font = (size, bold, family = FONT) => `${bold ? '700' : '400'} ${size}px ${family}`;
+    const state = { view: core.view, ratio: 1, queued: false, qrCache: { payload: null, matrix: null } };
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width) return;
-      const ratio = (rect.width / LAYOUT.WIDTH) * (window.devicePixelRatio || 1);
-      const width = Math.round(LAYOUT.WIDTH * ratio);
-      const height = Math.round(LAYOUT.HEIGHT * ratio);
+      const ratio = (rect.width / W) * (window.devicePixelRatio || 1);
+      const width = Math.round(W * ratio);
+      const height = Math.round(H * ratio);
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
       }
       state.ratio = ratio;
-      state.dirty = true;
+      schedule();
     };
 
-    const wrap = (text, maxWidth, maxLines) => {
-      const lines = [];
-      let line = '';
-      for (const ch of String(text)) {
-        const next = line + ch;
-        if (line && ctx.measureText(next).width > maxWidth) {
-          lines.push(line);
-          line = ch.trim() ? ch : '';
-          if (lines.length === maxLines) return lines;
-        } else {
-          line = next;
-        }
-      }
-      if (line) lines.push(line);
-      return lines.slice(0, maxLines);
+    const useFont = (f) => {
+      ctx.font = `${f.weight} ${f.size}px ${FONT}`;
     };
 
-    const text = (value, x, y, { size = 14, bold = false, color = C.text, align = 'center', baseline = 'top', family = FONT } = {}) => {
-      ctx.font = font(size, bold, family);
+    // 韌體以整數像素計算字寬；不取整時「SaveMyBook App」會多出不到 1 像素而斷行位置不同。
+    const measure = (f, value) => {
+      useFont(f);
+      return Math.round(ctx.measureText(value).width);
+    };
+
+    // 與韌體相同：中文字與數字的視覺中心約在基線上方 0.38 字高。
+    const text = (f, value, x, cy, color, align = 'left') => {
+      useFont(f);
       ctx.fillStyle = color;
       ctx.textAlign = align;
-      ctx.textBaseline = baseline;
-      ctx.fillText(value, x, y);
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(value, x, cy + Math.round(f.size * 0.38));
     };
 
-    const paragraph = (value, y, { size = 14, bold = false, color = C.text, maxLines = 2, width = 220, lineHeight = 1.45 } = {}) => {
-      ctx.font = font(size, bold);
-      const lines = wrap(value, width, maxLines);
-      lines.forEach((line, i) => text(line, LAYOUT.WIDTH / 2, y + i * size * lineHeight, { size, bold, color }));
-      return lines.length;
+    // 斷行規則同韌體 wrapText：英數字連成一個單位，行首不放標點。
+    const wrapText = (f, value, maxWidth) => {
+      const tokens = [];
+      let joinNext = false;
+      for (const ch of String(value || '')) {
+        if (ch === ' ') {
+          tokens.push(' ');
+          joinNext = false;
+          continue;
+        }
+        const last = tokens[tokens.length - 1];
+        const attach = last !== undefined && last !== ' '
+          && (joinNext || NO_LINE_START.has(ch) || (isWordChar(ch) && isWordChar(last[last.length - 1])));
+        if (attach) tokens[tokens.length - 1] += ch;
+        else tokens.push(ch);
+        joinNext = NO_LINE_END.has(ch);
+      }
+      const lines = [];
+      let line = '';
+      for (const t of tokens) {
+        if (t === ' ' && !line) continue;
+        if (line && measure(f, line + t) > maxWidth) {
+          lines.push(line.trimEnd());
+          line = t === ' ' ? '' : t;
+        } else {
+          line += t;
+        }
+      }
+      line = line.trimEnd();
+      if (line) lines.push(line);
+      return lines;
     };
 
-    const spinner = (cx, cy, r, t) => {
-      const start = ((t || 0) / 1000) * Math.PI * 2;
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = C.track;
+    const balancedWrap = (f, value, width) => {
+      const lines = wrapText(f, value, width);
+      if (lines.length < 2) return lines;
+      let lo = Math.floor(width / 2);
+      let hi = width;
+      while (lo < hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (wrapText(f, value, mid).length === lines.length) hi = mid;
+        else lo = mid + 1;
+      }
+      return wrapText(f, value, hi);
+    };
+
+    const paragraph = (f, value, x, cy, width, color, lineH, maxLines = 3, align = 'center') => {
+      const lines = balancedWrap(f, value, width).slice(0, maxLines);
+      let y = cy - Math.trunc(((lines.length - 1) * lineH) / 2);
+      for (const line of lines) {
+        text(f, line, x, y, color, align);
+        y += lineH;
+      }
+    };
+
+    const rect = (x, y, w, h, color) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+    };
+
+    const disc = (cx, cy, r, color) => {
+      ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.strokeStyle = C.accent;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, start, start + Math.PI * 0.6);
-      ctx.stroke();
+      ctx.fill();
     };
 
-    const icon = (kind, cx, cy) => {
-      const r = 26;
-      ctx.lineWidth = 4;
+    const stroke = (points, width, color) => {
+      ctx.lineWidth = width;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      const color = kind === 'check' ? C.online : kind === 'alert' ? C.warn : C.muted;
       ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      if (kind === 'wrench') {
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - r);
-        ctx.lineTo(cx + r, cy + r * 0.8);
-        ctx.lineTo(cx - r, cy + r * 0.8);
-        ctx.closePath();
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - 8);
-        ctx.lineTo(cx, cy + 6);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx, cy + 14, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-        return;
-      }
+      ctx.beginPath();
+      points.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.stroke();
+    };
+
+    const ring = (cx, cy, r, width, ratio, fg, track) => {
+      ctx.lineWidth = width;
+      ctx.lineCap = 'butt';
+      ctx.strokeStyle = track;
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
+      const filled = Math.max(0, Math.min(1, ratio));
+      if (filled <= 0) return;
+      ctx.strokeStyle = fg;
       ctx.beginPath();
+      ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * filled);
+      ctx.stroke();
+    };
+
+    const bar = (x, y, w, ratio, color = C.accent) => {
+      rect(x, y, w, 4, C.track);
+      rect(x, y, Math.round(w * Math.max(0, Math.min(1, ratio))), 4, color);
+    };
+
+    const ratioOf = (countdown) => (countdown && countdown.totalMs > 0 ? countdown.remainingMs / countdown.totalMs : 0);
+    const line = (view, i) => view.lines[i] || '';
+
+    const icon = (kind, cx, cy) => {
+      const color = kind === 'check' ? C.accent : kind === 'alert' ? C.warn : C.muted;
+      ring(cx, cy, LAYOUT.NOTICE.ICON_R, 3, 1, color, color);
       if (kind === 'check') {
-        ctx.moveTo(cx - 12, cy + 1);
-        ctx.lineTo(cx - 3, cy + 10);
-        ctx.lineTo(cx + 13, cy - 9);
-        ctx.stroke();
+        stroke([[cx - 10, cy + 1], [cx - 3, cy + 8], [cx + 11, cy - 7]], 3, color);
       } else if (kind === 'alert') {
-        ctx.moveTo(cx, cy - 13);
-        ctx.lineTo(cx, cy + 4);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx, cy + 12, 2.5, 0, Math.PI * 2);
-        ctx.fill();
+        stroke([[cx, cy - 11], [cx, cy + 3]], 3.5, color);
+        disc(cx, cy + 10, 2, color);
       } else if (kind === 'clock') {
-        ctx.moveTo(cx, cy - 14);
-        ctx.lineTo(cx, cy);
-        ctx.lineTo(cx + 10, cy + 6);
-        ctx.stroke();
+        stroke([[cx, cy - 13], [cx, cy], [cx + 9, cy + 5]], 3, color);
       } else if (kind === 'pause') {
-        ctx.moveTo(cx - 7, cy - 11);
-        ctx.lineTo(cx - 7, cy + 11);
-        ctx.moveTo(cx + 7, cy - 11);
-        ctx.lineTo(cx + 7, cy + 11);
-        ctx.stroke();
+        stroke([[cx - 6, cy - 10], [cx - 6, cy + 10]], 4, color);
+        stroke([[cx + 6, cy - 10], [cx + 6, cy + 10]], 4, color);
+      } else if (kind === 'wrench') {
+        stroke([[cx - 11, cy + 11], [cx + 3, cy - 3]], 5, color);
+        disc(cx + 6, cy - 6, 8, color);
+        stroke([[cx + 6, cy - 6], [cx + 14, cy - 14]], 5, C.bg);
       }
     };
 
-    const drawQr = (qr) => {
-      const [bx, by, bw, bh] = LAYOUT.IDLE.QR;
-      ctx.fillStyle = C.white;
-      ctx.fillRect(bx, by, bw, bh);
-      if (state.qrCache.payload !== qr.payload) {
-        state.qrCache = { payload: qr.payload, matrix: QR.encode(qr.payload) };
+    const header = (view) => {
+      rect(0, 0, W, HEADER, C.header);
+      text(F.title, view.header, 10, HEADER / 2, C.text);
+      disc(W - 14, HEADER / 2, 4, view.connection === 'online' ? C.online : C.offline);
+    };
+
+    const drawPairing = (view) => {
+      const P = LAYOUT.PAIRING;
+      if (!view.pairing.code) {
+        text(F.title, line(view, 0), CX, P.STATUS_TITLE_Y, C.muted, 'center');
+        paragraph(F.body, line(view, 1), CX, P.STATUS_Y, TW, view.pairing.error ? C.warn : C.text, 24, 2);
+        return;
       }
-      const { size, modules } = state.qrCache.matrix;
-      const m = Math.floor(bw / (size + LAYOUT.IDLE.QUIET_ZONE * 2));
-      const ox = bx + Math.floor((bw - size * m) / 2);
-      const oy = by + Math.floor((bh - size * m) / 2);
+      text(F.title, line(view, 0), CX, P.TITLE_Y, C.muted, 'center');
+      text(F.code, view.pairing.code, CX, P.CODE_Y, C.text, 'center');
+      text(F.body, line(view, 2), CX, P.PROMPT_Y, C.text, 'center');
+      text(F.small, line(view, 3), CX, P.REMAINING_Y, C.muted, 'center');
+      const [bx, by, bw] = P.BAR;
+      bar(bx, by, bw, ratioOf(view.pairing));
+    };
+
+    // QR Code 的模組以裝置像素對齊繪製，縮放後格線之間才不會出現細縫。
+    const drawQr = (modules, n, x, y, scale) => {
+      const quiet = LAYOUT.IDLE.QUIET_ZONE;
+      rect(x, y, (n + quiet * 2) * scale, (n + quiet * 2) * scale, C.white);
       const r = state.ratio;
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.fillStyle = C.black;
-      for (let row = 0; row < size; row++) {
-        const y0 = Math.round((oy + row * m) * r);
-        const y1 = Math.round((oy + (row + 1) * m) * r);
-        for (let col = 0; col < size; col++) {
+      for (let row = 0; row < n; row++) {
+        const y0 = Math.round((y + (row + quiet) * scale) * r);
+        const y1 = Math.round((y + (row + quiet + 1) * scale) * r);
+        for (let col = 0; col < n; col++) {
           if (!modules[row][col]) continue;
-          const x0 = Math.round((ox + col * m) * r);
-          const x1 = Math.round((ox + (col + 1) * m) * r);
+          const x0 = Math.round((x + (col + quiet) * scale) * r);
+          const x1 = Math.round((x + (col + quiet + 1) * scale) * r);
           ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
         }
       }
       ctx.restore();
     };
 
-    const drawBar = ([x, y, w, h], ratio, color) => {
-      ctx.fillStyle = C.track;
-      ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = color;
-      ctx.fillRect(x, y, Math.max(0, Math.min(1, ratio)) * w, h);
-    };
-
-    const ratioOf = (countdown) => (countdown && countdown.totalMs > 0 ? countdown.remainingMs / countdown.totalMs : 0);
-
-    const drawPairing = (view, t) => {
-      const P = LAYOUT.PAIRING;
-      const W = LAYOUT.WIDTH;
-      text(view.lines[0], W / 2, P.TITLE_Y, { size: 16, bold: true, color: C.muted });
-      if (!view.pairing.code) {
-        if (!view.pairing.error) spinner(W / 2, P.CODE_Y, 20, t);
-        paragraph(view.lines[1] || '', P.STATUS_Y, { size: 14, color: view.pairing.error ? C.warn : C.text, maxLines: 2 });
+    const drawIdle = (view) => {
+      if (!view.qr) {
+        paragraph(F.title, line(view, 0), CX, MID_Y, TW, C.text, 24, 2);
         return;
       }
-      text(view.pairing.code, W / 2, P.CODE_Y, { size: 36, bold: true, baseline: 'middle', family: CODE_FONT });
-      paragraph(view.lines[2], P.PROMPT_Y, { size: 14, maxLines: 1 });
-      text(view.lines[3], W / 2, P.REMAINING_Y, { size: 12, color: C.muted });
-      drawBar(P.BAR, ratioOf(view.pairing), C.accent);
+      const I = LAYOUT.IDLE;
+      if (state.qrCache.payload !== view.qr.payload) {
+        state.qrCache = { payload: view.qr.payload, matrix: QR.encode(view.qr.payload) };
+      }
+      const { size: n, modules } = state.qrCache.matrix;
+      const modulesWithQuiet = n + I.QUIET_ZONE * 2;
+      const scale = modulesWithQuiet * I.SCALE <= H - I.QR_Y - I.MARGIN ? I.SCALE : I.MIN_SCALE;
+      const side = modulesWithQuiet * scale;
+      drawQr(modules, n, I.QR_X, I.QR_Y, scale);
+      bar(I.QR_X, I.QR_Y + side + I.BAR_GAP, side, view.qr.refreshRatio);
+
+      const left = I.QR_X + side + I.TEXT_GAP;
+      const width = W - I.MARGIN - left;
+      const cx = left + Math.floor(width / 2);
+      const lines = view.lines.flatMap((value) => wrapText(F.body, value, width));
+      let y = I.QR_Y + Math.floor(side / 2) - Math.floor((lines.length * I.LINE_HEIGHT) / 2) + 12;
+      for (const value of lines) {
+        text(F.body, value, cx, y, C.text, 'center');
+        y += I.LINE_HEIGHT;
+      }
+    };
+
+    const drawNotice = (view) => {
+      const N = LAYOUT.NOTICE;
+      icon(view.icon, N.ICON_X, N.ICON_Y);
+      paragraph(F.title, line(view, 0), CX, N.TITLE_Y, TW, C.text, 24, 2);
+      if (view.lines.length > 1) paragraph(F.body, line(view, 1), CX, N.TEXT_Y, TW, C.muted, 22, 2);
+    };
+
+    const drawSelect = (view) => {
+      const S = LAYOUT.SELECT;
+      paragraph(F.title, line(view, 0), CX, S.TITLE_Y, TW, C.text, 24, 2);
+      paragraph(F.body, line(view, 1), CX, S.TEXT_Y, TW, C.text, 22, 2);
+      if (view.countdown) {
+        text(F.small, view.lines[view.lines.length - 1], CX, S.REMAINING_Y, C.muted, 'center');
+        const [bx, by, bw] = S.BAR;
+        bar(bx, by, bw, ratioOf(view.countdown));
+      }
     };
 
     const drawMatch = (view) => {
       const M = LAYOUT.MATCH;
-      const W = LAYOUT.WIDTH;
-      text(view.lines[0], W / 2, M.TITLE_Y, { size: 16, bold: true });
-      if (view.code) text(view.code, W / 2, M.CODE_Y, { size: 72, bold: true, baseline: 'middle', family: CODE_FONT });
+      text(F.title, line(view, 0), CX, M.TITLE_Y, C.text, 'center');
+      if (view.code) text(F.huge, view.code, CX, M.CODE_Y, C.text, 'center');
       if (view.countdown) {
-        text(format('REMAINING_SECONDS', { seconds: Math.ceil(view.countdown.remainingMs / 1000) }), W / 2, M.REMAINING_Y, { size: 14, color: C.muted });
-        drawBar(M.BAR, ratioOf(view.countdown), C.accent);
+        text(F.small, view.lines[view.lines.length - 1], CX, M.REMAINING_Y, C.muted, 'center');
+        const [bx, by, bw] = M.BAR;
+        bar(bx, by, bw, ratioOf(view.countdown));
       }
     };
 
-    const drawCountdownRing = (countdown) => {
-      const [, y, w, h] = LAYOUT.OPEN.COUNTDOWN;
-      const cx = w / 2;
-      const cy = y + h / 2;
-      const r = 34;
-      const ratio = ratioOf(countdown);
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = C.track;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.stroke();
-      if (ratio > 0) {
-        ctx.strokeStyle = ratio < 0.2 ? C.warn : C.accent;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * ratio);
-        ctx.stroke();
-      }
-      text(String(Math.ceil(countdown.remainingMs / 1000)), cx, cy + 2, { size: 40, bold: true, baseline: 'middle' });
-    };
-
+    // 櫃門編號放不下一列時改用小字，並平均分列，例如 4 扇排成 2＋2。
     const drawOpen = (view) => {
       const O = LAYOUT.OPEN;
-      let labelSize = 40;
-      ctx.font = font(labelSize, true);
-      while (labelSize > 20 && ctx.measureText(view.lines[0]).width > 224) {
-        labelSize -= 2;
-        ctx.font = font(labelSize, true);
+      const labels = line(view, 0).split('　').filter(Boolean);
+      let f = F.label;
+      let gap = O.LABEL_GAP;
+      const rowWidth = (font, count) => labels.slice(0, count).reduce((w, label, i) => w + measure(font, label) + (i ? gap : 0), 0);
+      const count = Math.max(1, labels.length);
+      let perRow = count;
+      if (rowWidth(f, perRow) > O.LABEL_WIDTH) {
+        f = F.labelSm;
+        gap = O.LABEL_SM_GAP;
+        while (perRow > 1 && rowWidth(f, perRow) > O.LABEL_WIDTH) perRow -= 1;
+        const rows = Math.ceil(count / perRow);
+        perRow = Math.ceil(count / rows);
       }
-      text(view.lines[0], LAYOUT.WIDTH / 2, O.LABEL_Y + (40 - labelSize) / 2, { size: labelSize, bold: true });
-      const [, my, mw] = O.MESSAGE;
-      if (view.notice) paragraph(view.notice, my + 10, { size: 16, bold: true, color: C.warn, maxLines: 2, width: mw });
-      else paragraph(view.lines[1], my, { size: 14, maxLines: 3, width: mw });
-      if (view.countdown) drawCountdownRing(view.countdown);
+      let y = f === F.label ? O.LABEL_Y : O.LABEL_SM_Y;
+      let lastRow = y;
+      for (let i = 0; i < labels.length; i += perRow) {
+        let x = O.LABEL_X;
+        for (const label of labels.slice(i, i + perRow)) {
+          text(f, label, x, y, C.text);
+          x += measure(f, label) + gap;
+        }
+        lastRow = y;
+        y += O.LABEL_ROW_H;
+      }
+      const msgY = f === F.label ? O.MESSAGE_Y : Math.max(O.MESSAGE_Y, lastRow + 44);
+      if (view.notice) paragraph(F.title, view.notice, O.MESSAGE_X, msgY, O.MESSAGE_WIDTH, C.warn, 24, 2, 'left');
+      else paragraph(F.body, line(view, 1), O.MESSAGE_X, msgY, O.MESSAGE_WIDTH, C.text, 24, 3, 'left');
+
+      if (view.countdown) {
+        const R = O.RING;
+        const ratio = ratioOf(view.countdown);
+        ring(R.X, R.Y, R.R, R.WIDTH, ratio, ratio < 0.2 ? C.warn : C.accent, C.track);
+        text(F.ring, String(Math.ceil(view.countdown.remainingMs / 1000)), R.X, R.Y, C.text, 'center');
+      }
     };
 
-    const draw = (t) => {
+    const drawCentered = (view) => {
+      const multi = view.lines.length > 1;
+      paragraph(F.title, line(view, 0), CX, MID_Y - (multi ? 14 : 0), TW, C.text, 24, 2);
+      if (multi) paragraph(F.small, line(view, 1), CX, MID_Y + 22, TW, C.muted, 20, 2);
+    };
+
+    const draw = () => {
+      state.queued = false;
       const view = state.view;
-      const W = LAYOUT.WIDTH;
       ctx.setTransform(state.ratio, 0, 0, state.ratio, 0, 0);
-      ctx.fillStyle = C.bg;
-      ctx.fillRect(0, 0, W, LAYOUT.HEIGHT);
-
-      ctx.fillStyle = C.header;
-      ctx.fillRect(0, 0, W, LAYOUT.HEADER_HEIGHT);
-      text(view.header, 10, LAYOUT.HEADER_HEIGHT / 2 + 1, { size: 14, bold: true, align: 'left', baseline: 'middle' });
-      ctx.fillStyle = view.connection === 'online' ? C.online : C.offline;
-      ctx.beginPath();
-      ctx.arc(W - 14, LAYOUT.HEADER_HEIGHT / 2, 4, 0, Math.PI * 2);
-      ctx.fill();
-
+      rect(0, 0, W, H, C.bg);
+      header(view);
       switch (view.screen) {
         case 'pairing':
-          drawPairing(view, t);
+          drawPairing(view);
           break;
         case 'idle':
-          if (view.qr) {
-            drawQr(view.qr);
-            drawBar(LAYOUT.IDLE.BAR, view.qr.refreshRatio, C.accent);
-          } else {
-            spinner(W / 2, LAYOUT.IDLE.QR[1] + LAYOUT.IDLE.QR[3] / 2, 20, t);
-          }
-          paragraph(view.lines[0], LAYOUT.IDLE.TEXT_Y, { size: 14, maxLines: 2 });
+          drawIdle(view);
           break;
         case 'closed_hours':
-          icon(view.icon, W / 2, LAYOUT.CLOSED.ICON_Y);
-          paragraph(view.lines[0] || '', LAYOUT.CLOSED.TITLE_Y, { size: 20, bold: true, maxLines: 1 });
-          paragraph(view.lines[1] || '', LAYOUT.CLOSED.HOURS_Y, { size: 14, color: C.muted, maxLines: 2 });
-          break;
         case 'maintenance':
         case 'disabled':
-          icon(view.icon, W / 2, LAYOUT.NOTICE.ICON_Y);
-          paragraph(view.lines.join(''), LAYOUT.NOTICE.TEXT_Y, { size: 16, bold: true, maxLines: 3 });
+        case 'result':
+          drawNotice(view);
           break;
         case 'select':
-          text(view.lines[0] || '', W / 2, LAYOUT.SELECT.TITLE_Y, { size: 20, bold: true });
-          text(view.lines[1] || '', W / 2, LAYOUT.SELECT.TEXT_Y, { size: 14, color: C.muted });
-          if (view.lines[2]) text(view.lines[2], W / 2, LAYOUT.SELECT.REMAINING_Y, { size: 12, color: C.muted });
+          drawSelect(view);
           break;
         case 'match':
           drawMatch(view);
-          break;
-        case 'opening':
-          spinner(W / 2, 130, 24, t);
-          text(view.lines[0], W / 2, 180, { size: 16, bold: true });
           break;
         case 'open':
         case 'admin':
           drawOpen(view);
           break;
-        case 'result':
-          icon(view.icon, W / 2, LAYOUT.RESULT.ICON_Y);
-          paragraph(view.lines.join(''), LAYOUT.RESULT.TEXT_Y, { size: 16, bold: true, maxLines: 3 });
-          break;
-        default: {
-          const busy = ANIMATED.has(view.screen);
-          if (busy) spinner(W / 2, 130, 24, t);
-          paragraph(view.lines.join(''), busy ? 180 : 150, { size: 16, bold: true, maxLines: 3 });
-        }
+        default:
+          drawCentered(view);
       }
-
-      state.dirty = false;
     };
 
-    const spinning = (view) => ANIMATED.has(view.screen) || (view.screen === 'idle' && !view.qr)
-      || (view.screen === 'pairing' && !view.pairing.code && !view.pairing.error);
-
-    const frame = (t) => {
-      if (state.dirty || spinning(state.view)) draw(t);
-      window.requestAnimationFrame(frame);
+    const schedule = () => {
+      if (state.queued) return;
+      state.queued = true;
+      window.requestAnimationFrame(draw);
     };
 
     if (window.ResizeObserver) new window.ResizeObserver(resize).observe(canvas);
@@ -387,18 +446,18 @@
       canvas,
       start() {
         resize();
-        window.requestAnimationFrame(frame);
+        schedule();
       },
       update(view) {
         state.view = view;
-        state.dirty = true;
+        schedule();
         const label = view.lines.filter(Boolean).join('，');
         canvas.setAttribute('aria-label', `書櫃螢幕：${label || view.screen}`);
       }
     };
   };
 
-  const createPanel = (core, options) => {
+  const createPanel = (core, options, onSensorChange) => {
     const panel = el('section', 'panel');
     panel.setAttribute('aria-label', '模擬控制台');
     panel.appendChild(el('h1', 'panel-title', '模擬控制台（實機沒有）'));
@@ -452,37 +511,11 @@
     const pairCard = card('配對');
     pairCard.appendChild(el('p', 'card-text', '書櫃螢幕顯示 8 位數配對碼，請於管理後台的書櫃裝置頁面輸入；配對碼逾時後將自動重新取得。'));
 
-    const doorsCard = card('櫃門');
-    const doorsGrid = el('div', 'doors');
-    doorsCard.appendChild(doorsGrid);
-    const tiles = new Map();
-    for (const door of core.view.doors) {
-      const tile = el('div', 'door-tile');
-      const frame = el('div', 'door-frame');
-      frame.appendChild(el('div', 'door-leaf'));
-      tile.appendChild(frame);
-      tile.appendChild(el('div', 'door-label', door.label));
-      const stateText = el('div', 'door-state', '上鎖');
-      const note = el('div', 'door-note');
-      tile.appendChild(stateText);
-      tile.appendChild(note);
-      const actions = el('div', 'door-actions');
-      const openBtn = button('開門');
-      const closeBtn = button('關門');
-      openBtn.addEventListener('click', () => core.setDoorPhysical(door.channel, 'open'));
-      closeBtn.addEventListener('click', () => core.setDoorPhysical(door.channel, 'closed'));
-      actions.appendChild(openBtn);
-      actions.appendChild(closeBtn);
-      tile.appendChild(actions);
-      doorsGrid.appendChild(tile);
-      tiles.set(door.channel, { tile, stateText, note, actions, openBtn, closeBtn });
-    }
-
     const settings = card('設定');
     const autoClose = switchControl(options.autoClose);
     row(settings, '倒數結束自動關門', '關閉後可測試伺服器的待確認流程').appendChild(autoClose.wrap);
     const sensor = switchControl(options.sensor);
-    row(settings, '模擬門磁感測器', '切換後送出開機事件，並於櫃門圖塊提供開門與關門操作').appendChild(sensor.wrap);
+    row(settings, '模擬門磁感測器', '切換後送出開機事件，並於書櫃正面的櫃門提供開門與關門操作').appendChild(sensor.wrap);
     autoClose.input.addEventListener('change', () => {
       options.autoClose = autoClose.input.checked;
       saveOptions(options);
@@ -495,6 +528,7 @@
       }
       options.sensor = sensor.input.checked;
       saveOptions(options);
+      onSensorChange();
     });
 
     const actionsCard = card('操作');
@@ -611,13 +645,6 @@
       fSync.textContent = lastSync ? timeText(lastSync) : '－';
     };
 
-    const doorState = (door) => {
-      if (door.fault) return ['故障', 'is-fault'];
-      if (door.unlocking) return ['開鎖中', 'is-unlocking'];
-      if (door.open) return ['開啟', 'is-open'];
-      return ['上鎖', null];
-    };
-
     const refresh = (view) => {
       const paired = view.screen !== 'pairing';
       pairCard.hidden = paired;
@@ -627,20 +654,6 @@
       const dot = el('span', `status-dot${paired && view.connection === 'online' ? ' is-online' : ''}`);
       fConnection.appendChild(dot);
       fConnection.appendChild(document.createTextNode(paired ? (view.connection === 'online' ? '連線中' : '未連線') : '尚未配對'));
-
-      const sensorOn = sensor.input.checked;
-      for (const door of view.doors) {
-        const t = tiles.get(door.channel);
-        const [label, cls] = doorState(door);
-        t.tile.classList.toggle('is-fault', cls === 'is-fault');
-        t.tile.classList.toggle('is-unlocking', cls === 'is-unlocking');
-        t.tile.classList.toggle('is-open', door.open);
-        t.stateText.textContent = label;
-        t.note.textContent = paired && !door.enabled ? '暫停分配' : '';
-        t.actions.hidden = !sensorOn;
-        t.openBtn.disabled = door.open;
-        t.closeBtn.disabled = !door.open;
-      }
 
       const busy = view.screen === 'open' || view.screen === 'admin' || view.screen === 'opening';
       sensor.input.disabled = busy;
@@ -655,9 +668,107 @@
     return { node: panel, refresh, addLog };
   };
 
+  const createCabinet = (core, screenCanvas, options) => {
+    const device = el('div', 'device');
+    const cabinet = el('div', 'cabinet');
+    cabinet.setAttribute('role', 'group');
+    cabinet.setAttribute('aria-label', '書櫃正面');
+    const face = el('div', 'cabinet-face');
+    cabinet.appendChild(face);
+
+    const top = el('div', 'cabinet-top');
+    const sticker = el('div', 'sticker');
+    const mark = el('span', 'sticker-mark');
+    mark.setAttribute('aria-hidden', 'true');
+    sticker.appendChild(mark);
+    const words = el('span', 'sticker-words');
+    const name = el('span', 'sticker-name');
+    name.appendChild(document.createTextNode('救'));
+    name.appendChild(el('span', 'sticker-accent', '「舊」'));
+    name.appendChild(document.createTextNode('我的書'));
+    words.appendChild(name);
+    const latin = el('span', 'sticker-latin', 'SaveMyBook');
+    latin.lang = 'en';
+    words.appendChild(latin);
+    sticker.appendChild(words);
+    const bezel = el('div', 'bezel');
+    bezel.appendChild(screenCanvas);
+    top.appendChild(sticker);
+    top.appendChild(bezel);
+    face.appendChild(top);
+
+    const doorList = el('div', 'doors');
+    const doors = new Map();
+    for (const door of core.view.doors) {
+      const row = el('div', 'door');
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', `櫃門 ${door.label}`);
+      const bay = el('div', 'door-bay');
+      bay.setAttribute('aria-hidden', 'true');
+      const leaf = el('span', 'door-leaf');
+      leaf.appendChild(el('span', 'door-lock'));
+      bay.appendChild(leaf);
+      bay.appendChild(el('span', 'door-hinge'));
+      row.appendChild(bay);
+
+      const info = el('div', 'door-info');
+      const head = el('div', 'door-head');
+      head.appendChild(el('span', 'door-label', door.label));
+      const stateText = el('span', 'door-state', '上鎖');
+      head.appendChild(stateText);
+      const note = el('span', 'door-note');
+      head.appendChild(note);
+      info.appendChild(head);
+      const actions = el('div', 'door-actions');
+      const openBtn = el('button', 'btn', '開門');
+      const closeBtn = el('button', 'btn', '關門');
+      openBtn.type = 'button';
+      closeBtn.type = 'button';
+      openBtn.addEventListener('click', () => core.setDoorPhysical(door.channel, 'open'));
+      closeBtn.addEventListener('click', () => core.setDoorPhysical(door.channel, 'closed'));
+      actions.appendChild(openBtn);
+      actions.appendChild(closeBtn);
+      info.appendChild(actions);
+      row.appendChild(info);
+      doorList.appendChild(row);
+      doors.set(door.channel, { row, stateText, note, actions, openBtn, closeBtn });
+    }
+    face.appendChild(doorList);
+
+    device.appendChild(cabinet);
+    device.appendChild(el('p', 'device-caption', '2.8 吋 320 × 240 顯示螢幕（無觸控）'));
+
+    const doorState = (door) => {
+      if (door.fault) return ['故障', 'is-fault'];
+      if (door.unlocking) return ['開鎖中', 'is-unlocking'];
+      if (door.open) return ['開啟', 'is-open'];
+      return ['上鎖', null];
+    };
+
+    const refresh = (view) => {
+      const paired = view.screen !== 'pairing';
+      for (const door of view.doors) {
+        const d = doors.get(door.channel);
+        if (!d) continue;
+        const [label, cls] = doorState(door);
+        d.row.classList.toggle('is-fault', cls === 'is-fault');
+        d.row.classList.toggle('is-unlocking', cls === 'is-unlocking');
+        d.row.classList.toggle('is-open', door.open);
+        d.stateText.textContent = label;
+        d.note.textContent = paired && !door.enabled ? '暫停分配' : '';
+        d.actions.hidden = !options.sensor;
+        d.openBtn.disabled = door.open;
+        d.closeBtn.disabled = !door.open;
+      }
+    };
+
+    return { node: device, refresh };
+  };
+
   const startKiosk = () => {
     const options = loadOptions();
     let screen = null;
+    let cabinet = null;
     let panel = null;
     const pendingLogs = [];
 
@@ -675,6 +786,7 @@
       random,
       onView(view) {
         if (screen) screen.update(view);
+        if (cabinet) cabinet.refresh(view);
         if (panel) panel.refresh(view);
       },
       onLog(entry) {
@@ -684,18 +796,15 @@
     });
 
     root.textContent = '';
-    const device = el('div', 'device');
-    const bezel = el('div', 'bezel');
     screen = createScreen(core);
-    bezel.appendChild(screen.canvas);
-    device.appendChild(bezel);
-    device.appendChild(el('p', 'device-caption', '240 × 320 顯示螢幕（無觸控）'));
-    panel = createPanel(core, options);
-    root.appendChild(device);
+    cabinet = createCabinet(core, screen.canvas, options);
+    panel = createPanel(core, options, () => cabinet.refresh(core.view));
+    root.appendChild(cabinet.node);
     root.appendChild(panel.node);
     pendingLogs.forEach((entry) => panel.addLog(entry));
 
     screen.update(core.view);
+    cabinet.refresh(core.view);
     panel.refresh(core.view);
     screen.start();
     core.start();

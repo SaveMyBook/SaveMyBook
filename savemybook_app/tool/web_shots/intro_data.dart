@@ -511,6 +511,8 @@ Map<String, dynamic> cabinetSessionJson(
   bool done = false,
 }) {
   final book = bookOf(journeyId);
+  final selecting = status == 'selecting';
+  final placed = !selecting || kind == 'pickup';
   final doorState = switch (status) {
     'open' => 'open',
     'completed' => 'closed',
@@ -530,9 +532,9 @@ Map<String, dynamic> cabinetSessionJson(
         'order_id': orderId,
         'order_no': orderNo,
         'books': [
-          {'book_id': book.id, 'title': book.title, 'image_url': book.coverPath, 'door': door},
+          {'book_id': book.id, 'title': book.title, 'image_url': book.coverPath, 'door': placed ? door : null},
         ],
-        'doors': [door],
+        'doors': [if (placed) door],
         'paused': false,
         'note': null,
         'selected': true,
@@ -542,7 +544,7 @@ Map<String, dynamic> cabinetSessionJson(
       },
     ],
     'doors': [
-      {'label': door, 'state': doorState},
+      if (!selecting) {'label': door, 'state': doorState},
     ],
     'remaining_ms': remainingMs,
     'open_ms': 60000,
@@ -707,6 +709,8 @@ Map<String, dynamic> journeyMeta() {
   };
 }
 
+int warnStage = 2;
+
 List<Map<String, dynamic>> warnMessages() {
   final b = bookOf(strangerBookId);
   Map<String, dynamic> m(int id, int sender, String kind, String at, {String? text, Map<String, dynamic>? payload, Map<String, dynamic>? risk}) =>
@@ -714,22 +718,23 @@ List<Map<String, dynamic>> warnMessages() {
   return [
     m(1, buyerId, 'book', todayAt(14, 20), payload: {'book_id': b.id, 'title': b.title, 'price': b.price, 'image_url': b.coverPath}),
     m(2, buyerId, 'text', todayAt(14, 20), text: '您好，請問這本書還在嗎？'),
-    m(
-      3,
-      strangerId,
-      'text',
-      todayAt(14, 22),
-      text: '還在。平台要等存書比較慢，可以加我的 LINE：guanyu.lin，直接轉帳到我的帳戶，算您 120 元就好。',
-      risk: {
-        'level': 'high',
-        'categories': ['payment', 'offsite', 'contact'],
-      },
-    ),
+    if (warnStage >= 1)
+      m(
+        3,
+        strangerId,
+        'text',
+        todayAt(14, 22),
+        text: '還在。平台要等存書比較慢，可以加我的 LINE：guanyu.lin，直接轉帳到我的帳戶，算您 120 元就好。',
+        risk: {
+          'level': 'high',
+          'categories': ['payment', 'offsite', 'contact'],
+        },
+      ),
   ];
 }
 
 Map<String, dynamic> warnMeta() => {
-  'read_upto': 3,
+  'read_upto': warnStage >= 1 ? 3 : 2,
   'partner_typing': false,
   'recalled_ids': <int>[],
   'has_more': false,
@@ -741,10 +746,12 @@ Map<String, dynamic> warnMeta() => {
   'aliases': <String, String>{},
   'edited': <Object>[],
   'room': {'type': 'direct', 'title': users[strangerId], 'avatar_url': null, 'member_count': 2},
-  'risk_banner': {
-    'level': 'high',
-    'categories': ['payment', 'offsite', 'contact'],
-  },
+  'risk_banner': warnStage >= 2
+      ? {
+          'level': 'high',
+          'categories': ['payment', 'offsite', 'contact'],
+        }
+      : null,
 };
 
 Map<String, dynamic> roomJson(int roomId, int partnerId, int me) => {
@@ -790,11 +797,16 @@ List<Map<String, dynamic>> sellerTransactions() {
   ];
 }
 
+const supportQuestion1 = '訂單 $orderNo 的取書期限是什麼時候？';
+const supportQuestion2 = '可以把這筆訂單改到其他書櫃取書嗎？';
+
+int? supportUpto;
+
 Map<String, dynamic> supportSession() => {
   'session_id': 4,
   'status': 'open',
   'messages': [
-    {'message_id': 41, 'role': 'user', 'content': '訂單 $orderNo 的取書期限是什麼時候？', 'created_at': ago(minutes: 4)},
+    {'message_id': 41, 'role': 'user', 'content': supportQuestion1, 'created_at': ago(minutes: 4)},
     {
       'message_id': 42,
       'role': 'assistant',
@@ -805,7 +817,7 @@ Map<String, dynamic> supportSession() => {
       'feedback': {'rating': 'helpful'},
       'created_at': ago(minutes: 4),
     },
-    {'message_id': 43, 'role': 'user', 'content': '可以把這筆訂單改到其他書櫃取書嗎？', 'created_at': ago(minutes: 1)},
+    {'message_id': 43, 'role': 'user', 'content': supportQuestion2, 'created_at': ago(minutes: 1)},
     {
       'message_id': 44,
       'role': 'assistant',
@@ -814,11 +826,13 @@ Map<String, dynamic> supportSession() => {
       'suggest_handoff': true,
       'created_at': ago(minutes: 1),
     },
-  ],
+  ].take(supportUpto ?? 4).toList(),
 };
 
 const disputeId = 4;
 const disputeEvidence = ['/uploads/disputes/intro-evidence-1.png', '/uploads/disputes/intro-evidence-2.png'];
+
+bool disputeAnalyzed = true;
 
 List<Map<String, dynamic>> adminDisputes() {
   Map<String, dynamic> dispute(int id, String no, int bookId, int buyer, String reason, String createdAt, {List<String> evidence = const []}) {
@@ -1132,7 +1146,8 @@ Map<String, dynamic>? _route(String method, String path, Map<String, String> que
     'GET /cabinets/mrt-fares': () => _snapshotPart('fares'),
     'GET /ai/support/session': supportSession,
     'GET /admin/disputes': adminDisputes,
-    'GET /admin/disputes/$disputeId/ai-analysis': disputeAnalysis,
+    'GET /admin/disputes/$disputeId/ai-analysis': () => disputeAnalyzed ? disputeAnalysis() : null,
+    'POST /admin/disputes/$disputeId/ai-analysis': disputeAnalysis,
     'GET /admin/ai/reviews': listingReviews,
   };
 

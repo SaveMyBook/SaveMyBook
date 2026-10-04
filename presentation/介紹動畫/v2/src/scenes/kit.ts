@@ -1,4 +1,4 @@
-import { span, lerp, clamp, easeOut, easeInOut, type Pose } from '../lib/kf';
+import { span, lerp, clamp, easeOut, easeInOut, monotone, type Pose } from '../lib/kf';
 import { el, css, place, Rise, fade } from '../lib/ui';
 import { cue } from '../lib/cues';
 import TL from '../timeline.json';
@@ -15,9 +15,16 @@ export function mix(a: Pose, b: Pose, k: number): Pose {
   return out;
 }
 
-/** 完整姿態的關鍵影格（每格都是完整姿態），以 easeInOut 插值。 */
-export function track(t: number, frames: [number, Pose][], ease = easeInOut): Pose {
+/** 完整姿態的關鍵影格（每格都是完整姿態）；未指定緩動且有三個以上影格時，以單調三次插值讓中間影格速度連續。 */
+export function track(t: number, frames: [number, Pose][], ease?: (k: number) => number): Pose {
   if (t <= frames[0][0]) return { ...frames[0][1] };
+  if (!ease && frames.length > 2) {
+    const ts = frames.map((f) => f[0]);
+    const out: Pose = {};
+    for (const key of KEYS) out[key] = monotone(ts, frames.map((f) => f[1][key] ?? 0), t);
+    return out;
+  }
+  ease ??= easeInOut;
   for (let i = 0; i < frames.length - 1; i++) {
     const [a, pa] = frames[i];
     const [b, pb] = frames[i + 1];
@@ -62,6 +69,12 @@ export function seq(t: number, steps: Step[], scroll?: (name: string, t: number)
   const [t0, name, mode = 0, d = 0.45] = steps[i];
   const prev = steps[i - 1][1];
   return { a: prev, b: name, k: span(t, t0, t0 + d), mode, offA: off(prev), offB: off(name) };
+}
+
+/** 逐字輸入或逐步出現的一串 App 畫面：依序平均分配在 [t0, t1]，每格以極短淡化切換。 */
+export function frameSteps(frames: string[], t0: number, t1: number, d = 0.03): Step[] {
+  const n = frames.length;
+  return frames.map((f, i) => [n === 1 ? t0 : lerp(t0, t1, i / (n - 1)), f, 0, d] as Step);
 }
 
 /** 長截圖捲動：[秒, 捲動量] 關鍵點之間平滑移動。 */

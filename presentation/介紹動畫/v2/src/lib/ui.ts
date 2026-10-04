@@ -44,14 +44,15 @@ export function place(e: HTMLElement, x: number, y: number, extra = '') {
 export class Rise {
   readonly root: HTMLElement;
   private chars: HTMLElement[] = [];
-  constructor(parent: HTMLElement, text: string, cls: string) {
+  /** accent：要用石板藍的字（依字元序號）。 */
+  constructor(parent: HTMLElement, text: string, cls: string, accent?: (i: number) => boolean) {
     this.root = el('div', `rise ${cls}`, parent);
     const line = el('span', 'rise__line', this.root);
-    for (const ch of text) {
-      const s = el('span', ch === ' ' ? 'rise__sp' : 'rise__ch', line);
+    [...text].forEach((ch, i) => {
+      const s = el('span', ch === ' ' ? 'rise__sp' : `rise__ch${accent?.(i) ? ' rise__ch--accent' : ''}`, line);
       s.textContent = ch;
       if (ch !== ' ') this.chars.push(s);
-    }
+    });
   }
 
   at(t: number, t0: number, t1 = Infinity, stagger = 0.022) {

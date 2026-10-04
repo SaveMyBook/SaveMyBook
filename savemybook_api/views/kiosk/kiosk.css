@@ -13,7 +13,6 @@
   --danger: #c0473c;
   --banner-bg: #fff4d6;
   --banner-text: #6b4d00;
-  --bezel: #20282f;
   --shadow: 0 8px 28px rgba(18, 30, 39, 0.08);
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
@@ -34,7 +33,6 @@
     --danger: #e0685c;
     --banner-bg: #3a3014;
     --banner-text: #f1d79a;
-    --bezel: #07090b;
     --shadow: none;
   }
 }
@@ -92,31 +90,105 @@ body {
 
 .device {
   flex: none;
+  width: 560px;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
 }
 
+.cabinet {
+  width: 100%;
+  aspect-ratio: 31 / 38;
+  display: flex;
+  padding: 18px;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(93deg, rgba(150, 104, 52, 0.07) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(88deg, rgba(255, 244, 222, 0.18) 0 3px, transparent 3px 19px),
+    linear-gradient(180deg, #e6cda4, #d5b585);
+  box-shadow:
+    inset 0 0 0 1px rgba(120, 82, 40, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    0 14px 30px rgba(40, 28, 14, 0.22);
+}
+
+.cabinet-face {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 3px;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 36%),
+    linear-gradient(180deg, rgba(232, 238, 240, 0.94), rgba(214, 223, 227, 0.94));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+    0 0 0 1px rgba(110, 82, 50, 0.3),
+    inset 0 1px 8px rgba(60, 46, 30, 0.18);
+}
+
+.cabinet-top {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(0, 340px);
+  gap: 14px;
+  align-items: center;
+}
+
+.sticker {
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 12px 10px;
+  border-radius: 12px;
+  background: #fbfcfc;
+  box-shadow: 0 1px 2px rgba(21, 30, 39, 0.2);
+  color: #151e27;
+  text-align: center;
+}
+
+.sticker-mark {
+  width: 52px;
+  height: 52px;
+  background: url("book-slate-128.png") center / contain no-repeat;
+}
+
+.sticker-words {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.3;
+}
+
+.sticker-name { font-size: 15px; font-weight: 800; white-space: nowrap; }
+.sticker-accent { color: #627d8d; }
+.sticker-latin { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #627d8d; }
+
 .bezel {
-  padding: 14px;
-  background: var(--bezel);
-  border-radius: 20px;
-  box-shadow: var(--shadow);
+  width: 100%;
+  padding: 10px;
+  background: #0b0e10;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .screen {
   display: block;
-  width: 480px;
+  width: 100%;
   height: auto;
-  aspect-ratio: 3 / 4;
-  border-radius: 6px;
+  aspect-ratio: 4 / 3;
   background: #0e1318;
   user-select: none;
   -webkit-user-select: none;
 }
 
 .device-caption {
+  margin: 0;
   color: var(--faint);
   font-size: 12px;
 }
@@ -179,57 +251,77 @@ body {
 .status-dot.is-online { background: var(--ok); }
 
 .doors {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.door-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 6px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-2);
-  text-align: center;
-  min-width: 0;
-}
-
-.door-frame {
+.door {
   position: relative;
-  width: 44px;
-  height: 56px;
-  border-radius: 4px;
-  background: #11181e;
-  perspective: 160px;
+  flex: 1 1 0;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
 }
 
+.door.is-open { z-index: 1; }
+
+.door-bay {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #3b2d20, #5a4530 65%, #6d5539);
+  box-shadow: inset 0 5px 12px rgba(0, 0, 0, 0.45);
+  perspective: 2400px;
+  perspective-origin: 100% 50%;
+}
+
+/* 實機櫃門的鉸鏈在右側；電磁鎖裝在門板左側，開門時隨門轉動 */
 .door-leaf {
   position: absolute;
   inset: 0;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #9fb2be, #71899a);
-  transform-origin: left center;
-  transition: transform 0.45s ease, background-color 0.3s ease;
+  border-radius: 3px;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 42%),
+    linear-gradient(180deg, #e3e9eb, #cfd8dc);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75), 0 0 0 1px rgba(70, 82, 88, 0.4);
+  transform-origin: right center;
+  transition: transform 0.5s ease, filter 0.5s ease;
 }
 
-.door-leaf::after {
-  content: "";
+.door-lock {
   position: absolute;
-  right: 6px;
+  left: 8px;
   top: 50%;
-  width: 4px;
-  height: 12px;
-  margin-top: -6px;
+  width: 12px;
+  height: 30px;
+  margin-top: -15px;
   border-radius: 2px;
-  background: #1d272e;
+  background: linear-gradient(90deg, #59626a, #343b41);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transition: background-color 0.2s ease;
 }
 
-.door-tile.is-open .door-leaf { transform: rotateY(-62deg); }
-.door-tile.is-unlocking .door-leaf { animation: door-buzz 0.2s linear infinite; }
-.door-tile.is-fault .door-leaf { background: linear-gradient(135deg, #e0776b, #b04237); }
+.door-hinge {
+  position: absolute;
+  right: 1px;
+  top: 14%;
+  bottom: 14%;
+  width: 4px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #8f999f 0 20%, transparent 20% 80%, #8f999f 80%);
+}
+
+.door.is-open .door-leaf { transform: rotateY(72deg); filter: brightness(0.9); }
+.door.is-unlocking .door-leaf { animation: door-buzz 0.2s linear infinite; }
+.door.is-unlocking .door-lock { background: linear-gradient(90deg, #e9b949, #b9861b); }
+.door.is-fault .door-leaf {
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 42%),
+    linear-gradient(180deg, #e7867b, #c2564b);
+}
+.door.is-fault .door-lock { background: linear-gradient(90deg, #d0574b, #8e2f26); }
 
 @keyframes door-buzz {
   0%, 100% { transform: translateX(0); }
@@ -238,10 +330,31 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .door-leaf { transition: none; }
-  .door-tile.is-unlocking .door-leaf { animation: none; }
+  .door.is-unlocking .door-leaf { animation: none; }
 }
 
-.door-label { font-weight: 800; font-size: 15px; }
+.door-info {
+  position: relative;
+  margin-left: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  box-shadow: 0 1px 3px rgba(21, 30, 39, 0.18);
+}
+
+.door-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  line-height: 1.35;
+}
+
+.door-label { font-weight: 800; font-size: 16px; }
 
 .door-state {
   font-size: 12px;
@@ -249,21 +362,16 @@ body {
   color: var(--muted);
 }
 
-.door-tile.is-open .door-state { color: var(--ok); }
-.door-tile.is-unlocking .door-state { color: var(--warn); }
-.door-tile.is-fault .door-state { color: var(--danger); }
+.door.is-open .door-state { color: var(--ok); }
+.door.is-unlocking .door-state { color: var(--warn); }
+.door.is-fault .door-state { color: var(--danger); }
 
-.door-note { font-size: 11px; color: var(--faint); min-height: 16px; }
+.door-note { font-size: 12px; color: var(--faint); }
+.door-note:empty { display: none; }
 
-.door-actions {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-}
-
+.door-actions { display: flex; gap: 6px; }
 .door-actions[hidden] { display: none; }
-
-.door-actions .btn { flex: 1; padding: 4px 0; font-size: 12px; min-height: 28px; }
+.door-actions .btn { padding: 2px 12px; min-height: 26px; font-size: 12px; border-radius: 8px; }
 
 .row {
   display: flex;
@@ -387,8 +495,15 @@ body {
 
 @media (max-width: 559px) {
   .layout { padding: 16px 16px 32px; gap: 16px; }
-  .bezel { padding: 0; background: transparent; box-shadow: none; }
-  .screen { width: min(calc(100vw - 32px), 480px); }
+  .cabinet { padding: 10px; }
+  .cabinet-face { padding: 10px; gap: 10px; }
   .panel { flex-basis: 100%; }
-  .doors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 479px) {
+  .cabinet-top { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .sticker { flex-direction: row; justify-self: start; gap: 8px; padding: 6px 12px 6px 8px; }
+  .sticker-mark { width: 34px; height: 34px; }
+  .sticker-words { align-items: flex-start; }
+  .bezel { padding: 6px; }
 }

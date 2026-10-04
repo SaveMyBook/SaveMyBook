@@ -43,6 +43,18 @@ const screenVert = /* glsl */`
   varying vec2 vUv;
   void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
+const glassVert = /* glsl */`
+  varying vec2 vUv;
+  varying vec3 vWorldPos;
+  varying vec3 vWorldNormal;
+  void main() {
+    vUv = uv;
+    vec4 wp = modelMatrix * vec4(position, 1.0);
+    vWorldPos = wp.xyz;
+    vWorldNormal = normalize(mat3(modelMatrix) * normal);
+    gl_Position = projectionMatrix * viewMatrix * wp;
+  }
+`;
 // 畫面轉場：0 交叉淡化、1 推入（新頁由右滑入）、2 返回（新頁由左滑入）、3 由下而上展開（底部單）
 // 長截圖：span 為圖高與螢幕高之比，off 為捲動量（以螢幕高為 1），頂端 head 範圍固定不捲動（狀態列與標題列）
 const screenFrag = /* glsl */`
@@ -60,7 +72,18 @@ const screenFrag = /* glsl */`
   uniform float headA;
   uniform float headB;
   uniform vec3 blank;
+  uniform float sheen;
   varying vec2 vUv;
+  varying vec3 vWorldPos;
+  varying vec3 vWorldNormal;
+  // 螢幕玻璃反射三盞柔光燈：手機轉動經過特定角度時才掃過一道光，正對鏡頭時不出現
+  float glassLight() {
+    vec3 r = reflect(normalize(vWorldPos - cameraPosition), normalize(vWorldNormal));
+    float a = smoothstep(0.93, 0.99, dot(r, normalize(vec3(-0.45, 0.62, 0.64))));
+    float b = smoothstep(0.95, 0.993, dot(r, normalize(vec3(0.5, 0.3, 0.8))));
+    float c = smoothstep(0.95, 0.993, dot(r, normalize(vec3(0.3, -0.55, 0.78))));
+    return max(a, max(b, c));
+  }
   vec4 pick(sampler2D m, float has, float span, float off, float head, vec2 st) {
     if (has < 0.5 || st.x < 0.0 || st.x > 1.0) return vec4(blank, 1.0);
     float y = st.y < head ? st.y : st.y + off;
@@ -90,6 +113,7 @@ const screenFrag = /* glsl */`
       c = mix(mix(a, b, t * 0.85), b, k);
     }
     c.rgb *= glow;
+    c.rgb += glassLight() * sheen * (1.0 - c.rgb * 0.55);
     gl_FragColor = c;
     #include <colorspace_fragment>
   }
@@ -217,13 +241,14 @@ export class Phone {
     this.screen = new THREE.Mesh(
       flatShape(roundedRect(SW, SH, SR), 40),
       new THREE.ShaderMaterial({
-        vertexShader: screenVert,
+        vertexShader: glassVert,
         fragmentShader: screenFrag,
         uniforms: {
           mapA: { value: null }, mapB: { value: null }, mixT: { value: 0 },
           hasA: { value: 0 }, hasB: { value: 0 }, glow: { value: 1 }, mode: { value: 0 },
           spanA: { value: 1 }, spanB: { value: 1 }, offA: { value: 0 }, offB: { value: 0 }, headA: { value: 0 }, headB: { value: 0 },
           blank: { value: new THREE.Color(0xf3f5f7) },
+          sheen: { value: 0.16 },
         },
       }),
     );

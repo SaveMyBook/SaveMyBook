@@ -147,7 +147,7 @@ export function boot() {
   stage.onFrame((t) => lenis!.raf(t * 1000));
   const phone = new Phone();
   const book = new Book();
-  const cabinet = new Cabinet();
+  const cabinet = new Cabinet('圖書館大廳');
   stage.scene.add(phone.group, book.group, cabinet.group);
 
   // 材質依需要載入；手機與窄螢幕用較小的圖
@@ -304,6 +304,7 @@ export function boot() {
   const coverTurn = $('.cover__turn');
   const shelfBooks = $$('.book', shelfRow);
   const labels = $$('.xray-labels li');
+  const introBeat = $('#cabinet .beat[data-beat="0"]');
   const notice = $('.notice');
   const pill = document.createElement('p');
   pill.className = 'unlock-pill';
@@ -461,13 +462,17 @@ export function boot() {
 
   let kioskState: KioskState = 'qr';
   function cabinetScene(p: number, t: number) {
-    const cw: Frame[] = [[0, { x: 0.12, y: -1.9, z: 0, rx: 0.12, ry: 0.72, rz: 0, s: 1.55 }], [0.08, { y: -0.04, rx: 0.06, ry: 0.42 }], [0.3, { ry: 0.16 }], [0.36, { x: 0.04, ry: 0.24, s: 1.42 }], [0.92, {}], [1, { x: -0.04, y: -1.9 }]];
+    const cw: Frame[] = [[0, { x: 0.12, y: -1.9, z: 0, rx: 0.12, ry: 0.72, rz: 0, s: 1.55 }], [0.08, { y: -0.04, rx: 0.06, ry: 0.42 }], [0.3, { ry: 0.16 }], [0.36, { x: 0.0, ry: 0.24, s: 1.32 }], [0.92, {}], [1, { x: -0.08, y: -1.9 }]];
     const cn: Frame[] = [[0, { x: 0, y: -1.9, z: 0, rx: 0.1, ry: 0.6, rz: 0, s: 0.8 }], [0.08, { y: -0.34, ry: 0.36 }], [0.11, { x: -0.44, ry: 0.22, s: 0.72 }], [0.3, { ry: 0.14 }], [0.36, { x: -0.4, y: -0.36, ry: 0.22, s: 0.6 }], [0.92, {}], [1, { y: -1.9 }]];
     cabinetPose = keyframes(p, N() ? cn : cw);
+    // 櫃門以右側鉸鏈向右打開，開門期間書櫃與手機各往兩側讓出空間
+    const doorRoom = N() ? 0 : span(p, 0.6, 0.64) * (1 - span(p, 0.82, 0.86));
+    cabinetPose = { ...cabinetPose, x: (cabinetPose.x ?? 0) - doorRoom * 0.05 };
     const xray = span(p, 0.1, 0.16) * (1 - span(p, 0.25, 0.3));
     cabinet.setXray(xray);
     const door = span(p, 0.63, 0.67) * (1 - span(p, 0.79, 0.83));
-    cabinet.setDoor(0, door);
+    // 窄螢幕左右空間不足，櫃門只開一半，避免蓋到手機
+    cabinet.setDoor(0, N() ? door * 0.45 : door);
     cabinet.setDeposit(span(p, 0.68, 0.75));
 
     let seconds = 60;
@@ -482,6 +487,7 @@ export function boot() {
     const pw: Frame[] = [[0, { x: 0.58, y: -1.9, z: 0, rx: 0.12, ry: -0.5, rz: 0.05, s: 1.15 }], [0.3, {}], [0.36, { y: -0.02, rx: 0.04, ry: -0.3, rz: 0.02 }], [0.92, {}], [1, { y: 1.8 }]];
     const pn: Frame[] = [[0, { x: 0.46, y: -1.9, z: 0, rx: 0.1, ry: -0.3, rz: 0, s: 0.6 }], [0.3, {}], [0.36, { y: -0.36, rx: 0.04, ry: -0.22 }], [0.92, {}], [1, { y: 1.8 }]];
     if (p > 0.28) phonePose = keyframes(p, N() ? pn : pw);
+    if (phonePose) phonePose = { ...phonePose, x: (phonePose.x ?? 0) + doorRoom * 0.08 };
     screens = chain(p, [['cabinet_scan', 0], ['cabinet_match_empty', 0.47], ['cabinet_match', 0.572], ['cabinet_open', 0.62], ['cabinet_done', 0.81]], 0.03);
     setBeat('cabinet', beatAt(p, [0.3, 0.47, 0.62, 0.8]));
     return { xray, fly, door };
@@ -661,17 +667,25 @@ export function boot() {
 
   function updateCabinetDom(cab: { xray: number; fly: number; door: number }) {
     const showLabels = cabinet.group.visible && cab.xray > 0.6;
+    // 標註放在書櫃投影外框的左右兩側（櫃體近似立方體，轉動時側面也會佔寬度）
+    const xs: number[] = [];
+    if (showLabels) {
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) {
+        xs.push(stage.toScreen(cabinet.group.localToWorld(new THREE.Vector3(sx * Cabinet.WIDTH / 2, sy * Cabinet.HEIGHT / 2, sz * Cabinet.DEPTH / 2)), new THREE.Vector2()).x);
+      }
+    }
     const center = cabinet.group.visible ? project(cabinet.group) : new THREE.Vector2();
-    const scale = cabinet.group.scale.x;
-    const halfPx = (3.1 * scale) / (stage.halfW * 2) * innerWidth;
+    const minX = xs.length ? Math.min(...xs) : 0, maxX = xs.length ? Math.max(...xs) : 0;
+    // 左側放不下（會壓到章節文字）時改放右側
+    const textRight = showLabels && !N() ? introBeat.getBoundingClientRect().right + 16 : 0;
     const placed: { li: HTMLElement; left: boolean; x: number; y: number; ax: number; edgeX: number }[] = [];
     for (const li of labels) {
       const key = li.dataset.part!;
       const anchor = cabinet.anchors[key];
       if (!showLabels || !anchor) { css(li, 'opacity', '0'); continue; }
       const a = project(anchor);
-      const left = !N() && a.x < center.x;
-      const edgeX = left ? center.x - halfPx - 26 : center.x + halfPx + 26;
+      const left = !N() && a.x < center.x && minX - 26 - (labelSize.get(li)?.w ?? 0) > textRight;
+      const edgeX = left ? minX - 26 : maxX + 26;
       li.classList.toggle('is-left', left);
       placed.push({ li, left, x: left ? edgeX - (labelSize.get(li)?.w ?? 0) : edgeX, y: a.y - 10, ax: a.x, edgeX });
     }
@@ -693,13 +707,13 @@ export function boot() {
     flyers.forEach((el, i) => {
       if (!flying) { css(el, 'opacity', '0'); return; }
       const local = cabinet.anchors.digits.position.clone();
-      local.x += (i === 0 ? -1 : 1) * 0.27;
+      local.x += (i === 0 ? -1 : 1) * cabinet.digitGap;
       const from = stage.toScreen(cabinet.group.localToWorld(local), new THREE.Vector2());
       const to = stage.toScreen(phone.screenPoint(DIGIT_BOXES[i][0], DIGIT_BOXES[i][1]), new THREE.Vector2());
       const k = easeOut(span(cab.fly, i * 0.08, 0.92 + i * 0.08));
       const x = lerp(from.x, to.x, k);
       const yy = lerp(from.y, to.y, k) - Math.sin(Math.PI * k) * 90;
-      const fromSize = (0.9 * cabinet.group.scale.x) / (stage.halfH * 2) * innerHeight;
+      const fromSize = (cabinet.digitSize * cabinet.group.scale.x) / (stage.halfH * 2) * innerHeight;
       const toSize = (30 * 6.61 / 393 * phone.group.scale.x) / (stage.halfH * 2) * innerHeight;
       css(el, 'font-size', `${lerp(fromSize, toSize, k).toFixed(1)}px`);
       css(el, 'color', `rgb(${lerp(238, 21, span(k, 0.18, 0.4)).toFixed(0)}, ${lerp(242, 30, span(k, 0.18, 0.4)).toFixed(0)}, ${lerp(245, 39, span(k, 0.18, 0.4)).toFixed(0)})`);
@@ -708,8 +722,8 @@ export function boot() {
     });
     // A01 已開鎖
     if (cabinet.group.visible && cab.door > 0.3) {
-      const a = project(cabinet.anchors.cellA01);
-      pill.style.transform = N() ? `translate(${Math.max(8, a.x)}px, ${a.y}px) translate(0, -150%)` : `translate(${a.x}px, ${a.y}px) translate(-100%, -130%)`;
+      const a = project(N() ? cabinet.anchors.topLeft : cabinet.anchors.cellA01);
+      pill.style.transform = N() ? `translate(${Math.max(8, a.x)}px, ${a.y}px) translate(0, -140%)` : `translate(${a.x}px, ${a.y}px) translate(-100%, -130%)`;
       pill.classList.add('is-on');
     } else pill.classList.remove('is-on');
     // 存書完成通知

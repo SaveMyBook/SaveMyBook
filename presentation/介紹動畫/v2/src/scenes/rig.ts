@@ -2,16 +2,17 @@ import * as THREE from 'three';
 import { span, lerp, easeOut, easeInOut } from '../lib/kf';
 import { el, css, place } from '../lib/ui';
 import type { World } from '../world';
+import { Cabinet } from '../three/cabinet';
 
 const NS = 'http://www.w3.org/2000/svg';
 
 /** 透視標註：元件名稱與說明；side 表示放在書櫃左側或右側。 */
 const PARTS: { key: string; title: string; note: string; side: 'left' | 'right' }[] = [
-  { key: 'screen', title: '2.4 吋 TFT 螢幕', note: '顯示 QR Code 與比對數字', side: 'right' },
-  { key: 'board', title: 'ESP32 控制板', note: 'Wi-Fi 連線・HTTPS 同步', side: 'right' },
-  { key: 'locks', title: '電磁鎖 ×4', note: 'A01–A04，逐一開鎖', side: 'right' },
+  { key: 'screen', title: '2.8 吋 TFT 螢幕', note: '橫向 320 × 240，顯示 QR Code 與數字', side: 'right' },
+  { key: 'board', title: 'ESP32-S3 控制板', note: 'Wi-Fi 連線・HTTPS 同步', side: 'right' },
   { key: 'relay', title: '四路繼電器', note: '驅動電磁鎖', side: 'left' },
   { key: 'power', title: '12V 電源', note: '降壓 5V 供應控制板', side: 'left' },
+  { key: 'locks', title: '電磁鎖 ×4', note: 'A01–A04，裝在櫃門左側', side: 'left' },
 ];
 export const PART_COUNT = PARTS.length;
 export const partSide = (i: number) => PARTS[i].side;
@@ -43,11 +44,15 @@ export class XrayLabels {
     if (xray <= 0.001 || !world.frame.cabinet) { this.hide(); return; }
     world.frame.after.push(() => {
       const show = span(xray, 0.7, 1);
-      const center = world.project(world.cabinet.group);
-      const half = (3.1 * world.cabinet.group.scale.x) / (world.stage.halfH * 2) * 1080;
+      // 標註放在書櫃投影外框的左右兩側（櫃體近似立方體，轉動時側面也會佔寬度）
+      const xs: number[] = [];
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) {
+        xs.push(world.project(world.cabinet.group, new THREE.Vector3(sx * Cabinet.WIDTH / 2, sy * Cabinet.HEIGHT / 2, sz * Cabinet.DEPTH / 2)).x);
+      }
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
       const placed = this.labels.map((lb, i) => {
         const a = world.project(world.cabinet.anchors[lb.key]);
-        const edge = lb.side === 'left' ? center.x - half - 70 : center.x + half + 70;
+        const edge = lb.side === 'left' ? minX - 40 : maxX + 40;
         return { lb, a, edge, y: a.y, i };
       });
       for (const side of ['left', 'right']) {
@@ -85,11 +90,11 @@ export class DigitFly {
         const fly = span(t, t0, t1);
         const k = easeInOut(fly);
         const local = world.cabinet.anchors.digits.position.clone();
-        local.x += (i === 0 ? -1 : 1) * 0.27;
+        local.x += (i === 0 ? -1 : 1) * world.cabinet.digitGap;
         const from = world.stage.toScreen(world.cabinet.group.localToWorld(local), new THREE.Vector2());
         const to = world.stage.toScreen(world.phones[this.phone].screenPoint(this.boxes[i][0], this.boxes[i][1]), new THREE.Vector2());
         const px = (u: number) => u / (world.stage.halfH * 2) * 1080;
-        const fromSize = px(0.9 * world.cabinet.group.scale.x);
+        const fromSize = px(world.cabinet.digitSize * world.cabinet.group.scale.x);
         const toSize = px((30 * 6.61) / 393 * world.phones[this.phone].group.scale.x);
         const c = span(k, 0.2, 0.45);
         css(d, 'font-size', `${lerp(fromSize, toSize, k).toFixed(1)}px`);
@@ -97,6 +102,30 @@ export class DigitFly {
         place(d, lerp(from.x, to.x, k), lerp(from.y, to.y, k) - Math.sin(Math.PI * k) * 28);
         css(d, 'opacity', (span(fly, 0, 0.06) * (1 - span(fly, 0.92, 1))).toFixed(3));
       });
+    });
+  }
+}
+
+/**
+ * 書櫃旁的狀態標記（QR Code 驗證成功、定位確認、櫃門已開鎖），跟著書櫃錨點移動。
+ * dx、dy 為相對錨點的像素位移；align 為標記相對位置的對齊（center：置中於上方，left：放在錨點左側）。
+ */
+export class CabBadge {
+  readonly root: HTMLElement;
+  constructor(parent: HTMLElement, text: string, readonly anchor: string, readonly align: 'center' | 'left' = 'center', icon: 'check' | 'pin' | 'lock' = 'check') {
+    this.root = el('div', `cbadge cbadge--${icon}`, parent, `<i></i>${text}`);
+  }
+  at(world: World, t: number, t0: number, t1: number) {
+    const k = easeOut(span(t, t0, t0 + 0.35)) * (1 - easeInOut(span(t, t1, t1 + 0.3)));
+    const on = k > 0.001 && !!world.frame.cabinet;
+    css(this.root, 'visibility', on ? 'visible' : 'hidden');
+    if (!on) return;
+    world.frame.after.push(() => {
+      const a = world.project(world.cabinet.anchors[this.anchor]);
+      const y = a.y - 26 + (1 - k) * 10;
+      const shift = this.align === 'left' ? 'translate(-100%, -50%)' : 'translate(-50%, -100%)';
+      css(this.root, 'transform', `translate(${(this.align === 'left' ? a.x - 18 : a.x).toFixed(1)}px, ${(this.align === 'left' ? a.y + 34 : y).toFixed(1)}px) ${shift} scale(${(0.92 + 0.08 * k).toFixed(3)})`);
+      css(this.root, 'opacity', k.toFixed(3));
     });
   }
 }

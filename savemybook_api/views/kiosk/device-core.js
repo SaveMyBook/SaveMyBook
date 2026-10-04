@@ -72,19 +72,23 @@
 
   const rect = (x, y, w, h) => Object.freeze([x, y, w, h]);
 
+  // 2.8 吋橫向螢幕，座標與字級同韌體 src/ui.cpp、tools/make_fonts.py；文字的 y 為視覺中線。
   const LAYOUT = Object.freeze({
-    WIDTH: 240,
-    HEIGHT: 320,
+    WIDTH: 320,
+    HEIGHT: 240,
     HEADER_HEIGHT: 28,
-    FONT_SIZES: Object.freeze([12, 14, 16, 20, 36, 40, 72]),
-    PAIRING: Object.freeze({ TITLE_Y: 60, CODE_Y: 120, PROMPT_Y: 172, REMAINING_Y: 198, BAR: rect(20, 226, 200, 4), STATUS_Y: 180 }),
-    IDLE: Object.freeze({ QR: rect(20, 38, 200, 200), BAR: rect(20, 246, 200, 4), TEXT_Y: 262, QUIET_ZONE: 4 }),
-    CLOSED: Object.freeze({ ICON_Y: 80, TITLE_Y: 150, HOURS_Y: 180 }),
-    NOTICE: Object.freeze({ ICON_Y: 80, TEXT_Y: 150 }),
-    SELECT: Object.freeze({ TITLE_Y: 100, TEXT_Y: 130, REMAINING_Y: 160 }),
-    MATCH: Object.freeze({ TITLE_Y: 64, CODE_Y: 150, REMAINING_Y: 222, BAR: rect(20, 250, 200, 4) }),
-    OPEN: Object.freeze({ LABEL_Y: 52, MESSAGE: rect(10, 112, 220, 60), COUNTDOWN: rect(0, 200, 240, 80) }),
-    RESULT: Object.freeze({ ICON_Y: 90, TEXT_Y: 160 })
+    TEXT_WIDTH: 280,
+    FONTS: Object.freeze({ SMALL: 13, BODY: 15, TITLE: 16, CODE: 38, LABEL: 44, LABEL_SM: 28, RING: 34, HUGE: 96 }),
+    PAIRING: Object.freeze({ TITLE_Y: 60, CODE_Y: 100, PROMPT_Y: 146, REMAINING_Y: 172, BAR: rect(40, 192, 240, 4), STATUS_TITLE_Y: 92, STATUS_Y: 140 }),
+    IDLE: Object.freeze({ QR_X: 16, QR_Y: 40, SCALE: 4, MIN_SCALE: 3, QUIET_ZONE: 4, BAR_GAP: 8, TEXT_GAP: 12, MARGIN: 8, LINE_HEIGHT: 24 }),
+    NOTICE: Object.freeze({ ICON_X: 160, ICON_Y: 88, ICON_R: 24, TITLE_Y: 146, TEXT_Y: 182 }),
+    SELECT: Object.freeze({ TITLE_Y: 84, TEXT_Y: 118, REMAINING_Y: 154, BAR: rect(40, 174, 240, 4) }),
+    MATCH: Object.freeze({ TITLE_Y: 56, CODE_Y: 126, REMAINING_Y: 194, BAR: rect(40, 214, 240, 4) }),
+    OPEN: Object.freeze({
+      LABEL_X: 18, LABEL_WIDTH: 176, LABEL_Y: 66, LABEL_SM_Y: 54, LABEL_ROW_H: 34, LABEL_GAP: 12, LABEL_SM_GAP: 10,
+      MESSAGE_X: 18, MESSAGE_Y: 132, MESSAGE_WIDTH: 184,
+      RING: Object.freeze({ X: 255, Y: 131, R: 44, WIDTH: 5 })
+    })
   });
 
   const OPEN_CODES = { pickup: 'OPEN_PICKUP', deposit: 'OPEN_DEPOSIT', retrieve: 'OPEN_RETRIEVE', mixed: 'OPEN_MIXED', admin: 'OPEN_ADMIN' };

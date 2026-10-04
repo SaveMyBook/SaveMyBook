@@ -30,7 +30,7 @@ const LINKS: [string, string, boolean?][] = [
 
 const STATS = [
   { to: 300, unit: '個 API 端點', note: 'RESTful API' },
-  { to: 1557, unit: '項後端測試', note: '11 組測試群組全數通過' },
+  { to: 1558, unit: '項後端測試', note: '11 組測試群組全數通過' },
   { to: 2570, unit: '項 App 測試', note: '50 個測試檔全數通過' },
   { to: 5, unit: '種介面語言', note: '繁中・簡中・英・日・韓' },
 ];

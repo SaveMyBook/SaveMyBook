@@ -9,7 +9,8 @@ const { MOUNTS } = h.api('routes');
 const { buildSpec } = h.api('config/openapi');
 
 const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
-const ASSETS = ['device-core.js', 'kiosk.js', 'qrcode.js', 'kiosk.css'];
+const PAGE_ASSETS = ['device-core.js', 'kiosk.js', 'qrcode.js', 'kiosk.css'];
+const ASSETS = [...PAGE_ASSETS, 'book-slate-128.png'];
 
 const withSimulator = async (enabled, fn) => {
   const before = env.cabinetSimulator;
@@ -71,14 +72,14 @@ const tests = [
       assert.strictEqual(body.trim(), '');
     }
     const refs = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1]).filter((u) => u !== 'data:,');
-    assert.deepStrictEqual(refs.sort(), ASSETS.map((f) => `/kiosk/assets/${f}`).sort());
+    assert.deepStrictEqual(refs.sort(), PAGE_ASSETS.map((f) => `/kiosk/assets/${f}`).sort());
 
     const slash = await request('GET', '/kiosk/');
     assert.strictEqual(slash.status, 200);
   })],
 
   ['白名單資產：no-cache、正確的內容類型與安全標頭', () => withSimulator(true, async () => {
-    for (const file of ASSETS) {
+    for (const file of PAGE_ASSETS) {
       const res = await request('GET', `/kiosk/assets/${file}`);
       assert.strictEqual(res.status, 200, file);
       assert.strictEqual(res.headers.get('cache-control'), 'no-cache', file);
@@ -86,7 +87,19 @@ const tests = [
       assertSecurityHeaders(res);
       assert.strictEqual(res.text, fs.readFileSync(path.join(API_ROOT, 'views/kiosk', file), 'utf8'));
     }
+    const logo = await h.realFetch(`${h.baseUrl()}/kiosk/assets/book-slate-128.png`);
+    assert.strictEqual(logo.status, 200);
+    assert.strictEqual(logo.headers.get('cache-control'), 'no-cache');
+    assert.match(logo.headers.get('content-type'), /^image\/png/);
+    assertSecurityHeaders(logo);
+    assert.ok(Buffer.from(await logo.arrayBuffer()).equals(fs.readFileSync(path.join(API_ROOT, 'views/kiosk/book-slate-128.png'))));
   })],
+
+  ['書櫃正面的標誌圖示由樣式表以同源相對路徑載入', () => {
+    const css = fs.readFileSync(path.join(API_ROOT, 'views/kiosk/kiosk.css'), 'utf8');
+    const urls = [...css.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g)].map((m) => m[1]);
+    assert.deepStrictEqual(urls, ['book-slate-128.png']);
+  }],
 
   ['白名單以外的檔名與路徑穿越一律 404', () => withSimulator(true, async () => {
     const urls = [

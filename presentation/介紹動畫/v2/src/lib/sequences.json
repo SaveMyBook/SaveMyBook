@@ -1,0 +1,43 @@
+{
+ "isbn_type": [
+  "s_sell_isbn_t00",
+  "s_sell_isbn_t03",
+  "s_sell_isbn_t06",
+  "s_sell_isbn_t09",
+  "s_sell_isbn_t13"
+ ],
+ "advisor_type": [
+  "b_advisor_t03",
+  "b_advisor_t06",
+  "b_advisor_t09",
+  "b_advisor_t12",
+  "b_advisor_t15",
+  "b_advisor_t18",
+  "b_advisor_t21",
+  "b_advisor_t24",
+  "b_advisor_t27",
+  "b_advisor_t30",
+  "b_advisor_t33",
+  "b_advisor_t36",
+  "b_advisor_t39",
+  "b_advisor_t42"
+ ],
+ "support_q1": [
+  "b_support_q1_t03",
+  "b_support_q1_t06",
+  "b_support_q1_t09",
+  "b_support_q1_t12",
+  "b_support_q1_t15",
+  "b_support_q1_t18",
+  "b_support_q1_t21",
+  "b_support_q1_t24"
+ ],
+ "support_q2": [
+  "b_support_q2_t03",
+  "b_support_q2_t06",
+  "b_support_q2_t09",
+  "b_support_q2_t12",
+  "b_support_q2_t15",
+  "b_support_q2_t17"
+ ]
+}

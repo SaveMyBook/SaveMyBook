@@ -956,5 +956,141 @@
       361.0,
       50.0
     ]
+  },
+  "s_sell_isbn_t00": {
+    "isbn field": [
+      120.0,
+      201.0,
+      193.0,
+      49.0
+    ],
+    "button AI 帶入": [
+      16.0,
+      131.0,
+      361.0,
+      46.0
+    ]
+  },
+  "b_advisor_empty": {
+    "input bar": [
+      0.0,
+      753.0,
+      393.0,
+      99.0
+    ],
+    "messages area": [
+      0.0,
+      115.0,
+      393.0,
+      638.0
+    ]
+  },
+  "b_advisor_wait": {
+    "user bubble": [
+      72.5,
+      129.0,
+      306.5,
+      62.0
+    ],
+    "typing bubble": [
+      52.0,
+      195.0,
+      63.0,
+      38.0
+    ]
+  },
+  "b_support_empty": {
+    "input bar": [
+      0.0,
+      729.0,
+      393.0,
+      123.0
+    ]
+  },
+  "b_support_wait1": {
+    "user bubble": [
+      72.5,
+      177.0,
+      306.5,
+      62.0
+    ],
+    "typing bubble": [
+      52.0,
+      243.0,
+      63.0,
+      38.0
+    ]
+  },
+  "b_support_a1": {
+    "ai reply 1 bubble": [
+      52.0,
+      249.0,
+      306.5,
+      135.0
+    ]
+  },
+  "b_support_wait2": {
+    "user bubble": [
+      93.8,
+      436.0,
+      285.3,
+      40.0
+    ],
+    "typing bubble": [
+      52.0,
+      480.0,
+      63.0,
+      38.0
+    ]
+  },
+  "b_chat_warn_1": {
+    "stranger message": [
+      63.0,
+      590.0,
+      249.1,
+      63.0
+    ],
+    "risk note under message": [
+      50.0,
+      662.0,
+      315.0,
+      36.0
+    ]
+  },
+  "s_cab_select": {
+    "item card": [
+      16.0,
+      220.0,
+      361.0,
+      138.0
+    ],
+    "confirm button": [
+      16.0,
+      702.0,
+      361.0,
+      48.0
+    ]
+  },
+  "b_cab_select": {
+    "item card": [
+      16.0,
+      220.0,
+      361.0,
+      140.0
+    ],
+    "confirm button": [
+      16.0,
+      702.0,
+      361.0,
+      48.0
+    ]
+  },
+  "a_dispute_loading": {
+    "ai panel": [
+      20.0,
+      321.0,
+      353.0,
+      56.0
+    ]
   }
 }

@@ -16,7 +16,8 @@ export const ESCROW = {
   coinOut: [S.pickup + 6.5, S.pickup + 7.5] as [number, number],
   clock: [S.pickup + 4.7, S.pickup + 6.0] as [number, number],
 };
-const HUD_X = 330, HUD_Y = 92;
+// 左上角固定標誌下方
+const HUD_X = 290, HUD_Y = 152;
 
 export function escrow(world: World, ui: HTMLElement) {
   const hud = el('div', 'hud', ui, `<p class="hud__vault"><i></i>平台暫管<b>${BOOK.price} 代幣</b></p><ol class="hud__steps"><li>付款</li><li>存書</li><li>取書</li><li>撥款</li></ol>`);

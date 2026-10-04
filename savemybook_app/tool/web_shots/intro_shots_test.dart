@@ -62,7 +62,7 @@ import 'package:savemybook_app/services/verification_service.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
 import 'package:savemybook_app/widgets/pin_pad.dart';
 
-import 'covers.dart' hide paintCameraScene;
+import 'covers.dart';
 import 'intro_data.dart';
 import 'intro_paint.dart';
 
@@ -76,6 +76,7 @@ final _outDir = Directory('${Directory.current.path}/../presentation/介紹動�
 final _navigatorKey = GlobalKey<NavigatorState>();
 final _overlay = ValueNotifier<ScreenOverlay>(const ScreenOverlay());
 final _rects = <String, Map<String, Object>>{};
+final _sequences = <String, List<String>>{};
 
 typedef Snap = Future<void> Function(String name);
 typedef Act = Future<void> Function(WidgetTester tester, Snap snap);
@@ -165,7 +166,300 @@ List<Shot> get shots => [
   Shot('a_dispute_ai', _disputes, act: _disputeAi),
   Shot('a_listing_review', _listingReview, act: _listingReviewDetails),
   Shot('b_ai_consent', AiBookChatScreen.new, act: _aiConsent),
+  Shot('s_sell_isbn_type', HomeScreen.new, user: sellerId, act: _sellIsbnType),
+  Shot('s_sell_ai_loading', _sellDetail, user: sellerId, prefs: _draftPrefs, act: _sellAiLoading),
+  Shot('b_advisor_type', AiBookChatScreen.new, act: _advisorType),
+  for (final turn in [1, 2])
+    Shot(
+      'b_support_q$turn',
+      () {
+        supportUpto = turn == 1 ? 0 : 2;
+        return const AiSupportScreen();
+      },
+      act: (t, snap) => _supportAsk(t, snap, turn),
+    ),
+  for (final stage in [0, 1])
+    Shot(
+      'b_chat_warn_$stage',
+      () {
+        warnStage = stage;
+        return ChatRoomScreen(roomId: warnRoomId, partnerName: users[strangerId]!);
+      },
+      act: (t, snap) => _chatWarnStage(t, snap, stage),
+    ),
+  _selectShot('s_cab_select', 'order_deposit', sellerId),
+  _selectShot('b_cab_select', 'pickup', buyerId),
+  Shot(
+    'a_dispute_loading',
+    () {
+      disputeAnalyzed = false;
+      return _disputes();
+    },
+    act: _disputeLoading,
+  ),
 ];
+
+const _sequenceOrder = ['isbn_type', 'sell_ai_loading', 'advisor_type', 'support_q1', 'support_q2', 'warn', 'cab_deposit', 'cab_pickup', 'dispute_ai'];
+
+const _staticSequences = {
+  'isbn_type': ['s_sell_isbn_t00', 's_sell_isbn_t03', 's_sell_isbn_t06', 's_sell_isbn_t09', 's_sell_isbn_t13', 's_sell_isbn_loading', 's_sell_fill'],
+  'warn': ['b_chat_warn_0', 'b_chat_warn_1', 'b_chat_warn'],
+  'dispute_ai': ['a_dispute_loading', 'a_dispute_ai'],
+  'cab_deposit': ['s_cab_scan', 's_cab_select', 's_cab_match_empty', 's_cab_match', 's_cab_open', 's_cab_done'],
+  'cab_pickup': ['b_pickup_scan', 'b_cab_select', 'b_cab_match_empty', 'b_cab_match', 'b_pickup_open', 'b_pickup_done'],
+};
+
+void _resetIntroState() {
+  warnStage = 2;
+  supportUpto = null;
+  disputeAnalyzed = true;
+  _spinnerFocus = null;
+  _releaseApi();
+}
+
+Finder? _spinnerFocus;
+
+final _spinnerPaint = find.byWidgetPredicate((w) => w is CustomPaint && w.painter.runtimeType.toString() == '_CircularProgressIndicatorPainter');
+
+List<double> _sweeps(Finder finder) => [for (final e in finder.evaluate()) ((e.widget as CustomPaint).painter as dynamic).arcSweep as double];
+
+// 不定進度圈每 1333ms 由一點長成大弧再縮回，截圖時機若落在週期起點只會畫出一個點。
+Future<void> _alignSpinners(WidgetTester tester, Finder focus) async {
+  bool ready(bool strict) {
+    final main = _sweeps(find.descendant(of: focus, matching: _spinnerPaint));
+    if (main.isEmpty || main.any((s) => s < 3.6)) return false;
+    return !strict || _sweeps(_spinnerPaint).every((s) => s >= 1.5);
+  }
+
+  for (final strict in [true, false]) {
+    for (var i = 0; i < 84; i++) {
+      if (ready(strict)) return;
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+  }
+  throw StateError('spinner phase not reached');
+}
+
+int _activeStep(WidgetTester tester) {
+  final sheet = find.byType(AiAssistProgressSheet);
+  final spinner = find.descendant(of: sheet, matching: find.byType(CircularProgressIndicator));
+  if (spinner.evaluate().length != 1) return -1;
+  final y = tester.getCenter(spinner).dy;
+  for (final (i, step) in tester.widget<AiAssistProgressSheet>(sheet).steps.indexed) {
+    if ((tester.getCenter(find.descendant(of: sheet, matching: find.text(step))).dy - y).abs() < 12) return i;
+  }
+  return -1;
+}
+
+Future<void> _untilStep(WidgetTester tester, int step) async {
+  for (var i = 0; i < 80 && _activeStep(tester) != step; i++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+  if (_activeStep(tester) != step) throw StateError('step $step not shown');
+}
+
+Completer<void>? _apiGate;
+String? _apiHold;
+int _apiHeld = 0;
+
+void _holdApi(String key) {
+  _apiGate = Completer<void>();
+  _apiHold = key;
+  _apiHeld = 0;
+}
+
+void _releaseApi() {
+  final gate = _apiGate;
+  if (gate != null && !gate.isCompleted) gate.complete();
+  _apiGate = null;
+  _apiHold = null;
+}
+
+Future<void> _untilHeld(WidgetTester tester) async {
+  for (var i = 0; i < 100 && _apiHeld == 0; i++) {
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pump();
+  }
+  if (_apiHeld == 0) throw StateError('request not held: $_apiHold');
+}
+
+void _consentGiven() {
+  // ignore: invalid_use_of_visible_for_testing_member
+  AiStatus.debugSet(
+    const AiStatusInfo(
+      support: true,
+      listingAssist: true,
+      recommend: true,
+      bookChat: true,
+      webSearch: true,
+      consented: true,
+      providersInUse: ['OpenAI'],
+      embeddingProvider: 'OpenAI',
+    ),
+  );
+}
+
+List<int> _typingSteps(int length) => [for (var n = 3; n < length; n += 3) n, length];
+
+String _two(int n) => n.toString().padLeft(2, '0');
+
+Future<void> _typeInto(WidgetTester tester, Finder field, String text) async {
+  await tester.enterText(field, text);
+  FocusManager.instance.primaryFocus?.unfocus();
+  await _settle(tester, const Duration(milliseconds: 600));
+}
+
+Future<List<String>> _typeFrames(WidgetTester tester, Snap snap, Finder field, String text, String prefix) async {
+  final runes = text.runes.toList();
+  final names = <String>[];
+  for (final n in _typingSteps(runes.length)) {
+    await _typeInto(tester, field, String.fromCharCodes(runes.take(n)));
+    final name = '${prefix}_t${_two(n)}';
+    await snap(name);
+    names.add(name);
+  }
+  return names;
+}
+
+Future<void> _sendAndWait(WidgetTester tester, Snap snap, String api, String name, String text) async {
+  _holdApi(api);
+  await tester.tap(find.byIcon(Icons.arrow_upward_rounded));
+  await _settle(tester, const Duration(milliseconds: 600));
+  await _untilHeld(tester);
+  _spinnerFocus = find.byType(MaterialApp);
+  await snap(name);
+  _spinnerFocus = null;
+  _recordFinder(tester, name, 'user bubble', _ancestorOf(find.text(text), Container));
+  _recordFinder(tester, name, 'typing bubble', find.byWidgetPredicate((w) => w.runtimeType.toString() == 'ChatTypingBubble'));
+}
+
+Rect _inputBar(WidgetTester tester, Finder field) {
+  for (final element in find.ancestor(of: field, matching: find.byType(Container)).evaluate()) {
+    final box = element.findRenderObject() as RenderBox;
+    if (box.size.width >= _width - 0.5) return box.localToGlobal(Offset.zero) & box.size;
+  }
+  throw StateError('no input bar');
+}
+
+Future<void> _sellIsbnType(WidgetTester tester, Snap snap) async {
+  _consentGiven();
+  await tester.tap(find.byIcon(Icons.add_rounded));
+  await _settle(tester, const Duration(seconds: 1));
+  final sell = find.byType(SellBookScreen);
+  final field = find.descendant(of: sell, matching: find.byType(TextField)).first;
+  final button = find.descendant(of: sell, matching: find.byType(AiAssistButton));
+  await _settle(tester, const Duration(milliseconds: 600));
+  await snap('s_sell_isbn_t00');
+  _recordFinder(tester, 's_sell_isbn_t00', 'isbn field', field);
+  _recordFinder(tester, 's_sell_isbn_t00', 'button AI 帶入', button);
+  final isbn = bookOf(journeyId).isbn;
+  for (final n in [3, 6, 9, 13]) {
+    await _typeInto(tester, field, isbn.substring(0, n));
+    await snap('s_sell_isbn_t${_two(n)}');
+  }
+  _holdApi('POST /ai/listing-assist');
+  await tester.tap(button);
+  await tester.pump();
+  await _untilHeld(tester);
+  _spinnerFocus = find.byType(AiAssistProgressSheet);
+  await snap('s_sell_isbn_loading');
+  _spinnerFocus = null;
+  if (_activeStep(tester) != 0) throw StateError('loading step moved on');
+}
+
+Future<void> _sellAiLoading(WidgetTester tester, Snap snap) async {
+  _consentGiven();
+  conditionPrice = 220;
+  try {
+    await _settleReal(tester, const Duration(seconds: 1));
+    _holdApi('POST /ai/listing-assist');
+    await tester.tap(find.descendant(of: find.byType(SellBookDetailScreen), matching: find.byType(AiAssistButton)));
+    await tester.pump();
+    final steps = tester.widget<AiAssistProgressSheet>(find.byType(AiAssistProgressSheet)).steps.length;
+    final names = <String>[];
+    _spinnerFocus = find.byType(AiAssistProgressSheet);
+    for (var i = 0; i < steps; i++) {
+      await _untilStep(tester, i);
+      final name = 's_sell_ai_loading_${i + 1}';
+      await snap(name);
+      if (_activeStep(tester) != i) throw StateError('$name captured after the step changed');
+      names.add(name);
+    }
+    _spinnerFocus = null;
+    await _untilHeld(tester);
+    _sequences['sell_ai_loading'] = [...names, 's_sell_ai_sheet_220'];
+  } finally {
+    conditionPrice = 222;
+  }
+}
+
+Future<void> _advisorType(WidgetTester tester, Snap snap) async {
+  _consentGiven();
+  const name = 'b_advisor_empty';
+  await snap(name);
+  final input = find.descendant(of: find.byType(AiBookChatScreen), matching: find.byType(TextField));
+  final bar = _inputBar(tester, input);
+  final header = tester.getRect(find.byWidgetPredicate((w) => w.runtimeType.toString() == 'AppHeader'));
+  _record(name, 'input bar', bar);
+  _record(name, 'messages area', Rect.fromLTRB(0, header.bottom, _width, bar.top));
+  final typed = await _typeFrames(tester, snap, input, _advisorRequest, 'b_advisor');
+  await _sendAndWait(tester, snap, 'POST /ai/book-chat/messages', 'b_advisor_wait', _advisorRequest);
+  _sequences['advisor_type'] = [name, ...typed, 'b_advisor_wait', 'b_advisor'];
+}
+
+Future<void> _supportAsk(WidgetTester tester, Snap snap, int turn) async {
+  _consentGiven();
+  final input = find.descendant(of: find.byType(AiSupportScreen), matching: find.byType(TextField));
+  final start = turn == 1 ? 'b_support_empty' : 'b_support_a1';
+  await snap(start);
+  if (turn == 1) {
+    _record(start, 'input bar', _inputBar(tester, input));
+  } else {
+    _recordBox(tester, start, 'ai reply 1 bubble', _textContaining('取書期限為存書後 7 天'));
+  }
+  final question = turn == 1 ? supportQuestion1 : supportQuestion2;
+  final typed = await _typeFrames(tester, snap, input, question, 'b_support_q$turn');
+  await _sendAndWait(tester, snap, 'POST /ai/support/messages', 'b_support_wait$turn', question);
+  _sequences['support_q$turn'] = [start, ...typed, 'b_support_wait$turn', turn == 1 ? 'b_support_a1' : 'b_support'];
+}
+
+Future<void> _chatWarnStage(WidgetTester tester, Snap snap, int stage) async {
+  final name = 'b_chat_warn_$stage';
+  await snap(name);
+  if (stage == 0) return;
+  _recordFinder(tester, name, 'stranger message', _textContaining('guanyu.lin'));
+  _recordFinder(tester, name, 'risk note under message', find.byWidgetPredicate((w) => w.runtimeType.toString() == 'ChatRiskNote'));
+}
+
+Shot _selectShot(String name, String kind, int user) => Shot(
+  name,
+  () => CabinetFlowScreen(resume: _session(kind, 'selecting', remainingMs: 56000)),
+  user: user,
+  location: _atCabinet,
+  act: (t, snap) async {
+    await _settle(t, const Duration(milliseconds: 800));
+    await snap(name);
+    final card = find.ancestor(of: find.text(bookOf(journeyId).title), matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == 'AppCard'));
+    _recordFinder(t, name, 'item card', card);
+    _recordBox(t, name, 'confirm button', find.text(S.openDoor));
+  },
+);
+
+Future<void> _disputeLoading(WidgetTester tester, Snap snap) async {
+  await tester.tap(find.text(S.handle).first);
+  await _settle(tester, const Duration(seconds: 3));
+  final evidence = find.ancestor(of: find.byType(DisputeAiPanel), matching: find.byType(Column)).first;
+  await Scrollable.ensureVisible(tester.element(find.descendant(of: evidence, matching: find.byType(AdminImageStrip))), alignment: 0);
+  await _settle(tester, const Duration(seconds: 1));
+  _holdApi('POST /admin/disputes/$disputeId/ai-analysis');
+  await tester.tap(find.descendant(of: find.byType(DisputeAiPanel), matching: find.text(S.analyze)));
+  await _settle(tester, const Duration(milliseconds: 600));
+  await _untilHeld(tester);
+  _spinnerFocus = find.byType(DisputeAiPanel);
+  await snap('a_dispute_loading');
+  _spinnerFocus = null;
+  _recordFinder(tester, 'a_dispute_loading', 'ai panel', find.byType(DisputeAiPanel));
+}
 
 void _record(String shot, String label, Rect r) {
   final entry = _rects.putIfAbsent(shot, () => {});
@@ -411,8 +705,10 @@ Future<void> _chatWarn(WidgetTester tester, Snap snap) async {
   _recordFinder(tester, 'b_chat_warn', 'stranger message', _textContaining('guanyu.lin'));
 }
 
+const _advisorRequest = '我想找普通化學的入門書，要能解釋像 Fe3O4 這類化合物，預算 300 代幣以內。';
+
 List<AiBookChatItem> _advisorItems() => [
-  AiBookChatItem(id: 'u1', isUser: true, content: '我想找普通化學的入門書，要能解釋像 Fe3O4 這類化合物，預算 300 代幣以內。', animate: false),
+  AiBookChatItem(id: 'u1', isUser: true, content: _advisorRequest, animate: false),
   AiBookChatItem(
     id: 'a1',
     isUser: false,
@@ -673,7 +969,7 @@ Future<void> _pickupScan(WidgetTester tester, Snap snap) async {
   final area = Rect.fromLTRB(0, top, view.width, view.height);
   final paste = find.byType(CabinetPasteButton);
   final panel = find.byType(PickupReadyCard);
-  final camera = paintCameraScene(area.size, frame.center - area.topLeft, frame.width, name: cabinetName);
+  final camera = paintCameraScene(area.size, frame.center - area.topLeft, frame.width, name: cabinetName, bookInA01: true);
   _overlay.value = ScreenOverlay(
     blackouts: [if (paste.evaluate().isNotEmpty) tester.getRect(paste).inflate(6)],
     camera: camera,
@@ -863,6 +1159,7 @@ Future<void> _shoot(WidgetTester tester, Shot shot) async {
     ..viewPadding = const FakeViewPadding(top: _topInset * _pixelRatio, bottom: _bottomInset * _pixelRatio);
   addTearDown(tester.view.reset);
 
+  _resetIntroState();
   me = shot.user;
   _FakeGeolocator.position = shot.location;
   // ignore: invalid_use_of_visible_for_testing_member
@@ -885,6 +1182,8 @@ Future<void> _shoot(WidgetTester tester, Shot shot) async {
   Future<void> snap(String name) async {
     await _waitForImages(tester, missingImages);
     await _settle(tester, const Duration(milliseconds: 600));
+    final focus = _spinnerFocus;
+    if (focus != null) await _alignSpinners(tester, focus);
     await _capture(tester, name);
   }
 
@@ -905,6 +1204,10 @@ Future<void> _shoot(WidgetTester tester, Shot shot) async {
     _holdVerify = false;
     await _settle(tester, const Duration(seconds: 1));
     await tester.pumpWidget(const SizedBox.shrink());
+    if (_apiGate != null) {
+      _releaseApi();
+      await _settleReal(tester, const Duration(seconds: 2));
+    }
     await tester.pump(const Duration(seconds: 5));
   }, _api);
 
@@ -931,6 +1234,15 @@ class MockClientGate extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (_holdVerify && request.method == 'POST' && request.url.path.endsWith('/security/verify')) {
       await _verifyGate.future;
+    }
+    final gate = _apiGate;
+    if (gate != null && '${request.method} ${request.url.path.replaceFirst('/api', '')}' == _apiHold) {
+      final held = http.Request(request.method, request.url)
+        ..headers.addAll(request.headers)
+        ..bodyBytes = await request.finalize().toBytes();
+      _apiHeld++;
+      await gate.future;
+      return inner.send(held);
     }
     return inner.send(request);
   }
@@ -1048,6 +1360,23 @@ void main() {
     merged.addAll(_rects);
     if (daytimeChanges.isNotEmpty) merged['_transit_daytime_changes'] = daytimeChanges;
     existing.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(merged));
+    final sequences = File('${_outDir.path}/sequences.json');
+    final allSequences = <String, Object?>{};
+    if (sequences.existsSync()) {
+      try {
+        allSequences.addAll(jsonDecode(sequences.readAsStringSync()) as Map<String, dynamic>);
+      } catch (_) {}
+    }
+    allSequences
+      ..addAll(_staticSequences)
+      ..addAll(_sequences);
+    final ordered = {
+      for (final key in _sequenceOrder)
+        if (allSequences.containsKey(key)) key: allSequences[key],
+      for (final entry in allSequences.entries)
+        if (!_sequenceOrder.contains(entry.key)) entry.key: entry.value,
+    };
+    sequences.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(ordered));
   });
 
   for (final shot in shots) {

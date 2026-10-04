@@ -1,4 +1,4 @@
-// 逐格算圖並交給 ffmpeg 編碼：node tools/render.mjs <out.mp4> [起秒] [迄秒] [pixelRatio] [workers]
+// 逐格算圖並交給 ffmpeg 編碼：node tools/render.mjs <out.mp4> [起秒] [迄秒] [pixelRatio] [workers] [動態模糊取樣數]
 // 每格先以 __seek 設定時間再截圖，輸出與播放速度無關。需先 npm run dev（5290 埠）。
 import { createRequire } from 'node:module';
 import { dirname, resolve, join } from 'node:path';
@@ -11,7 +11,7 @@ const require = createRequire(import.meta.url);
 const puppeteer = require(resolve(here, '../../src/node_modules/puppeteer'));
 const ffmpeg = require(resolve(here, '../../src/node_modules/ffmpeg-static'));
 
-const [out, fromArg = '0', toArg, prArg = '1', workersArg = '4'] = process.argv.slice(2);
+const [out, fromArg = '0', toArg, prArg = '1', workersArg = '4', mbArg = '0'] = process.argv.slice(2);
 const FPS = 60;
 const PR = Number(prArg);
 const WORKERS = Number(workersArg);
@@ -30,7 +30,7 @@ async function segment(start, end, target, log) {
   const browser = await puppeteer.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 1920 * PR, height: 1080 * PR, deviceScaleFactor: 1 });
-  await page.goto(`http://127.0.0.1:5290/?render&pr=${PR}&scale=${PR}`, { waitUntil: 'networkidle0' });
+  await page.goto(`http://127.0.0.1:5290/?render&pr=${PR}&scale=${PR}&mb=${mbArg}`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => window.__ready === true, { timeout: 120000 });
   const cdp = await page.createCDPSession();
   await run([

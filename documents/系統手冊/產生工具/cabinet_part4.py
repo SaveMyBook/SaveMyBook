@@ -82,7 +82,7 @@ def run(doc, t, manual_table, steps_replace):
         ('services/cabinet-doors.js, cabinet-release.js', '後端', '櫃門與電磁鎖通道之對應、櫃門分配與狀態判定、櫃內書籍紀錄與待確認櫃門；訂單取消、逾期與作業進行中之櫃門處理。'),
         ('services/cabinet-manual.js, cabinet-admin.js, cabinet-events.js', '後端', '故障備援之手動回報與管理員確認、後台櫃門處理（登記存放內容、清空存放紀錄）、書櫃事件紀錄與管理員通知。'),
         ('routes/device.js, middleware/device-auth.js', '後端', '書櫃裝置API（/api/device/v1）：配對申請與輪詢、狀態查詢、事件回報與解除配對；以Device憑證與開機代碼驗證裝置，並依裝置限流。'),
-        ('routes/kiosk.js, views/kiosk/（device-core.js, kiosk.js）', '後端', '模擬書櫃網頁（/kiosk）：以240×320畫面模擬書櫃螢幕，device-core.js實作與ESP32-S3韌體相同之配對、輪詢、事件佇列、開鎖與倒數邏輯；控制台可模擬開關門、門磁、櫃門故障、離線、網路延遲與重新開機。'),
+        ('routes/kiosk.js, views/kiosk/（device-core.js, kiosk.js）', '後端', '模擬書櫃網頁（/kiosk）：呈現書櫃正面（右上角320×240橫向螢幕，A01至A04櫃門由上而下），device-core.js實作與ESP32-S3韌體相同之配對、輪詢、事件佇列、開鎖與倒數邏輯；控制台可模擬門磁、櫃門故障、離線、網路延遲與重新開機。'),
         ('features/cabinet（Flutter）', '前端', '書櫃掃碼流程：相機掃描書櫃QR Code、取得定位、確認項目、輸入比對數字、顯示櫃門與倒數、完成或取消、接續進行中之作業與顯示結果，以及故障備援之手動回報。'),
         ('features/admin/admin_cabinet_device_screen.dart（Flutter）', '前端', '後台書櫃裝置管理：輸入配對碼、裝置狀態與撤銷、櫃門卡片（遠端開啟、確認內容、登記與清空存放紀錄、維修與故障）、待確認手動回報與作業、最近作業與事件紀錄。'),
     ]:
@@ -171,7 +171,7 @@ def run(doc, t, manual_table, steps_replace):
     # 10-1-1 後端測試
     x = t('表 10-1-1')
     _after(row_by_key(x, 'test/auth'), ['test/cabinet', '書櫃存取模式、QR挑戰碼、裝置配對與撤銷、開機代碼與複製偵測、狀態輪詢與事件回報、櫃門分配與待確認、掃碼建立作業（定位、冷卻、情境）、數字比對與開門、手機結束作業與門磁拒絕、關門後提交與重送、逾時與待確認處理、遠端開櫃、手動回報待確認、排程與端對端流程', '207'])
-    _after(row_by_key(x, 'test/commerce'), ['test/kiosk', '模擬書櫃device-core（假時鐘與假fetch：配對、輪詢、事件佇列、開鎖時序、倒數與關門指令）、模擬書櫃路由與安全標頭', '51'])
+    _after(row_by_key(x, 'test/commerce'), ['test/kiosk', '模擬書櫃device-core（假時鐘與假fetch：配對、輪詢、事件佇列、開鎖時序、倒數與關門指令）、模擬書櫃路由與安全標頭', '52'])
 
     # 10-2-1 代表性測試
     x = t('表 10-2-1')

@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import 'covers.dart';
 import 'intro_data.dart';
@@ -96,75 +95,3 @@ ui.Image paintChemistryPage() => paintFramedPage('journey-page', tilt: 0.015, (c
   folio.dispose();
 });
 
-ui.Image paintCameraScene(Size size, Offset frameCenter, double frame, {required String name, double scale = 3}) {
-  final recorder = ui.PictureRecorder();
-  final canvas = ui.Canvas(recorder)..scale(scale);
-  final bounds = Offset.zero & size;
-
-  canvas.drawRect(
-    bounds,
-    Paint()
-      ..shader = ui.Gradient.linear(
-        Offset.zero,
-        Offset(0, size.height),
-        const [Color(0xFF4A463E), Color(0xFF2B2C2E), Color(0xFF1E1F21)],
-        [0, 0.55, 1],
-      ),
-  );
-  final glow = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40);
-  canvas.drawCircle(Offset(size.width * 0.12, size.height * 0.08), 110, glow..color = const Color(0x66C9A66B));
-  canvas.drawCircle(Offset(size.width * 0.95, size.height * 0.2), 90, glow..color = const Color(0x405F7F8F));
-  canvas.drawRect(Rect.fromLTWH(0, size.height * 0.82, size.width, size.height * 0.18), Paint()..color = const Color(0x33000000));
-
-  final body = Rect.fromCenter(center: frameCenter.translate(0, frame * 0.62), width: frame * 1.36, height: frame * 2.3);
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(body.shift(const Offset(0, 10)), const Radius.circular(18)),
-    Paint()
-      ..color = const Color(0x66000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16),
-  );
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(body, const Radius.circular(18)),
-    Paint()..shader = ui.Gradient.linear(body.topLeft, body.bottomRight, const [Color(0xFF59616A), Color(0xFF3E444B)]),
-  );
-  final seam = Paint()
-    ..color = const Color(0x55000000)
-    ..strokeWidth = 1.4;
-  final doorsTop = frameCenter.dy + frame * 0.56;
-  canvas.drawLine(Offset(body.left + 10, doorsTop), Offset(body.right - 10, doorsTop), seam);
-  canvas.drawLine(Offset(body.center.dx, doorsTop), Offset(body.center.dx, body.bottom - 10), seam);
-  canvas.drawLine(Offset(body.left + 10, doorsTop + frame * 0.55), Offset(body.right - 10, doorsTop + frame * 0.55), seam);
-
-  final screen = Rect.fromCenter(center: frameCenter, width: frame * 0.8, height: frame * 0.86);
-  canvas.drawRRect(RRect.fromRectAndRadius(screen.inflate(6), const Radius.circular(14)), Paint()..color = const Color(0xFF16181A));
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(screen, const Radius.circular(10)),
-    Paint()..shader = ui.Gradient.linear(screen.topLeft, screen.bottomRight, const [Color(0xFFF1F4F5), Color(0xFFD9DFE2)]),
-  );
-  final title = _paragraph(name, screen.width, size: frame * 0.055, weight: FontWeight.w700, color: const Color(0xFF51606B));
-  canvas.drawParagraph(title, Offset(screen.center.dx - title.maxIntrinsicWidth / 2, screen.top + frame * 0.045));
-  title.dispose();
-  final qrSize = frame * 0.52;
-  canvas.save();
-  canvas.translate(screen.center.dx - qrSize / 2, screen.center.dy - qrSize / 2 + frame * 0.005);
-  QrPainter(
-    data: 'NMIXX HAEWON 0225',
-    version: QrVersions.auto,
-    gapless: true,
-    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1C2226)),
-    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1C2226)),
-  ).paint(canvas, Size.square(qrSize));
-  canvas.restore();
-  final hint = _paragraph('請以 App 掃描', screen.width, size: frame * 0.045, weight: FontWeight.w500, color: const Color(0xFF6B7782));
-  canvas.drawParagraph(hint, Offset(screen.center.dx - hint.maxIntrinsicWidth / 2, screen.bottom - frame * 0.115));
-  hint.dispose();
-
-  canvas.drawRect(
-    bounds,
-    Paint()..shader = ui.Gradient.radial(bounds.center, size.longestSide * 0.62, const [Color(0x00000000), Color(0x8C000000)], [0.55, 1]),
-  );
-  final picture = recorder.endRecording();
-  final image = picture.toImageSync((size.width * scale).round(), (size.height * scale).round());
-  picture.dispose();
-  return image;
-}

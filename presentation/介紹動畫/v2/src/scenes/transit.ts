@@ -58,7 +58,7 @@ export function transit(world: World, ui: HTMLElement) {
     source.at(t, 3.4, 9.0, 120, 860);
     if (t > -0.5 && t < 10.1) {
       let pose = track(t, [[-0.5, CENTER], [2.75, CENTER], [3.35, READ], [9.0, READ]]);
-      pose = mix(pose, { ...READ, x: 1.6, ry: -0.6, z: -6 }, easeIn(span(t, 9.0, 10.0)));
+      pose = mix(pose, { ...READ, x: 1.2, y: -0.3, ry: -1.5, z: -20, s: 1.0 }, easeIn(span(t, 9.0, 10.0)));
       f.phones[BUYER] = { pose, scr: seq(t, steps, scroll) };
     }
     tapBanner.at(world, t);
@@ -70,7 +70,7 @@ export function transit(world: World, ui: HTMLElement) {
       c.cap.at(t, c.t0, c.t1, 520);
     });
     if (t > 8.9 && t < 15.6) {
-      let pose = track(t, [[9.0, { ...CENTER, x: -1.5, ry: 0.7 }], [10.0, CENTER], [LOC + 0.65, CENTER], [LOC + 1.2, locF], [14.3, locF], [14.7, CENTER]]);
+      let pose = track(t, [[9.25, { ...CENTER, x: -1.3, y: -0.4, z: -14, rx: 0.15, ry: 1.45, rz: 0.1 }], [9.85, { ...CENTER, x: -0.12, z: 3, ry: 0.34, rz: 0.03 }], [10.25, CENTER], [LOC + 0.65, CENTER], [LOC + 1.2, locF], [14.3, locF], [14.7, CENTER]]);
       pose = mix(pose, { ...CENTER, y: -2.2, rx: 0.4 }, easeIn(span(t, 14.7, 15.5)));
       f.phones[ADMIN] = { pose, scr: seq(t, adminSteps) };
     }

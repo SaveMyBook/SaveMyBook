@@ -3,7 +3,7 @@ import { Stage, CAM_Z } from './stage';
 import { Phone } from './three/phone';
 import { Cabinet } from './three/cabinet';
 import { parcel } from './three/props';
-import { screenTexture, screenSpan, type KioskParams } from './three/textures';
+import { screenTexture, screenSpan, releaseScreen, type KioskParams } from './three/textures';
 import type { Pose } from './lib/kf';
 
 /** 手機螢幕：a 為目前畫面，b 為轉場中的下一個畫面；mode 見 phone.ts 的轉場說明；off 為長截圖的捲動量（以螢幕高為 1）。 */
@@ -30,16 +30,22 @@ export interface Frame {
 export const SELLER = 0;
 export const BUYER = 1;
 export const ADMIN = 2;
-const PHONES = 3;
+/** 品牌段背景環繞展示用的手機（編號 3 起）。 */
+export const RING = [3, 4, 5, 6, 7, 8];
+const PHONES = 3 + RING.length;
 
 /** 捲動時固定不動的頂端高度（App 邏輯座標，含狀態列與標題列）。 */
 const HEAD: Record<string, number> = { b_guide_long: 112 };
 
 export class World {
   readonly phones = Array.from({ length: PHONES }, () => new Phone());
-  readonly cabinet = new Cabinet();
+  readonly cabinet = new Cabinet('圖書館總館一樓');
   readonly box = parcel();
   private textures = new Map<string, THREE.Texture>();
+  /** 各畫面最後一次被用到的時間（秒），用來釋放久未使用的材質。 */
+  private lastUse = new Map<string, number>();
+  private loading = new Map<string, Promise<void>>();
+  private missing = new Set<string>();
   frame!: Frame;
 
   constructor(readonly stage: Stage, private screens: string[]) {
@@ -48,22 +54,66 @@ export class World {
   }
 
   async load() {
-    await Promise.all(this.screens.map(async (n) => {
-      try {
-        const t = await screenTexture(n, false);
-        this.stage.renderer.initTexture(t);
-        this.textures.set(n, t);
-      } catch {
-        console.error(`缺少 App 畫面：${n}`);
-      }
-    }));
     await document.fonts.ready;
   }
 
-  tex(name: string | null | undefined) { return name ? this.textures.get(name) ?? null : null; }
+  /**
+   * 畫面材質按需載入：每張 4K 畫面約占 16MB 顯示記憶體，全部常駐時算圖分頁會當掉。
+   * ensure 載入這一格用到的畫面，並釋放 KEEP 秒內沒用到的畫面。
+   */
+  async ensure(names: Iterable<string>, t: number) {
+    const KEEP = 6;
+    const want = [...names];
+    for (const n of want) this.lastUse.set(n, t);
+    await Promise.all(want.map((n) => this.loadOne(n)));
+    for (const [n, last] of this.lastUse) {
+      if (Math.abs(t - last) > KEEP && this.textures.has(n)) {
+        this.textures.delete(n);
+        this.lastUse.delete(n);
+        releaseScreen(n, false);
+      }
+    }
+  }
+
+  private loadOne(n: string) {
+    if (this.textures.has(n)) return Promise.resolve();
+    if (!this.loading.has(n)) {
+      this.loading.set(n, (async () => {
+        try {
+          const tex = await screenTexture(n, false);
+          this.stage.renderer.initTexture(tex);
+          this.textures.set(n, tex);
+        } catch {
+          console.error(`缺少 App 畫面：${n}`);
+        } finally {
+          this.loading.delete(n);
+        }
+      })());
+    }
+    return this.loading.get(n)!;
+  }
+
+  /** 上一次 apply 時用到、但材質尚未載入的畫面。 */
+  takeMissing() {
+    const m = [...this.missing];
+    this.missing.clear();
+    return m;
+  }
+
+  /** 上一次 apply 時用到的畫面（含已載入者），供 ensure 更新使用時間。 */
+  used = new Set<string>();
+
+  tex(name: string | null | undefined) {
+    if (!name) return null;
+    this.used.add(name);
+    const t = this.textures.get(name);
+    if (!t) this.missing.add(name);
+    return t ?? null;
+  }
 
   reset() {
     this.frame = { phones: Array(PHONES).fill(null), cabinet: null, parcel: null, cam: { x: 0, y: 0, z: 0 }, after: [] };
+    this.used.clear();
   }
 
   private place(obj: THREE.Object3D, p: Pose) {

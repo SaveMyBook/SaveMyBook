@@ -2,7 +2,7 @@ tags:
   - name: device
     x-displayName: 書櫃裝置
     description: |
-      智慧書櫃（ESP32 或模擬書櫃網頁）與伺服器之間的協定。裝置以 HTTPS 定時查詢狀態並回報事件，
+      智慧書櫃（ESP32-S3 或模擬書櫃網頁）與伺服器之間的協定。裝置以 HTTPS 定時查詢狀態並回報事件，
       不使用 Socket.IO。本組端點與使用者 API 完全分開：裝置以 `Authorization: Device <token>` 驗證，
       使用者 Token 不能呼叫本組端點，裝置憑證也不能呼叫使用者 API。
 
@@ -39,13 +39,13 @@ tags:
       伺服器一律以「剩餘毫秒」傳遞效期，裝置不需要校時，也不得以本機時鐘判斷效期。
       事件以 `age_ms`（事件發生至送出經過的毫秒數，以單調時鐘計算）回報，前一次開機留下、無法計算時送 `null`。
 
-      ## 裝置端行為（ESP32 韌體與模擬書櫃相同）
+      ## 裝置端行為（ESP32-S3 韌體與模擬書櫃相同）
 
-      1. **開機**：所有電磁鎖維持上鎖；產生新的開機代碼（ESP32 須在 Wi-Fi 或藍牙啟動後以 `esp_random()` 產生）。
+      1. **開機**：所有電磁鎖維持上鎖；產生新的開機代碼（ESP32-S3 須在 Wi-Fi 或藍牙啟動後以 `esp_random()` 產生）。
          本機有「開門中」紀錄時，佇列 `session_closed { outcome: 'interrupted', reason: 'reboot' }` 並清除該紀錄。
       2. **輪詢**：依回應的 `poll_ms` 輪詢（閒置 2 秒、作業中 1 秒）。連續 3 次網路失敗時顯示連線中斷，
          並以 2、4、8、15 秒退避重試。每個請求都以單調時鐘量測往返時間。
-      3. **事件佇列**：持久化保存（ESP32 用 NVS，模擬書櫃用 localStorage）。收到 `ok`、`duplicate`、`rejected` 才刪除；
+      3. **事件佇列**：持久化保存（ESP32-S3 用 NVS，模擬書櫃用 localStorage）。收到 `ok`、`duplicate`、`rejected` 才刪除；
          `retry` 與 HTTP 失敗（網路錯誤或 5xx）時保留並以原本的 `id` 重送。事件序號跨開機持續遞增、不歸零。
       4. **開鎖**：只在收到回應的當下檢查一次：本次往返不超過 3000 毫秒，且指令的 `expires_in_ms > 0`；不符合時忽略整批指令。
          同一個指令 `id` 只執行一次，一批開始後即使逾時或離線也全部執行完。通電前先寫入「開門中」紀錄
@@ -67,7 +67,7 @@ tags:
            否則送出 `session_closed(completed, sensor)`。未收到指令卻被開啟時送出 `door_forced`，
            之後門關上時送出不帶 `session_id` 的 `door_closed(sensor)`。
       6. **憑證失效**：任何請求回 401 `DEVICE_REVOKED` 時清除憑證，重新申請配對碼並顯示配對畫面。
-      7. **ESP32 補充**：使用 HTTPS 長連線，以 ESP-IDF 內建憑證套件（`esp_crt_bundle_attach`）驗證伺服器憑證；
+      7. **ESP32-S3 補充**：使用 HTTPS 長連線，以 ESP-IDF 內建憑證套件（`esp_crt_bundle_attach`）驗證伺服器憑證；
          啟用 Flash Encryption、NVS 加密與看門狗；QR Code 以版本 4、錯誤修正等級 M、靜區 4 格繪製；
          配對碼只顯示於螢幕，不需輸入；螢幕不顯示書櫃名稱等任意文字。
 

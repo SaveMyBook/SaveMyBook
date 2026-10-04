@@ -109,25 +109,31 @@ export function screenTexture(name: string, small: boolean): Promise<THREE.Textu
   return screenCache.get(key)!;
 }
 
-/* ---------------- 書櫃螢幕（240 × 320） ---------------- */
+/* ---------------- 書櫃螢幕（橫向 320 × 240，版面同韌體 ui.cpp，以兩倍解析度繪製） ---------------- */
 
 export type KioskState = 'qr' | 'busy' | 'match' | 'open' | 'done';
-export interface KioskParams { state: KioskState; refresh: number; seconds: number; digits: number; check: number }
+export interface KioskParams { state: KioskState; refresh: number; seconds: number; digits: number; check: number; take?: boolean }
 
 const K = {
   bg: '#0E1318', header: '#18212A', text: '#EEF2F5', muted: '#93A2AD', track: '#2A3540', online: '#3CCF8E', accent: '#46B59C',
 };
+const KS = 2;
+const kfont = (px: number, medium = false) => `${medium ? 500 : 400} ${px * KS}px "Noto Sans TC", sans-serif`;
 
 export class Kiosk {
+  /** 比對數字的字級（相對螢幕高）與兩字中心距的一半（相對螢幕寬）。 */
+  static readonly DIGIT_EM = 96 / 240;
+  static readonly DIGIT_GAP = 26 / 320;
   readonly canvas = document.createElement('canvas');
   readonly texture: THREE.CanvasTexture;
   private ctx: CanvasRenderingContext2D;
   private qr: boolean[][];
   private last = '';
 
-  constructor() {
-    this.canvas.width = 480;
-    this.canvas.height = 640;
+  /** name：頂列顯示的書櫃名稱。 */
+  constructor(readonly name: string) {
+    this.canvas.width = 320 * KS;
+    this.canvas.height = 240 * KS;
     this.ctx = this.canvas.getContext('2d')!;
     const q = qrcode(0, 'M');
     q.addData('NMIXX HAEWON 0225');
@@ -138,70 +144,99 @@ export class Kiosk {
   }
 
   /** 數字在螢幕上的中心（0–1），供飛行動畫對位。 */
-  readonly digitsAt = { x: 0.5, y: 0.54 };
+  readonly digitsAt = { x: 0.5, y: 126 / 240 };
+
+  private text(s: string, x: number, y: number, font: string, color: string, align: CanvasTextAlign = 'center') {
+    const g = this.ctx;
+    g.font = font;
+    g.fillStyle = color;
+    g.textAlign = align;
+    g.textBaseline = 'middle';
+    g.fillText(s, x * KS, y * KS);
+  }
+
+  /** 同韌體 balancedWrap：斷成同樣行數下最窄的寬度，各行長度接近。 */
+  private wrap(s: string, width: number, font: string) {
+    const g = this.ctx;
+    g.font = font;
+    const tokens = s.match(/[A-Za-z0-9-]+|./gu) ?? [];
+    const lines = (w: number) => {
+      const out: string[] = [];
+      let line = '';
+      for (const tk of tokens) {
+        if (line && g.measureText(line + tk).width > w * KS) { out.push(line); line = tk.trim() ? tk : ''; } else line += tk;
+      }
+      if (line) out.push(line);
+      return out;
+    };
+    const first = lines(width);
+    if (first.length < 2) return first;
+    let lo = width / 2, hi = width;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) / 2;
+      if (lines(mid).length === first.length) hi = mid; else lo = mid;
+    }
+    return lines(hi);
+  }
+
+  private bar(x: number, y: number, w: number, ratio: number) {
+    const g = this.ctx;
+    g.fillStyle = K.track;
+    g.fillRect(x * KS, y * KS, w * KS, 4 * KS);
+    g.fillStyle = K.accent;
+    g.fillRect(x * KS, y * KS, w * KS * Math.max(0, Math.min(1, ratio)), 4 * KS);
+  }
 
   draw(p: KioskParams) {
-    const sig = `${p.state}|${p.refresh.toFixed(2)}|${p.seconds}|${p.digits.toFixed(2)}|${p.check.toFixed(2)}`;
+    const sig = `${p.state}|${p.refresh.toFixed(2)}|${p.seconds}|${p.digits.toFixed(2)}|${p.check.toFixed(2)}|${p.take ? 1 : 0}`;
     if (sig === this.last) return;
     this.last = sig;
     const g = this.ctx;
-    const W = 480, H = 640;
     g.fillStyle = K.bg;
-    g.fillRect(0, 0, W, H);
-    // 頂列
+    g.fillRect(0, 0, this.canvas.width, this.canvas.height);
     g.fillStyle = K.header;
-    g.fillRect(0, 0, W, 54);
-    g.fillStyle = K.text;
-    g.font = '500 20px "Noto Sans TC", sans-serif';
-    g.textBaseline = 'middle';
-    g.textAlign = 'left';
-    g.fillText('智慧書櫃', 22, 28);
+    g.fillRect(0, 0, 320 * KS, 28 * KS);
+    this.text(this.name, 10, 14, kfont(16, true), K.text, 'left');
     g.fillStyle = K.online;
     g.beginPath();
-    g.arc(W - 24, 28, 6, 0, Math.PI * 2);
+    g.arc((320 - 14) * KS, 14 * KS, 4 * KS, 0, Math.PI * 2);
     g.fill();
 
-    g.textAlign = 'center';
-    if (p.state === 'qr' || p.state === 'busy') {
-      const s = 288, x = (W - s) / 2, y = 112;
+    if (p.state === 'qr') {
+      // QR Code 在左（版本 4 含靜區 41 格、每格 4 像素），說明在右
+      const side = 164, qx = 16, qy = 40;
       g.fillStyle = '#FFFFFF';
-      g.beginPath();
-      g.roundRect(x - 14, y - 14, s + 28, s + 28, 18);
-      g.fill();
-      const n = this.qr.length, cell = s / n;
+      g.fillRect(qx * KS, qy * KS, side * KS, side * KS);
+      const n = this.qr.length, cell = (side - 32) / n;
       g.fillStyle = '#0E1318';
-      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (this.qr[r][c]) g.fillRect(x + c * cell, y + r * cell, cell + 0.4, cell + 0.4);
-      if (p.state === 'busy') {
-        g.fillStyle = 'rgba(14,19,24,.82)';
-        g.fillRect(x - 14, y - 14, s + 28, s + 28);
-      }
-      g.fillStyle = K.text;
-      g.font = '400 21px "Noto Sans TC", sans-serif';
-      g.fillText(p.state === 'busy' ? '書櫃使用中｜請於手機確認項目' : '請使用 SaveMyBook App 掃描', W / 2, 500);
-      g.fillStyle = K.track;
-      g.fillRect(60, 446, W - 120, 5);
-      g.fillStyle = K.accent;
-      g.fillRect(60, 446, (W - 120) * (1 - p.refresh), 5);
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (this.qr[r][c]) g.fillRect((qx + 16 + c * cell) * KS, (qy + 16 + r * cell) * KS, cell * KS + 0.6, cell * KS + 0.6);
+      this.bar(qx, qy + side + 8, side, 1 - p.refresh);
+      const left = qx + side + 12, width = 320 - 8 - left, cx = left + width / 2;
+      const lines = this.wrap('請使用 SaveMyBook App 掃描', width, kfont(15));
+      let y = qy + side / 2 - (lines.length * 24) / 2 + 12;
+      for (const l of lines) { this.text(l, cx, y, kfont(15), K.text); y += 24; }
+    } else if (p.state === 'busy') {
+      this.text('書櫃使用中', 160, 84, kfont(16, true), K.text);
+      this.text('請於手機確認項目', 160, 118, kfont(15), K.text);
+      this.text(`剩餘 ${p.seconds} 秒`, 160, 154, kfont(13), K.muted);
+      this.bar(40, 174, 240, p.seconds / 60);
     } else if (p.state === 'match') {
-      g.fillStyle = K.text;
-      g.font = '500 25px "Noto Sans TC", sans-serif';
-      g.fillText('請於手機輸入下列數字', W / 2, 170);
+      this.text('請於手機輸入下列數字', 160, 56, kfont(16, true), K.text);
       g.globalAlpha = p.digits;
-      g.font = '500 150px "IBM Plex Mono", monospace';
-      g.fillText('25', W / 2, this.digitsAt.y * H);
+      this.text('25', 160, 126, kfont(96, true), K.text);
       g.globalAlpha = 1;
-      g.fillStyle = K.muted;
-      g.font = '400 19px "Noto Sans TC", sans-serif';
-      g.fillText(`剩餘 ${p.seconds} 秒`, W / 2, 520);
+      this.text(`剩餘 ${p.seconds} 秒`, 160, 194, kfont(13), K.muted);
+      this.bar(40, 214, 240, p.seconds / 60);
     } else if (p.state === 'open') {
-      g.fillStyle = K.text;
-      g.font = '500 92px "IBM Plex Mono", monospace';
-      g.fillText('A01', W / 2, 168);
-      g.font = '400 21px "Noto Sans TC", sans-serif';
-      g.fillText('請將書籍放入 A01 後關上櫃門', W / 2, 252);
-      const cx = W / 2, cy = 440, r = 66;
+      // 櫃門編號與說明在左，倒數在右
+      this.text('A01', 18, 66, kfont(44, true), K.text, 'left');
+      const msg = p.take ? '請取出 A01 內的書籍後關上櫃門' : '請將書籍放入 A01 後關上櫃門';
+      const lines = this.wrap(msg, 184, kfont(15));
+      let y = 132 - (lines.length - 1) * 12;
+      for (const l of lines) { this.text(l, 18, y, kfont(15), K.text, 'left'); y += 24; }
+      const cx = 255 * KS, cy = 131 * KS, r = 44 * KS;
+      g.lineWidth = 5 * KS;
       g.strokeStyle = K.track;
-      g.lineWidth = 10;
       g.beginPath();
       g.arc(cx, cy, r, 0, Math.PI * 2);
       g.stroke();
@@ -210,27 +245,27 @@ export class Kiosk {
       g.beginPath();
       g.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (p.seconds / 30));
       g.stroke();
-      g.fillStyle = K.text;
-      g.font = '500 48px "IBM Plex Mono", monospace';
-      g.fillText(String(p.seconds), cx, cy + 3);
+      this.text(String(p.seconds), 255, 131, kfont(34, true), K.text);
     } else {
-      const cx = W / 2, cy = 280;
-      g.strokeStyle = K.online;
-      g.lineWidth = 9;
+      const cx = 160 * KS, cy = 88 * KS;
+      g.strokeStyle = K.accent;
+      g.lineWidth = 3 * KS;
       g.beginPath();
-      g.arc(cx, cy, 70, 0, Math.PI * 2);
+      g.arc(cx, cy, 24 * KS, 0, Math.PI * 2);
       g.stroke();
       g.lineCap = 'round';
       g.lineJoin = 'round';
-      g.beginPath();
       const t = p.check;
-      g.moveTo(cx - 32, cy + 2);
-      g.lineTo(cx - 32 + 22 * Math.min(1, t * 2), cy + 2 + 22 * Math.min(1, t * 2));
-      if (t > 0.5) g.lineTo(cx - 10 + 46 * (t - 0.5) * 2, cy + 24 - 50 * (t - 0.5) * 2);
+      g.beginPath();
+      g.moveTo(cx - 10 * KS, cy + 1 * KS);
+      const a = Math.min(1, t * 2);
+      g.lineTo(cx + (-10 + 7 * a) * KS, cy + (1 + 7 * a) * KS);
+      if (t > 0.5) {
+        const b = (t - 0.5) * 2;
+        g.lineTo(cx + (-3 + 14 * b) * KS, cy + (8 - 15 * b) * KS);
+      }
       g.stroke();
-      g.fillStyle = K.text;
-      g.font = '500 28px "Noto Sans TC", sans-serif';
-      g.fillText('作業完成', W / 2, 420);
+      this.text('作業完成', 160, 146, kfont(16, true), K.text);
     }
     this.texture.needsUpdate = true;
   }

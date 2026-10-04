@@ -387,7 +387,9 @@ Future<Uint8List> pngBytes(ui.Image image) async {
   return data!.buffer.asUint8List();
 }
 
-ui.Image paintCameraScene(Size size, Offset frameCenter, double frame, {double scale = 3}) {
+/// 掃描書櫃 QR Code 時的相機畫面：比照實機，木作櫃體正面為壓克力，右上角為橫向螢幕（QR Code 在左、說明在右），
+/// 下方為右側鉸鏈的 A01 櫃門。掃描框對準螢幕上的 QR Code。
+ui.Image paintCameraScene(Size size, Offset frameCenter, double frame, {String name = '圖書館大廳', bool bookInA01 = false, double scale = 3}) {
   final recorder = ui.PictureRecorder();
   final canvas = ui.Canvas(recorder)..scale(scale);
   final bounds = Offset.zero & size;
@@ -405,50 +407,106 @@ ui.Image paintCameraScene(Size size, Offset frameCenter, double frame, {double s
   final glow = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40);
   canvas.drawCircle(Offset(size.width * 0.12, size.height * 0.08), 110, glow..color = const Color(0x66C9A66B));
   canvas.drawCircle(Offset(size.width * 0.95, size.height * 0.2), 90, glow..color = const Color(0x405F7F8F));
-  canvas.drawRect(Rect.fromLTWH(0, size.height * 0.82, size.width, size.height * 0.18), Paint()..color = const Color(0x33000000));
 
-  final body = Rect.fromCenter(center: frameCenter.translate(0, frame * 0.62), width: frame * 1.36, height: frame * 2.3);
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(body.shift(const Offset(0, 10)), const Radius.circular(18)),
-    Paint()
-      ..color = const Color(0x66000000)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16),
-  );
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(body, const Radius.circular(18)),
-    Paint()..shader = ui.Gradient.linear(body.topLeft, body.bottomRight, const [Color(0xFF59616A), Color(0xFF3E444B)]),
-  );
-  final seam = Paint()
-    ..color = const Color(0x55000000)
-    ..strokeWidth = 1.4;
-  final doorsTop = frameCenter.dy + frame * 0.56;
-  canvas.drawLine(Offset(body.left + 10, doorsTop), Offset(body.right - 10, doorsTop), seam);
-  canvas.drawLine(Offset(body.center.dx, doorsTop), Offset(body.center.dx, body.bottom - 10), seam);
-  canvas.drawLine(Offset(body.left + 10, doorsTop + frame * 0.55), Offset(body.right - 10, doorsTop + frame * 0.55), seam);
+  // 螢幕 320 × 240：QR Code（含靜區 164 像素）位於 (16, 40)，其中心對準掃描框中心
+  final qrBox = frame * 0.46;
+  final u = qrBox / 164;
+  final screen = Rect.fromLTWH(frameCenter.dx - 98 * u, frameCenter.dy - 122 * u, 320 * u, 240 * u);
+  final sw = screen.width;
+  final pad = sw * 0.06;
+  // 櫃體尺寸換算（以螢幕寬為基準）：右緣距螢幕外框 0.3、頂緣 0.27，頂列高 1.165，板厚 0.128，櫃門高 0.866
+  final face = Rect.fromLTRB(-sw, screen.top - pad - sw * 0.27, screen.right + pad + sw * 0.3, size.height + sw);
+  final topRowBottom = screen.center.dy + sw * 0.582;
 
-  final screen = Rect.fromCenter(center: frameCenter, width: frame * 0.8, height: frame * 0.86);
-  canvas.drawRRect(RRect.fromRectAndRadius(screen.inflate(6), const Radius.circular(14)), Paint()..color = const Color(0xFF16181A));
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(screen, const Radius.circular(10)),
-    Paint()..shader = ui.Gradient.linear(screen.topLeft, screen.bottomRight, const [Color(0xFFF1F4F5), Color(0xFFD9DFE2)]),
+  // 合板側板與頂板的切邊（略帶透視）
+  final wood = Paint()..shader = ui.Gradient.linear(face.topRight, face.topRight.translate(sw * 0.1, sw * 0.4), const [Color(0xFFB79668), Color(0xFF8F7149)]);
+  canvas.drawPath(
+    Path()
+      ..moveTo(face.right, face.top)
+      ..lineTo(face.right + sw * 0.09, face.top - sw * 0.05)
+      ..lineTo(face.right + sw * 0.09, size.height)
+      ..lineTo(face.right, size.height)
+      ..close(),
+    wood,
   );
-  final title = _paragraph('圖書館大廳', screen.width, size: frame * 0.055, weight: FontWeight.w700, color: const Color(0xFF51606B));
-  canvas.drawParagraph(title, Offset(screen.center.dx - title.maxIntrinsicWidth / 2, screen.top + frame * 0.045));
+  canvas.drawPath(
+    Path()
+      ..moveTo(face.left, face.top)
+      ..lineTo(face.right, face.top)
+      ..lineTo(face.right + sw * 0.09, face.top - sw * 0.05)
+      ..lineTo(face.left, face.top - sw * 0.05)
+      ..close(),
+    Paint()..color = const Color(0xFFC9A87A),
+  );
+  canvas.drawRect(face, Paint()..shader = ui.Gradient.linear(face.topCenter, face.topCenter.translate(0, sw * 1.6), const [Color(0xFFDDE2E5), Color(0xFFB7BFC4)]));
+
+  // A01、A02 開口：透明壓克力門後可見櫃內
+  final openRight = face.right - sw * 0.128;
+  for (var i = 0; i < 2; i++) {
+    final top = topRowBottom + sw * 0.128 + i * sw * (0.866 + 0.128);
+    final cell = Rect.fromLTRB(face.left, top, openRight, top + sw * 0.866);
+    canvas.drawRect(cell, Paint()..shader = ui.Gradient.linear(cell.topCenter, cell.bottomCenter, const [Color(0xFF8C7250), Color(0xFFA88A62)]));
+    canvas.drawRect(Rect.fromLTRB(cell.left, cell.bottom - sw * 0.2, cell.right, cell.bottom), Paint()..color = const Color(0xFFB99A70));
+    if (i == 0 && bookInA01) {
+      final book = Rect.fromLTRB(cell.right - sw * 0.95, cell.bottom - sw * 0.31, cell.right - sw * 0.12, cell.bottom - sw * 0.13);
+      canvas.drawRect(book, Paint()..color = const Color(0xFFF0ECE2));
+      canvas.drawRect(Rect.fromLTRB(book.left, book.top - sw * 0.04, book.right, book.top + sw * 0.03), Paint()..color = const Color(0xFF5E8068));
+    }
+    canvas.drawRect(cell, Paint()..color = const Color(0x2ECFE0E8));
+    canvas.drawRect(
+      cell.deflate(1.2),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = const Color(0xCCB4C8D2),
+    );
+    final sheen = Paint()..color = const Color(0x1FFFFFFF);
+    canvas.drawPath(
+      Path()
+        ..moveTo(cell.right - sw * 0.55, cell.top)
+        ..lineTo(cell.right - sw * 0.42, cell.top)
+        ..lineTo(cell.right - sw * 0.7, cell.bottom)
+        ..lineTo(cell.right - sw * 0.83, cell.bottom)
+        ..close(),
+      sheen,
+    );
+    final hinge = Paint()..color = const Color(0xFFB7BEC4);
+    for (final y in [cell.top + sw * 0.17, cell.bottom - sw * 0.17]) {
+      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(cell.right + 1, y), width: sw * 0.05, height: sw * 0.17), const Radius.circular(2)), hinge);
+    }
+  }
+
+  // 螢幕外框與畫面
+  canvas.drawRRect(RRect.fromRectAndRadius(screen.inflate(pad), Radius.circular(pad * 0.5)), Paint()..color = const Color(0xFF1D2126));
+  canvas.drawRect(screen, Paint()..color = const Color(0xFF0E1318));
+  canvas.drawRect(Rect.fromLTWH(screen.left, screen.top, sw, 28 * u), Paint()..color = const Color(0xFF18212A));
+  final title = _paragraph(name, sw, size: 16 * u, weight: FontWeight.w500, color: const Color(0xFFEEF2F5), height: 1.0);
+  canvas.drawParagraph(title, Offset(screen.left + 10 * u, screen.top + 14 * u - title.height / 2));
   title.dispose();
-  final qrSize = frame * 0.52;
+  canvas.drawCircle(Offset(screen.right - 14 * u, screen.top + 14 * u), 4 * u, Paint()..color = const Color(0xFF3CCF8E));
+  final qrRect = Rect.fromLTWH(screen.left + 16 * u, screen.top + 40 * u, qrBox, qrBox);
+  canvas.drawRect(qrRect, Paint()..color = const Color(0xFFFFFFFF));
   canvas.save();
-  canvas.translate(screen.center.dx - qrSize / 2, screen.center.dy - qrSize / 2 + frame * 0.005);
+  canvas.translate(qrRect.left + 16 * u, qrRect.top + 16 * u);
   QrPainter(
     data: 'NMIXX HAEWON 0225',
     version: QrVersions.auto,
     gapless: true,
-    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1C2226)),
-    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1C2226)),
-  ).paint(canvas, Size.square(qrSize));
+    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF0E1318)),
+    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF0E1318)),
+  ).paint(canvas, Size.square(qrBox - 32 * u));
   canvas.restore();
-  final hint = _paragraph('請以 App 掃描', screen.width, size: frame * 0.045, weight: FontWeight.w500, color: const Color(0xFF6B7782));
-  canvas.drawParagraph(hint, Offset(screen.center.dx - hint.maxIntrinsicWidth / 2, screen.bottom - frame * 0.115));
-  hint.dispose();
+  canvas.drawRect(Rect.fromLTWH(qrRect.left, qrRect.bottom + 8 * u, qrBox, 4 * u), Paint()..color = const Color(0xFF2A3540));
+  canvas.drawRect(Rect.fromLTWH(qrRect.left, qrRect.bottom + 8 * u, qrBox * 0.62, 4 * u), Paint()..color = const Color(0xFF46B59C));
+  final lines = ['請使用', 'SaveMyBook App', '掃描'];
+  final cx = screen.left + (qrRect.right - screen.left + 12 * u + (sw - 8 * u)) / 2;
+  var y = qrRect.center.dy - lines.length * 12 * u;
+  for (final line in lines) {
+    final p = _paragraph(line, sw, size: 15 * u, weight: FontWeight.w400, color: const Color(0xFFEEF2F5), height: 1.0);
+    canvas.drawParagraph(p, Offset(cx - p.maxIntrinsicWidth / 2, y + 12 * u - p.height / 2));
+    p.dispose();
+    y += 24 * u;
+  }
 
   canvas.drawRect(
     bounds,

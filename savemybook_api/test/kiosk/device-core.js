@@ -862,11 +862,27 @@ const tests = [
     core.stop();
   }],
 
-  ['LAYOUT：畫面元素落在 240×320 內，且沒有任何按鍵或按鈕配置', () => {
+  ['LAYOUT：橫向 320×240 螢幕，畫面元素落在螢幕內且互不重疊，沒有任何按鍵或按鈕配置', () => {
+    assert.deepStrictEqual([LAYOUT.WIDTH, LAYOUT.HEIGHT], [320, 240]);
     const inside = ([x, y, w, h]) => x >= 0 && y >= LAYOUT.HEADER_HEIGHT && x + w <= LAYOUT.WIDTH && y + h <= LAYOUT.HEIGHT;
-    for (const r of [LAYOUT.PAIRING.BAR, LAYOUT.IDLE.QR, LAYOUT.IDLE.BAR, LAYOUT.MATCH.BAR, LAYOUT.OPEN.MESSAGE, LAYOUT.OPEN.COUNTDOWN]) {
+
+    // 書櫃 QR Code（版本 4）須以每格 4 像素繪製，倒數條在其下方，右側留有說明文字的空間。
+    const I = LAYOUT.IDLE;
+    const side = (QR.encode(QR_PAYLOAD).size + I.QUIET_ZONE * 2) * I.SCALE;
+    assert.ok(side <= LAYOUT.HEIGHT - I.QR_Y - I.MARGIN, String(side));
+    const qrBar = [I.QR_X, I.QR_Y + side + I.BAR_GAP, side, 4];
+    assert.ok(LAYOUT.WIDTH - I.MARGIN - (I.QR_X + side + I.TEXT_GAP) >= 100);
+
+    for (const r of [LAYOUT.PAIRING.BAR, [I.QR_X, I.QR_Y, side, side], qrBar, LAYOUT.SELECT.BAR, LAYOUT.MATCH.BAR]) {
       assert.ok(inside(r), String(r));
     }
+
+    const O = LAYOUT.OPEN;
+    const outer = O.RING.R + O.RING.WIDTH / 2;
+    assert.ok(inside([O.RING.X - outer, O.RING.Y - outer, outer * 2, outer * 2]));
+    assert.ok(O.LABEL_X + O.LABEL_WIDTH < O.RING.X - outer, '櫃門編號不與倒數環重疊');
+    assert.ok(O.MESSAGE_X + O.MESSAGE_WIDTH < O.RING.X - outer, '說明文字不與倒數環重疊');
+
     const keys = [];
     const collect = (node) => {
       if (!node || typeof node !== 'object' || Array.isArray(node)) return;
@@ -879,9 +895,13 @@ const tests = [
     assert.deepStrictEqual(keys.filter((k) => /KEY|SLOT|ABORT|DONE|CANCEL|BUTTON/.test(k)), []);
     const P = LAYOUT.PAIRING;
     assert.ok(P.TITLE_Y < P.CODE_Y && P.CODE_Y < P.PROMPT_Y && P.PROMPT_Y < P.REMAINING_Y && P.REMAINING_Y < P.BAR[1]);
+    assert.ok(P.STATUS_TITLE_Y < P.STATUS_Y);
+    const S = LAYOUT.SELECT;
+    assert.ok(S.TITLE_Y < S.TEXT_Y && S.TEXT_Y < S.REMAINING_Y && S.REMAINING_Y < S.BAR[1]);
     const M = LAYOUT.MATCH;
     assert.ok(M.TITLE_Y < M.CODE_Y && M.CODE_Y < M.REMAINING_Y && M.REMAINING_Y < M.BAR[1]);
-    for (const size of [36, 72]) assert.ok(LAYOUT.FONT_SIZES.includes(size), size);
+    // 與韌體 tools/make_fonts.py 的點陣字級相同
+    assert.deepStrictEqual(LAYOUT.FONTS, { SMALL: 13, BODY: 15, TITLE: 16, CODE: 38, LABEL: 44, LABEL_SM: 28, RING: 34, HUGE: 96 });
     assert.deepStrictEqual(TIMING, { ROUNDTRIP_MAX_MS: 3000, LOCK_GAP_MS: 300 });
   }],
 
