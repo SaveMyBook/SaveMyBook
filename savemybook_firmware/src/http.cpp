@@ -74,6 +74,16 @@ HttpResult http_request(const char *method, const char *path, const std::string 
   const int64_t started = esp_timer_get_time();
   const esp_err_t err = esp_http_client_perform(s_client);
   res.rttMs = (esp_timer_get_time() - started) / 1000;
+  // ESP-IDF 收到 401 會改走 Basic/Digest 認證，回應沒有 WWW-Authenticate 時直接回 ESP_ERR_NOT_SUPPORTED、不讀內容。
+  // 狀態碼其實已收到：照常交給上層（401 一律視為憑證失效並重新配對），否則書櫃會一直顯示連線中斷
+  const int status = esp_http_client_get_status_code(s_client);
+  if (err != ESP_OK && status >= 400) {
+    ESP_LOGW(TAG, "%s %s -> %d (%s)", method, path, status, esp_err_to_name(err));
+    res.status = status;
+    esp_http_client_cleanup(s_client);
+    s_client = nullptr;
+    return res;
+  }
   if (err != ESP_OK) {
     ESP_LOGW(TAG, "%s %s failed: %s", method, path, esp_err_to_name(err));
     res.networkError = true;

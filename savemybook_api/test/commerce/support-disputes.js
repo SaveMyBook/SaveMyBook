@@ -115,6 +115,27 @@ const tests = [
     assert.strictEqual(res.body.message, '此提問已結案，請提出新問題');
   }],
 
+  ['會員檢視工單時，客服回覆不附客服人員的帳號、暱稱與頭像；客服端仍可看到', async () => {
+    const user = addUser();
+    const staff = addAdmin();
+    prisma.rows('users').find((u) => u.user_id === staff.user_id).avatar_url = '/uploads/avatars/staff.jpg';
+    const ticket = addTicket({ userId: user.user_id });
+    for (const [token, content] of [[tokenFor(user), '密碼一直錯誤'], [tokenFor(staff), '請先重設密碼']]) {
+      const sent = await request('POST', `/api/support/tickets/${ticket.ticket_id}/messages`, { token, body: { content } });
+      assert.strictEqual(sent.status, 201, sent.text);
+    }
+
+    const mine = await request('GET', `/api/support/tickets/${ticket.ticket_id}`, { token: tokenFor(user) });
+    const [own, reply] = mine.body.data.messages;
+    assert.strictEqual(own.sender.user_id, user.user_id, '自己的訊息照常附發送者');
+    assert.strictEqual(reply.is_staff, true);
+    assert.strictEqual(reply.sender, null);
+    assert.ok(!JSON.stringify(mine.body).includes('staff.jpg'), '回應中不得出現客服頭像');
+
+    const byStaff = await request('GET', `/api/support/tickets/${ticket.ticket_id}`, { token: tokenFor(staff) });
+    assert.strictEqual(byStaff.body.data.messages[1].sender.user_id, staff.user_id);
+  }],
+
   ['工單僅限本人與客服檢視', async () => {
     const user = addUser();
     const stranger = addUser();

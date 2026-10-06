@@ -532,6 +532,7 @@ abstract class AppLocalizations {
   String get enquiry;
   String get enquiryNotFound;
   String get support;
+  String get supportAgent;
   String get writeReply;
   String get coins;
   String get transactions;
@@ -4110,6 +4111,9 @@ class _LEn extends AppLocalizations {
 
   @override
   String get support => 'Support';
+
+  @override
+  String get supportAgent => 'Support agent';
 
   @override
   String get writeReply => 'Write a reply…';
@@ -11785,6 +11789,9 @@ class _LJa extends AppLocalizations {
   String get support => 'サポート';
 
   @override
+  String get supportAgent => 'サポート担当者';
+
+  @override
   String get writeReply => '返信を入力…';
 
   @override
@@ -19456,6 +19463,9 @@ class _LKo extends AppLocalizations {
 
   @override
   String get support => '고객센터';
+
+  @override
+  String get supportAgent => '상담원';
 
   @override
   String get writeReply => '답변 입력…';
@@ -27131,6 +27141,9 @@ class _LZh extends AppLocalizations {
   String get support => '客服';
 
   @override
+  String get supportAgent => '客服人員';
+
+  @override
   String get writeReply => '輸入回覆…';
 
   @override
@@ -34804,6 +34817,9 @@ class _LZhHans extends AppLocalizations {
   String get support => '客服';
 
   @override
+  String get supportAgent => '客服人员';
+
+  @override
   String get writeReply => '输入回复…';
 
   @override
@@ -42475,6 +42491,9 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get support => '客服';
+
+  @override
+  String get supportAgent => '客服人員';
 
   @override
   String get writeReply => '輸入回覆…';
