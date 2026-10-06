@@ -644,7 +644,8 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             mainAxisAlignment: alignRight ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
               if (!alignRight) ...[
-                UserAvatar(imageUrl: message.senderAvatar, radius: 14),
+                // 客服人員一律顯示預設頭像，不露出本人照片
+                UserAvatar(imageUrl: message.isStaff ? null : message.senderAvatar, radius: 14),
                 const SizedBox(width: 8),
               ],
               Flexible(
@@ -693,7 +694,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               top: 4,
             ),
             child: Text(
-              '${message.isStaff ? S.support : message.senderName}・${formatRelative(message.createdAt)}',
+              '${message.isStaff ? S.supportAgent : message.senderName}・${formatRelative(message.createdAt)}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 10, color: c.textHint),

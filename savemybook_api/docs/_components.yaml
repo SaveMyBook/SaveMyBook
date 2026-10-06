@@ -1162,7 +1162,10 @@ components:
         content: { type: string, example: 已為您補上代幣，造成不便敬請見諒。 }
         is_staff: { type: boolean, description: 值為 true 代表此則由客服發送, example: true }
         created_at: { type: string, format: date-time }
-        sender: { $ref: '#/components/schemas/UserBrief' }
+        sender:
+          description: 發送者。會員檢視自己的工單時，客服發送的訊息為 null（不揭露客服人員身分）；具客服權限者檢視時附發送者資料。
+          allOf: [{ $ref: '#/components/schemas/UserBrief' }]
+          nullable: true
         attachments:
           type: array
           description: |

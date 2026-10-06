@@ -85,7 +85,8 @@ const detail = async (ticketId, user) => {
       content: m.content,
       is_staff: m.is_staff,
       created_at: m.created_at,
-      sender: m.users,
+      // 保護客服人員隱私：會員看到的客服回覆不附客服的帳號、暱稱與頭像，App 以預設頭像與「客服人員」顯示
+      sender: m.is_staff && !isStaff ? null : m.users,
       attachments: files.get(m.message_id) ?? []
     }))
   };
