@@ -29,9 +29,13 @@ curl -L -o plantuml.jar https://repo1.maven.org/maven2/net/sourceforge/plantuml/
 
 ## 修改圖
 
-- 改 `.puml` 後重新產圖：循序圖用 `render_seq.py`，設計類別圖與訂單狀態機用 `render_class.py`，其餘用 `java -jar plantuml.jar -tpng 檔案.puml`。
+- 改 `.puml` 後重新產圖：循序圖用 `render_seq.py`，設計類別圖與訂單狀態機用 `render_class.py`，5-3 活動圖用 `.venv/bin/python activity/fix_arrows.py ucNN`（會刪除 PlantUML 在判斷式合併點多畫的箭頭），其餘用 `java -jar plantuml.jar -tpng 檔案.puml`。
 - 檢查重疊：`.venv/bin/python overlap_check.py`（須為 0）；檢查字級：`.venv/bin/python a4check.py 圖.png`（ER 圖加 `--font 12` 且放在第一個參數）。
 - 同步到專案 `Diagrams`：`.venv/bin/python sync_diagrams.py`。
+
+## 取出單一章節
+
+組員各自排版時，可只取出一章交給對方併回：`.venv/bin/python export_chapter.py 手冊.docx 輸出.docx 需求模型 --activity`（第三個參數為該章標題；`--activity` 同時把 5-3 活動圖換成 `activity/` 內的最新圖）。章號與起始頁碼沿用原手冊。
 
 ## 用詞修正
 

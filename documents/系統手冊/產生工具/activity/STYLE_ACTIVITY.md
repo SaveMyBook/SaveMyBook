@@ -17,5 +17,5 @@ skinparam swimlaneWidth same
 4. 內容：主要流程完整呈現；例外只畫最重要的一到三個（例如驗證失敗、逾時、取消），其餘例外不畫。每個動作框每行不超過約 14 個中文字，最多兩行。
 5. 禁止：title、note、legend、顏色、檔名、函式名、程式變數、API 路徑以外的技術細節（活動圖不需要 API 路徑）。用語為正式繁體中文，與 App 畫面名稱一致（例如「取消上架」「申請爭議」「先行存書」「待取書」）。
 6. 必須符合現行系統：以 `use_cases.md` 中對應之使用個案描述表為準；描述不清楚時可唯讀查閱 `/Users/xukaijun/Desktop/SaveMyBook/savemybook_api` 與 `savemybook_app` 的程式碼確認。
-7. 版面：以 `java -jar ../plantuml.jar -tpng ucNN.puml` 產生 PNG，再以 `../docenv/bin/python ../a4check.py ucNN.png` 檢查，必須沒有「字太小」警告（放入 Word 後寬 ≤ 18 cm、高 ≤ 23 cm、字級 ≥ 9 pt）。不通過就合併步驟、縮短文字或減少例外，直到通過。
+7. 版面：以 `../.venv/bin/python fix_arrows.py ucNN` 產生 PNG（同一條線上多出的箭頭會被刪除），再以 `../docenv/bin/python ../a4check.py ucNN.png` 檢查，必須沒有「字太小」警告（放入 Word 後寬 ≤ 18 cm、高 ≤ 23 cm、字級 ≥ 9 pt）。不通過就合併步驟、縮短文字或減少例外，直到通過。
 8. 檔名：`ucNN.puml`、`ucNN.png`（NN 為兩位數之使用個案編號，例如 uc01、uc34）。只在本資料夾建立自己負責的檔案，不修改其他任何檔案。
