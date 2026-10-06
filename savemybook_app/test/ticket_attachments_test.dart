@@ -18,6 +18,7 @@ import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
 import 'package:savemybook_app/widgets/image_viewer.dart';
+import 'package:savemybook_app/widgets/app_tiles.dart';
 
 class _FakeUploads {
   final pending = <String, Completer<(String?, String?)>>{};
@@ -206,6 +207,42 @@ void main() {
             return http.Response(jsonEncode({'success': true, 'data': {'ticket_id': 3}}), 201,
                 headers: {'content-type': 'application/json'});
           }));
+    });
+
+    testWidgets('客服回覆顯示預設頭像與「客服人員」，不顯示客服本人的名字與照片', (tester) async {
+      final ticket = {
+        'ticket_id': 8,
+        'subject': '帳號問題',
+        'category': 'account',
+        'status': 'pending',
+        'message_count': 3,
+        'updated_at': _now,
+        'messages': [
+          {'message_id': 1, 'content': '無法登入', 'is_staff': false, 'created_at': _now, 'sender': {'user_id': 1, 'nickname': '會員'}},
+          {'message_id': 2, 'content': '請先重設密碼', 'is_staff': true, 'created_at': _now, 'sender': null},
+          // 舊版伺服器仍會附客服資料，畫面也不得顯示
+          {
+            'message_id': 3,
+            'content': '已為您處理',
+            'is_staff': true,
+            'created_at': _now,
+            'sender': {'user_id': 9, 'nickname': '王小明', 'avatar_url': '/uploads/avatars/staff.jpg'},
+          },
+        ],
+      };
+      await http.runWithClient(() async {
+        await tester.pumpWidget(_host(const TicketDetailScreen(ticketId: 8)));
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pump(const Duration(seconds: 2));
+        expect(find.textContaining('請先重設密碼'), findsOneWidget);
+        expect(find.textContaining(S.supportAgent), findsNWidgets(2));
+        expect(find.textContaining('王小明'), findsNothing);
+        final staffAvatars = tester.widgetList<UserAvatar>(find.byType(UserAvatar)).toList();
+        expect(staffAvatars, hasLength(2));
+        expect(staffAvatars.every((a) => a.imageUrl == null), isTrue);
+        await tester.pump(const Duration(seconds: 3));
+      }, () => MockClient((req) async => http.Response(jsonEncode({'success': true, 'data': ticket}), 200,
+          headers: {'content-type': 'application/json'})));
     });
 
     testWidgets('對話顯示附件縮圖，點擊開啟全螢幕檢視；可只傳圖片回覆', (tester) async {
