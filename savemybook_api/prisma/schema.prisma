@@ -467,6 +467,8 @@ model smart_cabinets {
   is_maintenance         Boolean                  @default(false)
   open_time              DateTime?                @db.Time(0)
   close_time             DateTime?                @db.Time(0)
+  /// 書櫃螢幕背光亮度（10–100%），由管理員設定，裝置於 GET /state 的 settings 取得
+  screen_brightness      Int                      @default(100) @db.UnsignedTinyInt
   created_at             DateTime                 @default(now()) @db.DateTime(0)
   updated_at             DateTime                 @default(now()) @db.DateTime(0)
   books                  books[]

@@ -1,8 +1,10 @@
 #include <atomic>
 
+#include "clock.h"
 #include "demo.h"
 #include "device.h"
 #include "display.h"
+#include "door.h"
 #include "esp_system.h"
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
@@ -57,7 +59,14 @@ static View wifiView() {
   esp_task_wdt_add(nullptr);
   for (;;) {
     esp_task_wdt_reset();
-    ui_draw(s_deviceStarted ? s_device.view() : wifiView());
+    View v = s_deviceStarted ? s_device.view() : wifiView();
+    // 連上過後又連不上而開啟 Wi-Fi 設定時改顯示設定畫面；開門作業中仍顯示倒數
+    const WifiState ws = wifi_state();
+    if (s_deviceStarted && (ws == WifiState::Provisioning || ws == WifiState::ProvisionFailed) && v.screen != Screen::Open &&
+        v.screen != Screen::Admin && v.screen != Screen::Opening)
+      v = wifiView();
+    v.clock = clock_hhmm();
+    ui_draw(v);
     vTaskDelay(pdMS_TO_TICKS(250));
   }
 }
@@ -79,12 +88,38 @@ static View wifiView() {
 
 #else
 // 硬體測試：不連網路。先確認開機時繼電器都沒有吸合，再逐顆通電 0.8 秒，接著輪播各畫面確認螢幕方向與字型。
+// 以 -DSMB_HW_TEST_DOOR=n 編譯時只重複測試第 n 扇；-DSMB_HW_TEST_RELAY_ONLY=1 時四扇輪流但不輪播畫面；
+// -DSMB_HW_TEST_DOORS=1 時不開鎖，只即時顯示四個門開關的狀態與原始電位。
+#ifndef SMB_HW_TEST_DOOR
+#define SMB_HW_TEST_DOOR 0
+#endif
+#ifndef SMB_HW_TEST_RELAY_ONLY
+#define SMB_HW_TEST_RELAY_ONLY 0
+#endif
+#ifndef SMB_HW_TEST_DOORS
+#define SMB_HW_TEST_DOORS 0
+#endif
+
+[[noreturn]] static void doorTest(const View &base) {
+  for (;;) {
+    View v = base;
+    std::string states, levels = "GPIO";
+    for (int ch = 1; ch <= DOOR_COUNT; ch++) {
+      states += (ch > 1 ? "  A0" : "A0") + std::to_string(ch) + " " + msg(door_open(ch) ? "HW_DOOR_OPEN" : "HW_DOOR_CLOSED");
+      levels += (ch > 1 ? "  " : " ") + std::to_string(PIN_DOOR[ch - 1]) + "=" + std::to_string(door_raw(ch));
+    }
+    v.lines = {states, levels};
+    ui_draw(v);
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+}
 [[noreturn]] static void hwTest() {
   View base;
   base.header = msg("HW_TITLE");
   base.screen = Screen::HwTest;
 
   const std::vector<View> demos = demo_views();
+  if (SMB_HW_TEST_DOORS) doorTest(base);
 
   for (;;) {
     View relay = base;
@@ -92,12 +127,20 @@ static View wifiView() {
     ui_draw(relay);
     vTaskDelay(pdMS_TO_TICKS(5000));
     for (int ch = 1; ch <= DOOR_COUNT; ch++) {
+      if (SMB_HW_TEST_DOOR && ch != SMB_HW_TEST_DOOR) continue;
       relay.lines = {format("HW_RELAY_ON", {{"n", std::to_string(ch)}})};
       ui_draw(relay);
       relay_pulse(ch, 800);
       relay.lines = {msg("HW_ALL_OFF")};
       ui_draw(relay);
       vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    if (SMB_HW_TEST_DOOR || SMB_HW_TEST_RELAY_ONLY) continue;
+    for (int p : {100, 50, 20, 100}) {
+      relay.lines = {format("HW_BACKLIGHT", {{"p", std::to_string(p)}})};
+      display_set_brightness(p);
+      ui_draw(relay);
+      vTaskDelay(pdMS_TO_TICKS(1500));
     }
     for (const View &d : demos) {
       ui_draw(d);
@@ -109,8 +152,10 @@ static View wifiView() {
 
 extern "C" void app_main(void) {
   relay_init();  // 第一件事：所有電磁鎖維持上鎖
+  door_init();
   store::init();
   display_init();
+  display_set_brightness(savedBrightness());
 #ifdef SMB_HW_TEST
   hwTest();
 #else

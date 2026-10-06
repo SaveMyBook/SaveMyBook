@@ -54,8 +54,11 @@ Map<String, dynamic> _pairing() => {
       'expires_at': DateTime.now().toUtc().add(const Duration(minutes: 10)).toIso8601String(),
     };
 
-Map<String, dynamic> _summary({bool online = true, bool a04Checked = false, bool pairing = false, bool replaced = false, String? active}) => {
-      'cabinet': {'cabinet_id': 3, 'cabinet_name': '北商大書櫃', 'is_active': true, 'is_maintenance': false, 'open_time': '08:00', 'close_time': '22:00'},
+Map<String, dynamic> _summary({bool online = true, bool a04Checked = false, bool pairing = false, bool replaced = false, String? active, int brightness = 100}) => {
+      'cabinet': {
+        'cabinet_id': 3, 'cabinet_name': '北商大書櫃', 'is_active': true, 'is_maintenance': false, 'open_time': '08:00', 'close_time': '22:00',
+        'screen_brightness': brightness,
+      },
       'access': {'mode': 'scan', 'reason': null, 'online': online, 'open_now': true},
       'simulator_enabled': true,
       'kiosk_url': 'https://api.savemybook.today/kiosk',
@@ -176,6 +179,7 @@ class _FakeServer {
   int pairPolls = 0;
   String adminStage = 'matching';
   String? active;
+  int brightness = 100;
 
   MockClient get client => MockClient((req) async {
         final path = req.url.path.replaceFirst('/api', '');
@@ -230,7 +234,10 @@ class _FakeServer {
           if (pairPolls < 2) return _ok(_summary(pairing: true));
           return _ok(pairExpires ? _summary() : _summary(replaced: true));
         }
-        return _ok(_summary(a04Checked: a04Checked, active: active));
+        return _ok(_summary(a04Checked: a04Checked, active: active, brightness: brightness));
+      case 'PATCH /admin/cabinets/3/device/settings':
+        brightness = body['screen_brightness'] as int;
+        return _ok({'screen_brightness': brightness}, message: '螢幕亮度已更新');
       case 'POST /admin/cabinets/3/device/pair':
         if (body['code'] == '00000000') return _fail(400, 'PAIRING_CODE_INVALID', '配對碼無效或已逾時');
         if (body['code'] == '99999999') return _fail(429, 'RATE_LIMITED', '嘗試次數過多，請稍後再試');
@@ -543,6 +550,26 @@ void main() {
         expect(server.requests.where((r) => r == 'POST /security/verify').length, 1);
         await tester.tap(find.text(S.actionCancel));
         await _settle(tester);
+        await _finish(tester);
+      }, () => server.client);
+    });
+
+    testWidgets('螢幕亮度：顯示目前設定，選擇新的亮度後送出並更新畫面', (tester) async {
+      _tallView(tester);
+      await http.runWithClient(() async {
+        await tester.pumpWidget(_host(const AdminCabinetDeviceScreen(cabinetId: 3)));
+        await _settle(tester);
+        expect(find.text(S.screenBrightness), findsOneWidget);
+        expect(find.text('100%'), findsOneWidget);
+
+        await tester.tap(find.text(S.change));
+        await _settle(tester);
+        expect(find.text(S.screenBrightnessApplyNextSync), findsOneWidget);
+        await tester.tap(find.text('60%'));
+        await _settle(tester);
+        expect(server.bodies['PATCH /admin/cabinets/3/device/settings'], {'screen_brightness': 60});
+        expect(find.text(S.screenBrightnessUpdated), findsOneWidget);
+        expect(find.text('60%'), findsOneWidget);
         await _finish(tester);
       }, () => server.client);
     });

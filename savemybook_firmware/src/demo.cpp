@@ -7,6 +7,8 @@ namespace smb {
 std::vector<View> demo_views() {
   View base;
   base.header = msg("HW_TITLE");
+  base.online = true;
+  base.clock = "14:25";
 
   std::vector<View> demos;
   View v = base;

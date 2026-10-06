@@ -107,7 +107,9 @@ registerModels({
     cabinet_manual_reports: [['report_id']]
   },
   defaults: {
-    smart_cabinets: { total_slots: 20, available_slots: 20, is_active: true, is_maintenance: 0, open_time: null, close_time: null },
+    smart_cabinets: {
+      total_slots: 20, available_slots: 20, is_active: true, is_maintenance: 0, open_time: null, close_time: null, screen_brightness: 100
+    },
     cabinet_slots: {
       status: 'empty', current_book_id: null, current_order_id: null, lock_channel: null, fault_code: null,
       check_required_at: null, check_session_id: null, check_reason: null, sensor_state: null, sensor_at: null

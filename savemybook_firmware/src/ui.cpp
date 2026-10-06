@@ -108,7 +108,7 @@ static void icon(Canvas &c, Icon kind, int cx, int cy) {
 static void header(Canvas &c, const View &v) {
   c.rect(0, 0, SCREEN_W, HEADER_H, color::HEADER);
   c.text(FONT_TITLE, v.header, 10, HEADER_H / 2, color::TEXT);
-  c.disc(SCREEN_W - 14, HEADER_H / 2, 4, v.online ? color::ONLINE : color::OFFLINE);
+  c.text(FONT_TITLE, v.clock, SCREEN_W - 10, HEADER_H / 2, v.online ? color::TEXT : color::OFFLINE, Align::Right);
 }
 
 static std::string line(const View &v, size_t i) { return i < v.lines.size() ? v.lines[i] : ""; }

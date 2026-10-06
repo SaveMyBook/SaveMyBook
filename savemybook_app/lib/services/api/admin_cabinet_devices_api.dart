@@ -123,6 +123,10 @@ extension AdminCabinetDevicesApi on ApiService {
     return _adminCabinetError(res);
   }
 
+  Future<String?> setCabinetScreenBrightness(int cabinetId, int percent) async {
+    return _adminCabinetError(await _send('PATCH', '/admin/cabinets/$cabinetId/device/settings', body: {'screen_brightness': percent}));
+  }
+
   Future<String?> clearCabinetFault(int cabinetId, {int? slotId}) async {
     final path = slotId == null ? '/admin/cabinets/$cabinetId/device/fault-clear' : '${_cabinetDoorPath(cabinetId, slotId)}/fault-clear';
     return _adminCabinetError(await _send('POST', path));

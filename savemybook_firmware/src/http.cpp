@@ -3,6 +3,7 @@
 #include <cstring>
 #include <strings.h>
 
+#include "clock.h"
 #include "esp_crt_bundle.h"
 #include "esp_http_client.h"
 #include "esp_log.h"
@@ -16,6 +17,7 @@ static constexpr size_t MAX_BODY = 32 * 1024;
 
 struct Context {
   std::string body;
+  std::string date;
   int retryAfterSec = -1;
 };
 
@@ -26,6 +28,8 @@ static esp_err_t onEvent(esp_http_client_event_t *evt) {
   auto *ctx = static_cast<Context *>(evt->user_data);
   if (evt->event_id == HTTP_EVENT_ON_HEADER && evt->header_key && strcasecmp(evt->header_key, "Retry-After") == 0) {
     ctx->retryAfterSec = atoi(evt->header_value);
+  } else if (evt->event_id == HTTP_EVENT_ON_HEADER && evt->header_key && strcasecmp(evt->header_key, "Date") == 0) {
+    ctx->date = evt->header_value;
   } else if (evt->event_id == HTTP_EVENT_ON_DATA && ctx->body.size() + evt->data_len <= MAX_BODY) {
     ctx->body.append(static_cast<const char *>(evt->data), evt->data_len);
   }
@@ -64,6 +68,7 @@ HttpResult http_request(const char *method, const char *path, const std::string 
   }
 
   s_ctx.body.clear();
+  s_ctx.date.clear();
   s_ctx.retryAfterSec = -1;
   HttpResult res;
   const int64_t started = esp_timer_get_time();
@@ -77,6 +82,7 @@ HttpResult http_request(const char *method, const char *path, const std::string 
     return res;
   }
   res.status = esp_http_client_get_status_code(s_client);
+  clock_set_from_http_date(s_ctx.date.c_str());
   res.body = std::move(s_ctx.body);
   res.retryAfterSec = s_ctx.retryAfterSec;
   ESP_LOGI(TAG, "%s %s -> %d (%lld ms)", method, path, res.status, res.rttMs);

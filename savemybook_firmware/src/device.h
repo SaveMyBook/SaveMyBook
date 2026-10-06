@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -18,8 +19,11 @@ struct cJSON;
 
 namespace smb {
 
-// 書櫃裝置邏輯，移植自模擬書櫃 savemybook_api/views/kiosk/device-core.js（不含門磁），協定見 savemybook_api/docs/device.yaml。
+// 書櫃裝置邏輯，移植自模擬書櫃 savemybook_api/views/kiosk/device-core.js，協定見 savemybook_api/docs/device.yaml。
 // 網路工作與開鎖工作分在兩個 FreeRTOS 工作：開鎖不會被 HTTPS 請求卡住。共用狀態以 mu_ 保護，名稱以底線結尾的函式須在持有 mu_ 時呼叫。
+// NVS 保存的螢幕亮度（10–100），沒有時為 100。
+int savedBrightness();
+
 class Device {
  public:
   // Wi-Fi 啟動後呼叫：開機代碼要在無線電啟用後以 esp_random() 產生才是真隨機。
@@ -35,7 +39,12 @@ class Device {
     int channel = 0;
   };
   struct DoorRun {
-    std::string commandId, state;  // pending、open、closed
+    std::string commandId, state;  // pending、open、closed、left_open
+  };
+  // 門磁回報的實體狀態。graceUntil：斷電後這段時間內拉開門仍算正常開啟（櫃門沒有彈簧，使用者可能稍晚才拉）。
+  struct Hw {
+    bool open = false, locked = true, unlocking = false, leftOpen = false;
+    int64_t graceUntil = 0;
   };
   struct Local {
     std::string sessionId, action;
@@ -43,7 +52,7 @@ class Device {
     std::map<int, DoorRun> doors;
     int unlocking = 0;
     bool closing = false, expired = false, hasClose = false;
-    std::string closeId, closeOutcome;
+    std::string closeId, closeOutcome, refusedOutcome;
   };
   struct UnlockCmd {
     std::string id;
@@ -94,6 +103,8 @@ class Device {
   void applyClose_();
   void onCountdownEnd_();
   void closeSession_(const char *outcome, const char *reason);
+  bool sessionDoorOpen_() const;
+  void onDoor(int channel, bool open);
 
   void startPairing_();
   void pairCycle();
@@ -129,6 +140,8 @@ class Device {
   std::shared_ptr<Local> local_;
   std::set<std::string> executed_;
   int64_t lastPowerOff_ = -1000000;
+  int brightness_ = 100;
+  std::array<Hw, 5> hw_{};
   Pairing pairing_;
 };
 

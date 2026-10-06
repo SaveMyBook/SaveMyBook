@@ -188,6 +188,46 @@ paths:
               example: { success: false, code: DEVICE_NOT_PAIRED, message: 此書櫃尚未配對裝置 }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/admin/cabinets/{id}/device/settings:
+    patch:
+      summary: 調整書櫃螢幕設定
+      operationId: adminUpdateCabinetScreenSettings
+      tags: [admin-cabinets]
+      description: |
+        設定書櫃螢幕背光亮度（10–100%）。設定存於書櫃，重新配對裝置後沿用；
+        裝置於下一次 `GET /api/device/v1/state` 的 `settings.screen_brightness` 取得並套用。數值改變時記錄管理員操作。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CabinetIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [screen_brightness]
+              properties:
+                screen_brightness: { type: integer, minimum: 10, maximum: 100, example: 60 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 螢幕亮度已更新 }
+                  data:
+                    type: object
+                    properties:
+                      screen_brightness: { type: integer, example: 60 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminForbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/admin/cabinets/{id}/events:
     get:
       summary: 書櫃事件紀錄
@@ -428,6 +468,7 @@ components:
             is_maintenance: { type: boolean, example: false }
             open_time: { type: string, nullable: true, example: '08:00' }
             close_time: { type: string, nullable: true, example: '22:00' }
+            screen_brightness: { type: integer, minimum: 10, maximum: 100, description: 書櫃螢幕背光亮度（%）。, example: 100 }
         access:
           type: object
           properties:

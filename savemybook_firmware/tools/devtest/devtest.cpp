@@ -31,7 +31,7 @@ static bool waitFor(F pred, int ms) {
 
 // 收到事件時就拆好欄位，測試執行緒不呼叫 cJSON（cJSON 的錯誤位置是全域變數）。
 struct Ev {
-  std::string id, type, session, commandId, reason, outcome, bootId, resetReason, firmware;
+  std::string id, type, session, commandId, reason, outcome, bootId, resetReason, firmware, code;
   int channel = 0;
 };
 
@@ -42,7 +42,9 @@ struct Fake {
   bool paired = false, revoked = false, down = false;
   int64_t rtt = 5;
   std::string session, phase = "idle", action = "deposit", closeId, closeOutcome;
-  int64_t openMs = 5000;
+  int64_t openMs = 5000, releaseMs = 300;
+  int brightness = 100;
+  bool hasDoorSensor = false;
   std::vector<int> channels;
   std::map<int, bool> opened;
   std::vector<std::string> requests, bootHeaders;
@@ -53,6 +55,7 @@ struct Fake {
     cJSON_AddStringToObject(s, "device_no", "DVTEST");
     cJSON_AddStringToObject(s, "screen", phase == "idle" ? "idle" : phase.c_str());
     cJSON_AddNumberToObject(s, "poll_ms", 150);
+    cJSON_AddNumberToObject(cJSON_AddObjectToObject(s, "settings"), "screen_brightness", brightness);
     cJSON *m = cJSON_AddObjectToObject(s, "message");
     cJSON_AddStringToObject(m, "code", phase == "idle" ? "IDLE_SCAN" : "OPENING");
     if (phase == "idle") {
@@ -75,7 +78,7 @@ struct Fake {
         cJSON_AddStringToObject(c, "id", (session + ":" + std::to_string(ch) + ":1").c_str());
         cJSON_AddStringToObject(c, "type", "unlock");
         cJSON_AddNumberToObject(c, "channel", ch);
-        cJSON_AddNumberToObject(c, "release_ms", 300);
+        cJSON_AddNumberToObject(c, "release_ms", static_cast<double>(releaseMs));
         cJSON_AddNumberToObject(c, "expires_in_ms", 6000);
         cJSON_AddItemToArray(cmds, c);
       }
@@ -132,13 +135,16 @@ struct Fake {
       const cJSON *ch = cJSON_GetObjectItem(e, "channel");
       events.push_back({str(e, "id"), str(e, "type"), str(e, "session_id"), str(data, "command_id"), str(data, "reason"),
                         str(data, "outcome"), str(data, "boot_id"), str(data, "reset_reason"), str(data, "firmware"),
-                        cJSON_IsNumber(ch) ? ch->valueint : 0});
+                        str(data, "code"), cJSON_IsNumber(ch) ? ch->valueint : 0});
+      if (str(e, "type") == "boot") hasDoorSensor = cJSON_IsTrue(cJSON_GetObjectItem(data, "has_door_sensor"));
       const std::string type = cJSON_GetObjectItem(e, "type")->valuestring;
       if (type == "door_opened") {
         opened[cJSON_GetObjectItem(e, "channel")->valueint] = true;
         bool all = true;
         for (int ch : channels) all = all && opened[ch];
         if (all && phase == "opening") phase = "open";
+      } else if (type == "close_refused") {
+        closeId.clear();  // 伺服器收到即撤回 close 指令
       } else if (type == "session_closed") {
         phase = "idle";
         session.clear();
@@ -210,6 +216,21 @@ static void flow() {
     check(host::storeData[0]["token"] == s_fake.token, "裝置憑證寫入 NVS");
   }
   check(waitFor([] { return d.view().screen == Screen::Idle && !d.view().qr.empty(); }, 2000), "閒置畫面顯示 QR Code");
+  {
+    std::lock_guard<std::mutex> g(s_fake.mu);
+    s_fake.brightness = 40;
+  }
+  check(waitFor([] { return host::brightness == 40; }, 2000), "套用伺服器設定的螢幕亮度 40%");
+  {
+    std::lock_guard<std::mutex> g(host::storeMu);
+    check(host::storeData[0]["brightness"] == "40", "亮度保存到 NVS");
+  }
+  {
+    std::lock_guard<std::mutex> g(s_fake.mu);
+    s_fake.brightness = 5;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  check(host::brightness == 40, "超出 10–100 的亮度不套用");
 
   setSession("CS1", {2, 3}, 5000, "deposit");
   check(waitFor([] { return s_fake.find("door_opened", "CS1").size() == 2; }, 5000), "兩扇門都回報 door_opened");
@@ -345,11 +366,99 @@ static void offline() {
   check(s_fake.find("boot").size() == 1, "離線期間的 boot 事件於恢復後送出");
 }
 
+// 需以 -DCONFIG_SMB_DOOR_SENSOR=1 編譯（run.sh 另外編一個 devtest_sensor）。
+static void sensor() {
+  puts("門磁：提早斷電、拒絕結束、全部關上即結束、遭強制開啟、門未關");
+  host::storeData[0]["token"] = s_fake.token;
+  s_fake.paired = true;
+  s_fake.releaseMs = 2000;
+  static Device d;
+  start(d, "power_on");
+  check(waitFor([] { return !s_fake.find("boot").empty(); }, 3000), "開機送出 boot");
+  check(s_fake.hasDoorSensor, "boot 回報 has_door_sensor = true");
+
+  // 通電期間門被拉開就提早斷電，並在 A01 開著時拒絕手機的完成
+  setSession("CS1", {1}, 8000, "deposit");
+  std::this_thread::sleep_for(std::chrono::milliseconds(600));
+  host::setDoor(1, true);
+  check(waitFor([] { return s_fake.find("door_opened", "CS1").size() == 1; }, 3000), "A01 回報 door_opened");
+  {
+    std::lock_guard<std::mutex> g(host::pulseMu);
+    const int64_t len = host::pulses.empty() ? -1 : host::pulses[0].endMs - host::pulses[0].startMs;
+    check(len > 0 && len < 1500, "門拉開後提早斷電（通電 " + std::to_string(len) + " 毫秒，上限 2000）");
+  }
+  check(s_fake.find("door_forced").empty(), "開鎖期間拉開不算強制開啟");
+  {
+    std::lock_guard<std::mutex> g(s_fake.mu);
+    s_fake.closeId = "CS1:close:1700000000100";
+    s_fake.closeOutcome = "completed";
+  }
+  check(waitFor([] { return s_fake.find("close_refused", "CS1").size() == 1; }, 3000), "門還開著時回報 close_refused");
+  auto refused = s_fake.find("close_refused", "CS1");
+  check(!refused.empty() && refused[0].commandId == "CS1:close:1700000000100" && refused[0].code == "DOOR_OPEN",
+        "close_refused 附 command_id 與 DOOR_OPEN");
+  check(waitFor([] { return d.view().notice == "請先關上櫃門"; }, 1000), "螢幕提示請先關上櫃門");
+  check(s_fake.find("session_closed", "CS1").empty(), "門關上前不結束作業");
+  host::setDoor(1, false);
+  check(waitFor([] { return !s_fake.find("session_closed", "CS1").empty(); }, 3000), "關上 A01 後結束作業");
+  auto closed1 = s_fake.find("door_closed", "CS1");
+  check(closed1.size() == 1 && closed1[0].reason == "sensor", "door_closed(sensor)");
+  auto sc1 = s_fake.find("session_closed", "CS1");
+  check(!sc1.empty() && sc1[0].outcome == "completed" && sc1[0].reason == "sensor", "session_closed(completed, sensor)");
+
+  // 兩扇門都關上才結束，不必等倒數
+  {
+    std::lock_guard<std::mutex> g(s_fake.mu);
+    s_fake.releaseMs = 500;
+  }
+  setSession("CS2", {2, 3}, 20000, "pickup");
+  check(waitFor([] { return s_fake.find("door_opened", "CS2").size() == 1; }, 3000), "A02 斷電後回報 door_opened");
+  host::setDoor(2, true);
+  check(waitFor([] { return s_fake.find("door_opened", "CS2").size() == 2; }, 3000), "A03 斷電後回報 door_opened");
+  host::setDoor(3, true);
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  check(s_fake.find("door_forced").empty(), "斷電後 3 秒內才拉開仍算正常開啟");
+  host::setDoor(2, false);
+  std::this_thread::sleep_for(std::chrono::milliseconds(400));
+  check(s_fake.find("session_closed", "CS2").empty(), "還有一扇門開著時不結束");
+  host::setDoor(3, false);
+  check(waitFor([] { return !s_fake.find("session_closed", "CS2").empty(); }, 2000), "兩扇都關上後立即結束（倒數 20 秒）");
+
+  // 閒置時被打開：回報強制開啟，關上後回報 door_closed
+  std::this_thread::sleep_for(std::chrono::milliseconds(3200));
+  host::setDoor(4, true);
+  check(waitFor([] { return s_fake.find("door_forced").size() == 1; }, 2000), "閒置時 A04 被打開回報 door_forced");
+  check(!s_fake.find("door_forced").empty() && s_fake.find("door_forced")[0].channel == 4, "door_forced 附通道");
+  host::setDoor(4, false);
+  check(waitFor([] {
+          for (const Ev &e : s_fake.find("door_closed")) if (e.channel == 4 && e.session.empty()) return true;
+          return false;
+        }, 2000),
+        "A04 關上後回報不帶作業的 door_closed");
+
+  // 倒數結束時門還開著：回報 DOOR_LEFT_OPEN，關上後回報 fault_cleared
+  setSession("CS3", {1}, 1200, "deposit");
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
+  host::setDoor(1, true);
+  check(waitFor([] { return !s_fake.find("session_closed", "CS3").empty(); }, 4000), "倒數結束仍結束作業");
+  bool leftOpen = false;
+  for (const Ev &e : s_fake.find("fault")) leftOpen = leftOpen || (e.channel == 1 && e.code == "DOOR_LEFT_OPEN");
+  check(leftOpen, "門還開著時回報 fault(DOOR_LEFT_OPEN)");
+  check(s_fake.find("door_closed", "CS3").empty(), "開著的門不送 door_closed(timeout)");
+  host::setDoor(1, false);
+  check(waitFor([] {
+          for (const Ev &e : s_fake.find("fault_cleared")) if (e.channel == 1 && e.code == "DOOR_LEFT_OPEN") return true;
+          return false;
+        }, 2000),
+        "關上後回報 fault_cleared(DOOR_LEFT_OPEN)");
+}
+
 int main(int argc, char **argv) {
   const std::string which = argc > 1 ? argv[1] : "flow";
   if (which == "flow") flow();
   else if (which == "reboot") reboot();
   else if (which == "offline") offline();
+  else if (which == "sensor") sensor();
   printf("%s：%s\n", which.c_str(), s_failed ? "有失敗" : "全部通過");
   fflush(stdout);
   _exit(s_failed ? 1 : 0);

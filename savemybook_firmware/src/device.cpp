@@ -4,9 +4,12 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <iterator>
 
 #include "cJSON.h"
+#include "display.h"
+#include "door.h"
 #include "esp_log.h"
 #include "esp_random.h"
 #include "esp_task_wdt.h"
@@ -36,9 +39,16 @@ static constexpr int64_t QR_REFRESH_MS = 30000;
 static constexpr int64_t DEFAULT_OPEN_MS = 30000;
 static constexpr int64_t ROUNDTRIP_MAX_MS = 3000;
 static constexpr int64_t LOCK_GAP_MS = 300;
-static constexpr int UNLOCK_PULSE_MS = 800;
+static constexpr int64_t SENSOR_OPEN_WAIT_MS = 3000;
+// 櫃門沒有彈簧，通電 3 秒讓使用者有時間拉開；小型電控鎖多半只能短時間通電，不要再加長（relay_pulse 上限 3000）。
+static constexpr int UNLOCK_PULSE_MS = 3000;
 
 static int64_t nowMs() { return esp_timer_get_time() / 1000; }
+
+int savedBrightness() {
+  const int b = std::atoi(store::get(store::Identity, "brightness").c_str());
+  return b >= 10 && b <= 100 ? b : 100;
+}
 
 // ---------- 小工具 ----------
 
@@ -102,6 +112,14 @@ void Device::begin(const std::string &resetReason) {
   for (int i = 0; i < 8; i++) bootId_ += chars[esp_random() % 36];
   loadIdentity_();
   ESP_LOGI(TAG, "boot %s, %s", bootId_.c_str(), token_.empty() ? "not paired" : "paired");
+  brightness_ = savedBrightness();
+  if (DOOR_SENSOR) {
+    for (int ch = 1; ch <= DOOR_COUNT; ch++) {
+      hw_[ch].open = door_open(ch);
+      hw_[ch].locked = !hw_[ch].open;
+    }
+    door_on_change([this](int channel, bool open) { onDoor(channel, open); });
+  }
 
   if (token_.empty()) {
     startPairing_();
@@ -120,7 +138,7 @@ void Device::begin(const std::string &resetReason) {
   cJSON *boot = cJSON_CreateObject();
   cJSON_AddStringToObject(boot, "firmware", CONFIG_SMB_FIRMWARE_VERSION);
   cJSON_AddNumberToObject(boot, "door_count", DOOR_COUNT);
-  cJSON_AddBoolToObject(boot, "has_door_sensor", false);
+  cJSON_AddBoolToObject(boot, "has_door_sensor", DOOR_SENSOR);
   cJSON_AddNumberToObject(boot, "unlock_pulse_ms", UNLOCK_PULSE_MS);
   cJSON_AddStringToObject(boot, "reset_reason", resetReason.c_str());
   cJSON_AddStringToObject(boot, "boot_id", bootId_.c_str());
@@ -423,6 +441,14 @@ void Device::applyState_(const cJSON *state, int64_t rtt) {
   s.at = nowMs();
   s.screen = str(state, "screen");
   double v;
+  // 管理員設定的螢幕亮度：保存到 NVS，下次開機連上網路前就用這個亮度
+  if (num(cJSON_GetObjectItemCaseSensitive(state, "settings"), "screen_brightness", v) && v == std::floor(v) && v >= 10 &&
+      v <= 100 && static_cast<int>(v) != brightness_) {
+    brightness_ = static_cast<int>(v);
+    display_set_brightness(brightness_);
+    store::set(store::Identity, "brightness", std::to_string(brightness_));
+    ESP_LOGI(TAG, "screen brightness %d%%", brightness_);
+  }
   if (num(state, "poll_ms", v)) s.pollMs = static_cast<int64_t>(v);
   const cJSON *message = cJSON_GetObjectItemCaseSensitive(state, "message");
   s.messageCode = str(message, "code");
@@ -556,14 +582,23 @@ void Device::handleUnlock_(const cJSON *commands, int64_t rtt) {
       }
       if (aborted) break;
       if (gap > 0) vTaskDelay(pdMS_TO_TICKS(gap));
-      relay_pulse(cmd.channel, cmd.releaseMs);
+      {
+        std::lock_guard<std::mutex> g(mu_);
+        hw_[cmd.channel].unlocking = true;
+      }
+      const int channel = cmd.channel;
+      relay_pulse(channel, cmd.releaseMs, DOOR_SENSOR ? std::function<bool()>([channel] { return door_open(channel); })
+                                                      : std::function<bool()>());
       std::lock_guard<std::mutex> g(mu_);
       lastPowerOff_ = nowMs();
+      hw_[channel].unlocking = false;
+      hw_[channel].graceUntil = lastPowerOff_ + SENSOR_OPEN_WAIT_MS;
       if (batch->gen != gen_) {
         aborted = true;
         break;
       }
-      // 沒有門磁，斷電即視為已開啟（門板有彈簧會自動彈開）。
+      // 斷電即回報開啟。有門磁時也不等門磁確認：櫃門沒有彈簧，使用者拉得慢與電磁鎖故障無法分辨，
+      // 照協定回報 LOCK_NO_RELEASE 會讓書櫃進入維修；沒拉開的門由倒數或手機完成結束。
       batch->local->doors[cmd.channel].state = "open";
       cJSON *data = cJSON_CreateObject();
       cJSON_AddStringToObject(data, "command_id", cmd.id.c_str());
@@ -601,6 +636,12 @@ void Device::closeSession_(const char *outcome, const char *reason) {
   const bool completed = std::string(outcome) == "completed";
   for (auto &[channel, door] : local_->doors) {
     if (door.state != "open") continue;
+    if (DOOR_SENSOR && hw_[channel].open) {
+      hw_[channel].leftOpen = true;
+      door.state = "left_open";
+      enqueue_("fault", "", channel, R"({"code":"DOOR_LEFT_OPEN"})");
+      continue;
+    }
     if (completed) {
       cJSON *data = cJSON_CreateObject();
       cJSON_AddStringToObject(data, "reason", reason);
@@ -643,8 +684,69 @@ void Device::handleClose_(const cJSON *commands) {
 void Device::applyClose_() {
   if (!local_ || !local_->hasClose || local_->closing || local_->unlocking > 0) return;
   local_->hasClose = false;
+  if (sessionDoorOpen_()) {
+    // 伺服器收到 close_refused 即撤回指令，不會再送一次；記住結果，門關上時依此結束作業。
+    local_->refusedOutcome = local_->closeOutcome;
+    cJSON *data = cJSON_CreateObject();
+    cJSON_AddStringToObject(data, "command_id", local_->closeId.c_str());
+    cJSON_AddStringToObject(data, "code", "DOOR_OPEN");
+    enqueue_("close_refused", local_->sessionId, 0, toJson(data));
+    flush_();
+    return;
+  }
   const bool completed = local_->closeOutcome == "completed";
   closeSession_(completed ? "completed" : "cancelled", completed ? "user_done" : "user_cancel");
+}
+
+bool Device::sessionDoorOpen_() const {
+  if (!DOOR_SENSOR || !local_) return false;
+  return std::any_of(local_->doors.begin(), local_->doors.end(),
+                     [&](const auto &d) { return d.second.state == "open" && hw_[d.first].open; });
+}
+
+// 門磁變化（門偵測工作呼叫）。
+void Device::onDoor(int channel, bool open) {
+  if (channel < 1 || channel > DOOR_COUNT) return;
+  std::lock_guard<std::mutex> g(mu_);
+  Hw &hw = hw_[channel];
+  if (open) {
+    if (hw.open) return;
+    hw.open = true;
+    if (hw.unlocking || nowMs() <= hw.graceUntil) {
+      hw.locked = false;
+    } else if (hw.locked) {
+      enqueue_("door_forced", "", channel, "");
+    }
+  } else {
+    if (!hw.open) return;
+    hw.open = false;
+    hw.locked = true;
+    DoorRun *door = nullptr;
+    if (local_) {
+      auto it = local_->doors.find(channel);
+      if (it != local_->doors.end()) door = &it->second;
+    }
+    if (hw.leftOpen) {
+      hw.leftOpen = false;
+      enqueue_("fault_cleared", "", channel, R"({"code":"DOOR_LEFT_OPEN"})");
+    } else if (!(door && door->state == "open")) {
+      // 不屬於本機開門中的門（例如遭強制開啟後）關上時仍要回報，否則伺服器會一直記錄為開啟。
+      enqueue_("door_closed", "", channel, R"({"reason":"sensor"})");
+    }
+    if (door && door->state == "open") {
+      door->state = "closed";
+      enqueue_("door_closed", local_->sessionId, channel, R"({"reason":"sensor"})");
+      const bool stillOpen = std::any_of(local_->doors.begin(), local_->doors.end(), [](const auto &d) {
+        return d.second.state == "open" || d.second.state == "pending";
+      });
+      if (!stillOpen && local_->unlocking == 0) {
+        if (local_->refusedOutcome == "cancelled") closeSession_("cancelled", "user_cancel");
+        else closeSession_("completed", "sensor");
+        return;
+      }
+    }
+  }
+  flush_();
 }
 
 // ---------- 配對 ----------
@@ -671,7 +773,7 @@ void Device::pairCycle() {
     cJSON *body = cJSON_CreateObject();
     cJSON_AddStringToObject(body, "kind", "esp32");
     cJSON_AddNumberToObject(body, "door_count", DOOR_COUNT);
-    cJSON_AddBoolToObject(body, "has_door_sensor", false);
+    cJSON_AddBoolToObject(body, "has_door_sensor", DOOR_SENSOR);
     cJSON_AddNumberToObject(body, "unlock_pulse_ms", UNLOCK_PULSE_MS);
     cJSON_AddStringToObject(body, "firmware", CONFIG_SMB_FIRMWARE_VERSION);
     res = http_request("POST", "/pair/request", toJson(body), "", boot);
@@ -906,6 +1008,7 @@ void Device::localView_(View &v, int64_t now) const {
   v.hasCountdown = true;
   v.remainingMs = std::max<int64_t>(0, l.openMs - (now - l.openedAt));
   v.totalMs = l.openMs;
+  if (!l.refusedOutcome.empty() && sessionDoorOpen_()) v.notice = msg("CLOSE_DOOR_FIRST");
 }
 
 }  // namespace smb

@@ -46,11 +46,14 @@ inline const std::map<std::string, std::string>& messages() {
       {"WIFI_SCAN", "請以 ESP BLE Provisioning App 掃描"},
       {"WIFI_FAILED", "Wi-Fi 連線失敗，請重新設定"},
       {"WIFI_CONNECTING", "Wi-Fi 連線中"},
-      {"WIFI_RESET_HINT", "按住 BOOT 鍵 5 秒可重設 Wi-Fi"},
+      {"WIFI_RESET_HINT", "2 分鐘內未連線將開啟 Wi-Fi 設定"},
       {"HW_TITLE", "硬體測試"},
       {"HW_ALL_OFF", "繼電器全部斷電"},
       {"HW_RELAY_ON", "繼電器 {n} 通電"},
       {"HW_SCREENS", "畫面版面測試"},
+      {"HW_BACKLIGHT", "背光亮度 {p}%"},
+      {"HW_DOOR_OPEN", "開"},
+      {"HW_DOOR_CLOSED", "關"},
   };
   return m;
 }

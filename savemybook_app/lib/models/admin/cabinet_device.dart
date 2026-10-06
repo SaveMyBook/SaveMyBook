@@ -341,6 +341,7 @@ class AdminCabinetDeviceSummary {
   final bool isMaintenance;
   final String? openTime;
   final String? closeTime;
+  final int screenBrightness;
   final AdminCabinetAccess access;
   final bool simulatorEnabled;
   final String? kioskUrl;
@@ -357,6 +358,7 @@ class AdminCabinetDeviceSummary {
     this.isMaintenance = false,
     this.openTime,
     this.closeTime,
+    this.screenBrightness = 100,
     required this.access,
     this.simulatorEnabled = false,
     this.kioskUrl,
@@ -390,6 +392,7 @@ class AdminCabinetDeviceSummary {
       isMaintenance: cabinet['is_maintenance'] == true,
       openTime: _textOrNull(cabinet['open_time']),
       closeTime: _textOrNull(cabinet['close_time']),
+      screenBrightness: cabinet['screen_brightness'] == null ? 100 : parseInt(cabinet['screen_brightness']),
       access: AdminCabinetAccess.fromJson(_mapOf(json['access']) ?? const {}),
       simulatorEnabled: json['simulator_enabled'] == true,
       kioskUrl: _textOrNull(json['kiosk_url']),

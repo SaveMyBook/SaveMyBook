@@ -23,7 +23,6 @@ constexpr uint16_t HEADER = rgb(0x18212a);
 constexpr uint16_t TEXT = rgb(0xeef2f5);
 constexpr uint16_t MUTED = rgb(0x93a2ad);
 constexpr uint16_t TRACK = rgb(0x2a3540);
-constexpr uint16_t ONLINE = rgb(0x3ccf8e);
 constexpr uint16_t OFFLINE = rgb(0x66737d);
 constexpr uint16_t ACCENT = rgb(0x46b59c);
 constexpr uint16_t WARN = rgb(0xf0b429);
@@ -60,6 +59,10 @@ int textWidth(const smb_font_t &f, const std::string &s);
 std::vector<std::string> wrapText(const smb_font_t &f, const std::string &s, int maxWidth);
 
 void display_init();
+// 電磁鎖通斷的突波可能讓螢幕重置成白畫面：呼叫後下一次畫面更新會重送設定並整面重畫。
+void display_recover();
+// 背光亮度 10–100%（LED 腳接 PIN_TFT_BL）。
+void display_set_brightness(int percent);
 // 依段呼叫 draw 繪製整個畫面，只把內容有變的段送到螢幕。
 void display_frame(const std::function<void(Canvas &)> &draw);
 

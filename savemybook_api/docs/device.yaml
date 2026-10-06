@@ -481,6 +481,11 @@ components:
       properties:
         device_no: { type: string, example: DV3K9QX2M }
         cabinet_name: { type: string, description: 只供模擬書櫃的控制台顯示，書櫃螢幕不顯示。, example: 北商大書櫃 }
+        settings:
+          type: object
+          description: 管理員為這台書櫃設定的螢幕參數，裝置收到後套用並保存，下次開機先沿用。
+          properties:
+            screen_brightness: { type: integer, minimum: 10, maximum: 100, description: 螢幕背光亮度（%）。, example: 100 }
         screen:
           type: string
           enum: [idle, closed_hours, maintenance, disabled, select, match, opening, open, admin, result]

@@ -35,6 +35,12 @@ router.post('/cabinets/:id/device/fault-clear', canManage, async (req, res) => {
   res.status(200).json({ success: true, message: '裝置故障紀錄已清除', data });
 });
 
+router.patch('/cabinets/:id/device/settings', canManage, async (req, res) => {
+  const screenBrightness = v.int(req.body.screen_brightness, { label: '螢幕亮度', min: 10, max: 100 });
+  const data = await admin.updateScreenSettings(cabinetIdOf(req), { screenBrightness }, actorOf(req));
+  res.status(200).json({ success: true, message: '螢幕亮度已更新', data });
+});
+
 router.get('/cabinets/:id/events', canManage, async (req, res) => {
   const { page, limit, skip } = v.pagination(req.query);
   const type = typeof req.query.type === 'string' && req.query.type ? req.query.type.slice(0, 32) : null;

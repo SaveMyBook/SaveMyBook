@@ -367,6 +367,26 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
     if (retry && mounted) await _pair();
   }
 
+  static const _brightnessLevels = [100, 80, 60, 40, 20];
+
+  Future<void> _setBrightness(int current) async {
+    final percent = await _menu<int>(
+      title: S.screenBrightness,
+      subtitle: S.screenBrightnessApplyNextSync,
+      entries: [
+        for (final level in _brightnessLevels)
+          _MenuEntry(
+            level,
+            '$level%',
+            level >= 80 ? Icons.brightness_high_rounded : (level >= 40 ? Icons.brightness_medium_rounded : Icons.brightness_low_rounded),
+            enabled: level != current,
+          ),
+      ],
+    );
+    if (percent == null || !mounted) return;
+    await _run(() => _api.setCabinetScreenBrightness(_cabinetId, percent), S.screenBrightnessUpdated);
+  }
+
   Future<void> _revoke() async {
     final confirmed = await showConfirmDialog(
       context,
@@ -777,8 +797,16 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
             _kv(S.doorSensors, device.hasDoorSensor ? S.installed : S.notInstalled, c),
             _kv(S.numberDoors, '${device.doorCount}', c),
           ],
+          if (device == null) Divider(color: c.divider, height: 20),
+          Row(
+            children: [
+              SizedBox(width: 88, child: Text(S.screenBrightness, maxLines: 2, style: TextStyle(fontSize: 12, color: c.textHint))),
+              Expanded(child: Text('${summary.screenBrightness}%', style: TextStyle(fontSize: 13, color: c.textPrimary))),
+              SmallActionButton(label: S.change, onTap: _busy ? null : () => _setBrightness(summary.screenBrightness)),
+            ],
+          ),
           if (pairing != null) ...[
-            if (device == null) Divider(color: c.divider, height: 20) else const SizedBox(height: 4),
+            const SizedBox(height: 4),
             _kv(S.awaitingPairing, '${CabinetLabels.deviceKind(pairing.kind)}・${S.numberDoors} ${pairing.doorCount}', c),
           ],
           if (kioskUrl != null) ...[

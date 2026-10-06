@@ -428,7 +428,7 @@ module.exports = {
       const { data } = res.body;
       assert.deepStrictEqual(data.cabinet, {
         cabinet_id: cabinet.cabinet_id, cabinet_name: '北商大書櫃', is_active: true, is_maintenance: false,
-        open_time: '08:00', close_time: '22:00'
+        open_time: '08:00', close_time: '22:00', screen_brightness: 100
       });
       assert.strictEqual(data.access.mode, 'scan');
       assert.strictEqual(data.access.online, true);

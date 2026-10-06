@@ -32,8 +32,15 @@
     cabinet: 'smb.device.cabinet',
     queue: 'smb.device.queue',
     seq: 'smb.device.seq',
-    openSession: 'smb.device.openSession'
+    openSession: 'smb.device.openSession',
+    brightness: 'smb.device.brightness'
   });
+
+  // 與韌體相同：螢幕亮度 10–100%，來自 GET /state 的 settings，保存後下次開機先沿用。
+  const brightnessOf = (value) => {
+    const n = Number(value);
+    return Number.isInteger(n) && n >= 10 && n <= 100 ? n : null;
+  };
 
   const MESSAGES = Object.freeze({
     IDLE_SCAN: '請使用 SaveMyBook App 掃描',
@@ -230,6 +237,7 @@
       this.queue = Array.isArray(queue) ? queue.filter((e) => e && typeof e.id === 'string' && typeof e.type === 'string') : [];
       const seq = parseInt(this.store('get', STORAGE_KEYS.seq), 10);
       this.seq = Number.isFinite(seq) && seq > 0 ? seq : 0;
+      this.brightness = brightnessOf(this.store('get', STORAGE_KEYS.brightness)) ?? 100;
     }
 
     clearIdentity() {
@@ -544,6 +552,11 @@
       if (state.cabinet_name && state.cabinet_name !== this.cabinetName) {
         this.cabinetName = state.cabinet_name;
         this.store('set', STORAGE_KEYS.cabinet, state.cabinet_name);
+      }
+      const brightness = brightnessOf(state.settings && state.settings.screen_brightness);
+      if (brightness !== null && brightness !== this.brightness) {
+        this.brightness = brightness;
+        this.store('set', STORAGE_KEYS.brightness, String(brightness));
       }
       const session = state.session;
       if (this.postClose && session && session.id === this.postClose.sessionId && session.phase === 'result') {
@@ -1041,6 +1054,7 @@
           enabled: serverDoors.has(channel) ? serverDoors.get(channel).enabled !== false : true
         })),
         connection: this.connection(),
+        brightness: this.brightness,
         deviceNo: this.deviceNo,
         cabinetName: this.cabinetName
       }, screen);

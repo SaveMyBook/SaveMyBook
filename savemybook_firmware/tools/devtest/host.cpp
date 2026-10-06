@@ -1,6 +1,7 @@
 // 電腦上的 FreeRTOS、計時器、NVS、繼電器與 HTTPS 替身，讓 src/device.cpp 原封不動在電腦上執行。
 #include "host.h"
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <cstring>
@@ -10,7 +11,10 @@
 #include <thread>
 #include <vector>
 
+#include "display.h"
+#include "door.h"
 #include "esp_random.h"
+#include "relay.h"
 #include "esp_timer.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
@@ -90,6 +94,19 @@ std::mutex storeMu;
 std::map<std::string, std::string> storeData[2];
 std::mutex pulseMu;
 std::vector<Pulse> pulses;
+std::atomic<bool> doorOpen[5];
+std::atomic<int> brightness{100};
+static std::mutex doorCbMu;
+static std::function<void(int, bool)> doorCb;
+void setDoor(int channel, bool open) {
+  doorOpen[channel] = open;
+  std::function<void(int, bool)> cb;
+  {
+    std::lock_guard<std::mutex> g(doorCbMu);
+    cb = doorCb;
+  }
+  if (cb) cb(channel, open);
+}
 std::function<smb::HttpResult(const char *, const char *, const std::string &, const std::string &, const std::string &)> server;
 }  // namespace host
 
@@ -115,11 +132,23 @@ void erase(Area a, const char *key) {
 namespace smb {
 void relay_init() {}
 void relay_all_off() {}
-void relay_pulse(int channel, int ms) {
+void relay_pulse(int channel, int ms, const std::function<bool()> &stop) {
   const int64_t start = esp_timer_get_time() / 1000;
-  vTaskDelay(ms);
+  for (int64_t t = 0; t < ms; t = esp_timer_get_time() / 1000 - start) {
+    vTaskDelay(std::min<int64_t>(10, ms - t));
+    if (stop && t >= 200 && stop()) break;
+  }
   std::lock_guard<std::mutex> g(host::pulseMu);
   host::pulses.push_back({channel, start, esp_timer_get_time() / 1000});
+}
+
+void display_set_brightness(int percent) { host::brightness = percent; }
+void door_init() {}
+bool door_open(int channel) { return host::doorOpen[channel].load(); }
+int door_raw(int) { return -1; }
+void door_on_change(std::function<void(int, bool)> cb) {
+  std::lock_guard<std::mutex> g(host::doorCbMu);
+  host::doorCb = std::move(cb);
 }
 
 HttpResult http_request(const char *method, const char *path, const std::string &body, const std::string &token,

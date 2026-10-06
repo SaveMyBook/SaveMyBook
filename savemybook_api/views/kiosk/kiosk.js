@@ -19,7 +19,6 @@
     text: '#eef2f5',
     muted: '#93a2ad',
     track: '#2a3540',
-    online: '#3ccf8e',
     offline: '#66737d',
     accent: '#46b59c',
     warn: '#f0b429',
@@ -256,10 +255,12 @@
       }
     };
 
+    // 與韌體相同：標題列右側顯示臺灣時間（韌體以後端回應的 Date 標頭校時）
+    const clockFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Taipei', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
     const header = (view) => {
       rect(0, 0, W, HEADER, C.header);
       text(F.title, view.header, 10, HEADER / 2, C.text);
-      disc(W - 14, HEADER / 2, 4, view.connection === 'online' ? C.online : C.offline);
+      text(F.title, clockFmt.format(new Date()), W - 10, HEADER / 2, view.connection === 'online' ? C.text : C.offline, 'right');
     };
 
     const drawPairing = (view) => {
@@ -447,9 +448,12 @@
       start() {
         resize();
         schedule();
+        window.setInterval(schedule, 15000);
       },
       update(view) {
         state.view = view;
+        // 背光調暗：整個螢幕等比例變暗
+        canvas.style.filter = view.brightness < 100 ? `brightness(${view.brightness / 100})` : '';
         schedule();
         const label = view.lines.filter(Boolean).join('，');
         canvas.setAttribute('aria-label', `書櫃螢幕：${label || view.screen}`);

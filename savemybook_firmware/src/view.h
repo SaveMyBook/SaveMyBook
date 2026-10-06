@@ -36,6 +36,8 @@ struct View {
   std::vector<std::string> lines;
   bool online = false;
   std::string header;
+  // 標題列右側的時間（HH:MM），空字串時不顯示。
+  std::string clock;
   // 閒置畫面的書櫃 QR Code，或 Wi-Fi 設定的 QR Code。
   std::string qr;
   float qrRatio = -1;  // 小於 0 時不畫倒數條

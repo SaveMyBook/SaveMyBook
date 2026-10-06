@@ -15,10 +15,32 @@ menu "SaveMyBook cabinet"
     config SMB_SCREEN_ROTATION
         int "Screen rotation (1 or 3 for landscape)"
         range 0 3
-        default 1
+        default 3
 
     config SMB_PANEL_ILI9341
         bool "Panel controller is ILI9341 (disable for ST7789)"
+        default n
+
+    config SMB_PANEL_INVERT
+        bool "Invert panel colors (IPS panels usually need this)"
+        default n
+
+    config SMB_SCREEN_MIRROR
+        bool "Mirror the screen horizontally"
         default y
+
+    config SMB_DOOR_SENSOR
+        bool "Door switches installed (A01-A04 on GPIO39-42)"
+        default y
+
+    config SMB_DOOR_CLOSED_LEVEL
+        int "Door switch output level when the door is closed"
+        range 0 1
+        default 0
+
+    config SMB_TFT_SPI_MHZ
+        int "Screen SPI clock (MHz)"
+        range 1 80
+        default 10
 
 endmenu

@@ -34,6 +34,22 @@ const unlockTimeline = (views) => {
 };
 
 const tests = [
+  ['螢幕亮度：套用 GET /state 的 settings.screen_brightness 並保存，超出 10–100 的值忽略，重新開機先沿用', async () => {
+    const device = await started();
+    const { api: server, clock, core, storage } = device;
+    assert.strictEqual(core.view.brightness, 100, '未收到設定時為 100%');
+    server.state = idleState({ settings: { screen_brightness: 40 } });
+    await clock.advance(2500);
+    assert.strictEqual(core.view.brightness, 40);
+    assert.strictEqual(storage.get(STORAGE_KEYS.brightness), '40');
+    server.state = idleState({ settings: { screen_brightness: 5 } });
+    await clock.advance(2500);
+    assert.strictEqual(core.view.brightness, 40, '超出範圍時維持原設定');
+    core.reboot();
+    await clock.advance(0);
+    assert.strictEqual(core.view.brightness, 40, '重新開機後沿用保存的亮度');
+  }],
+
   ['開機後第一個請求為含 boot 事件的 POST /events，所有請求都帶 X-Device-Boot 與裝置憑證', async () => {
     const { api: server, clock, core } = await started();
     const [first] = server.requests;

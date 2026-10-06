@@ -348,6 +348,9 @@ const touch = async (device, ip, now = new Date()) => {
 
 const message = (code, params = {}) => ({ code, params });
 
+const DEFAULT_BRIGHTNESS = 100;
+const brightnessOf = (cabinet) => Number(cabinet?.screen_brightness ?? DEFAULT_BRIGHTNESS);
+
 const stateFor = async (device, now = new Date()) => {
   const view = handler?.deviceView ? await handler.deviceView(device, now) : null;
   const [cabinet, doorList, maintenance] = await Promise.all([
@@ -358,7 +361,8 @@ const stateFor = async (device, now = new Date()) => {
 
   const base = {
     device_no: deviceNo(device),
-    cabinet_name: cabinet?.cabinet_name ?? ''
+    cabinet_name: cabinet?.cabinet_name ?? '',
+    settings: { screen_brightness: brightnessOf(cabinet) }
   };
   const doorView = doorList.map((d) => ({
     channel: d.lock_channel,
@@ -740,13 +744,13 @@ const purge = async (now = new Date(), { daily = false } = {}) => {
 module.exports = {
   TOUCH_THROTTLE_MS, CONNECTION_LOST_MS, OFFLINE_ALERT_MS, PAIRING_TTL_MS, PAIR_POLL_MS, PAIR_CLAIM_GRACE_MS,
   BOOT_GRACE_MS, EVENT_CLAIM_MS, UNLOCK_SERVE_MS, ROUNDTRIP_MAX_MS, LOCK_GAP_MS, ACK_GRACE_MS, IDLE_POLL_MS,
-  SESSION_POLL_MS, MAX_EVENTS,
+  SESSION_POLL_MS, MAX_EVENTS, DEFAULT_BRIGHTNESS,
   KINDS, KIND_LABELS, EVENT_TYPES, FAULT_LABELS,
   sha256, newToken, isPollToken, deviceNo, isValidBootId, openingAckMs, faultLabel, unlockCommands, markCommandsServed,
   authRequired, revokedError, disabledError, pairingInvalid, pairingExpired, payloadInvalid, staleBoot, cabinetBusy,
   registerSessionHandler, sessionHandler, runSessionSweep,
   activeDeviceOf, lockForSession, releaseSession, revoke,
   normalizePairingCode, requestPairing, claimPairing, pollPairing, unpair,
-  findByToken, verifyBoot, touch, stateFor, handleEvents, sweep, purge,
+  findByToken, verifyBoot, touch, stateFor, brightnessOf, handleEvents, sweep, purge,
   recordEvent, notifyAdmins
 };

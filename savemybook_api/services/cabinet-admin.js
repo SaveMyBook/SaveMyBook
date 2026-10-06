@@ -177,7 +177,8 @@ const summary = async (cabinetId, { req = null, now = new Date() } = {}) => {
       is_active: Boolean(cabinet.is_active),
       is_maintenance: maintenance,
       open_time: hours.open_time,
-      close_time: hours.close_time
+      close_time: hours.close_time,
+      screen_brightness: devices.brightnessOf(cabinet)
     },
     access: { mode: state.mode, reason: state.reason, online: state.online, open_now: state.open_now },
     simulator_enabled: access.isSimulatorEnabled(),
@@ -442,7 +443,30 @@ const clearDeviceFault = async (cabinetId, { adminId, req }) => {
   return { device_no: devices.deviceNo(device), fault_code: null };
 };
 
+// 書櫃螢幕亮度存在書櫃上：重新配對裝置後沿用，裝置於下一次 GET /state 取得。
+const updateScreenSettings = async (cabinetId, { screenBrightness }, { adminId, req }) => {
+  const cabinet = await cabinetOf(cabinetId);
+  const before = devices.brightnessOf(cabinet);
+  if (before !== screenBrightness) {
+    await prisma.$transaction(async (tx) => {
+      await tx.smart_cabinets.update({
+        where: { cabinet_id: cabinet.cabinet_id },
+        data: { screen_brightness: screenBrightness, updated_at: new Date() }
+      });
+      await audit.record(tx, {
+        adminId,
+        action: '調整書櫃螢幕亮度',
+        targetType: 'cabinet',
+        targetId: Number(cabinet.cabinet_id),
+        summary: `將「${cabinet.cabinet_name}」書櫃螢幕亮度由 ${before}% 調整為 ${screenBrightness}%`,
+        req
+      });
+    });
+  }
+  return { screen_brightness: screenBrightness };
+};
+
 module.exports = {
-  summary, pairDevice, revokeDevice, listEvents, place, checkClear, clearDoorFault, clearDeviceFault,
+  summary, pairDevice, revokeDevice, listEvents, place, checkClear, clearDoorFault, clearDeviceFault, updateScreenSettings,
   unplacedOf, shapeDoors
 };

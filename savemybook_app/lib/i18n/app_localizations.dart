@@ -2115,6 +2115,9 @@ abstract class AppLocalizations {
   String get installed;
   String get notInstalled;
   String get numberDoors;
+  String get screenBrightness;
+  String get screenBrightnessApplyNextSync;
+  String get screenBrightnessUpdated;
   String get simulatorUrl;
   String get revokeDevice;
   String onceRevokedDeviceCanNoLonger(Object p0);
@@ -8856,6 +8859,15 @@ class _LEn extends AppLocalizations {
 
   @override
   String get numberDoors => 'Number of doors';
+
+  @override
+  String get screenBrightness => 'Screen brightness';
+
+  @override
+  String get screenBrightnessApplyNextSync => 'Applied the next time the locker syncs with the server';
+
+  @override
+  String get screenBrightnessUpdated => 'Screen brightness updated';
 
   @override
   String get simulatorUrl => 'Simulator URL';
@@ -16522,6 +16534,15 @@ class _LJa extends AppLocalizations {
   String get numberDoors => '扉の数';
 
   @override
+  String get screenBrightness => '画面の明るさ';
+
+  @override
+  String get screenBrightnessApplyNextSync => 'ロッカーが次にサーバーと同期したときに適用されます';
+
+  @override
+  String get screenBrightnessUpdated => '画面の明るさを更新しました';
+
+  @override
   String get simulatorUrl => 'シミュレーターの URL';
 
   @override
@@ -24184,6 +24205,15 @@ class _LKo extends AppLocalizations {
 
   @override
   String get numberDoors => '문 수';
+
+  @override
+  String get screenBrightness => '화면 밝기';
+
+  @override
+  String get screenBrightnessApplyNextSync => '보관함이 다음에 서버와 동기화될 때 적용됩니다';
+
+  @override
+  String get screenBrightnessUpdated => '화면 밝기를 변경했습니다';
 
   @override
   String get simulatorUrl => '시뮬레이터 URL';
@@ -31850,6 +31880,15 @@ class _LZh extends AppLocalizations {
   String get numberDoors => '櫃門數';
 
   @override
+  String get screenBrightness => '螢幕亮度';
+
+  @override
+  String get screenBrightnessApplyNextSync => '書櫃下次與伺服器同步時套用';
+
+  @override
+  String get screenBrightnessUpdated => '螢幕亮度已更新';
+
+  @override
   String get simulatorUrl => '模擬書櫃網址';
 
   @override
@@ -39514,6 +39553,15 @@ class _LZhHans extends AppLocalizations {
   String get numberDoors => '柜门数';
 
   @override
+  String get screenBrightness => '屏幕亮度';
+
+  @override
+  String get screenBrightnessApplyNextSync => '书柜下次与服务器同步时应用';
+
+  @override
+  String get screenBrightnessUpdated => '屏幕亮度已更新';
+
+  @override
   String get simulatorUrl => '模拟书柜网址';
 
   @override
@@ -47176,6 +47224,15 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get numberDoors => '櫃門數';
+
+  @override
+  String get screenBrightness => '螢幕亮度';
+
+  @override
+  String get screenBrightnessApplyNextSync => '書櫃下次與伺服器同步時套用';
+
+  @override
+  String get screenBrightnessUpdated => '螢幕亮度已更新';
 
   @override
   String get simulatorUrl => '模擬書櫃網址';
