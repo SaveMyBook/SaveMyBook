@@ -56,8 +56,14 @@ const main = async () => {
     }
   }
 
-  const declared = [...fs.readFileSync(path.join(__dirname, '../prisma/schema.prisma'), 'utf8').matchAll(/^model (\w+) \{/gm)].map((m) => m[1]);
-  const stale = declared.filter((name) => !MODELS.some((m) => m.name === name));
+  // Prisma 7 的 db push 不會自動 generate：資料庫有新欄位、Client 卻不認得，寫入時會回「提供的資料格式錯誤」
+  const schemaText = fs.readFileSync(path.join(__dirname, '../prisma/schema.prisma'), 'utf8');
+  const stale = [...schemaText.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)].flatMap(([, name, block]) => {
+    const model = MODELS.find((m) => m.name === name);
+    if (!model) return [name];
+    const known = new Set(model.fields.map((f) => f.name));
+    return [...block.matchAll(/^\s+(\w+)\s+\w/gm)].map((m) => m[1]).filter((f) => !known.has(f)).map((f) => `${name}.${f}`);
+  });
   report(stale.length === 0, 'Prisma Client 與 schema.prisma 一致', stale.length
     ? `缺少 ${stale.join('、')}，請執行 npx prisma generate 後重新啟動 API`
     : '');
