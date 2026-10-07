@@ -72,7 +72,9 @@ const _pixelRatio = 3.0;
 const _topInset = 59.0;
 const _bottomInset = 34.0;
 
-final _outDir = Directory('${Directory.current.path}/../presentation/介紹動畫/v2/assets-src/screens');
+// SHOTS_OUT 改變輸出資料夾、SHOTS_THEME=dark 改用深色模式（系統手冊使用手冊章節用）；搭配 --name 只產生部分畫面
+final _outDir = Directory(Platform.environment['SHOTS_OUT'] ?? '${Directory.current.path}/../presentation/介紹動畫/v2/assets-src/screens');
+final _brightness = Platform.environment['SHOTS_THEME'] == 'dark' ? Brightness.dark : Brightness.light;
 final _navigatorKey = GlobalKey<NavigatorState>();
 final _overlay = ValueNotifier<ScreenOverlay>(const ScreenOverlay());
 final _rects = <String, Map<String, Object>>{};
@@ -1118,7 +1120,7 @@ class DemoApp extends StatelessWidget {
       navigatorKey: _navigatorKey,
       locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant', countryCode: 'TW'),
       supportedLocales: LocaleProvider.supported,
-      theme: AppTheme.build(Brightness.light),
+      theme: AppTheme.build(_brightness),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

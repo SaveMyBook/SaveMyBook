@@ -37,6 +37,14 @@ curl -L -o plantuml.jar https://repo1.maven.org/maven2/net/sourceforge/plantuml/
 
 組員各自排版時，可只取出一章交給對方併回：`.venv/bin/python export_chapter.py 手冊.docx 輸出.docx 需求模型 --activity`（第三個參數為該章標題；`--activity` 同時把 5-3 活動圖換成 `activity/` 內的最新圖）。章號與起始頁碼沿用原手冊。
 
+## 第 12 章使用手冊（截圖表格）
+
+各節表格內容（表名、操作路徑、截圖與小標、說明）在 `um_plan.py`。截圖放在 `documents/使用手冊截圖/`：
+`um_rename.py <深色截圖資料夾>` 依計畫改名為「表12-節-表 小標.PNG」並寫出 `檔名對照.csv`（`--undo` 還原）；
+第 7 節由 App 截圖工具以深色模式產生：在 savemybook_app 執行
+`SHOTS_OUT=<資料夾> SHOTS_THEME=dark flutter test tool/web_shots/intro_shots_test.dart --name '^(s_cab_|b_cab_|b_pickup_)'`。
+`um_build.py 手冊.docx 輸出.docx [圖高公分]` 產生單章 docx（預設圖高 8.3 公分，約一頁兩表）。
+
 ## 用詞修正
 
 名詞與描述修正集中在 `audit/build_corrections.py`（產生 `audit/corrections.json`），由 `update_terms.py` 套用；改完先執行 `.venv/bin/python audit/build_corrections.py` 再產生手冊。
