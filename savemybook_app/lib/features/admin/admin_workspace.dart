@@ -398,10 +398,6 @@ class _SectionNavigatorState extends NavigatorState {
 
   @override
   void popUntil(RoutePredicate predicate) => super.popUntil((route) => route.isFirst || predicate(route));
-
-  @override
-  void popUntilWithResult<T extends Object?>(RoutePredicate predicate, T? result) =>
-      super.popUntilWithResult<T>((route) => route.isFirst || predicate(route), result);
 }
 
 class AdminSideNav extends StatelessWidget {
