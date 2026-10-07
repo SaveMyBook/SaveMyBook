@@ -12,7 +12,8 @@ from PIL import Image
 
 from um_plan import SECTIONS
 
-ROOT = '/Users/xukaijun/Desktop/SaveMyBook/documents/使用手冊截圖'
+# UM_SHOTS 可改用其他截圖資料夾（例如淺色版 使用手冊截圖_淺色），資料夾結構與檔名相同
+ROOT = os.environ.get('UM_SHOTS', '/Users/xukaijun/Desktop/SaveMyBook/documents/使用手冊截圖')
 MAP = os.path.join(ROOT, '檔名對照.csv')
 SECTION7 = '7. 智慧書櫃存書與取書'
 # 狀態列（時間、訊號、電池）取自同批實機截圖，白色圖示疊在產生的畫面上
