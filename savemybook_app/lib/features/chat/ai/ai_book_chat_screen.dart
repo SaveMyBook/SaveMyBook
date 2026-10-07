@@ -66,6 +66,7 @@ class AiBookChatScreen extends StatefulWidget {
 
 class _AiBookChatScreenState extends State<AiBookChatScreen> {
   final ApiService _api = ApiService();
+  static const _inputMaxLength = 500;
   final TextEditingController _input = TextEditingController();
   final ScrollController _scroll = ScrollController();
 
@@ -289,6 +290,28 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
     setState(() => _items.clear());
   }
 
+  // 平板接實體鍵盤：Enter 送出、Shift+Enter 換行；輸入法組字中的 Enter 用來確認選字，不可攔截。
+  // 欄位的送出鍵設為「傳送」，系統會把 Shift+Enter 也當成送出，所以換行要自行插入。
+  KeyEventResult _onInputKey(FocusNode node, KeyEvent event) {
+    if (!context.isWide || event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (event.logicalKey != LogicalKeyboardKey.enter && event.logicalKey != LogicalKeyboardKey.numpadEnter) {
+      return KeyEventResult.ignored;
+    }
+    final value = _input.value;
+    if (value.composing.isValid) return KeyEventResult.ignored;
+    if (!HardwareKeyboard.instance.isShiftPressed) {
+      _send();
+      return KeyEventResult.handled;
+    }
+    final selection = value.selection.isValid ? value.selection : TextSelection.collapsed(offset: value.text.length);
+    if (value.text.length - (selection.end - selection.start) >= _inputMaxLength) return KeyEventResult.handled;
+    _input.value = TextEditingValue(
+      text: value.text.replaceRange(selection.start, selection.end, '\n'),
+      selection: TextSelection.collapsed(offset: selection.start + 1),
+    );
+    return KeyEventResult.handled;
+  }
+
   void _copy(String text) {
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.selectionClick();
@@ -307,7 +330,12 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
             title: S.aiBookAdvisor,
             icon: Icons.auto_stories_rounded,
             actions: [
-              if (_items.isNotEmpty) HeaderIconButton(icon: Icons.add_comment_outlined, onTap: _newConversation),
+              if (_items.isNotEmpty)
+                HeaderIconButton(
+                  icon: Icons.add_comment_outlined,
+                  onTap: _newConversation,
+                  tooltip: context.isWide ? S.newConversation : null,
+                ),
             ],
           ),
           Expanded(
@@ -443,6 +471,7 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: GestureDetector(
                   onLongPress: () => _copy(item.content),
+                  onSecondaryTap: context.isWide ? () => _copy(item.content) : null,
                   child: AnimatedOpacity(
                     duration: Motion.micro,
                     opacity: item.state == AiBookChatState.sending ? 0.7 : 1,
@@ -484,6 +513,7 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: GestureDetector(
                   onLongPress: () => _copy(item.content),
+                  onSecondaryTap: context.isWide ? () => _copy(item.content) : null,
                   child: ChatBubbleShell(
                     isMine: false,
                     groupStart: groupStart,
@@ -589,15 +619,20 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
-                    child: AppTextField(
-                      controller: _input,
-                      hint: S.describeBookLooking,
-                      minLines: 1,
-                      maxLines: 4,
-                      maxLength: 500,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
+                    child: Focus(
+                      canRequestFocus: false,
+                      skipTraversal: true,
+                      onKeyEvent: _onInputKey,
+                      child: AppTextField(
+                        controller: _input,
+                        hint: S.describeBookLooking,
+                        minLines: 1,
+                        maxLines: 4,
+                        maxLength: _inputMaxLength,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _send(),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),

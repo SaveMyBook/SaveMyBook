@@ -96,14 +96,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           AppHeader(
             title: S.savedBooks,
             icon: Icons.bookmark_outline_rounded,
-            actions: [
-              CartIconButton(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
-              ),
-              ChatIconButton(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListScreen())),
-              ),
-            ],
+            actions: context.isWide
+                ? const []
+                : [
+                    CartIconButton(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
+                    ),
+                    ChatIconButton(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatListScreen())),
+                    ),
+                  ],
           ),
           Expanded(
             child: SwitchIn(
@@ -152,7 +154,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         ),
                         if (books.isNotEmpty)
                           Positioned(
-                            right: 16,
+                            right: context.isWide ? 24 : 16,
                             bottom: MediaQuery.of(context).padding.bottom + 16,
                             child: BackToTopButton(controller: _scrollController, threshold: 600),
                           ),

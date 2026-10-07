@@ -87,7 +87,8 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: Column(
+      body: AuthTabletFrame(
+        child: Column(
         children: [
           AppHeader(title: S.completeAccountDetails, icon: Icons.person_add_alt_1_rounded),
           Expanded(
@@ -147,6 +148,7 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

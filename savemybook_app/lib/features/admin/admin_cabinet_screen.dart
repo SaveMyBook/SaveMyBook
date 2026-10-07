@@ -19,6 +19,7 @@ import '../../utils/app_labels.dart';
 import '../../utils/cabinet_labels.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
+import 'admin_workspace.dart';
 
 class AdminCabinetScreen extends StatefulWidget {
   const AdminCabinetScreen({super.key});
@@ -89,7 +90,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   }
 
   Future<void> _openDeposits() async {
-    if (_navigating) return;
+    if (_navigating || AdminWorkspace.show(context, AdminSections.deposits)) return;
     _navigating = true;
     try {
       await Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminCabinetDepositScreen()));
@@ -186,9 +187,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       (value: 'maintenance', label: S.slotMaintenance),
     ];
 
-    final picked = await showAppModalSheet<String>(
+    final picked = await showAppPopoverSheet<String>(
       context: context,
-      dialogMaxWidth: 420,
+      popoverWidth: 320,
       isScrollControlled: true,
       backgroundColor: c.card,
       shape: const RoundedRectangleBorder(
@@ -280,10 +281,12 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                 actions: [
                   HeaderIconButton(
                     icon: Icons.inventory_2_outlined,
+                    tooltip: S.booksLockers,
                     onTap: _openDeposits,
                   ),
                   HeaderIconButton(
                     icon: Icons.add_rounded,
+                    tooltip: S.newLocker,
                     onTap: () => _openEditor(),
                   ),
                 ],

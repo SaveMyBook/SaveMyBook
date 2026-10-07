@@ -9,6 +9,7 @@ import '../../widgets/responsive.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buyer/undo_snackbar.dart';
+import '../../widgets/search_bar_widget.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 
@@ -111,12 +112,13 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final wide = context.isWide;
 
-    return Scaffold(
+    final page = Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          _buildHeader(c),
+          wide ? _buildToolbar(c) : _buildHeader(c),
           Expanded(
             child: ValueListenableBuilder<List<String>>(
               valueListenable: SearchHistory.items,
@@ -137,7 +139,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
                 return LayoutBuilder(builder: (context, constraints) => ListView(
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: responsiveListPadding(constraints, top: 20, bottom: 24),
+                  padding: wide
+                      ? responsiveListPadding(constraints, horizontal: 24, top: 24, bottom: 32)
+                      : responsiveListPadding(constraints, top: 20, bottom: 24),
                   children: [
                     AnimatedSize(
                       duration: Motion.base,
@@ -151,14 +155,24 @@ class _SearchScreenState extends State<SearchScreen> {
                                 _sectionTitle(
                                   c,
                                   S.recentSearches,
-                                  trailing: GestureDetector(
-                                    onTap: _clearHistory,
-                                    behavior: HitTestBehavior.opaque,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4),
-                                      child: Text(S.clearAll2, style: TextStyle(fontSize: 12, color: c.textHint)),
-                                    ),
-                                  ),
+                                  trailing: wide
+                                      ? TextButton(
+                                          onPressed: _clearHistory,
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: c.accent,
+                                            minimumSize: const Size(0, 32),
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: Text(S.clearAll2, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                                        )
+                                      : GestureDetector(
+                                          onTap: _clearHistory,
+                                          behavior: HitTestBehavior.opaque,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 4),
+                                            child: Text(S.clearAll2, style: TextStyle(fontSize: 12, color: c.textHint)),
+                                          ),
+                                        ),
                                 ),
                                 const SizedBox(height: 12),
                                 Wrap(
@@ -179,7 +193,11 @@ class _SearchScreenState extends State<SearchScreen> {
                               ],
                             ),
                     ),
-                    if (hasTrending) ...[
+                    if (hasTrending && wide) ...[
+                      _sectionTitle(c, S.trendingBooks, icon: Icons.local_fire_department_rounded),
+                      const SizedBox(height: 8),
+                      _buildTrendingColumns(c),
+                    ] else if (hasTrending) ...[
                       _sectionTitle(c, S.trendingBooks, icon: Icons.local_fire_department_rounded),
                       const SizedBox(height: 8),
                       if (_trendingLoading)
@@ -215,21 +233,182 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
       ),
     );
+    if (!wide) return page;
+    return CallbackShortcuts(
+      bindings: {const SingleActivator(LogicalKeyboardKey.escape): () => Navigator.maybePop(context)},
+      child: page,
+    );
+  }
+
+  Widget _buildTrendingColumns(AppColors c) {
+    final count = _trendingLoading ? 8 : _trending.length;
+    final rows = (count + 1) ~/ 2;
+    Widget column(int from) {
+      final to = (from + rows).clamp(0, count);
+      return Column(
+        children: [
+          for (var i = from; i < to; i++) ...[
+            if (i > from) Divider(height: 1, thickness: 1, indent: 82, color: c.divider),
+            _trendingLoading
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    child: Row(children: [
+                      SkeletonBox(width: 22, height: 18, radius: 4),
+                      SizedBox(width: 12),
+                      SkeletonBox(width: 36, height: 50, radius: 6),
+                      SizedBox(width: 12),
+                      Expanded(child: SkeletonBox(height: 14)),
+                    ]),
+                  )
+                : FadeSlideIn(
+                    index: i,
+                    offsetY: 6,
+                    stagger: const Duration(milliseconds: 30),
+                    child: _buildTrendingTile(c, i, _trending[i]),
+                  ),
+          ],
+        ],
+      );
+    }
+
+    final columns = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: column(0)),
+        const SizedBox(width: 24),
+        Expanded(child: column(rows)),
+      ],
+    );
+    return _trendingLoading ? Shimmer(child: columns) : columns;
+  }
+
+  Widget _buildTrendingTile(AppColors c, int index, Book book) {
+    final rankColor = index < 3 ? c.accent : c.textHint;
+    final subtitle = book.author.trim().isNotEmpty ? book.author.trim() : book.categoryName;
+    return InkWell(
+      onTap: () => _submitSearch(book.title),
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              child: Text(
+                '${index + 1}',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: rankColor, fontStyle: FontStyle.italic),
+              ),
+            ),
+            const SizedBox(width: 10),
+            BookThumbnail(imageUrl: book.hasImage ? book.imageUrl : null, width: 36, height: 50, radius: 6),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c.textPrimary),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.north_west_rounded, size: 16, color: c.iconInactive),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToolbar(AppColors c) {
+    return TabletToolbar(
+      showBack: Navigator.canPop(context),
+      titleWidget: Hero(
+        tag: kSearchBarHeroTag,
+        flightShuttleBuilder: (_, _, _, _, _) => const Material(
+          color: Colors.transparent,
+          child: SearchFieldFrame(child: SizedBox.shrink()),
+        ),
+        child: SearchFieldFrame(
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  focusNode: _focusNode,
+                  style: TextStyle(fontSize: 15, color: c.textPrimary),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: _submitSearch,
+                  cursorColor: c.accent,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: false,
+                    hintText: S.searchTitleAuthorIsbn,
+                    hintStyle: TextStyle(color: c.textHint, fontSize: 15),
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                  ),
+                ),
+              ),
+              if (_searchController.text.isNotEmpty)
+                IconButton(
+                  tooltip: MaterialLocalizations.of(context).clearButtonTooltip,
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+                  icon: Icon(Icons.cancel, color: c.iconInactive, size: 18),
+                  onPressed: () {
+                    _searchController.clear();
+                    _focusNode.requestFocus();
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => _submitSearch(_searchController.text),
+          style: TextButton.styleFrom(foregroundColor: c.accent),
+          child: Text(S.actionSearch, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+        ),
+      ],
+    );
   }
 
   Widget _sectionTitle(AppColors c, String title, {IconData? icon, Widget? trailing}) {
+    final wide = context.isWide;
     return Row(
       children: [
         if (icon != null) ...[
-          Icon(icon, size: 16, color: c.accent),
-          const SizedBox(width: 6),
+          Icon(icon, size: wide ? 18 : 16, color: c.accent),
+          SizedBox(width: wide ? 8 : 6),
         ],
         Expanded(
           child: Text(
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary),
+            style: wide
+                ? TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: c.textPrimary)
+                : TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary),
           ),
         ),
         ?trailing,
@@ -384,6 +563,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildHistoryChip(AppColors c, String keyword) {
+    if (context.isWide) return _buildWideHistoryChip(c, keyword);
     return PressableScale(
       scale: 0.94,
       onTap: () => _submitSearch(keyword),
@@ -419,6 +599,46 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWideHistoryChip(AppColors c, String keyword) {
+    return Material(
+      color: c.card,
+      shape: StadiumBorder(side: BorderSide(color: c.border)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _submitSearch(keyword),
+        onLongPress: () => _removeHistory(keyword),
+        onSecondaryTapUp: (_) => _removeHistory(keyword),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.history_rounded, size: 15, color: c.textHint),
+              const SizedBox(width: 6),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 240),
+                child: Text(
+                  keyword,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14, color: c.textPrimary, fontWeight: FontWeight.w500),
+                ),
+              ),
+              IconButton(
+                tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(width: 30, height: 30),
+                icon: Icon(Icons.close_rounded, size: 15, color: c.iconInactive),
+                onPressed: () => _removeHistory(keyword),
+              ),
+            ],
+          ),
         ),
       ),
     );

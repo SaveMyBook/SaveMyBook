@@ -604,7 +604,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
               children: [
                 ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _title,
-                  builder: (_, _, _) => AppHeader(
+                  builder: (_, _, _) => context.isWide ? _buildToolbar(mode, split) : AppHeader(
                     title: _displayTitle,
                     bottom: ResponsiveCenter(
                       maxWidth: barWidth,
@@ -671,6 +671,21 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
       ),
     );
   }
+
+  Widget _buildToolbar(_Mode mode, bool split) => TabletToolbar(
+        title: _displayTitle,
+        showBack: Navigator.of(context).canPop(),
+        actions: [
+          LegalEditorToolbarActions(
+            selectedMode: mode.index,
+            showPreview: !split,
+            onSelectMode: (i) => _switchMode(_Mode.values[i]),
+            dirty: _dirty,
+            saving: _saving,
+            onSave: _dirty && !_saving && !_busy ? _save : null,
+          ),
+        ],
+      );
 
   Widget _buildEditor(_Mode mode, double side) => mode == _Mode.raw ? _buildRaw(side) : _buildSections(side);
 

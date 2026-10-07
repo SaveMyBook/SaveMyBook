@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import 'animations.dart';
 import '../utils/motion.dart';
+import 'responsive.dart';
 
 class LightStatusBar extends StatelessWidget {
   final Widget child;
@@ -50,8 +51,14 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    // 平板左右並排時右側內容與分頁的第一頁沒有上一頁，不顯示返回鍵
-    final back = showBack && (onBack != null || (Navigator.maybeOf(context)?.canPop() ?? false));
+    // 平板左右並排時右側內容與分頁的第一頁沒有上一頁，不顯示返回鍵；
+    // 以頁面本身底下有無頁面判斷，頁面上開著對話框時 Navigator.canPop 也為 true
+    final back = showBack &&
+        (onBack != null ||
+            (ModalRoute.of(context)?.impliesAppBarDismissal ?? Navigator.maybeOf(context)?.canPop() ?? false));
+    if (context.isWide) {
+      return TabletToolbar(title: title, showBack: back, onBack: onBack, actions: actions, bottom: bottom);
+    }
 
     final radius = bottom == null
         ? const BorderRadius.only(
@@ -133,6 +140,100 @@ class AppHeader extends StatelessWidget {
   }
 }
 
+/// 頁首按鈕的前景色：手機的品牌色頁首為白色，平板的工具列跟隨文字色。
+class HeaderForeground extends InheritedWidget {
+  final Color color;
+
+  const HeaderForeground({super.key, required this.color, required super.child});
+
+  static Color of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<HeaderForeground>()?.color ?? Colors.white;
+
+  @override
+  bool updateShouldNotify(HeaderForeground oldWidget) => color != oldWidget.color;
+}
+
+/// 平板的頁首：與內容同底色、標題靠左、下方細分隔線，左右並排時兩欄頁首等高相連。
+class TabletToolbar extends StatelessWidget {
+  static const double height = 56;
+
+  final String title;
+  final Widget? titleWidget;
+  final bool showBack;
+  final VoidCallback? onBack;
+  final List<Widget> actions;
+  final Widget? bottom;
+  final Widget? leading;
+
+  const TabletToolbar({
+    super.key,
+    this.title = '',
+    this.titleWidget,
+    this.showBack = false,
+    this.onBack,
+    this.actions = const [],
+    this.bottom,
+    this.leading,
+  });
+
+  static SystemUiOverlayStyle overlayStyle(AppColors c) => SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: c.isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: c.isDark ? Brightness.dark : Brightness.light,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlayStyle(c),
+      child: Material(
+        color: c.scaffold,
+        child: HeaderForeground(
+          color: c.textPrimary,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: height,
+                  child: Row(
+                    children: [
+                      SizedBox(width: showBack || leading != null ? 6 : 20),
+                      if (showBack)
+                        IconButton(
+                          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: c.accent),
+                          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                          onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                        ),
+                      ?leading,
+                      if (showBack || leading != null) const SizedBox(width: 4),
+                      Expanded(
+                        child: titleWidget ??
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: c.textPrimary),
+                            ),
+                      ),
+                      if (actions.isNotEmpty) Row(mainAxisSize: MainAxisSize.min, children: actions),
+                      SizedBox(width: actions.isEmpty ? 20 : 8),
+                    ],
+                  ),
+                ),
+              ),
+              ?bottom,
+              Divider(height: 1, thickness: 1, color: c.divider),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class CountBadge extends StatelessWidget {
   final int count;
   final Color? color;
@@ -177,7 +278,8 @@ class HeaderIconButton extends StatelessWidget {
   final int badgeCount;
   final ValueListenable<int>? badgeListenable;
   final double size;
-  final Color color;
+  final Color? color;
+  final String? tooltip;
 
   const HeaderIconButton({
     super.key,
@@ -186,7 +288,8 @@ class HeaderIconButton extends StatelessWidget {
     this.badgeCount = 0,
     this.badgeListenable,
     this.size = 22,
-    this.color = Colors.white,
+    this.color,
+    this.tooltip,
   });
 
   @override
@@ -196,7 +299,7 @@ class HeaderIconButton extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        IconButton(icon: Icon(icon, color: color, size: size), onPressed: onTap),
+        IconButton(icon: Icon(icon, color: color ?? HeaderForeground.of(context), size: size), tooltip: tooltip, onPressed: onTap),
         if (badgeListenable != null)
           ValueListenableBuilder<int>(
             valueListenable: badgeListenable!,
@@ -212,13 +315,13 @@ class HeaderIconButton extends StatelessWidget {
 class CartIconButton extends StatefulWidget {
   final VoidCallback onTap;
   final double size;
-  final Color color;
+  final Color? color;
 
   const CartIconButton({
     super.key,
     required this.onTap,
     this.size = 22,
-    this.color = Colors.white,
+    this.color,
   });
 
   static final ValueNotifier<int> _bumps = ValueNotifier<int>(0);
@@ -271,13 +374,13 @@ class _CartIconButtonState extends State<CartIconButton> with SingleTickerProvid
 class ChatIconButton extends StatelessWidget {
   final VoidCallback onTap;
   final double size;
-  final Color color;
+  final Color? color;
 
   const ChatIconButton({
     super.key,
     required this.onTap,
     this.size = 22,
-    this.color = Colors.white,
+    this.color,
   });
 
   @override
@@ -306,6 +409,7 @@ class AppTabBar extends StatelessWidget {
     final c = AppColors.of(context);
 
     const labelStyle = TextStyle(fontSize: 14, fontWeight: FontWeight.bold);
+    if (context.isWide) return _buildTablet(c, labelStyle);
 
     return Container(
       width: double.infinity,
@@ -364,6 +468,45 @@ class AppTabBar extends StatelessWidget {
         ],
         );
       }),
+      ),
+    );
+  }
+}
+
+extension on AppTabBar {
+  // 平板：分頁標籤靠左排列、與工具列同底色，不再撐滿整個寬度
+  Widget _buildTablet(AppColors c, TextStyle labelStyle) {
+    return Container(
+      width: double.infinity,
+      color: c.scaffold,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      alignment: Alignment.centerLeft,
+      child: TabBar(
+        controller: controller,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        indicatorColor: c.accent,
+        indicatorWeight: 3,
+        indicatorSize: TabBarIndicatorSize.label,
+        dividerColor: Colors.transparent,
+        labelColor: c.accent,
+        unselectedLabelColor: c.textSecondary,
+        labelStyle: labelStyle,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+        unselectedLabelStyle: const TextStyle(fontSize: 14),
+        tabs: [
+          for (var i = 0; i < tabs.length; i++)
+            Tab(
+              height: 44,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(tabs[i], maxLines: 1),
+                  if (_badgeAt(i) > 0) ...[const SizedBox(width: 6), UnconstrainedBox(child: CountBadge(count: _badgeAt(i)))],
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -86,6 +86,7 @@ class _AppPermissionsScreenState extends State<AppPermissionsScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final states = _states;
+    final wide = context.isWide;
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -110,8 +111,8 @@ class _AppPermissionsScreenState extends State<AppPermissionsScreen> {
                     padding: responsiveListPadding(
                       constraints,
                       maxWidth: Breakpoints.formMaxWidth,
-                      horizontal: 20,
-                      top: 20,
+                      horizontal: wide ? 24 : 20,
+                      top: wide ? 24 : 20,
                       bottom: 40,
                     ),
                     children: [
@@ -141,17 +142,22 @@ class _AppPermissionsScreenState extends State<AppPermissionsScreen> {
                           padding: const EdgeInsets.only(top: 20),
                           child: FadeSlideIn(
                             index: 1,
-                            child: FilledButton.icon(
-                              onPressed: _requestingAll ? null : _requestAll,
-                              icon: _requestingAll
-                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                  : const Icon(Icons.done_all_rounded, size: 20),
-                              label: Text(S.allowAll, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: c.accent,
-                                minimumSize: const Size.fromHeight(50),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                            // 平板的按鈕放在清單右下方、寬度依文字，不撐滿整個寬度
+                            child: Align(
+                              alignment: AlignmentDirectional.centerEnd,
+                              child: FilledButton.icon(
+                                onPressed: _requestingAll ? null : _requestAll,
+                                icon: _requestingAll
+                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : const Icon(Icons.done_all_rounded, size: 20),
+                                label: Text(S.allowAll, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: c.accent,
+                                  minimumSize: wide ? const Size(160, 44) : const Size.fromHeight(50),
+                                  padding: wide ? const EdgeInsets.symmetric(horizontal: 22) : null,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(wide ? 12 : 14)),
+                                  textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                                ),
                               ),
                             ),
                           ),

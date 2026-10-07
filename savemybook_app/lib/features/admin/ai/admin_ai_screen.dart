@@ -4,6 +4,7 @@ import '../../../utils/app_colors.dart';
 import '../../../widgets/app_header.dart';
 import '../../../widgets/guards.dart';
 import '../admin_report_screen.dart';
+import '../admin_workspace.dart';
 import 'ai_decisions_tab.dart';
 import 'ai_settings_tab.dart';
 import 'ai_usage_tab.dart';
@@ -31,9 +32,11 @@ class _AdminAiScreenState extends State<AdminAiScreen> with SingleTickerProvider
   }
 
   void _openReviews() {
+    const reviews = AdminReportScreen(initialTab: AdminReportScreen.listingReviewTab);
+    if (AdminWorkspace.show(context, AdminSections.moderation, root: reviews)) return;
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const AdminReportScreen(initialTab: AdminReportScreen.listingReviewTab)),
+      MaterialPageRoute(builder: (_) => reviews),
     );
   }
 

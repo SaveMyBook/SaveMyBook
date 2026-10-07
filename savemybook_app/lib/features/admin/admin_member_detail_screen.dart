@@ -639,17 +639,21 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            height: 44,
-            child: ElevatedButton.icon(
-              onPressed: _isBusy ? null : _changeLevel,
-              icon: const Icon(Icons.tune_rounded, size: 18),
-              label: Text(S.adjustTier, maxLines: 1, overflow: TextOverflow.ellipsis),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: c.accent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: SizedBox(
+              width: context.isWide ? null : double.infinity,
+              height: 44,
+              child: ElevatedButton.icon(
+                onPressed: _isBusy ? null : _changeLevel,
+                icon: const Icon(Icons.tune_rounded, size: 18),
+                label: Text(S.adjustTier, maxLines: 1, overflow: TextOverflow.ellipsis),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.accent,
+                  foregroundColor: Colors.white,
+                  padding: context.isWide ? const EdgeInsets.symmetric(horizontal: 20) : null,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ),
           ),

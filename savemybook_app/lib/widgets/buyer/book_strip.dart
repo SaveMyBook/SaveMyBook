@@ -1,13 +1,16 @@
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../models/book.dart';
 import '../../features/books/book_detail_screen.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import '../animations.dart';
+import '../responsive.dart';
 import '../state_views.dart';
+import 'book_menu.dart';
 
 class BookStrip extends StatelessWidget {
   final String title;
@@ -141,16 +144,19 @@ class BookStrip extends StatelessWidget {
                     ),
                   ),
                 )
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(inset, 0, inset, 6),
-                  itemCount: books.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, i) => FadeSlideIn(
-                    index: i,
-                    offsetY: 10,
-                    child: _tile(context, c, books[i]),
+              : _mouseDraggable(
+                  context,
+                  ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(inset, 0, inset, 6),
+                    itemCount: books.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (context, i) => FadeSlideIn(
+                      index: i,
+                      offsetY: 10,
+                      child: _tile(context, c, books[i]),
+                    ),
                   ),
                 ),
         ),
@@ -158,20 +164,54 @@ class BookStrip extends StatelessWidget {
     );
   }
 
+  // 預設只有觸控與觸控板可拖曳捲動；平板接滑鼠時也要能拖曳
+  static Widget _mouseDraggable(BuildContext context, Widget list) {
+    if (!context.isWide) return list;
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(dragDevices: PointerDeviceKind.values.toSet(), scrollbars: false),
+      child: list,
+    );
+  }
+
   Widget _tile(BuildContext context, AppColors c, Book book) {
     final heroTag = '${heroPrefix}_${book.bookId}';
-    final unavailable = book.status != 'on_sale';
-    final reason = reasons[book.bookId];
+    void open() {
+      onOpen?.call(book);
+      Navigator.push(
+        context,
+        CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: heroTag)),
+      );
+    }
+
+    if (context.isWide) {
+      final radius = BorderRadius.circular(16);
+      void menu() => onLongPress != null
+          ? onLongPress!(book)
+          : showBookMenu(context, book, heroTag: heroTag, onOpen: onOpen == null ? null : () => onOpen!(book));
+      return Container(
+        width: _tileWidth,
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        ),
+        child: Material(
+          color: c.card,
+          borderRadius: radius,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: open,
+            onLongPress: menu,
+            onSecondaryTapUp: (_) => menu(),
+            hoverColor: c.accent.withValues(alpha: 0.06),
+            child: _tileContent(c, book, heroTag),
+          ),
+        ),
+      );
+    }
 
     return PressableScale(
       scale: 0.95,
-      onTap: () {
-        onOpen?.call(book);
-        Navigator.push(
-          context,
-          CupertinoPageRoute(builder: (_) => BookDetailScreen(book: book, heroTag: heroTag)),
-        );
-      },
+      onTap: open,
       onLongPress: onLongPress == null ? null : () => onLongPress!(book),
       child: Container(
         width: _tileWidth,
@@ -181,76 +221,82 @@ class BookStrip extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: _tileContent(c, book, heroTag),
+      ),
+    );
+  }
+
+  Widget _tileContent(AppColors c, Book book, String heroTag) {
+    final unavailable = book.status != 'on_sale';
+    final reason = reasons[book.bookId];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Stack(
           children: [
-            Stack(
-              children: [
-                Hero(
-                  tag: heroTag,
-                  child: AppNetworkImage(
-                    url: book.hasImage ? book.imageUrl : null,
-                    width: _tileWidth,
-                    height: _imageHeight,
-                    fallbackIconSize: 30,
-                  ),
-                ),
-                if (unavailable)
-                  Positioned(
-                    left: 6,
-                    top: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        book.statusText,
-                        style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: _titleFontSize, height: _titleLineHeight, fontWeight: FontWeight.w600, color: c.textPrimary),
-                    ),
-                    if (reason != null) ...[
-                      const SizedBox(height: _reasonGap),
-                      Text(
-                        reason,
-                        maxLines: _reasonLines,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: _reasonFontSize, height: _reasonLineHeight, color: c.textSecondary),
-                      ),
-                    ],
-                    const Spacer(),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '\$${book.price.toInt()}',
-                        maxLines: 1,
-                        style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w800, color: c.accent),
-                      ),
-                    ),
-                  ],
-                ),
+            Hero(
+              tag: heroTag,
+              child: AppNetworkImage(
+                url: book.hasImage ? book.imageUrl : null,
+                width: _tileWidth,
+                height: _imageHeight,
+                fallbackIconSize: 30,
               ),
             ),
+            if (unavailable)
+              Positioned(
+                left: 6,
+                top: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    book.statusText,
+                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
           ],
         ),
-      ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  book.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: _titleFontSize, height: _titleLineHeight, fontWeight: FontWeight.w600, color: c.textPrimary),
+                ),
+                if (reason != null) ...[
+                  const SizedBox(height: _reasonGap),
+                  Text(
+                    reason,
+                    maxLines: _reasonLines,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: _reasonFontSize, height: _reasonLineHeight, color: c.textSecondary),
+                  ),
+                ],
+                const Spacer(),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '\$${book.price.toInt()}',
+                    maxLines: 1,
+                    style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w800, color: c.accent),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -273,6 +319,7 @@ class DiscoveryTab {
   final VoidCallback? onAction;
   final ValueChanged<Book>? onOpen;
   final ValueChanged<Book>? onLongPress;
+  final ValueChanged<Book>? onDismiss;
   final List<DiscoveryGroup> groups;
 
   const DiscoveryTab({
@@ -284,6 +331,7 @@ class DiscoveryTab {
     this.onAction,
     this.onOpen,
     this.onLongPress,
+    this.onDismiss,
     this.groups = const [],
   });
 }

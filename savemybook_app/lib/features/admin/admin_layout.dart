@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/master_detail.dart';
 import '../../widgets/responsive.dart';
+import '../../widgets/state_views.dart';
 
 class AdminFrame {
   final double width;
@@ -215,4 +216,290 @@ class AdminSelectionBorder extends StatelessWidget {
       child: child,
     );
   }
+}
+
+/// 按鈕本身不可要求無限寬度（例如 PrimaryButton 須設 expand: false），否則在 Row 內無法排版。
+class AdminButtonRow extends StatelessWidget {
+  final List<Widget> children;
+  final double minWidth;
+
+  const AdminButtonRow({super.key, required this.children, this.minWidth = 150});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        for (final (i, child) in children.indexed) ...[
+          if (i > 0) const SizedBox(width: 12),
+          ConstrainedBox(constraints: BoxConstraints(minWidth: minWidth), child: child),
+        ],
+      ],
+    );
+  }
+}
+
+class AdminSearchBar extends StatelessWidget {
+  final AdminFrame frame;
+  final Widget search;
+  final Widget? filter;
+  final EdgeInsets padding;
+
+  const AdminSearchBar({
+    super.key,
+    required this.frame,
+    required this.search,
+    this.filter,
+    this.padding = const EdgeInsets.fromLTRB(24, 16, 24, 8),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: frame.isWide ? frame.pad(padding) : EdgeInsets.fromLTRB(16, padding.top, 16, padding.bottom),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Row(
+            children: [
+              Expanded(child: search),
+              if (filter != null) ...[const SizedBox(width: 8), filter!],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AdminRowList extends StatelessWidget {
+  final AdminFrame frame;
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final EdgeInsets padding;
+  final Widget? header;
+
+  const AdminRowList({
+    super.key,
+    required this.frame,
+    required this.itemCount,
+    required this.itemBuilder,
+    this.padding = const EdgeInsets.fromLTRB(24, 8, 24, 24),
+    this.header,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    final offset = header == null ? 0 : 1;
+    final base = frame.isWide ? frame.pad(padding) : EdgeInsets.fromLTRB(8, padding.top, 8, padding.bottom);
+    return ListView.separated(
+      padding: base.copyWith(bottom: base.bottom + bottom),
+      itemCount: itemCount + offset,
+      separatorBuilder: (_, i) => i < offset
+          ? const SizedBox.shrink()
+          : Divider(height: 1, thickness: 1, indent: 12, endIndent: 12, color: c.divider),
+      itemBuilder: (context, i) => i < offset ? header! : itemBuilder(context, i - offset),
+    );
+  }
+}
+
+class AdminListRow extends StatelessWidget {
+  static const double tableWidth = 600;
+
+  final bool selected;
+  final VoidCallback? onTap;
+
+  final VoidCallback? onMenu;
+  final Widget? leading;
+  final String title;
+  final List<Widget> tags;
+  final String? subtitle;
+  final String? detail;
+
+  /// 只在表格排列時顯示，窄列表不顯示；不可放只有這裡才看得到的資訊。
+  final Widget? detailFooter;
+  final Widget? status;
+  final String? amount;
+  final String? time;
+  final Widget? trailing;
+
+  const AdminListRow({
+    super.key,
+    required this.title,
+    this.selected = false,
+    this.onTap,
+    this.onMenu,
+    this.leading,
+    this.tags = const [],
+    this.subtitle,
+    this.detail,
+    this.detailFooter,
+    this.status,
+    this.amount,
+    this.time,
+    this.trailing,
+  });
+
+  static bool isSelected(BuildContext context, List<Object> ids) => ids.contains(MasterDetail.selectedId(context));
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final radius = BorderRadius.circular(12);
+    return Semantics(
+      selected: selected,
+      child: Material(
+        color: selected ? c.accent.withValues(alpha: c.isDark ? 0.28 : 0.18) : Colors.transparent,
+        borderRadius: radius,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onMenu,
+          onSecondaryTap: onMenu,
+          borderRadius: radius,
+          child: LayoutBuilder(
+            builder: (context, constraints) => constraints.maxWidth >= tableWidth ? _buildTable(c) : _buildStacked(c),
+          ),
+        ),
+      ),
+    );
+  }
+
+  TextStyle _titleStyle(AppColors c) =>
+      TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: selected ? c.accent : c.textPrimary);
+
+  Widget _title(AppColors c) => Row(
+        children: [
+          Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: _titleStyle(c))),
+          for (final tag in tags) ...[const SizedBox(width: 6), tag],
+        ],
+      );
+
+  Widget _secondary(AppColors c, String text, {int maxLines = 1}) =>
+      Text(text, maxLines: maxLines, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, height: 1.35, color: c.textSecondary));
+
+  Widget _amount(AppColors c) => Text(
+        amount!,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.accent),
+      );
+
+  Widget _time(AppColors c) =>
+      Text(time!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: c.textHint));
+
+  Widget _buildTable(AppColors c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        children: [
+          if (leading != null) ...[leading!, const SizedBox(width: 12)],
+          Expanded(
+            flex: 5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _title(c),
+                if (subtitle != null && subtitle!.isNotEmpty) ...[const SizedBox(height: 2), _secondary(c, subtitle!)],
+              ],
+            ),
+          ),
+          if (detail != null || detailFooter != null) ...[
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (detail != null) _secondary(c, detail!, maxLines: detailFooter == null ? 2 : 1),
+                  if (detail != null && detailFooter != null) const SizedBox(height: 6),
+                  ?detailFooter,
+                ],
+              ),
+            ),
+          ],
+          if (status != null) ...[
+            const SizedBox(width: 16),
+            SizedBox(width: 104, child: Align(alignment: Alignment.centerLeft, child: status!)),
+          ],
+          if (amount != null) ...[
+            const SizedBox(width: 12),
+            SizedBox(width: 96, child: Align(alignment: Alignment.centerRight, child: _amount(c))),
+          ],
+          if (time != null) ...[
+            const SizedBox(width: 16),
+            SizedBox(width: 120, child: Align(alignment: Alignment.centerRight, child: _time(c))),
+          ],
+          if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStacked(AppColors c) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (leading != null) ...[leading!, const SizedBox(width: 12)],
+          Expanded(child: LayoutBuilder(builder: (context, box) => _stackedLines(c, box.maxWidth))),
+          if (trailing != null) ...[const SizedBox(width: 10), Padding(padding: const EdgeInsets.only(top: 6), child: trailing!)],
+        ],
+      ),
+    );
+  }
+
+  Widget _stackedLines(AppColors c, double width) {
+    final hasDetail = detail != null && detail!.isNotEmpty;
+    // 右側的金額、狀態與時間最多佔一半寬度，窄欄（英文、大字）時改為省略而不溢出
+    Widget side(Widget child) => ConstrainedBox(constraints: BoxConstraints(maxWidth: width * 0.5), child: child);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Expanded(child: _title(c)),
+            if (amount != null) ...[const SizedBox(width: 8), side(_amount(c))] else if (time != null) ...[const SizedBox(width: 8), side(_time(c))],
+          ],
+        ),
+        if ((subtitle != null && subtitle!.isNotEmpty) || status != null) ...[
+          const SizedBox(height: 3),
+          Row(
+            children: [
+              Expanded(child: subtitle == null ? const SizedBox.shrink() : _secondary(c, subtitle!)),
+              if (status != null) ...[const SizedBox(width: 8), side(status!)],
+            ],
+          ),
+        ],
+        if (hasDetail || (amount != null && time != null)) ...[
+          const SizedBox(height: 3),
+          Row(
+            children: [
+              Expanded(
+                child: hasDetail
+                    ? Text(detail!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: c.textHint))
+                    : const SizedBox.shrink(),
+              ),
+              if (amount != null && time != null) ...[const SizedBox(width: 8), side(_time(c))],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class AdminRowThumbnail extends StatelessWidget {
+  final String? imageUrl;
+
+  const AdminRowThumbnail({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) => BookThumbnail(imageUrl: imageUrl, width: 36, height: 48, radius: 6);
 }

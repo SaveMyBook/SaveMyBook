@@ -80,7 +80,7 @@ class _LegalDocScreenState extends State<LegalDocScreen> {
                           onRefresh: _load,
                           child: LayoutBuilder(builder: (context, constraints) => ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
-                            padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 20, top: 20, bottom: 40),
+                            padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: context.isWide ? 24 : 20, top: 20, bottom: 40),
                             children: [
                               FadeSlideIn(
                                 child: AppCard(

@@ -12,6 +12,7 @@ import '../../../widgets/app_tiles.dart';
 import '../../../widgets/responsive.dart';
 import '../../../widgets/state_views.dart';
 import '../widgets/chat_format.dart';
+import 'group_form_sheet.dart';
 import '../../../i18n/strings.dart';
 
 const int kGroupMemberLimit = 100;
@@ -22,10 +23,7 @@ Future<List<ChatPartner>?> pickGroupInvitees(
   required Set<int> excludeIds,
   required int maxSelect,
 }) {
-  return Navigator.push<List<ChatPartner>>(
-    context,
-    MaterialPageRoute(builder: (_) => _InviteMembersScreen(excludeIds: excludeIds, maxSelect: maxSelect)),
-  );
+  return openGroupFlow<List<ChatPartner>>(context, _InviteMembersScreen(excludeIds: excludeIds, maxSelect: maxSelect));
 }
 
 class _InviteMembersScreen extends StatefulWidget {
@@ -44,11 +42,26 @@ class _InviteMembersScreenState extends State<_InviteMembersScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    final wide = context.isWide;
+    final count = _selected.length;
     return Scaffold(
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: S.inviteMembers, icon: Icons.person_add_alt_1_outlined),
+          if (wide)
+            TabletToolbar(
+              title: S.inviteMembers,
+              showBack: !isGroupFlowSheet(context),
+              leading: isGroupFlowSheet(context) ? GroupFlowCloseButton(onPressed: () => Navigator.maybePop(context)) : null,
+              actions: [
+                GroupToolbarButton(
+                  label: count == 0 ? S.invite : '${S.invite}（$count）',
+                  onPressed: count == 0 ? null : () => Navigator.pop(context, _selected),
+                ),
+              ],
+            )
+          else
+            AppHeader(title: S.inviteMembers, icon: Icons.person_add_alt_1_outlined),
           Expanded(
             child: ChatMemberPicker(
               selected: _selected,
@@ -57,6 +70,7 @@ class _InviteMembersScreenState extends State<_InviteMembersScreen> {
               maxSelect: widget.maxSelect,
               confirmLabel: S.invite,
               onConfirm: () => Navigator.pop(context, _selected),
+              showConfirmBar: !wide,
             ),
           ),
         ],
@@ -73,6 +87,8 @@ class ChatMemberPicker extends StatefulWidget {
   final String confirmLabel;
   final VoidCallback onConfirm;
 
+  final bool showConfirmBar;
+
   const ChatMemberPicker({
     super.key,
     required this.selected,
@@ -81,6 +97,7 @@ class ChatMemberPicker extends StatefulWidget {
     required this.onConfirm,
     this.excludeIds = const {},
     this.maxSelect = kGroupMemberLimit - 1,
+    this.showConfirmBar = true,
   });
 
   @override
@@ -246,44 +263,45 @@ class _ChatMemberPickerState extends State<ChatMemberPicker> {
           ),
         ),
         Expanded(child: SwitchIn(child: body)),
-        Container(
-          decoration: BoxDecoration(
-            color: c.card,
-            border: Border(top: BorderSide(color: c.divider)),
-          ),
-          child: SafeArea(
-            top: false,
-            child: ResponsiveListPadding(
-              maxWidth: twoColumns ? 480 : Breakpoints.formMaxWidth,
-              top: 10,
-              bottom: 10,
-              builder: (context, padding) => Padding(
-                padding: padding,
-                child: SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: count == 0 ? null : widget.onConfirm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: chatMineBubble(c),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: c.inputFill,
-                      disabledForegroundColor: c.textHint,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: Text(
-                      count == 0 ? label : '$label（$count）',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        if (widget.showConfirmBar)
+          Container(
+            decoration: BoxDecoration(
+              color: c.card,
+              border: Border(top: BorderSide(color: c.divider)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: ResponsiveListPadding(
+                maxWidth: twoColumns ? 480 : Breakpoints.formMaxWidth,
+                top: 10,
+                bottom: 10,
+                builder: (context, padding) => Padding(
+                  padding: padding,
+                  child: SizedBox(
+                    height: 48,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: count == 0 ? null : widget.onConfirm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: chatMineBubble(c),
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: c.inputFill,
+                        disabledForegroundColor: c.textHint,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: Text(
+                        count == 0 ? label : '$label（$count）',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

@@ -14,7 +14,13 @@ import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  /// 平板會員中心右欄：回報是否有未儲存的變更，切換到其他項目前據此確認。
+  final ValueNotifier<bool>? dirty;
+
+  /// 儲存或更換頭像後通知會員中心更新左欄的個人資料。
+  final VoidCallback? onSaved;
+
+  const EditProfileScreen({super.key, this.dirty, this.onSaved});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -71,6 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!mounted) return;
     if (ok == true) {
       setState(() {});
+      widget.onSaved?.call();
       showAppSnackBar(context, S.profilePhotoUpdated);
     } else {
       showAppSnackBar(context, S.couldNotUploadPhoto, isError: true);
@@ -133,8 +140,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (error != null) {
       showAppSnackBar(context, error, isError: true);
+    } else if (!Navigator.of(context).canPop()) {
+      // 平板右欄的根頁面：留在原頁，已儲存的內容即為新的比對基準
+      setState(() {});
+      widget.onSaved?.call();
+      showAppSnackBar(context, S.profileUpdated);
     } else {
       setState(() => _saved = true);
+      widget.onSaved?.call();
       showAppSnackBar(context, S.profileUpdated);
       Navigator.of(context).pop();
     }
@@ -153,6 +166,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final avatarUrl = ApiService.currentUser?.avatarUrl;
+    final wide = context.isWide;
+    widget.dirty?.value = _isDirty;
 
     return UnsavedGuard(
       isDirty: _isDirty,
@@ -160,7 +175,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          AppHeader(title: S.editProfile, icon: Icons.edit_outlined),
+          AppHeader(
+            title: S.editProfile,
+            icon: Icons.edit_outlined,
+            actions: [
+              if (wide)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: PrimaryButton(label: S.actionSave, isLoading: _isSaving, onPressed: _save, expand: false, height: 38),
+                ),
+            ],
+          ),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -261,12 +286,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       onChanged: (value) => setState(() => _birthday = value),
                     ),
                   ),
-                  const SizedBox(height: 28),
-                  PrimaryButton(
-                    label: S.actionSave,
-                    isLoading: _isSaving,
-                    onPressed: _save,
-                  ),
+                  if (!wide) ...[
+                    const SizedBox(height: 28),
+                    PrimaryButton(
+                      label: S.actionSave,
+                      isLoading: _isSaving,
+                      onPressed: _save,
+                    ),
+                  ],
                 ];
                 if (context.isWide && constraints.maxWidth >= 900) {
                   return SingleChildScrollView(

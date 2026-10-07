@@ -2581,6 +2581,16 @@ abstract class AppLocalizations {
   String accessibleRampP0(Object p0);
   String get accessibleRamp;
   String get singleExit;
+  String get sideNavBrowse;
+  String get sideNavMessages;
+  String get sideNavTrade;
+  String get sideNavSelling;
+  String get showSidebar;
+  String get hideSidebar;
+  String get gridView;
+  String get listView;
+  String get addFavorite;
+  String get removeFavorite;
 }
 
 class _LEn extends AppLocalizations {
@@ -10259,6 +10269,36 @@ class _LEn extends AppLocalizations {
 
   @override
   String get singleExit => 'Single exit';
+
+  @override
+  String get sideNavBrowse => 'Browse';
+
+  @override
+  String get sideNavMessages => 'Messages';
+
+  @override
+  String get sideNavTrade => 'Shopping';
+
+  @override
+  String get sideNavSelling => 'Selling';
+
+  @override
+  String get showSidebar => 'Show sidebar';
+
+  @override
+  String get hideSidebar => 'Hide sidebar';
+
+  @override
+  String get gridView => 'Grid view';
+
+  @override
+  String get listView => 'List view';
+
+  @override
+  String get addFavorite => 'Save';
+
+  @override
+  String get removeFavorite => 'Remove from saved';
 
 }
 
@@ -17939,6 +17979,36 @@ class _LJa extends AppLocalizations {
   @override
   String get singleExit => '出口は 1 か所';
 
+  @override
+  String get sideNavBrowse => '見つける';
+
+  @override
+  String get sideNavMessages => 'メッセージ';
+
+  @override
+  String get sideNavTrade => 'ショッピング';
+
+  @override
+  String get sideNavSelling => '出品';
+
+  @override
+  String get showSidebar => 'サイドバーを表示';
+
+  @override
+  String get hideSidebar => 'サイドバーを非表示';
+
+  @override
+  String get gridView => 'グリッド表示';
+
+  @override
+  String get listView => 'リスト表示';
+
+  @override
+  String get addFavorite => 'お気に入りに追加';
+
+  @override
+  String get removeFavorite => 'お気に入りから削除';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -25617,6 +25687,36 @@ class _LKo extends AppLocalizations {
 
   @override
   String get singleExit => '단일 출구';
+
+  @override
+  String get sideNavBrowse => '둘러보기';
+
+  @override
+  String get sideNavMessages => '메시지';
+
+  @override
+  String get sideNavTrade => '쇼핑';
+
+  @override
+  String get sideNavSelling => '판매';
+
+  @override
+  String get showSidebar => '사이드바 표시';
+
+  @override
+  String get hideSidebar => '사이드바 숨기기';
+
+  @override
+  String get gridView => '그리드 보기';
+
+  @override
+  String get listView => '목록 보기';
+
+  @override
+  String get addFavorite => '찜하기';
+
+  @override
+  String get removeFavorite => '찜 해제';
 
 }
 
@@ -33297,6 +33397,36 @@ class _LZh extends AppLocalizations {
   @override
   String get singleExit => '單一出口';
 
+  @override
+  String get sideNavBrowse => '探索';
+
+  @override
+  String get sideNavMessages => '訊息';
+
+  @override
+  String get sideNavTrade => '交易';
+
+  @override
+  String get sideNavSelling => '賣書';
+
+  @override
+  String get showSidebar => '顯示側邊欄';
+
+  @override
+  String get hideSidebar => '隱藏側邊欄';
+
+  @override
+  String get gridView => '格狀檢視';
+
+  @override
+  String get listView => '列表檢視';
+
+  @override
+  String get addFavorite => '加入收藏';
+
+  @override
+  String get removeFavorite => '取消收藏';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -40976,6 +41106,36 @@ class _LZhHans extends AppLocalizations {
   @override
   String get singleExit => '单一出口';
 
+  @override
+  String get sideNavBrowse => '探索';
+
+  @override
+  String get sideNavMessages => '消息';
+
+  @override
+  String get sideNavTrade => '交易';
+
+  @override
+  String get sideNavSelling => '卖书';
+
+  @override
+  String get showSidebar => '显示侧边栏';
+
+  @override
+  String get hideSidebar => '隐藏侧边栏';
+
+  @override
+  String get gridView => '网格视图';
+
+  @override
+  String get listView => '列表视图';
+
+  @override
+  String get addFavorite => '加入收藏';
+
+  @override
+  String get removeFavorite => '取消收藏';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -48654,6 +48814,36 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get singleExit => '單一出口';
+
+  @override
+  String get sideNavBrowse => '探索';
+
+  @override
+  String get sideNavMessages => '訊息';
+
+  @override
+  String get sideNavTrade => '交易';
+
+  @override
+  String get sideNavSelling => '賣書';
+
+  @override
+  String get showSidebar => '顯示側邊欄';
+
+  @override
+  String get hideSidebar => '隱藏側邊欄';
+
+  @override
+  String get gridView => '格狀檢視';
+
+  @override
+  String get listView => '列表檢視';
+
+  @override
+  String get addFavorite => '加入收藏';
+
+  @override
+  String get removeFavorite => '取消收藏';
 
 }
 

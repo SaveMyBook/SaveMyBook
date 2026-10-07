@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:marquee/marquee.dart';
 import 'app_tiles.dart';
+import 'buyer/book_menu.dart';
 import 'favorite_button.dart';
 import 'responsive.dart';
 import 'state_views.dart';
@@ -83,81 +84,79 @@ class BookCard extends StatelessWidget {
     final c = AppColors.of(context);
     final sellerName = _sellerName();
 
-    return GestureDetector(
-      onTap: () => _navigateToDetail(context),
-      child: Container(
-        decoration: _cardDecoration(c),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Stack(children: [
-            Hero(
-              tag: _heroTag,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: AppNetworkImage(
-                  url: book.hasImage ? book.imageUrl : null,
-                  height: 140,
-                  width: double.infinity,
-                  fallbackIconSize: 32,
-                ),
+    return _shell(
+      context,
+      c,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Stack(children: [
+          Hero(
+            tag: _heroTag,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: AppNetworkImage(
+                url: book.hasImage ? book.imageUrl : null,
+                height: 140,
+                width: double.infinity,
+                fallbackIconSize: 32,
               ),
             ),
-            _statusOverlay(),
-          ]),
-          Expanded(child: Stack(fit: StackFit.expand, clipBehavior: Clip.none, children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                    Expanded(child: LayoutBuilder(builder: (context, constraints) {
-                      final titleStyle = _titleStyle.copyWith(color: c.textPrimary);
-                      final scaler = MediaQuery.textScalerOf(context);
-                      final painter = TextPainter(
-                        text: TextSpan(text: book.title, style: DefaultTextStyle.of(context).style.merge(titleStyle)),
-                        maxLines: 1,
-                        textDirection: Directionality.of(context),
-                        textScaler: scaler,
-                      )..layout(maxWidth: constraints.maxWidth);
-                      final overflows = painter.didExceedMaxLines;
-                      painter.dispose();
+          ),
+          _statusOverlay(),
+        ]),
+        Expanded(child: Stack(fit: StackFit.expand, clipBehavior: Clip.none, children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  Expanded(child: LayoutBuilder(builder: (context, constraints) {
+                    final titleStyle = _titleStyle.copyWith(color: c.textPrimary);
+                    final scaler = MediaQuery.textScalerOf(context);
+                    final painter = TextPainter(
+                      text: TextSpan(text: book.title, style: DefaultTextStyle.of(context).style.merge(titleStyle)),
+                      maxLines: 1,
+                      textDirection: Directionality.of(context),
+                      textScaler: scaler,
+                    )..layout(maxWidth: constraints.maxWidth);
+                    final overflows = painter.didExceedMaxLines;
+                    painter.dispose();
 
-                      return overflows
-                          ? SizedBox(height: math.max(20.0, scaler.scale(_titleStyle.fontSize!) * _titleStyle.height!), child: Marquee(text: book.title, style: titleStyle,
-                          blankSpace: 40.0, velocity: 50.0, pauseAfterRound: const Duration(seconds: 2),
-                          startAfter: const Duration(seconds: 1), fadingEdgeStartFraction: 0.0, fadingEdgeEndFraction: 0.15,
-                          accelerationDuration: Duration.zero, decelerationDuration: Duration.zero))
-                          : Text(book.title, style: titleStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
-                    })),
-                    const SizedBox(width: 33, height: 46),
-                  ]),
-                  const SizedBox(height: 6),
-                  _buildTags(c),
-                  const SizedBox(height: 6),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
-                  ),
+                    return overflows
+                        ? SizedBox(height: math.max(20.0, scaler.scale(_titleStyle.fontSize!) * _titleStyle.height!), child: Marquee(text: book.title, style: titleStyle,
+                        blankSpace: 40.0, velocity: 50.0, pauseAfterRound: const Duration(seconds: 2),
+                        startAfter: const Duration(seconds: 1), fadingEdgeStartFraction: 0.0, fadingEdgeEndFraction: 0.15,
+                        accelerationDuration: Duration.zero, decelerationDuration: Duration.zero))
+                        : Text(book.title, style: titleStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
+                  })),
+                  const SizedBox(width: 33, height: 46),
                 ]),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _openSeller(context),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                    _sellerAvatar(c, 9),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: _sellerFontSize, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  ]),
+                const SizedBox(height: 6),
+                _buildTags(c),
+                const SizedBox(height: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
                 ),
               ]),
-            ),
-            PositionedDirectional(
-              top: 12,
-              end: -1,
-              child: FavoriteButton(bookId: book.bookId, size: 20),
-            ),
-          ])),
-        ]),
-      ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _openSeller(context),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  _sellerAvatar(c, 9),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(sellerName, locale: const Locale('en', 'US'), style: TextStyle(fontSize: _sellerFontSize, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ]),
+              ),
+            ]),
+          ),
+          PositionedDirectional(
+            top: 12,
+            end: -1,
+            child: FavoriteButton(bookId: book.bookId, size: 20),
+          ),
+        ])),
+      ]),
     );
   }
 
@@ -166,72 +165,96 @@ class BookCard extends StatelessWidget {
     final sellerName = _sellerName();
     final height = listHeightOf(context);
 
-    return GestureDetector(
-      onTap: () => _navigateToDetail(context),
-      child: Container(
-        height: height,
-        decoration: _cardDecoration(c),
-        child: Row(children: [
-          Stack(children: [
-            Hero(
-              tag: _heroTag,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-                child: AppNetworkImage(
-                  url: book.hasImage ? book.imageUrl : null,
-                  width: 110,
-                  height: height,
-                  fallbackIconSize: 32,
-                ),
+    return _shell(
+      context,
+      c,
+      height: height,
+      child: Row(children: [
+        Stack(children: [
+          Hero(
+            tag: _heroTag,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+              child: AppNetworkImage(
+                url: book.hasImage ? book.imageUrl : null,
+                width: 110,
+                height: height,
+                fallbackIconSize: 32,
               ),
             ),
-            _statusOverlay(),
-          ]),
+          ),
+          _statusOverlay(),
+        ]),
 
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 1, 12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Row(children: [
-                    Expanded(child: Text(book.title, style: _titleStyle.copyWith(color: c.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
-                    FavoriteButton(bookId: book.bookId, size: 20),
-                  ]),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 13),
-                    child: _buildTags(c),
-                  ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 1, 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Row(children: [
+                  Expanded(child: Text(book.title, style: _titleStyle.copyWith(color: c.textPrimary), maxLines: 2, overflow: TextOverflow.ellipsis)),
+                  FavoriteButton(bookId: book.bookId, size: 20),
                 ]),
-
+                const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: 13),
-                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
-                      ),
-                    ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _openSeller(context),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        _sellerAvatar(c, 9),
-                        const SizedBox(width: 5),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 80),
-                          child: Text(sellerName, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        ),
-                      ]),
-                    ),
-                  ]),
+                  child: _buildTags(c),
                 ),
               ]),
-            ),
+
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 13),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text('\$${book.price.toInt()}', style: TextStyle(fontSize: _priceFontSize, fontWeight: FontWeight.w900, color: AppColors.of(context).accent)),
+                    ),
+                  ),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _openSeller(context),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      _sellerAvatar(c, 9),
+                      const SizedBox(width: 5),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 80),
+                        child: Text(sellerName, style: TextStyle(fontSize: 12, color: c.textSecondary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ]),
+                  ),
+                ]),
+              ),
+            ]),
           ),
-        ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _shell(BuildContext context, AppColors c, {double? height, required Widget child}) {
+    if (!context.isWide) {
+      return GestureDetector(
+        onTap: () => _navigateToDetail(context),
+        child: Container(height: height, decoration: _cardDecoration(c), child: child),
+      );
+    }
+    final radius = BorderRadius.circular(16);
+    return Container(
+      height: height,
+      decoration: BoxDecoration(borderRadius: radius, boxShadow: _cardDecoration(c).boxShadow),
+      child: Material(
+        color: c.card,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _navigateToDetail(context),
+          onLongPress: () => showBookMenu(context, book, heroTag: _heroTag),
+          onSecondaryTapUp: (_) => showBookMenu(context, book, heroTag: _heroTag),
+          hoverColor: c.accent.withValues(alpha: 0.06),
+          child: child,
+        ),
       ),
     );
   }
@@ -278,7 +301,9 @@ class BookCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTags(AppColors c) {
+  Widget _buildTags(AppColors c) => tagsOf(c, book);
+
+  static Widget tagsOf(AppColors c, Book book) {
     final conditionColor = c.conditionColor(book.conditionLevel);
     return Row(children: [
       Flexible(child: _buildTag(book.categoryName, c.categoryChip, c.accent)),
@@ -287,7 +312,7 @@ class BookCard extends StatelessWidget {
     ]);
   }
 
-  Widget _buildTag(String text, Color bgColor, Color textColor) {
+  static Widget _buildTag(String text, Color bgColor, Color textColor) {
     return Container(
       height: 22, padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(16)),

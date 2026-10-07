@@ -109,33 +109,58 @@ class AiConsentSheet extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SecondaryButton(
-                    label: S.decline,
-                    color: c.textSecondary,
-                    onPressed: () => Navigator.of(context).pop(false),
-                  ),
+          if (isDialogSheet(context))
+            // 平板對話框：按鈕靠右、寬度依文字，與內容以細線分隔
+            DecoratedBox(
+              decoration: BoxDecoration(border: Border(top: BorderSide(color: c.divider))),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 14, 24, 18),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 112),
+                      child: SecondaryButton(label: S.decline, color: c.textSecondary, height: 44, onPressed: () => Navigator.of(context).pop(false)),
+                    ),
+                    const SizedBox(width: 12),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 160),
+                      child: PrimaryButton(label: S.agreeContinue, height: 44, expand: false, onPressed: () => _agree(context)),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: PrimaryButton(
-                    label: S.agreeContinue,
-                    onPressed: () {
-                      HapticFeedback.selectionClick();
-                      Navigator.of(context).pop(true);
-                    },
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      label: S.decline,
+                      color: c.textSecondary,
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PrimaryButton(
+                      label: S.agreeContinue,
+                      onPressed: () => _agree(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
+  }
+
+  void _agree(BuildContext context) {
+    HapticFeedback.selectionClick();
+    Navigator.of(context).pop(true);
   }
 
   Widget _heading(AppColors c, String text) => Padding(

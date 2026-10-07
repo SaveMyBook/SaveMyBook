@@ -11,6 +11,7 @@ import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
@@ -153,14 +154,22 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
           children: [
             AppHeader(title: S.adminAuditLog, icon: Icons.fact_check_outlined),
             if (frame.isWide)
-              AdminToolbar(
+              AdminSearchBar(
                 frame: frame,
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 10),
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
                 search: AppSearchField(
                   controller: _search,
                   hint: S.searchActions,
                   onChanged: _onSearchChanged,
                   onSubmitted: (_) => _load(showLoading: true),
+                ),
+                filter: AppSelectChip<String?>(
+                  value: _targetType,
+                  title: S.type,
+                  iconOnly: _targetType == null,
+                  highlighted: _targetType != null,
+                  options: [for (final f in _filters) AppSelectOption(value: f.value, label: f.label)],
+                  onChanged: _setFilter,
                 ),
               )
             else
@@ -173,19 +182,7 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                   onSubmitted: (_) => _load(showLoading: true),
                 ),
               ),
-            if (frame.isWide)
-              Padding(
-                padding: frame.pad(const EdgeInsets.symmetric(horizontal: 24)),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [for (final f in _filters) SizedBox(height: 34, child: IntrinsicWidth(child: _buildFilterChip(f, c)))],
-                  ),
-                ),
-              )
-            else
+            if (!frame.isWide)
               SizedBox(
                 height: 34,
                 child: ListView.separated(

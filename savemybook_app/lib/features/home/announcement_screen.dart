@@ -7,6 +7,7 @@ import '../../widgets/responsive.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 
@@ -48,7 +49,24 @@ class _AnnouncementListState extends State<AnnouncementList> {
 
   @override
   Widget build(BuildContext context) {
+    if (!context.isWide) return _buildList(context, widget.padding);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < _splitWidth) return _buildList(context, widget.padding);
+        return MasterDetail(
+          minSplitWidth: _splitWidth,
+          placeholderIcon: Icons.campaign_outlined,
+          master: Builder(builder: (context) => _buildList(context, EdgeInsets.fromLTRB(16, 16, 16, widget.padding.bottom))),
+        );
+      },
+    );
+  }
+
+  static const double _splitWidth = 840;
+
+  Widget _buildList(BuildContext context, EdgeInsets padding) {
     final c = AppColors.of(context);
+    final wide = context.isWide;
 
     return SwitchIn(
       child: _isLoading
@@ -66,17 +84,43 @@ class _AnnouncementListState extends State<AnnouncementList> {
                     )
                   : LayoutBuilder(builder: (context, constraints) => ListView.builder(
                       key: const ValueKey('items'),
-                      padding: _listPadding(constraints),
+                      padding: _listPadding(constraints, padding),
                       itemCount: _items.length,
-                      itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_items[i], c)),
+                      itemBuilder: (context, i) => RevealOnScroll(
+                        index: i,
+                        child: wide ? _buildWideItem(context, _items[i], c) : _buildCard(_items[i], c),
+                      ),
                     )),
             ),
     );
   }
 
-  EdgeInsets _listPadding(BoxConstraints constraints) {
-    final side = responsiveListPadding(constraints, horizontal: widget.padding.left).left;
-    return widget.padding.copyWith(left: side, right: side);
+  EdgeInsets _listPadding(BoxConstraints constraints, EdgeInsets padding) {
+    final side = responsiveListPadding(constraints, horizontal: padding.left).left;
+    return padding.copyWith(left: side, right: side);
+  }
+
+  Widget _buildWideItem(BuildContext context, Announcement a, AppColors c) {
+    final selected = MasterDetail.selectedId(context) == a.announcementId;
+    final radius = BorderRadius.circular(14);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: selected ? c.accent.withValues(alpha: c.isDark ? 0.22 : 0.1) : c.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(color: selected ? c.accent.withValues(alpha: 0.5) : c.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => MasterDetail.open(context, AnnouncementDetailScreen(announcement: a), id: a.announcementId),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
+            child: _cardContent(a, c),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildCard(Announcement a, AppColors c) {
@@ -86,49 +130,53 @@ class _AnnouncementListState extends State<AnnouncementList> {
         context,
         MaterialPageRoute(builder: (_) => AnnouncementDetailScreen(announcement: a)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: c.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(announcementIcon(a.type), size: 20, color: c.accent),
+      child: _cardContent(a, c),
+    );
+  }
+
+  Widget _cardContent(Announcement a, AppColors c) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: c.accent.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    StatusBadge(label: a.typeText, color: c.accent),
-                    Text(formatDate(a.publishedAt?.toLocal()), style: TextStyle(fontSize: 11, color: c.textHint)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  a.title,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  a.content,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary),
-                ),
-              ],
-            ),
+          child: Icon(announcementIcon(a.type), size: 20, color: c.accent),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  StatusBadge(label: a.typeText, color: c.accent),
+                  Text(formatDate(a.publishedAt?.toLocal()), style: TextStyle(fontSize: 11, color: c.textHint)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                a.title,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                a.content,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -142,6 +190,7 @@ class AnnouncementDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final a = announcement;
+    final wide = context.isWide;
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -150,11 +199,11 @@ class AnnouncementDetailScreen extends StatelessWidget {
           AppHeader(title: a.typeText, icon: announcementIcon(a.type)),
           Expanded(
             child: LayoutBuilder(builder: (context, constraints) => ListView(
-              padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 20, top: 20, bottom: 40),
+              padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: wide ? 24 : 20, top: wide ? 24 : 20, bottom: 40),
               children: [
                 Text(
                   a.title,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, height: 1.4, color: c.textPrimary),
+                  style: TextStyle(fontSize: wide ? 24 : 20, fontWeight: FontWeight.bold, height: 1.4, color: c.textPrimary),
                 ),
                 const SizedBox(height: 8),
                 Text(

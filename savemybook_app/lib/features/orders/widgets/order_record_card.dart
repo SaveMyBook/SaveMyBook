@@ -5,6 +5,7 @@ import '../../../utils/app_colors.dart';
 import '../../../widgets/app_tiles.dart';
 import '../../../widgets/state_views.dart';
 import '../../cabinet/cabinet_messages.dart';
+import 'tablet_controls.dart';
 
 class OrderRecordCard extends StatelessWidget {
   final Order order;
@@ -190,6 +191,225 @@ class OrderRecordCard extends StatelessWidget {
         textStyle: textStyle,
       ),
       child: child,
+    );
+  }
+}
+
+class OrderRecordRow extends StatelessWidget {
+  final Order order;
+  final bool asSeller;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
+  final VoidCallback? onTap;
+  final VoidCallback? onMenu;
+  final bool selected;
+
+  const OrderRecordRow({
+    super.key,
+    required this.order,
+    this.asSeller = false,
+    this.actionLabel,
+    this.onAction,
+    this.secondaryLabel,
+    this.onSecondary,
+    this.onTap,
+    this.onMenu,
+    this.selected = false,
+  });
+
+  static const double _wideWidth = 600;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final counterpart = asSeller ? order.buyerName : order.sellerName;
+    final first = order.items.isEmpty ? null : order.items.first.book;
+    final title = [
+      first == null || first.title.isEmpty ? S.untitled : first.title,
+      if (order.items.length > 1) S.p0ItemsTotal(order.items.length),
+    ].join(' ');
+    final cabinet = [
+      order.cabinetName.isNotEmpty ? order.cabinetName : order.cabinetAddress,
+      CabinetMessages.orderPlacement(order),
+    ].where((s) => s.isNotEmpty).join('・');
+    final hint = TextStyle(fontSize: 12, color: c.textSecondary);
+    final hasActions = actionLabel != null || secondaryLabel != null;
+
+    Widget actions() => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (secondaryLabel != null)
+              Flexible(child: CompactActionButton(label: secondaryLabel!, onPressed: onSecondary, height: 32)),
+            if (secondaryLabel != null && actionLabel != null) const SizedBox(width: 8),
+            if (actionLabel != null)
+              Flexible(child: CompactActionButton(label: actionLabel!, onPressed: onAction, filled: true, height: 32)),
+          ],
+        );
+
+    final location = Row(
+      children: [
+        Icon(Icons.location_on_outlined, size: 14, color: c.iconInactive),
+        const SizedBox(width: 3),
+        Expanded(
+          child: Text(cabinet.isEmpty ? S.notAssigned : cabinet, maxLines: 1, overflow: TextOverflow.ellipsis, style: hint),
+        ),
+      ],
+    );
+    final titleText = Text(
+      title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: c.textPrimary),
+    );
+    final meta = Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: '${asSeller ? S.buyer : S.seller} '),
+          TextSpan(
+            text: counterpart.isEmpty ? '—' : counterpart,
+            style: TextStyle(fontWeight: FontWeight.w600, color: c.textPrimary),
+          ),
+          TextSpan(text: '・${order.orderNo}'),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: hint,
+    );
+    final price = Text(
+      '\$${order.totalAmount.toStringAsFixed(0)}',
+      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: c.accent),
+    );
+    final badge = StatusBadge(label: order.statusLabel(asSeller: asSeller), color: c.orderStatusColor(order.status));
+    final report = !order.hasPendingManualReport
+        ? null
+        : Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Row(
+              children: [
+                Icon(Icons.inventory_2_outlined, size: 14, color: c.iconInactive),
+                const SizedBox(width: 3),
+                Expanded(
+                  child: Text(S.manualReportAwaitingConfirmation, maxLines: 1, overflow: TextOverflow.ellipsis, style: hint),
+                ),
+              ],
+            ),
+          );
+
+    return TabletListItem(
+      selected: selected,
+      onTap: onTap,
+      onMenu: onMenu,
+      padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          if (box.maxWidth >= _wideWidth) {
+            return Row(
+              children: [
+                _Covers(order: order),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [titleText, const SizedBox(height: 4), meta, const SizedBox(height: 4), location, ?report],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: box.maxWidth * 0.2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [badge, const SizedBox(height: 6), price],
+                  ),
+                ),
+                if (hasActions) ...[
+                  const SizedBox(width: 20),
+                  ConstrainedBox(constraints: BoxConstraints(maxWidth: box.maxWidth * 0.4), child: actions()),
+                ],
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Covers(order: order),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: titleText),
+                        const SizedBox(width: 8),
+                        ConstrainedBox(constraints: BoxConstraints(maxWidth: box.maxWidth * 0.4), child: badge),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(children: [Expanded(child: meta), const SizedBox(width: 8), price]),
+                    const SizedBox(height: 4),
+                    location,
+                    ?report,
+                    if (hasActions)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Align(alignment: Alignment.centerRight, child: actions()),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Covers extends StatelessWidget {
+  final Order order;
+
+  const _Covers({required this.order});
+
+  static const double _width = 44;
+  static const double _height = 58;
+  static const double _step = 5;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final books = order.items.take(3).map((i) => i.book).toList();
+    if (books.length <= 1) {
+      final book = books.isEmpty ? null : books.first;
+      return BookThumbnail(imageUrl: book != null && book.hasImage ? book.imageUrl : null, width: _width, height: _height, radius: 6);
+    }
+    return SizedBox(
+      width: _width + _step * (books.length - 1),
+      height: _height + _step * (books.length - 1),
+      child: Stack(
+        children: [
+          for (var i = books.length - 1; i >= 0; i--)
+            Positioned(
+              left: _step * i,
+              top: _step * (books.length - 1 - i),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: c.card, width: 1),
+                ),
+                child: BookThumbnail(
+                  imageUrl: books[i].hasImage ? books[i].imageUrl : null,
+                  width: _width,
+                  height: _height,
+                  radius: 6,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -234,10 +234,10 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   ],
                 ),
               ),
-              if (frame.isWide)
-                AdminToolbar(
+              if (context.isWide)
+                AdminSearchBar(
                   frame: frame,
-                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
                   search: AppSearchField(
                     controller: _searchController,
                     hint: S.searchOrderNumberBuyerSeller,
@@ -298,6 +298,13 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                   ),
                 ],
               )
+            : ctx.isWide
+            ? AdminRowList(
+                key: ValueKey('rows_$open'),
+                frame: frame,
+                itemCount: disputes.length,
+                itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildRow(ctx, disputes[i], c, open: open)),
+              )
             : AdminCardList(
                 key: ValueKey('items_$open'),
                 frame: frame,
@@ -309,6 +316,42 @@ class _AdminDisputeScreenState extends State<AdminDisputeScreen>
                 ),
               ),
       ),
+    );
+  }
+
+  Widget _buildRow(BuildContext ctx, DisputeCase dispute, AppColors c, {required bool open}) {
+    return AdminListRow(
+      selected: AdminListRow.isSelected(ctx, [('order', dispute.disputeId), ('arbitrate', dispute.disputeId)]),
+      onTap: () => open && MasterDetail.isSplit(ctx) ? _arbitrate(ctx, dispute) : _openOrder(ctx, dispute),
+      onMenu: () => _copyOrderNo(dispute),
+      leading: AdminRowThumbnail(imageUrl: dispute.bookImageUrl),
+      title: dispute.bookTitle.isEmpty ? dispute.orderNo : dispute.bookTitle,
+      subtitle: S.orderNumberP0(dispute.orderNo),
+      detail: S.reasonP0(dispute.reason),
+      detailFooter: dispute.evidenceImages.isEmpty
+          ? null
+          : Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    S.evidencePhotos,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11.5, color: c.textHint),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: AdminImageStrip(urls: dispute.evidenceImages, size: 30, title: S.evidencePhotos)),
+              ],
+            ),
+      status: open
+          ? null
+          : StatusBadge(label: dispute.resultText.isEmpty ? dispute.statusText : dispute.resultText, color: c.accent),
+      amount: '\$${dispute.totalAmount.toStringAsFixed(0)}',
+      time: formatDateTime(dispute.createdAt),
+      trailing: open
+          ? SmallActionButton(label: S.handle, filled: true, onTap: _isBusy ? null : () => _arbitrate(ctx, dispute))
+          : null,
     );
   }
 
@@ -563,11 +606,24 @@ class _DisputeArbitrationFormState extends State<_DisputeArbitrationForm> {
           hint: S.decisionNoteOptional,
         ),
         const SizedBox(height: 16),
-        PrimaryButton(
-          label: S.submitDecision,
-          height: 46,
-          onPressed: () => widget.onSubmit(_selected, _noteController.text.trim()),
-        ),
+        if (context.isWide)
+          AdminButtonRow(
+            minWidth: 180,
+            children: [
+              PrimaryButton(
+                label: S.submitDecision,
+                height: 46,
+                expand: false,
+                onPressed: () => widget.onSubmit(_selected, _noteController.text.trim()),
+              ),
+            ],
+          )
+        else
+          PrimaryButton(
+            label: S.submitDecision,
+            height: 46,
+            onPressed: () => widget.onSubmit(_selected, _noteController.text.trim()),
+          ),
       ],
     );
   }

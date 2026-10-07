@@ -28,6 +28,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
   MemberLevelInfo _info = MemberLevelInfo.empty;
   bool _isLoading = true;
   int _selectedIndex = 0;
+  bool _pagerOutOfSync = false;
 
   static const _viewportFraction = 0.92;
   static const _pageInset = 6.0;
@@ -127,7 +128,15 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
   }
 
   Widget _buildContent(AppColors c) {
+    if (context.isWide) return _buildTabletContent(c);
     final style = _styleFor(_selectedIndex);
+    // 平板切換等級時沒有建立卡片輪播，回到手機版面（例如分割畫面變窄）時要對齊目前選取的等級
+    if (_pagerOutOfSync) {
+      _pagerOutOfSync = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _pageController.hasClients) _pageController.jumpToPage(_selectedIndex);
+      });
+    }
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 450),
@@ -146,17 +155,12 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         onRefresh: _load,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            if (context.isWide && constraints.maxWidth >= 900) {
-              return _buildWideContent(c, style, constraints);
-            }
-            final wide = context.isWide;
-
             return CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverToBoxAdapter(child: _constrained(wide, _buildHero(c, style))),
-                SliverToBoxAdapter(child: _constrained(wide, _buildRail(style))),
-                SliverToBoxAdapter(child: _constrained(wide, _buildStatusCards(c, style))),
+                SliverToBoxAdapter(child: _buildHero(c, style)),
+                SliverToBoxAdapter(child: _buildRail(style)),
+                SliverToBoxAdapter(child: _buildStatusCards(c, style)),
                 SliverToBoxAdapter(child: const SizedBox(height: 24)),
                 SliverToBoxAdapter(
                   child: Container(
@@ -187,82 +191,87 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
-  Widget _constrained(bool wide, Widget child) {
-    if (!wide) return child;
-    return ResponsiveCenter(maxWidth: Breakpoints.readingMaxWidth, child: child);
-  }
+  /// 平板：與其他頁面一致的工具列，等級總覽與狀態放在圓角卡片內，寬度足夠時權益並排在右側。
+  Widget _buildTabletContent(AppColors c) {
+    final style = _styleFor(_selectedIndex);
 
-  Widget _buildWideContent(AppColors c, LevelStyle style, BoxConstraints constraints) {
-    final padding = responsiveListPadding(constraints, maxWidth: Breakpoints.listMaxWidth, horizontal: 24, top: 0, bottom: 40);
-
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(4, 4, 20, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: padding,
-          sliver: SliverToBoxAdapter(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildHeroTitle(style),
+    return Column(
+      children: [
+        AppHeader(title: S.membershipTier, icon: Icons.workspace_premium_outlined),
+        Expanded(
+          child: RefreshIndicator(
+            color: c.accent,
+            onRefresh: _load,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final twoColumn = constraints.maxWidth >= 860;
+                final summary = Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildTabletHero(style),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 150,
+                      child: AnimatedSwitcher(
+                        duration: Motion.base,
+                        child: KeyedSubtree(key: ValueKey(_selectedIndex), child: _buildStatusCard(c, _selectedIndex)),
                       ),
-                      const SizedBox(height: 22),
-                      _buildRail(style),
-                      ShaderMask(
-                        blendMode: BlendMode.dstIn,
-                        shaderCallback: (rect) {
-                          final peek = (1 - _viewportFraction) / 2;
-                          final gap = _pageInset / rect.width;
-                          return LinearGradient(
-                            colors: const [Colors.transparent, Colors.transparent, Colors.black, Colors.black, Colors.transparent, Colors.transparent],
-                            stops: [0, peek - gap, peek + gap, 1 - peek - gap, 1 - peek + gap, 1],
-                          ).createShader(rect);
-                        },
-                        child: _buildStatusCards(c, style),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 28),
-                Expanded(
-                  flex: 4,
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
-                    decoration: BoxDecoration(
-                      color: c.scaffold,
-                      borderRadius: BorderRadius.circular(28),
                     ),
-                    child: _buildBenefits(c, style),
+                  ],
+                );
+                final benefits = _buildBenefits(c, style);
+
+                return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: responsiveListPadding(
+                    constraints,
+                    maxWidth: twoColumn ? Breakpoints.listMaxWidth : Breakpoints.readingMaxWidth,
+                    horizontal: 24,
+                    top: 24,
+                    bottom: 40,
                   ),
-                ),
-              ],
+                  children: twoColumn
+                      ? [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 5, child: summary),
+                              const SizedBox(width: 28),
+                              Expanded(flex: 4, child: benefits),
+                            ],
+                          ),
+                        ]
+                      : [summary, const SizedBox(height: 28), benefits],
+                );
+              },
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTabletHero(LevelStyle style) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+      padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_cardRadius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [style.gradient[0], style.gradient[1]],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildHeroTitle(style, badgeSize: 96),
+          const SizedBox(height: 22),
+          _buildRail(style, inset: 4),
+        ],
+      ),
     );
   }
 
@@ -294,7 +303,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
     );
   }
 
-  Widget _buildHeroTitle(LevelStyle style) {
+  Widget _buildHeroTitle(LevelStyle style, {double badgeSize = 116}) {
     final level = _info.levels[_selectedIndex];
     final currentIndex = _currentIndex;
 
@@ -351,12 +360,12 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
             ],
           ),
         ),
-        _buildBadge(style, level),
+        _buildBadge(style, level, size: badgeSize),
       ],
     );
   }
 
-  Widget _buildBadge(LevelStyle style, MemberLevel level) {
+  Widget _buildBadge(LevelStyle style, MemberLevel level, {double size = 116}) {
     return PopIn(
       triggerKey: level.levelId,
       child: TweenAnimationBuilder<double>(
@@ -366,8 +375,8 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         curve: Curves.easeOutBack,
         builder: (_, value, child) => Transform.scale(scale: value, child: child),
         child: Container(
-          width: 116,
-          height: 116,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: RadialGradient(
@@ -384,7 +393,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
               ),
             ],
           ),
-          child: Icon(style.icon, size: 62, color: Colors.white),
+          child: Icon(style.icon, size: size * 62 / 116, color: Colors.white),
         ),
       ),
     );
@@ -392,13 +401,13 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
 
   double _railInset(double w) => math.max(_railPadding, w * (1 - _viewportFraction) / 2 + _pageInset + _cardRadius + _caretHalf - _nodeSize / 2);
 
-  Widget _buildRail(LevelStyle style) {
+  Widget _buildRail(LevelStyle style, {double? inset}) {
     final levels = _info.levels;
     final currentIndex = _currentIndex;
 
     return LayoutBuilder(
       builder: (context, constraints) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: _railInset(constraints.maxWidth)),
+        padding: EdgeInsets.symmetric(horizontal: inset ?? _railInset(constraints.maxWidth)),
         child: Row(
           children: [
             for (var i = 0; i < levels.length; i++) ...[
@@ -407,6 +416,13 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
                 onTap: () {
                   if (i == _selectedIndex) return;
                   HapticFeedback.selectionClick();
+                  if (!_pageController.hasClients) {
+                    setState(() {
+                      _selectedIndex = i;
+                      _pagerOutOfSync = true;
+                    });
+                    return;
+                  }
                   _pageController.animateToPage(
                     i,
                     duration: Motion.enter,

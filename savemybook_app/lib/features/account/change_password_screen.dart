@@ -4,7 +4,7 @@ import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/animations.dart';
-import '../../widgets/app_buttons.dart';
+import 'tablet_list.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
@@ -149,7 +149,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               onTap: () => FocusScope.of(context).unfocus(),
               child: LayoutBuilder(builder: (context, constraints) => ListView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
+                padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: context.isWide ? 24 : 20, top: 20, bottom: 40),
                 children: [
                   FadeSlideIn(
                     child: AppCard(
@@ -227,7 +227,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   const SizedBox(height: 24),
                   FadeSlideIn(
                     index: 4,
-                    child: PrimaryButton(
+                    child: FormActionButton(
                       label: S.updatePassword,
                       height: 50,
                       isLoading: _isSaving,

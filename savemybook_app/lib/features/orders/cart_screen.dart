@@ -16,10 +16,12 @@ import '../../widgets/buyer/undo_snackbar.dart';
 import '../books/book_detail_screen.dart';
 import 'order_history_screen.dart';
 import 'widgets/payment_success_dialog.dart';
-import 'widgets/sticky_pane.dart';
+import 'widgets/tablet_controls.dart';
 import '../books/seller_screen.dart';
 import '../selling/book_deposit_actions.dart';
 import '../account/wallet_screen.dart';
+import '../home/home_screen.dart';
+import '../../widgets/app_side_nav.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
 
@@ -55,7 +57,6 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final ApiService _api = ApiService();
-  final ScrollController _wideScrollController = ScrollController();
   List<CartItem> _items = [];
   final Set<int> _pendingRemoval = {};
   bool _isLoading = true;
@@ -67,12 +68,6 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _wideScrollController.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -178,6 +173,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _openWallet() async {
+    if (HomeScreen.showTab(AppSideNav.coinsTab)) return;
     await Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()));
     if (mounted) _load();
   }
@@ -261,7 +257,9 @@ class _CartScreenState extends State<CartScreen> {
       readyForPickup: result.readyForPickup,
     );
     if (!mounted) return;
-    if (viewOrders == true) {
+    if (viewOrders == true && context.isWide) {
+      OrderHistoryScreen.open(context, filter: OrderHistoryScreen.purchaseFilterAfterPayment(result.readyForPickup));
+    } else if (viewOrders == true) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => OrderHistoryScreen(filter: OrderHistoryScreen.purchaseFilterAfterPayment(result.readyForPickup))),
@@ -285,7 +283,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildBody(AppColors c, List<CartItem> visible, List<CartItem> unavailable, BoxConstraints constraints) {
-    final expanded = context.isWide && constraints.maxWidth >= 840;
+    final expanded = context.isWide && constraints.maxWidth >= _wideMinWidth;
     return Column(
       children: [
         AppHeader(
@@ -295,6 +293,7 @@ class _CartScreenState extends State<CartScreen> {
             if (unavailable.isNotEmpty)
               HeaderIconButton(
                 icon: Icons.cleaning_services_outlined,
+                tooltip: S.removeAll,
                 onTap: () => _removeWithUndo(unavailable),
               ),
           ],
@@ -392,51 +391,212 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildWideLayout(AppColors c) {
-    const panelWidth = 360.0;
-    const gap = 24.0;
-    final rows = _buildRows();
+  static const double _wideMinWidth = 680;
 
+  Widget _buildWideLayout(AppColors c) {
     return LayoutBuilder(
       key: const ValueKey('items_wide'),
       builder: (context, constraints) {
-        final padding = responsiveListPadding(constraints, maxWidth: 1120, horizontal: 32, top: 16, bottom: 24);
-        return SingleChildScrollView(
-          controller: _wideScrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: padding,
-          child: Stack(
+        final padding = responsiveListPadding(constraints, maxWidth: 1120, horizontal: 24, top: 12, bottom: 24);
+        final panelWidth = ((constraints.maxWidth - padding.horizontal) * 0.36).clamp(280.0, 360.0);
+        const gap = 24.0;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(padding.left, padding.top, gap, padding.bottom),
+                children: [
+                  Reveal(
+                    visible: _availableItems.isNotEmpty,
+                    child: _buildSelectAllRow(c, padding: const EdgeInsets.fromLTRB(14, 0, 14, 4)),
+                  ),
+                  ..._buildSections(c),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: panelWidth + padding.right,
+              child: SingleChildScrollView(
+                key: const ValueKey('checkout_panel'),
+                padding: EdgeInsets.fromLTRB(0, padding.top + 8, padding.right, padding.bottom),
+                child: _buildCheckoutBar(c, panel: true),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildSections(AppColors c) {
+    final sections = <({Widget header, List<_ItemRow> items})>[];
+    for (final row in _buildRows()) {
+      switch (row) {
+        case _SellerRow():
+          sections.add((header: _buildSellerHeader(c, row, inset: true), items: []));
+        case _UnavailableRow():
+          sections.add((header: _buildUnavailableHeader(c, row, inset: true), items: []));
+        case _ItemRow():
+          sections.last.items.add(row);
+      }
+    }
+    var index = 0;
+    return [
+      for (final section in sections)
+        RevealOnScroll(
+          key: ValueKey('section_${section.items.first.item.cartId}'),
+          index: index++,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - padding.vertical),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: panelWidth + gap),
+              section.header,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: ColoredBox(
+                  color: c.card,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Reveal(
-                        visible: _availableItems.isNotEmpty,
-                        child: _buildSelectAllRow(c, padding: const EdgeInsets.only(bottom: 2)),
-                      ),
-                      for (var i = 0; i < rows.length; i++) _buildRow(c, rows[i], i),
+                      for (final (i, row) in section.items.indexed) ...[
+                        if (i > 0) Divider(height: 1, thickness: 1, indent: 110, color: c.divider),
+                        _buildTabletItem(row, c),
+                      ],
                     ],
                   ),
                 ),
               ),
-              Positioned(
-                top: 0,
-                bottom: 0,
-                right: 0,
-                width: panelWidth,
-                child: StickyPane(
-                  controller: _wideScrollController,
-                  child: _buildCheckoutBar(c, panel: true),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+    ];
+  }
+
+  void _openBook(CartItem item) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => BookDetailScreen(book: item.book, heroTag: 'cart_${item.cartId}')),
+    ).then((_) {
+      if (mounted) _load();
+    });
+  }
+
+  Widget _buildTabletItem(_ItemRow row, AppColors c) {
+    final item = row.item;
+    final book = item.book;
+    final available = row.available;
+    return SwipeActionTile(
+      itemKey: ValueKey('cart_${item.cartId}'),
+      startToEnd: available
+          ? SwipeAction(
+              icon: item.isSelected ? Icons.remove_done_rounded : Icons.done_rounded,
+              label: item.isSelected ? S.deselect : S.select,
+              color: c.accent,
+              onTrigger: () async {
+                setState(() => item.isSelected = !item.isSelected);
+                return true;
+              },
+            )
+          : null,
+      endToStart: SwipeAction(
+        icon: Icons.delete_outline_rounded,
+        label: S.remove,
+        color: c.danger,
+        dismisses: true,
+        onTrigger: () async => true,
+        onDismissed: () => _removeWithUndo([item]),
+      ),
+      child: TabletListItem(
+        borderRadius: BorderRadius.zero,
+        padding: const EdgeInsets.fromLTRB(12, 12, 6, 12),
+        onTap: () => _openBook(item),
+        onMenu: () => showItemMenu(
+          context,
+          title: book.title,
+          actions: [
+            MenuAction(S.viewDetails, Icons.menu_book_outlined, () => _openBook(item)),
+            if (available)
+              MenuAction(
+                item.isSelected ? S.deselect : S.select,
+                item.isSelected ? Icons.remove_done_rounded : Icons.done_rounded,
+                () => _setSelected([item], !item.isSelected),
+              ),
+            MenuAction(S.remove, Icons.delete_outline_rounded, () => _removeWithUndo([item]), destructive: true),
+          ],
+        ),
+        child: Opacity(
+          opacity: available ? 1 : 0.55,
+          child: Row(
+            children: [
+              _buildCheckbox(
+                value: available && item.isSelected,
+                c: c,
+                onChanged: available ? (value) => _setSelected([item], value) : null,
+              ),
+              const SizedBox(width: 12),
+              Hero(
+                tag: 'cart_${item.cartId}',
+                child: BookThumbnail(imageUrl: book.hasImage ? book.imageUrl : null, width: 52, height: 70, radius: 8),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      book.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: c.textPrimary, height: 1.3),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: available
+                              ? StatusBadge(label: book.conditionText, color: c.conditionColor(book.conditionLevel))
+                              : StatusBadge(label: _unavailableReason(item), color: c.danger),
+                        ),
+                        if (book.cabinetName.isNotEmpty || book.cabinetAddress.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          Icon(Icons.location_on_outlined, size: 13, color: c.iconInactive),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              book.cabinetName.isNotEmpty ? book.cabinetName : book.cabinetAddress,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 12, color: c.textSecondary),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '\$${book.price.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: available ? c.textPrimary : c.textHint,
+                  decoration: available ? null : TextDecoration.lineThrough,
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                tooltip: S.remove,
+                icon: Icon(Icons.delete_outline_rounded, size: 20, color: c.iconInactive),
+                onPressed: () => _removeWithUndo([item]),
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -512,14 +672,14 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildSellerHeader(AppColors c, _SellerRow row) {
+  Widget _buildSellerHeader(AppColors c, _SellerRow row, {bool inset = false}) {
     final selected = row.items.where((i) => i.isSelected).toList();
     final allSelected = selected.length == row.items.length;
     final subtotal = selected.fold<double>(0, (sum, i) => sum + i.subtotal);
     final name = row.name.isEmpty ? S.unknownUser : row.name;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 12, 0, 8),
+      padding: inset ? const EdgeInsets.fromLTRB(14, 14, 14, 8) : const EdgeInsets.fromLTRB(0, 12, 0, 8),
       child: Row(
         children: [
           _buildCheckbox(value: allSelected, c: c, onChanged: (value) => _setSelected(row.items, value)),
@@ -566,9 +726,9 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildUnavailableHeader(AppColors c, _UnavailableRow row) {
+  Widget _buildUnavailableHeader(AppColors c, _UnavailableRow row, {bool inset = false}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 16, 0, 4),
+      padding: inset ? const EdgeInsets.fromLTRB(14, 16, 4, 6) : const EdgeInsets.fromLTRB(4, 16, 0, 4),
       child: Row(
         children: [
           Icon(Icons.block_rounded, size: 16, color: c.textHint),

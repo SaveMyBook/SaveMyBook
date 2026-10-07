@@ -27,6 +27,7 @@ import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/services/theme_provider.dart';
 import 'package:savemybook_app/services/verification_service.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
+import 'package:savemybook_app/widgets/app_buttons.dart';
 import 'package:savemybook_app/widgets/pin_pad.dart';
 
 import '../../tool/web_shots/demo_data.dart';
@@ -163,10 +164,10 @@ void main() {
         await tester.tap(find.text('統計學概論').first);
         await _settle(tester);
         expect(find.byType(OrderDetailScreen), findsOneWidget);
-        expect(find.byType(OrderRecordCard), findsNWidgets(2), reason: '列表仍顯示在左側');
-        final selected = tester.widgetList<OrderRecordCard>(find.byType(OrderRecordCard)).where((c) => c.selected);
+        expect(find.byType(OrderRecordRow), findsNWidgets(2), reason: '列表仍顯示在左側');
+        final selected = tester.widgetList<OrderRecordRow>(find.byType(OrderRecordRow)).where((c) => c.selected);
         expect(selected, hasLength(1));
-        expect(tester.getTopLeft(find.byType(OrderDetailScreen)).dx, greaterThan(tester.getTopRight(find.byType(OrderRecordCard).first).dx));
+        expect(tester.getTopLeft(find.byType(OrderDetailScreen)).dx, greaterThan(tester.getTopRight(find.byType(OrderRecordRow).first).dx));
       });
     });
 
@@ -177,7 +178,7 @@ void main() {
         await tester.tap(find.text('統計學概論').first);
         await _settle(tester);
         expect(find.byType(OrderDetailScreen), findsOneWidget);
-        expect(find.byType(OrderRecordCard), findsNothing);
+        expect(find.byType(OrderRecordRow), findsNothing);
         expect(tester.getSize(find.byType(OrderDetailScreen)).width, _portrait.width);
       });
     });
@@ -238,63 +239,59 @@ void main() {
     });
   });
 
-  testWidgets('通知中心：平板橫向兩欄、直向單欄置中', (tester) async {
-    await _run(tester, () async {
-      await _pump(tester, _landscape, const NotificationScreen(embedded: true));
-      final first = tester.getRect(find.text('書籍已存入書櫃'));
-      final second = tester.getRect(find.text('款項已撥入錢包'));
-      expect(second.top, closeTo(first.top, 1), reason: '同一列');
-      expect(second.left, greaterThan(first.right));
-    });
-    await _run(tester, () async {
-      await _pump(tester, _portrait, const NotificationScreen(embedded: true));
-      final first = tester.getRect(find.text('書籍已存入書櫃'));
-      final second = tester.getRect(find.text('款項已撥入錢包'));
-      expect(second.left, closeTo(first.left, 1));
-      expect(second.top, greaterThan(first.bottom));
-    });
+  testWidgets('通知中心：平板左側分類清單，右側一列一筆', (tester) async {
+    for (final size in [_landscape, _portrait]) {
+      await _run(tester, () async {
+        await _pump(tester, size, const NotificationScreen(embedded: true));
+        final sidebar = tester.getRect(find.byKey(const ValueKey('notification_sidebar')));
+        final first = tester.getRect(find.text('書籍已存入書櫃'));
+        final second = tester.getRect(find.text('款項已撥入錢包'));
+        expect(first.left, greaterThan(sidebar.right));
+        expect(second.left, closeTo(first.left, 1));
+        expect(second.top, greaterThan(first.bottom));
+      });
+    }
   });
 
-  testWidgets('我的預約：平板依寬度多欄，同列卡片等高', (tester) async {
+  testWidgets('我的預約：平板一列一筆，按鈕依內容寬度', (tester) async {
     await _run(tester, () async {
       await _pump(tester, _portrait, const MyReservationsScreen());
       expect(find.text(S.buyNow), findsNWidgets(2));
       final a = tester.getRect(find.text(S.buyNow).first);
       final b = tester.getRect(find.text(S.buyNow).last);
-      expect(b.top, closeTo(a.top, 1), reason: '兩張卡片在同一列且按鈕對齊');
-      expect(b.left, greaterThan(a.right));
+      expect(b.left, closeTo(a.left, 1));
+      expect(b.top, greaterThan(a.bottom));
     });
   });
 
-  testWidgets('會員中心：平板直向功能分組兩欄並排', (tester) async {
+  testWidgets('會員中心：平板直向為置中的單欄分組清單，不再是手機的捷徑圖示', (tester) async {
     await _run(tester, () async {
       await _pump(tester, _portrait, const ProfileScreen());
-      final orders = tester.getRect(find.text(S.orderHistory));
+      final pickup = tester.getRect(find.text(S.pickUp));
       final security = tester.getRect(find.text(S.accountSecurity));
-      expect(security.top, closeTo(orders.top, 1));
-      expect(security.left, greaterThan(orders.right));
+      expect(security.left, closeTo(pickup.left, 1));
+      expect(security.top, greaterThan(pickup.bottom));
+      expect(find.byType(QuickActionButton), findsNothing);
     });
   });
 
-  testWidgets('購物車：平板直向的結帳列不拉滿整個寬度', (tester) async {
+  testWidgets('購物車：平板直向的結帳摘要在清單右側', (tester) async {
     await _run(tester, () async {
       await _pump(tester, _portrait, const CartScreen());
-      final bar = find.ancestor(
-        of: find.text(S.checkOut),
-        matching: find.byWidgetPredicate((w) => w is Container && w.decoration is BoxDecoration && (w.decoration! as BoxDecoration).borderRadius == BorderRadius.circular(20)),
-      );
-      expect(bar, findsOneWidget);
-      final rect = tester.getRect(bar);
-      expect(rect.width, lessThanOrEqualTo(760));
-      expect(rect.bottom, lessThan(_portrait.height), reason: '浮動於底部而非貼齊邊緣');
+      final panel = tester.getRect(find.byKey(const ValueKey('checkout_panel')));
+      final item = tester.getRect(find.text(bookOf(1).title));
+      expect(panel.left, greaterThan(item.right));
+      expect(panel.width, lessThanOrEqualTo(400));
     });
   });
 
   testWidgets('註冊：平板以置中卡片呈現，手機維持原樣', (tester) async {
     await _run(tester, () async {
       await _pump(tester, _landscape, const RegisterScreen());
+      // 橫向左側為品牌區塊，表單卡片置中於右側
       final card = tester.getRect(find.byType(AuthWideCard));
-      expect(card.width, _landscape.width);
+      expect(card.right, _landscape.width);
+      expect(card.left, greaterThan(_landscape.width / 3));
       final form = tester.getRect(
         find.descendant(
           of: find.byType(AuthWideCard),
@@ -302,7 +299,7 @@ void main() {
         ),
       );
       expect(form.width, lessThanOrEqualTo(500));
-      expect(form.center.dx, closeTo(_landscape.width / 2, 1));
+      expect(form.center.dx, closeTo(card.center.dx, 1));
     });
     await _run(tester, () async {
       await _pump(tester, _phone, const RegisterScreen());

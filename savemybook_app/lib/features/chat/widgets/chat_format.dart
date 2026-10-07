@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../utils/app_colors.dart';
@@ -53,6 +55,11 @@ Color chatTheirsBubble(AppColors c) => c.isDark ? const Color(0xFF242628) : Colo
 
 const double kChatLaneMaxWidth = Breakpoints.readingMaxWidth;
 
+const double kChatTabletInset = 12;
+
+double chatLaneSide(BuildContext context, double width) =>
+    context.isWide ? kChatTabletInset : math.max(0.0, (width - kChatLaneMaxWidth) / 2);
+
 class ChatLane extends StatelessWidget {
   final Widget child;
 
@@ -60,6 +67,9 @@ class ChatLane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (context.isWide) {
+      return Padding(padding: const EdgeInsets.symmetric(horizontal: kChatTabletInset), child: child);
+    }
     return Align(
       alignment: Alignment.topCenter,
       heightFactor: 1,

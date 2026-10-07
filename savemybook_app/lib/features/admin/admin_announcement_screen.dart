@@ -109,6 +109,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
               actions: [
                 HeaderIconButton(
                   icon: Icons.add_rounded,
+                  tooltip: S.newAnnouncement,
                   onTap: () => _openEditor(),
                 ),
               ],

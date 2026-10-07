@@ -226,7 +226,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
               title: S.categories,
               icon: Icons.category_outlined,
               actions: [
-                HeaderIconButton(icon: Icons.add_rounded, onTap: _isBusy ? null : () => _edit()),
+                HeaderIconButton(icon: Icons.add_rounded, tooltip: S.newCategory, onTap: _isBusy ? null : () => _edit()),
               ],
             ),
             Expanded(

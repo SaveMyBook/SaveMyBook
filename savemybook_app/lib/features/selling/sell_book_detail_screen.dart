@@ -14,8 +14,10 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
+import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/guards.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../home/home_screen.dart';
 import 'ai_listing_assist.dart';
@@ -611,12 +613,16 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         ),
       ),
     ];
-    final submit = PrimaryButton(
-      label: S.listBook,
-      icon: Icons.publish_rounded,
-      height: 50,
-      isLoading: _isSubmitting,
-      onPressed: _submitForm,
+    final submit = ListingFormLayout.action(
+      context,
+      PrimaryButton(
+        label: S.listBook,
+        icon: Icons.publish_rounded,
+        height: 50,
+        expand: !context.isWide,
+        isLoading: _isSubmitting,
+        onPressed: _submitForm,
+      ),
     );
 
     return SingleChildScrollView(
@@ -643,6 +649,9 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
   }
 
   Widget _buildAppBar(AppColors c) {
+    if (context.isWide) {
+      return TabletToolbar(title: S.sellBook, showBack: true, actions: const [ListingStepIndicator(step: 2)]);
+    }
     return Container(
       decoration: BoxDecoration(color: c.headerBg),
       child: SafeArea(

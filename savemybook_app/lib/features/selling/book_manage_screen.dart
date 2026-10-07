@@ -4,17 +4,21 @@ import '../../models/book.dart';
 import '../../models/order.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_side_nav.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../widgets/swipe_action.dart';
 import '../books/book_detail_screen.dart';
 import '../cabinet/cabinet_entry.dart';
+import '../home/home_screen.dart';
 import 'book_deposit_actions.dart';
 import 'edit_book_screen.dart';
 import 'sell_book_screen.dart';
@@ -135,19 +139,29 @@ class _BookManageScreenState extends State<BookManageScreen> {
   int _countOf(String key) => _books.where((b) => _inFilter(b, key) && _matchesKeyword(b)).length;
 
   Future<void> _openSell() async {
+    if (HomeScreen.showTab(AppSideNav.sellTab)) return;
     await Navigator.push(context, MaterialPageRoute(builder: (_) => const SellBookScreen()));
     if (mounted) _load();
   }
 
   bool _canEdit(Book book, String status) => (status == 'on_sale' || status == 'removed') && !book.isDeposited;
 
-  Future<void> _openEdit(Book book) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => EditBookScreen(book: book)));
+  // pane 必須是主從版面內的 context，左右並排時內容才會開在右側
+  Future<void> _openEdit(Book book, [BuildContext? pane]) async {
+    if (pane != null) {
+      await MasterDetail.open(pane, EditBookScreen(book: book), id: 'edit_${book.bookId}');
+    } else {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => EditBookScreen(book: book)));
+    }
     if (mounted) _load();
   }
 
-  Future<void> _openBook(Book book) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)));
+  Future<void> _openBook(Book book, [BuildContext? pane]) async {
+    if (pane != null) {
+      await MasterDetail.open(pane, BookDetailScreen(book: book), id: book.bookId);
+    } else {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)));
+    }
     if (mounted) _load();
   }
 
@@ -236,6 +250,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    if (context.isWide) return _buildTablet(c);
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -259,28 +274,30 @@ class _BookManageScreenState extends State<BookManageScreen> {
     );
   }
 
+  Widget _buildEmpty() {
+    final noBooks = _books.isEmpty;
+    final searching = _keyword.isNotEmpty;
+    return RefreshableCenter(
+      key: ValueKey('empty_${_filter}_$searching'),
+      onRefresh: _load,
+      child: EmptyView(
+        icon: searching ? Icons.search_off_rounded : Icons.library_add_outlined,
+        message: searching
+            ? S.noBooksMatchP0(_keyword)
+            : noBooks
+            ? S.notListedAnyBooksYet
+            : S.noBooksCategory,
+        actionLabel: searching || !noBooks ? null : S.sellBook,
+        actionIcon: Icons.add_rounded,
+        onAction: searching || !noBooks ? null : _openSell,
+      ),
+    );
+  }
+
   Widget _buildBody(AppColors c) {
     final visible = _visible;
 
-    if (visible.isEmpty) {
-      final noBooks = _books.isEmpty;
-      final searching = _keyword.isNotEmpty;
-      return RefreshableCenter(
-        key: ValueKey('empty_${_filter}_$searching'),
-        onRefresh: _load,
-        child: EmptyView(
-          icon: searching ? Icons.search_off_rounded : Icons.library_add_outlined,
-          message: searching
-              ? S.noBooksMatchP0(_keyword)
-              : noBooks
-              ? S.notListedAnyBooksYet
-              : S.noBooksCategory,
-          actionLabel: searching || !noBooks ? null : S.sellBook,
-          actionIcon: Icons.add_rounded,
-          onAction: searching || !noBooks ? null : _openSell,
-        ),
-      );
-    }
+    if (visible.isEmpty) return _buildEmpty();
 
     final totalViews = visible.fold<int>(0, (sum, b) => sum + b.viewCount);
 
@@ -355,7 +372,7 @@ class _BookManageScreenState extends State<BookManageScreen> {
     );
   }
 
-  Widget _buildSwipeable(Book book, AppColors c, {bool fill = false}) {
+  Widget _buildSwipeable(Book book, AppColors c, {bool fill = false, Widget? child, BuildContext? pane}) {
     final status = _statusOf(book);
     final busy = _busyIds.contains(book.bookId);
     final canEdit = _canEdit(book, status);
@@ -392,12 +409,13 @@ class _BookManageScreenState extends State<BookManageScreen> {
               label: S.actionEdit,
               color: c.accent,
               onTrigger: () async {
-                _openEdit(book);
+                _openEdit(book, pane);
                 return false;
               },
             )
           : null,
-      child: Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildCard(book, c, fill: fill)),
+      backgroundMargin: child == null ? const EdgeInsets.only(bottom: 12) : EdgeInsets.zero,
+      child: child ?? Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildCard(book, c, fill: fill)),
     );
   }
 
@@ -493,43 +511,87 @@ class _BookManageScreenState extends State<BookManageScreen> {
     _ => c.textHint,
   };
 
-  Widget _buildCard(Book book, AppColors c, {bool fill = false}) {
+  ({
+    String status,
+    bool isRemoved,
+    bool isBusy,
+    bool paused,
+    String statusLabel,
+    DateTime? heldUntil,
+    bool retrievable,
+    bool reportPending,
+    Order? pendingOrder,
+    String retrieveLabel,
+    VoidCallback? onRetrieve,
+    String storedLine,
+    String cabinetLine,
+    ({String label, VoidCallback? onTap})? cabinetAction,
+  }) _modelOf(Book book) {
     final status = _statusOf(book);
     final isRemoved = status == 'removed';
     final isBusy = _busyIds.contains(book.bookId);
-    final badge = _reportBadge(book, c);
-    final paused = book.isDepositPaused && isRemoved;
-    final statusLabel = paused ? S.salesPaused : AppLabels.ownerBook(status);
-    final heldUntil = status == 'held' ? book.reservedUntil : null;
-    final heldText = heldUntil == null ? '' : _formatDeadline(heldUntil);
     final deposit = book.deposit;
     final location = book.cabinetLocation;
-    final retrievable = book.canRetrieve;
     final reportPending = book.hasPendingManualReport;
     final canDeposit = !isRemoved && book.canRegisterDeposit;
     final pendingOrder = status == 'reserved' ? _pendingOrders[book.bookId] : null;
-    final retrieveLabel = cabinetActionLabel(book.retrievalAccess, CabinetAction.retrieve);
-    final VoidCallback? onRetrieve = isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookRetrieval);
-    final storedLine = [
-      if (deposit != null) storedDaysText(deposit.daysStored) else if (location != null && location.cabinetName.isNotEmpty) location.cabinetName,
-      if (location != null && location.door.isNotEmpty) CabinetMessages.door(location.door) else if (deposit?.door case final door?) CabinetMessages.door(door),
-    ].join('・');
-    final cabinetLine = [
-      if (pendingOrder != null) ...[pendingOrder.cabinetAddress, pendingOrder.cabinetName],
-      book.cabinetAddress,
-      book.cabinetName,
-    ].firstWhere((line) => line.isNotEmpty, orElse: () => '');
-    final SmallActionButton? cabinetAction = canDeposit
-        ? SmallActionButton(
-            label: cabinetActionLabel(book.cabinetAccess, CabinetAction.preDeposit),
-            onTap: isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookDeposit),
-          )
-        : pendingOrder != null
-        ? SmallActionButton(
-            label: cabinetActionLabel(pendingOrder.cabinetAccess, CabinetAction.orderDeposit),
-            onTap: pendingOrder.hasPendingManualReport ? null : () => _runDeposit(() => confirmOrderDeposit(context, pendingOrder)),
-          )
-        : null;
+    final paused = book.isDepositPaused && isRemoved;
+    return (
+      status: status,
+      isRemoved: isRemoved,
+      isBusy: isBusy,
+      paused: paused,
+      statusLabel: paused ? S.salesPaused : AppLabels.ownerBook(status),
+      heldUntil: status == 'held' ? book.reservedUntil : null,
+      retrievable: book.canRetrieve,
+      reportPending: reportPending,
+      pendingOrder: pendingOrder,
+      retrieveLabel: cabinetActionLabel(book.retrievalAccess, CabinetAction.retrieve),
+      onRetrieve: isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookRetrieval),
+      storedLine: [
+        if (deposit != null) storedDaysText(deposit.daysStored) else if (location != null && location.cabinetName.isNotEmpty) location.cabinetName,
+        if (location != null && location.door.isNotEmpty) CabinetMessages.door(location.door) else if (deposit?.door case final door?) CabinetMessages.door(door),
+      ].join('・'),
+      cabinetLine: [
+        if (pendingOrder != null) ...[pendingOrder.cabinetAddress, pendingOrder.cabinetName],
+        book.cabinetAddress,
+        book.cabinetName,
+      ].firstWhere((line) => line.isNotEmpty, orElse: () => ''),
+      cabinetAction: canDeposit
+          ? (
+              label: cabinetActionLabel(book.cabinetAccess, CabinetAction.preDeposit),
+              onTap: isBusy || reportPending ? null : () => _runDepositAction(book, confirmBookDeposit),
+            )
+          : pendingOrder != null
+          ? (
+              label: cabinetActionLabel(pendingOrder.cabinetAccess, CabinetAction.orderDeposit),
+              onTap: pendingOrder.hasPendingManualReport ? null : () => _runDeposit(() => confirmOrderDeposit(context, pendingOrder)),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildCard(Book book, AppColors c, {bool fill = false}) {
+    final (
+      :status,
+      :isRemoved,
+      :isBusy,
+      :paused,
+      :statusLabel,
+      :heldUntil,
+      :retrievable,
+      :reportPending,
+      :pendingOrder,
+      :retrieveLabel,
+      :onRetrieve,
+      :storedLine,
+      :cabinetLine,
+      cabinetAction: action,
+    ) = _modelOf(book);
+    final badge = _reportBadge(book, c);
+    final heldText = heldUntil == null ? '' : _formatDeadline(heldUntil);
+    final deposit = book.deposit;
+    final SmallActionButton? cabinetAction = action == null ? null : SmallActionButton(label: action.label, onTap: action.onTap);
 
     return AppCard(
       padding: const EdgeInsets.all(12),
@@ -730,5 +792,401 @@ class _BookManageScreenState extends State<BookManageScreen> {
   String _formatDeadline(DateTime dt) {
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(dt.month)}/${two(dt.day)} ${two(dt.hour)}:${two(dt.minute)}';
+  }
+
+  Widget _buildTablet(AppColors c) {
+    // 右側提示畫面需要 Material 祖先提供文字樣式
+    return Material(
+      color: c.scaffold,
+      child: MasterDetail(
+        masterWidth: 400,
+        placeholderIcon: Icons.library_books_outlined,
+        master: Scaffold(
+          backgroundColor: c.scaffold,
+          body: Column(
+            children: [
+              AppHeader(
+                title: S.myBooks,
+                actions: [HeaderIconButton(icon: Icons.add_rounded, tooltip: S.sellBook, onTap: _openSell)],
+              ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final side = _tabletSide(context, constraints);
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(side, 12, side, 4),
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 480),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: c.border),
+                              ),
+                              child: AppSearchField(
+                                controller: _searchController,
+                                hint: S.searchTitleAuthorIsbn2,
+                                onChanged: (value) => setState(() => _keyword = value.trim()),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        _buildFilterButton(c),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusScope.of(context).unfocus(),
+                  child: SwitchIn(child: _isLoading ? const LoadingView.list(key: ValueKey('loading')) : _buildTabletList(c)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  double _tabletSide(BuildContext context, BoxConstraints constraints) => MasterDetail.isSplit(context)
+      ? 16
+      : responsiveListPadding(constraints, maxWidth: Breakpoints.listMaxWidth, horizontal: 24).left;
+
+  Widget _buildFilterButton(AppColors c) {
+    final current = _filters.firstWhere((f) => f.key == _filter, orElse: () => _filters.first);
+    final count = _isLoading ? 0 : _countOf(current.key);
+    return Builder(
+      builder: (context) => Semantics(
+        button: true,
+        child: Material(
+          color: c.card,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: c.border)),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => _pickFilter(context),
+            child: SizedBox(
+              height: 44,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.filter_list_rounded, size: 18, color: c.accent),
+                    const SizedBox(width: 6),
+                    Text(
+                      count > 0 ? '${current.label} $count' : current.label,
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: c.textPrimary),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(Icons.expand_more_rounded, size: 20, color: c.textSecondary),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickFilter(BuildContext anchor) async {
+    final picked = await showAppPopoverSheet<String>(
+      context: context,
+      anchor: PointerAnchor.of(anchor),
+      popoverWidth: 260,
+      builder: (ctx) {
+        final c = AppColors.of(ctx);
+        return ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          children: [
+            for (final f in _filters)
+              ListTile(
+                dense: true,
+                title: Text(
+                  f.label,
+                  style: TextStyle(fontSize: 14, fontWeight: f.key == _filter ? FontWeight.w700 : FontWeight.w500, color: c.textPrimary),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${_countOf(f.key)}', style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                    SizedBox(
+                      width: 28,
+                      child: f.key == _filter ? Icon(Icons.check_rounded, size: 20, color: c.accent) : null,
+                    ),
+                  ],
+                ),
+                onTap: () => Navigator.pop(ctx, f.key),
+              ),
+          ],
+        );
+      },
+    );
+    if (picked == null || picked == _filter || !mounted) return;
+    HapticFeedback.selectionClick();
+    setState(() => _filter = picked);
+  }
+
+  Widget _buildTabletList(AppColors c) {
+    final visible = _visible;
+    if (visible.isEmpty) return _buildEmpty();
+    final totalViews = visible.fold<int>(0, (sum, b) => sum + b.viewCount);
+
+    return RefreshIndicator(
+      key: const ValueKey('list'),
+      color: c.accent,
+      onRefresh: _load,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final side = _tabletSide(context, constraints);
+          final roomy = constraints.maxWidth - side * 2 >= 560;
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.fromLTRB(side, 8, side, MediaQuery.paddingOf(context).bottom + 24),
+            itemCount: visible.length + 1,
+            itemBuilder: (context, i) {
+              if (i == 0) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 10),
+                  child: Text(
+                    S.p0BooksP1Views(visible.length, totalViews),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary),
+                  ),
+                );
+              }
+              final book = visible[i - 1];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: RevealOnScroll(
+                  key: ValueKey(book.bookId),
+                  index: i - 1,
+                  child: _buildSwipeable(book, c, pane: context, child: _buildTabletRow(context, book, c, roomy: roomy)),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  List<({String label, IconData icon, VoidCallback onTap, bool destructive})> _menuActions(BuildContext pane, Book book) {
+    final m = _modelOf(book);
+    final status = m.status;
+    if (m.isBusy) return const [];
+    return [
+      if (_canEdit(book, status)) (label: S.actionEdit, icon: Icons.edit_outlined, onTap: () => _openEdit(book, pane), destructive: false),
+      if (m.cabinetAction case (:final label, :final onTap?)) (label: label, icon: Icons.inventory_2_outlined, onTap: onTap, destructive: false),
+      if (m.retrievable && m.onRetrieve != null)
+        (label: m.retrieveLabel, icon: Icons.move_to_inbox_outlined, onTap: m.onRetrieve!, destructive: false),
+      if (m.isRemoved && !m.retrievable && !_violationLocked(book))
+        (label: S.relist, icon: Icons.publish_rounded, onTap: () => _relist(book), destructive: false),
+      if (status == 'on_sale')
+        (label: S.delist, icon: Icons.visibility_off_outlined, onTap: () => _delist(book, askFirst: true), destructive: true),
+    ];
+  }
+
+  Future<void> _showRowMenu(BuildContext pane, Book book) async {
+    final actions = _menuActions(pane, book);
+    if (actions.isEmpty) return;
+    final c = AppColors.of(context);
+    HapticFeedback.selectionClick();
+    final index = await showOptionSheet<int>(
+      context,
+      title: book.title,
+      options: [
+        for (final (i, a) in actions.indexed) SheetOption(value: i, label: a.label, icon: a.icon, color: a.destructive ? c.danger : null),
+      ],
+    );
+    if (index != null && mounted) actions[index].onTap();
+  }
+
+  Widget _buildTabletRow(BuildContext pane, Book book, AppColors c, {required bool roomy}) {
+    final m = _modelOf(book);
+    final badge = _reportBadge(book, c);
+    final selected = {book.bookId, 'edit_${book.bookId}'}.contains(MasterDetail.selectedId(pane));
+    final lines = [
+      if (book.cabinetAddress.isNotEmpty || m.cabinetAction != null) (Icons.location_on_outlined, m.cabinetLine),
+      if (book.deposit != null || m.retrievable) (Icons.inventory_2_outlined, m.storedLine),
+      if (m.reportPending || m.pendingOrder?.hasPendingManualReport == true) (Icons.hourglass_top_rounded, S.manualReportAwaitingConfirmation),
+      if (m.heldUntil != null) (Icons.lock_clock_rounded, S.heldUntilP03(_formatDeadline(m.heldUntil!))),
+    ].where((line) => line.$2.isNotEmpty);
+    final todo = m.cabinetAction != null
+        ? _rowButton(c, m.cabinetAction!.label, m.cabinetAction!.onTap, filled: true)
+        : m.retrievable
+        ? _rowButton(c, m.retrieveLabel, m.onRetrieve, filled: true)
+        : null;
+    final inline = [
+      if (m.isRemoved && !m.retrievable)
+        _rowButton(c, S.relist, m.isBusy || _violationLocked(book) ? null : () => _relist(book), busy: m.isBusy)
+      else if (m.status == 'on_sale')
+        _rowButton(c, S.delist, m.isBusy ? null : () => _delist(book, askFirst: true), busy: m.isBusy),
+      if (_canEdit(book, m.status)) _rowButton(c, S.actionEdit, m.isBusy ? null : () => _openEdit(book, pane)),
+    ];
+
+    return Semantics(
+      selected: selected,
+      child: Material(
+        color: selected ? c.accent.withValues(alpha: c.isDark ? 0.22 : 0.12) : c.card,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _openBook(book, pane),
+          onLongPress: () => _showRowMenu(pane, book),
+          onSecondaryTap: () => _showRowMenu(pane, book),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    BookThumbnail(imageUrl: book.hasImage ? book.imageUrl : null, width: 60, height: 80, radius: 8),
+                    if (m.isRemoved)
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.visibility_off_rounded, color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Flexible(
+                            fit: roomy ? FlexFit.loose : FlexFit.tight,
+                            child: Text(
+                              book.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 14.5, height: 1.35, fontWeight: FontWeight.w600, color: c.textPrimary),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          StatusBadge(
+                            label: m.statusLabel,
+                            color: m.paused ? c.warning : _statusColor(m.status, c),
+                            fontSize: 11,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 10,
+                        runSpacing: 4,
+                        children: [
+                          Text(
+                            '\$${book.price.toStringAsFixed(0)}',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.accent),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.visibility_outlined, size: 13, color: c.textHint),
+                              const SizedBox(width: 3),
+                              Text('${book.viewCount}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.textSecondary)),
+                            ],
+                          ),
+                          if (badge != null)
+                            Tooltip(
+                              message: badge.detail,
+                              child: StatusBadge(label: badge.label, color: badge.color, fontSize: 10.5),
+                            ),
+                        ],
+                      ),
+                      for (final (icon, text) in lines) ...[
+                        const SizedBox(height: 4),
+                        InfoLine(icon: icon, value: text, maxLines: 1, fontSize: 12),
+                      ],
+                      if (!roomy && todo != null) ...[const SizedBox(height: 10), todo],
+                    ],
+                  ),
+                ),
+                if (roomy) ...[
+                  const SizedBox(width: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 22),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final (i, button) in [?todo, ...inline].indexed) ...[if (i > 0) const SizedBox(width: 8), button],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ] else
+                  IconButton(
+                    tooltip: S.moreActions,
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(Icons.more_horiz_rounded, color: c.textSecondary),
+                    onPressed: _menuActions(pane, book).isEmpty ? null : () => _showRowMenu(pane, book),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _rowButton(AppColors c, String label, VoidCallback? onTap, {bool filled = false, bool busy = false}) {
+    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(9));
+    final textStyle = Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 13, fontWeight: FontWeight.w600);
+    const padding = EdgeInsets.symmetric(horizontal: 14);
+    const size = Size(0, 34);
+    final child = busy
+        ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: filled ? Colors.white : c.accent))
+        : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis);
+    if (filled) {
+      return FilledButton(
+        onPressed: onTap,
+        style: FilledButton.styleFrom(
+          backgroundColor: c.accent,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: c.accent.withValues(alpha: 0.4),
+          disabledForegroundColor: Colors.white70,
+          minimumSize: size,
+          padding: padding,
+          shape: shape,
+          textStyle: textStyle,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: child,
+      );
+    }
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: c.accent,
+        side: BorderSide(color: c.accent.withValues(alpha: onTap == null ? 0.25 : 0.55)),
+        minimumSize: size,
+        padding: padding,
+        shape: shape,
+        textStyle: textStyle,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: child,
+    );
   }
 }

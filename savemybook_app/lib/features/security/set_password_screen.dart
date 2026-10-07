@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
-import '../../widgets/app_buttons.dart';
+import '../account/tablet_list.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/guards.dart';
@@ -106,7 +106,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                         builder: (context, constraints) => ListView(
                           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                           padding: responsiveListPadding(constraints,
-                              maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
+                              maxWidth: Breakpoints.formMaxWidth, horizontal: context.isWide ? 24 : 20, top: 20, bottom: 40),
                           children: [
                             FadeSlideIn(
                               child: AppCard(
@@ -167,7 +167,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                             const SizedBox(height: 24),
                             FadeSlideIn(
                               index: 3,
-                              child: PrimaryButton(
+                              child: FormActionButton(
                                 label: S.setPassword,
                                 height: 50,
                                 isLoading: _isSaving,

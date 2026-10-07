@@ -16,6 +16,7 @@ import '../cabinet/cabinet_entry.dart';
 import '../cabinet/cabinet_guide_screen.dart';
 import '../selling/book_deposit_actions.dart';
 import 'dispute_screen.dart';
+import 'widgets/tablet_controls.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
@@ -159,26 +160,49 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   );
                   final hasPrimary = canCollect || canComplete || canDeposit;
                   final labelWidth = _infoLabelWidth(context);
-                  final primary = !hasPrimary
+                  final primaryAction = !hasPrimary
                       ? null
                       : canComplete
-                      ? PrimaryButton(label: S.completeOrder, icon: Icons.task_alt_rounded, onPressed: _completeOrder)
+                      ? (label: S.completeOrder, icon: Icons.task_alt_rounded, onPressed: _completeOrder as VoidCallback?)
                       : canDeposit
-                      ? PrimaryButton(
+                      ? (
                           label: cabinetActionLabel(access, CabinetAction.orderDeposit),
                           icon: cabinetActionIcon(access, Icons.inventory_2_outlined),
                           onPressed: reportPending ? null : () => _runCabinet(confirmOrderDeposit),
                         )
-                      : PrimaryButton(
+                      : (
                           label: cabinetActionLabel(access, CabinetAction.pickup),
                           icon: cabinetActionIcon(access, Icons.check_rounded),
                           onPressed: reportPending ? null : () => _runCabinet(confirmOrderPickup),
                         );
+                  final primary = primaryAction == null
+                      ? null
+                      : PrimaryButton(label: primaryAction.label, icon: primaryAction.icon, onPressed: primaryAction.onPressed);
+                  final tabletActions = !context.isWide
+                      ? const <Widget>[]
+                      : [
+                          if (canDispute)
+                            CompactActionButton(
+                              label: S.openDispute,
+                              icon: Icons.report_gmailerrorred_rounded,
+                              onPressed: _openDispute,
+                              height: 40,
+                            ),
+                          if (primaryAction != null)
+                            CompactActionButton(
+                              label: primaryAction.label,
+                              icon: primaryAction.icon,
+                              onPressed: primaryAction.onPressed,
+                              filled: true,
+                              height: 40,
+                            ),
+                        ];
+                  final status = _buildStatusCard(c, actions: tabletActions);
                   final dispute = !canDispute
                       ? null
                       : SecondaryButton(label: S.openDispute, icon: Icons.report_gmailerrorred_rounded, onPressed: _openDispute);
                   final collect = Reveal(
-                    visible: hasPrimary || canDispute,
+                    visible: !context.isWide && (hasPrimary || canDispute),
                     child: Padding(
                       padding: const EdgeInsets.only(top: 20),
                       child: LayoutBuilder(
@@ -201,7 +225,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: padding,
                     children: [
-                      if (wide)
+                      if (wide) ...[
+                        FadeSlideIn(child: status),
+                        const SizedBox(height: 14),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -210,9 +236,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  FadeSlideIn(child: _buildItemsCard(c)),
+                                  FadeSlideIn(index: 1, child: _buildItemsCard(c)),
                                   const SizedBox(height: 14),
-                                  FadeSlideIn(index: 1, child: _buildPickupCard(c, labelWidth)),
+                                  FadeSlideIn(index: 2, child: _buildPickupCard(c, labelWidth)),
                                 ],
                               ),
                             ),
@@ -222,8 +248,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  FadeSlideIn(index: 2, child: _buildStatusCard(c)),
-                                  const SizedBox(height: 14),
                                   FadeSlideIn(index: 3, child: _buildFlowCard(c)),
                                   const SizedBox(height: 14),
                                   FadeSlideIn(index: 4, child: _buildInfoCard(c, labelWidth)),
@@ -232,9 +256,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               ),
                             ),
                           ],
-                        )
-                      else ...[
-                        FadeSlideIn(child: _buildStatusCard(c)),
+                        ),
+                      ] else ...[
+                        FadeSlideIn(child: status),
                         const SizedBox(height: 14),
                         FadeSlideIn(index: 1, child: _buildFlowCard(c)),
                         const SizedBox(height: 14),
@@ -266,12 +290,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  Widget _buildStatusCard(AppColors c) {
+  Widget _buildStatusCard(AppColors c, {List<Widget> actions = const []}) {
     final color = c.orderStatusColor(_order.status);
     final label = _order.statusLabel(asSeller: widget.asSeller);
 
-    return AppCard(
-      child: Row(
+    final summary = Row(
         children: [
           Container(
             width: 46,
@@ -327,6 +350,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ),
         ],
+      );
+    if (actions.isEmpty) return AppCard(child: summary);
+
+    final buttons = Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.end, children: actions);
+    return AppCard(
+      child: LayoutBuilder(
+        builder: (context, box) => box.maxWidth >= 520
+            ? Row(
+                children: [
+                  Expanded(child: summary),
+                  const SizedBox(width: 16),
+                  ConstrainedBox(constraints: BoxConstraints(maxWidth: box.maxWidth * 0.6), child: buttons),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  summary,
+                  const SizedBox(height: 14),
+                  Align(alignment: Alignment.centerRight, child: buttons),
+                ],
+              ),
       ),
     );
   }

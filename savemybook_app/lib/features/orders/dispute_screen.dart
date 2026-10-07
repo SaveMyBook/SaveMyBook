@@ -159,6 +159,15 @@ class _DisputeScreenState extends State<DisputeScreen> {
                     ),
                     _buildEvidenceCard(c),
                     const SizedBox(height: 28),
+                    if (context.isWide)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 160),
+                          child: PrimaryButton(label: S.submit, expand: false, isLoading: _isSubmitting, onPressed: _submit),
+                        ),
+                      )
+                    else
                     PrimaryButton(
                       label: S.submit,
                       isLoading: _isSubmitting,

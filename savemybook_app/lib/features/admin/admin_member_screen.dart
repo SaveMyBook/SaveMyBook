@@ -12,6 +12,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/guards.dart';
 import '../../widgets/master_detail.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import 'admin_member_detail_screen.dart';
 import '../../utils/app_labels.dart';
@@ -116,8 +117,9 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
 
   void _showActions(BuildContext ctx, AdminMember member) {
     final c = AppColors.of(context);
-    showAppModalSheet(
+    showAppPopoverSheet(
       context: context,
+      popoverWidth: 340,
       backgroundColor: c.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -240,6 +242,13 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                                   EmptyView(icon: Icons.person_off_outlined, message: S.noMembersMatch),
                                 ],
                               )
+                            : context.isWide
+                            ? AdminRowList(
+                                key: const ValueKey('rows'),
+                                frame: frame,
+                                itemCount: _members.length,
+                                itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildMemberRow(context, _members[i], c)),
+                              )
                             : AdminCardList(key: const ValueKey('items'),
                                 frame: frame,
                                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -346,6 +355,25 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMemberRow(BuildContext ctx, AdminMember member, AppColors c) {
+    final statusColor = member.isBlacklisted ? c.danger : (!member.isActive ? c.warning : c.success);
+    return AdminListRow(
+      selected: AdminListRow.isSelected(ctx, [member.userId]),
+      onTap: () => _openDetail(ctx, member),
+      onMenu: () => _showActions(ctx, member),
+      leading: UserAvatar(imageUrl: member.avatarUrl, radius: 18),
+      title: member.nickname,
+      tags: [
+        if (member.role == 'admin') _tag(S.roleAdmin, c.warning, icon: Icons.shield_outlined),
+        if (_isSelf(member)) _tag(S.you, c.textHint),
+      ],
+      subtitle: member.email,
+      detail: '${S.listings2} ${member.bookCount}・${S.purchase} ${member.buyOrderCount}・${S.sales2} ${member.sellOrderCount}',
+      status: StatusBadge(label: member.statusText, color: statusColor),
+      time: formatDate(member.createdAt),
     );
   }
 

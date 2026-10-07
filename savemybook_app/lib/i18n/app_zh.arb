@@ -4663,5 +4663,15 @@
     }
   },
   "accessibleRamp": "無障礙坡道",
-  "singleExit": "單一出口"
+  "singleExit": "單一出口",
+  "sideNavBrowse": "探索",
+  "sideNavMessages": "訊息",
+  "sideNavTrade": "交易",
+  "sideNavSelling": "賣書",
+  "showSidebar": "顯示側邊欄",
+  "hideSidebar": "隱藏側邊欄",
+  "gridView": "格狀檢視",
+  "listView": "列表檢視",
+  "addFavorite": "加入收藏",
+  "removeFavorite": "取消收藏"
 }

@@ -9,9 +9,11 @@ import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/adaptive_sheet.dart';
 import '../../../widgets/app_dialogs.dart';
+import '../../../widgets/app_side_nav.dart';
 import '../../../widgets/app_tiles.dart';
 import '../../../widgets/state_views.dart';
 import '../../account/wallet_screen.dart';
+import '../../home/home_screen.dart';
 import '../widgets/chat_format.dart';
 import 'transfer_card.dart';
 
@@ -181,7 +183,11 @@ Future<void> _showTransferError(BuildContext context, String error, int amount) 
       error,
       isError: true,
       actionLabel: S.goWallet,
-      onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen())),
+      onAction: () {
+        // 平板的代幣中心是側邊欄分頁，切過去而不是在聊天室裡再開一份
+        if (HomeScreen.showTab(AppSideNav.coinsTab)) return;
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()));
+      },
     );
   } else {
     showAppSnackBar(context, error, isError: true);

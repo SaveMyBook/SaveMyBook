@@ -17,6 +17,7 @@ import '../books/book_detail_screen.dart';
 import '../chat/chat_room_screen.dart';
 import 'direct_purchase.dart';
 import 'order_history_screen.dart';
+import 'widgets/tablet_controls.dart';
 
 bool isHeldReservation(ChatReservation r, DateTime now) =>
     r.isConfirmed && (r.pickupDeadline?.isAfter(now) ?? false);
@@ -149,6 +150,11 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> with Single
     if (!mounted || result.outcome == DirectPurchaseOutcome.aborted) return;
     _load();
     if (result.outcome != DirectPurchaseOutcome.viewOrders) return;
+    if (context.isWide) {
+      await OrderHistoryScreen.open(context, filter: OrderHistoryScreen.purchaseFilterAfterPayment(result.readyForPickup));
+      if (mounted) _load();
+      return;
+    }
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -192,7 +198,9 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> with Single
                         key: ValueKey('list_$held'),
                         color: c.accent,
                         onRefresh: _load,
-                        child: LayoutBuilder(
+                        child: context.isWide
+                            ? _buildTabletList(items, c, held: held)
+                            : LayoutBuilder(
                           builder: (context, constraints) {
                             final bottom = MediaQuery.of(context).padding.bottom + 16;
                             final wide = context.isWide;
@@ -241,6 +249,153 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> with Single
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTabletList(List<ChatReservation> items, AppColors c, {required bool held}) {
+    return LayoutBuilder(
+      builder: (context, constraints) => ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: responsiveListPadding(
+          constraints,
+          maxWidth: Breakpoints.listMaxWidth,
+          horizontal: 24,
+          top: 16,
+          bottom: MediaQuery.paddingOf(context).bottom + 24,
+        ),
+        itemCount: items.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        itemBuilder: (_, i) => RevealOnScroll(
+          key: ValueKey(items[i].reservationId),
+          index: i,
+          child: _buildTabletRow(items[i], c, held: held),
+        ),
+      ),
+    );
+  }
+
+  void _showMenu(ChatReservation r, {required bool held}) {
+    final busy = _busyIds.contains(r.reservationId);
+    showItemMenu(
+      context,
+      title: r.bookTitle,
+      actions: [
+        MenuAction(S.viewDetails, Icons.menu_book_outlined, () => _openBook(r)),
+        MenuAction(S.messageSeller, Icons.chat_bubble_outline_rounded, () => _openChat(r)),
+        if (held && !busy) MenuAction(S.buyNow, Icons.shopping_bag_outlined, () => _buy(r)),
+        if (!busy) MenuAction(S.cancelReservation2, Icons.event_busy_outlined, () => _cancel(r, held: held), destructive: true),
+      ],
+    );
+  }
+
+  Widget _buildTabletRow(ChatReservation r, AppColors c, {required bool held}) {
+    final busy = _busyIds.contains(r.reservationId);
+    final deadline = r.pickupDeadline;
+    Widget meta(IconData icon, String text, {Color? color}) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color ?? c.iconInactive),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  height: 1.3,
+                  fontWeight: color == null ? FontWeight.normal : FontWeight.w600,
+                  color: color ?? c.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        );
+    final details = <Widget>[
+      if (r.sellerName.isNotEmpty) meta(Icons.person_outline_rounded, S.seller3(r.sellerName)),
+      if (held && deadline != null) ...[
+        meta(Icons.lock_clock_rounded, S.heldUntilP03(_formatTime(deadline))),
+        meta(Icons.hourglass_bottom_rounded, _timeLeft(deadline), color: c.warning),
+      ] else if (r.createdAt != null)
+        meta(Icons.schedule_rounded, S.reservationSentAtP0(_formatTime(r.createdAt!))),
+    ];
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: S.messageSeller,
+          onPressed: () => _openChat(r),
+          style: IconButton.styleFrom(
+            backgroundColor: c.categoryChip,
+            fixedSize: const Size(38, 38),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          icon: Icon(Icons.chat_bubble_outline_rounded, size: 17, color: c.accent),
+        ),
+        const SizedBox(width: 8),
+        Flexible(child: CompactActionButton(label: S.cancelReservation2, onPressed: busy ? null : () => _cancel(r, held: held))),
+        if (held) ...[
+          const SizedBox(width: 8),
+          Flexible(child: CompactActionButton(label: S.buyNow, filled: true, isLoading: busy, onPressed: () => _buy(r))),
+        ],
+      ],
+    );
+
+    return TabletListItem(
+      onTap: () => _openBook(r),
+      onMenu: () => _showMenu(r, held: held),
+      padding: const EdgeInsets.all(14),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final info = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Flexible(
+                    child: Text(
+                      r.bookTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: c.textPrimary),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '\$${r.bookPrice.toStringAsFixed(0)}',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Wrap(spacing: 16, runSpacing: 4, children: details),
+            ],
+          );
+          final cover = BookThumbnail(imageUrl: r.bookImageUrl, width: 52, height: 70, radius: 8);
+          if (box.maxWidth >= 600) {
+            return Row(
+              children: [
+                cover,
+                const SizedBox(width: 14),
+                Expanded(child: info),
+                const SizedBox(width: 16),
+                ConstrainedBox(constraints: BoxConstraints(maxWidth: box.maxWidth * 0.45), child: actions),
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(children: [cover, const SizedBox(width: 14), Expanded(child: info)]),
+              const SizedBox(height: 12),
+              Align(alignment: Alignment.centerRight, child: actions),
+            ],
+          );
+        },
       ),
     );
   }

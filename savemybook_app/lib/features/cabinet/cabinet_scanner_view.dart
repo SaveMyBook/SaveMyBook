@@ -8,6 +8,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../i18n/strings.dart';
 import '../../utils/app_info.dart';
+import '../../widgets/app_header.dart';
 import '../../widgets/responsive.dart';
 
 bool get cabinetPasteEnabled => kDebugMode || const bool.fromEnvironment('CABINET_PASTE');
@@ -234,7 +235,7 @@ class CabinetTorchButton extends StatelessWidget {
             onPressed: available ? () => controller.toggleTorch() : null,
             icon: Icon(
               on ? Icons.flashlight_on_rounded : Icons.flashlight_off_rounded,
-              color: on ? Colors.amber : Colors.white,
+              color: on ? Colors.amber : HeaderForeground.of(context),
             ),
           ),
         );

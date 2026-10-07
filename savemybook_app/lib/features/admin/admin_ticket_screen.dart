@@ -8,6 +8,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/master_detail.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../account/support_ticket_screen.dart';
 import '../../i18n/strings.dart';
@@ -127,10 +128,10 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                   tabs: _tabs.map((t) => t.label).toList(),
                 ),
               ),
-              if (frame.isWide)
-                AdminToolbar(
+              if (context.isWide)
+                AdminSearchBar(
                   frame: frame,
-                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
                   search: AppSearchField(
                     controller: _searchController,
                     hint: S.searchSubjectMemberMessage,
@@ -176,6 +177,13 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
                                         ),
                                       ],
                                     )
+                                  : context.isWide
+                                  ? AdminRowList(
+                                      key: ValueKey('rows_$_loadedTab'),
+                                      frame: frame,
+                                      itemCount: visible.length,
+                                      itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildRow(context, visible[i], c)),
+                                    )
                                   : AdminCardList(
                                       key: ValueKey('items_$_loadedTab'),
                                       frame: frame,
@@ -195,6 +203,21 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRow(BuildContext ctx, SupportTicket ticket, AppColors c) {
+    return AdminListRow(
+      selected: AdminListRow.isSelected(ctx, [ticket.ticketId]),
+      onTap: () => _open(ctx, ticket),
+      leading: UserAvatar(imageUrl: ticket.userAvatar, radius: 18),
+      title: ticket.subject,
+      subtitle: '${ticket.userName.isEmpty ? S.user : ticket.userName}・${ticket.categoryText}',
+      detail: ticket.lastMessage ?? '',
+      status: _loadedTab >= 0 && _tabs[_loadedTab].key == 'all'
+          ? StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status))
+          : null,
+      time: formatDateTime(ticket.updatedAt),
     );
   }
 

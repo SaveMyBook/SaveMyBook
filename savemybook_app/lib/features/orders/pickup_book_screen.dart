@@ -13,6 +13,7 @@ import '../cabinet/cabinet_scanner_view.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
+import '../../widgets/app_header.dart';
 import '../../widgets/responsive.dart';
 import 'widgets/pickup_ready_card.dart';
 import 'order_detail_screen.dart';
@@ -184,6 +185,7 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
     final c = AppColors.of(context);
     final media = MediaQuery.of(context);
     final navSpace = floatingNavClearance(context, 72);
+    if (context.isWide) return _buildTablet(c);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -276,6 +278,152 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTablet(AppColors c) {
+    final controller = _controller;
+    return Scaffold(
+      backgroundColor: c.scaffold,
+      body: Column(
+        children: [
+          TabletToolbar(
+            title: S.collectBook,
+            actions: [if (controller != null) CabinetTorchButton(controller: controller)],
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final side = constraints.maxWidth >= 840 && _ready.isNotEmpty;
+                final bottom = !side && _ready.isNotEmpty;
+                final camera = LayoutBuilder(
+                  builder: (context, area) {
+                    final paste = cabinetPasteEnabled ? 48.0 : 0.0;
+                    final frame = ((area.maxHeight - paste - 110) * 0.8).clamp(120.0, 300.0);
+                    return ColoredBox(
+                      color: Colors.black,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (controller != null)
+                            MobileScanner(
+                              controller: controller,
+                              onDetect: _onDetect,
+                              errorBuilder: (context, error, _) => CabinetCameraError(error: error),
+                            ),
+                          Center(child: SingleChildScrollView(child: _buildScanTarget(frame))),
+                        ],
+                      ),
+                    );
+                  },
+                );
+                if (side) {
+                  return Row(
+                    children: [
+                      Expanded(child: camera),
+                      VerticalDivider(width: 1, thickness: 1, color: c.divider),
+                      SizedBox(width: 360, child: _buildTabletReadyList(c, axis: Axis.vertical)),
+                    ],
+                  );
+                }
+                return Column(
+                  children: [
+                    Expanded(child: camera),
+                    AnimatedSize(
+                      duration: Motion.enter,
+                      curve: Motion.standard,
+                      child: bottom
+                          ? Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Divider(height: 1, thickness: 1, color: c.divider),
+                                _buildTabletReadyList(c, axis: Axis.horizontal),
+                              ],
+                            )
+                          : const SizedBox(width: double.infinity),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletReadyList(AppColors c, {required Axis axis}) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    final header = Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      child: Row(
+        children: [
+          Icon(Icons.inventory_2_outlined, size: 18, color: c.accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              S.p0ReadyPickup(_ready.length),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+    // 卡片本身有不透明底色，水波紋與懸停效果要疊在卡片上方才看得到
+    Widget card(Order order) => Stack(
+      children: [
+        PickupReadyCard(order: order),
+        Positioned.fill(
+          child: Material(
+            type: MaterialType.transparency,
+            borderRadius: BorderRadius.circular(18),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(onTap: () => _openOrder(order)),
+          ),
+        ),
+      ],
+    );
+    if (axis == Axis.vertical) {
+      return FadeSlideIn(
+        offsetY: 20,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            header,
+            Expanded(
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, bottom + 16),
+                itemCount: _ready.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (context, i) => card(_ready[i]),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return FadeSlideIn(
+      offsetY: 20,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          header,
+          SizedBox(
+            height: 104,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _ready.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemBuilder: (context, i) => SizedBox(width: 340, child: card(_ready[i])),
+            ),
+          ),
+          SizedBox(height: bottom + 16),
         ],
       ),
     );

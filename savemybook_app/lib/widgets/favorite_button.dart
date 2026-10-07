@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
 import 'animations.dart';
+import 'responsive.dart';
 import 'state_views.dart';
 import '../i18n/strings.dart';
 
@@ -63,7 +64,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
       valueListenable: ApiService.favoriteBookIds,
       builder: (context, ids, _) {
         final isFavorite = ids.contains(widget.bookId);
-        return PressableScale(
+        final button = PressableScale(
           scale: 0.78,
           onTap: _toggle,
           child: Padding(
@@ -97,6 +98,11 @@ class _FavoriteButtonState extends State<FavoriteButton> {
               ),
             ),
           ),
+        );
+        if (!context.isWide) return button;
+        return Tooltip(
+          message: S.saved,
+          child: MouseRegion(cursor: SystemMouseCursors.click, child: button),
         );
       },
     );

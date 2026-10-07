@@ -11,8 +11,10 @@ import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/master_detail.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
@@ -138,8 +140,8 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
           builder: (context, frame) => Column(
             children: [
               AppHeader(title: S.orders, icon: Icons.receipt_long_outlined),
-              if (frame.isWide)
-                AdminToolbar(frame: frame, search: _buildSearch(), filters: _buildFilters(c))
+              if (context.isWide)
+                AdminSearchBar(frame: frame, search: _buildSearch(), filter: _buildFilterChip())
               else ...[
                 Padding(
                   padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
@@ -177,6 +179,13 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                                       ),
                                     ],
                                   )
+                                : context.isWide
+                                ? AdminRowList(
+                                    key: ValueKey('rows_$_filter'),
+                                    frame: frame,
+                                    itemCount: _orders.length,
+                                    itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildRow(context, _orders[i], c)),
+                                  )
                                 : AdminCardList(
                                     key: ValueKey('items_$_filter'),
                                     frame: frame,
@@ -204,6 +213,35 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
         onChanged: _onSearchChanged,
         onSubmitted: (_) => _load(),
       );
+
+  Widget _buildFilterChip() => AppSelectChip<String>(
+        value: _filter,
+        title: S.orderProgress,
+        iconOnly: _filter == 'all',
+        highlighted: _filter != 'all',
+        options: [for (final f in _filters) AppSelectOption(value: f.key, label: f.label)],
+        onChanged: _setFilter,
+      );
+
+  Widget _buildRow(BuildContext ctx, AdminOrder order, AppColors c) {
+    final first = order.items.isEmpty ? null : order.items.first;
+    return AdminListRow(
+      selected: AdminListRow.isSelected(ctx, [order.orderId]),
+      onTap: () => _openDetail(ctx, order),
+      onMenu: () => _copyOrderNo(order),
+      leading: AdminRowThumbnail(imageUrl: first?.imageUrl),
+      title: order.orderNo,
+      subtitle: first == null
+          ? S.noItems
+          : order.items.length > 1
+              ? '${first.title} ${S.p0ItemsTotal(order.items.length)}'
+              : first.title,
+      detail: S.buyerP0SellerP12(order.buyerName, order.sellerName),
+      status: StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
+      amount: '\$${order.totalAmount.toStringAsFixed(0)}',
+      time: formatDateTime(order.createdAt),
+    );
+  }
 
   Widget _buildFilters(AppColors c, {EdgeInsets padding = EdgeInsets.zero}) => ListView.separated(
         scrollDirection: Axis.horizontal,

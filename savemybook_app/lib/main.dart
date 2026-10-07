@@ -25,6 +25,7 @@ import 'services/verification_service.dart';
 import 'utils/app_info.dart';
 import 'utils/app_palette.dart';
 import 'utils/app_theme.dart';
+import 'widgets/adaptive_sheet.dart';
 import 'widgets/app_toast.dart';
 import 'widgets/state_views.dart';
 
@@ -208,7 +209,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
               // 模型與服務層沒有 context，全域的 S 只能在這裡指派。
               builder: (context, child) {
                 S = AppLocalizations.of(context);
-                return child ?? const SizedBox.shrink();
+                return PointerAnchor(child: child ?? const SizedBox.shrink());
               },
               home: _initialRoute,
             );

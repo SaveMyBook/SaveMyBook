@@ -12,6 +12,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_asset_image.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../books/barcode_scanner_screen.dart';
 import '../chat/chat_room_screen.dart';
@@ -179,31 +180,29 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ApiService.currentUser;
+    final wide = context.isWide;
+    final close = IconButton(
+      icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+      tooltip: wide ? MaterialLocalizations.of(context).closeButtonTooltip : null,
+      onPressed: () => Navigator.of(context).maybePop(),
+    );
+    final scan = IconButton(
+      icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 26),
+      tooltip: S.scanTheirQrCode,
+      onPressed: _scan,
+    );
 
     return Scaffold(
       backgroundColor: Colors.black.withValues(alpha: 0.62),
       body: SafeArea(
         child: Stack(
           children: [
-            Positioned(
-              top: 8,
-              right: 12,
-              child: IconButton(
-                icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
-            ),
-            Positioned(
-              top: 8,
-              left: 12,
-              child: IconButton(
-                icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 26),
-                tooltip: S.scanTheirQrCode,
-                onPressed: _scan,
-              ),
-            ),
+            if (!wide) ...[
+              Positioned(top: 8, right: 12, child: close),
+              Positioned(top: 8, left: 12, child: scan),
+            ],
             Center(
-              child: _isLoading
+              child: _withTabletControls(wide, scan, close, _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : _qrData == null
                   ? Column(
@@ -224,7 +223,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
                       ],
                     )
                   : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+                      padding: EdgeInsets.fromLTRB(28, wide ? 8 : 40, 28, 40),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -326,7 +325,7 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
 
                         ],
                       ),
-                    ),
+                    )),
             ),
             Positioned.fill(
               child: IgnorePointer(
@@ -344,6 +343,20 @@ class _ShareProfileScreenState extends State<ShareProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // 平板的關閉與掃描按鈕放在 QR Code 卡片上方，不放在整個畫面的兩個角落
+  Widget _withTabletControls(bool wide, Widget scan, Widget close, Widget body) {
+    if (!wide) return body;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 24),
+        SizedBox(width: 300, child: Row(children: [scan, const Spacer(), close])),
+        if (_isLoading || _qrData == null) const SizedBox(height: 32),
+        Flexible(child: body),
+      ],
     );
   }
 

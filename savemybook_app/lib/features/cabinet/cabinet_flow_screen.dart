@@ -13,10 +13,12 @@ import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_side_nav.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../account/support_ticket_screen.dart';
+import '../home/home_screen.dart';
 import '../orders/pickup_success_screen.dart';
 import '../orders/order_history_screen.dart';
 import '../selling/book_manage_screen.dart';
@@ -107,6 +109,13 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
     );
   }
 
+  // 作業畫面推在最上層，須先關閉，訂單紀錄才會切換到側邊欄的分頁
+  void _closeAndOpenOrders(OrderRole role, String filter) {
+    final navigator = Navigator.of(context);
+    _close();
+    unawaited(OrderHistoryScreen.open(navigator.context, role: role, filter: filter));
+  }
+
   void _close([CabinetFlowOutcome? outcome]) {
     if (!mounted) return;
     Navigator.of(context).pop(outcome ?? _flow.outcome);
@@ -154,16 +163,27 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         } catch (_) {}
       case CabinetFlowAction.viewPurchases:
+        if (_wide) return _closeAndOpenOrders(OrderRole.buyer, OrderHistoryScreen.awaitingPickup);
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const OrderHistoryScreen(filter: OrderHistoryScreen.awaitingPickup)),
         );
       case CabinetFlowAction.viewSales:
+        if (_wide) return _closeAndOpenOrders(OrderRole.seller, OrderHistoryScreen.awaitingDeposit);
         await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => const OrderHistoryScreen(role: OrderRole.seller, filter: OrderHistoryScreen.awaitingDeposit),
           ),
         );
       case CabinetFlowAction.viewBooks:
+        if (_wide) {
+          // 作業畫面推在最上層，須先關閉，HomeScreen.showTab 才會切換分頁
+          final navigator = Navigator.of(context);
+          _close();
+          if (!HomeScreen.showTab(AppSideNav.myBooksTab)) {
+            unawaited(navigator.push(MaterialPageRoute(builder: (_) => const BookManageScreen())));
+          }
+          return;
+        }
         await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BookManageScreen()));
       case CabinetFlowAction.contactSupport:
         await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SupportTicketScreen()));

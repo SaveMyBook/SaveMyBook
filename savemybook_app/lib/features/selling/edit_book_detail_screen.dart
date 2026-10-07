@@ -17,6 +17,7 @@ import '../../widgets/app_select.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
 import 'ai_listing_assist.dart';
+import '../../widgets/responsive.dart';
 import 'listing_form_layout.dart';
 import '../../i18n/strings.dart';
 
@@ -344,7 +345,11 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
           backgroundColor: c.scaffold,
           body: Column(
             children: [
-              AppHeader(title: S.editBook, icon: Icons.edit_note_rounded),
+              AppHeader(
+                title: S.editBook,
+                icon: Icons.edit_note_rounded,
+                actions: context.isWide ? const [ListingStepIndicator(step: 2)] : const [],
+              ),
               Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
@@ -423,11 +428,15 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
         ),
       ),
     ];
-    final save = PrimaryButton(
-      label: S.saveChanges,
-      icon: Icons.check_rounded,
-      isLoading: _isSaving,
-      onPressed: _save,
+    final save = ListingFormLayout.action(
+      context,
+      PrimaryButton(
+        label: S.saveChanges,
+        icon: Icons.check_rounded,
+        expand: !context.isWide,
+        isLoading: _isSaving,
+        onPressed: _save,
+      ),
     );
 
     return SingleChildScrollView(

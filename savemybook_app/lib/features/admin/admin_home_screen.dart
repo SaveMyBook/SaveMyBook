@@ -5,6 +5,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import 'admin_announcement_screen.dart';
 import 'admin_book_screen.dart';
@@ -12,6 +13,7 @@ import 'admin_cabinet_deposit_screen.dart';
 import 'admin_cabinet_screen.dart';
 import 'admin_content_screen.dart';
 import 'admin_category_screen.dart';
+import 'admin_dashboard.dart';
 import 'admin_dispute_screen.dart';
 import 'admin_layout.dart';
 import 'admin_level_screen.dart';
@@ -23,13 +25,14 @@ import 'admin_report_screen.dart';
 import 'admin_stats_screen.dart';
 import 'admin_ticket_screen.dart';
 import 'admin_wallet_screen.dart';
+import 'admin_workspace.dart';
 import 'admin_auth_screen.dart';
 import 'admin_backup_screen.dart';
 import 'admin_deletion_screen.dart';
 import 'ai/admin_ai_screen.dart';
 import '../../i18n/strings.dart';
 
-typedef _Entry = ({IconData icon, String title, int badge, VoidCallback onTap});
+typedef _Entry = ({String id, IconData icon, String title, int badge, Widget Function() screen});
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -43,6 +46,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   AdminOverview _overview = AdminOverview.empty;
   bool _isLoading = true;
   bool _navigating = false;
+  final _workspace = GlobalKey<AdminWorkspaceState>();
+  int _dashboardGeneration = 0;
 
   @override
   void initState() {
@@ -70,9 +75,43 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     if (mounted) _load();
   }
 
+  void _openSection(String id, {Widget? root, Widget? page}) => _workspace.currentState?.open(id, root: root, page: page);
+
+  void _onSectionChanged(String id) {
+    if (id == AdminSections.home) setState(() => _dashboardGeneration++);
+    _load();
+  }
+
+  Widget _buildWorkspace() {
+    return AdminWorkspace(
+      key: _workspace,
+      home: AdminSection(
+        id: AdminSections.home,
+        icon: Icons.space_dashboard_outlined,
+        title: S.home,
+        builder: (_) => AdminDashboard(
+          overview: _overview,
+          loading: _isLoading,
+          generation: _dashboardGeneration,
+          onRefresh: _load,
+          onOpen: _openSection,
+        ),
+      ),
+      groups: [
+        for (final section in _sectionData())
+          AdminSectionGroup(section.title, [
+            for (final entry in section.items)
+              AdminSection(id: entry.id, icon: entry.icon, title: entry.title, badge: entry.badge, builder: (_) => entry.screen()),
+          ]),
+      ],
+      onSectionChanged: _onSectionChanged,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    if (context.isWide) return _buildWorkspace();
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -87,7 +126,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     onRefresh: _load,
                     child: AdminLayout(
                       builder: (context, frame) {
-                        if (frame.isWide) return _buildWide(c, frame);
                         final sections = [
                           for (final (i, s) in _sectionData().indexed)
                             _buildSection(c, i + 1, s.title, [
@@ -97,7 +135,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                   title: entry.title,
                                   badge: entry.badge,
                                   isLast: j == s.items.length - 1,
-                                  onTap: entry.onTap,
+                                  onTap: () => _open(entry.screen()),
                                 ),
                             ]),
                         ];
@@ -126,220 +164,61 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     );
   }
 
-  _Entry _entry(IconData icon, String title, Widget Function() screen, {int badge = 0}) =>
-      (icon: icon, title: title, badge: badge, onTap: () => _open(screen()));
+  _Entry _entry(String id, IconData icon, String title, Widget Function() screen, {int badge = 0}) =>
+      (id: id, icon: icon, title: title, badge: badge, screen: screen);
 
   List<({String title, List<_Entry> items})> _sectionData() => [
         (
           title: S.transactions2,
           items: [
-            _entry(Icons.receipt_long_outlined, S.orders, () => const AdminOrderScreen()),
-            _entry(Icons.gavel_rounded, S.resolveDispute, () => const AdminDisputeScreen(),
+            _entry(AdminSections.orders, Icons.receipt_long_outlined, S.orders, () => const AdminOrderScreen()),
+            _entry(AdminSections.disputes, Icons.gavel_rounded, S.resolveDispute, () => const AdminDisputeScreen(),
                 badge: _overview.pendingDisputeCount),
           ],
         ),
         (
           title: S.listings,
           items: [
-            _entry(Icons.menu_book_rounded, S.myBooks, () => const AdminBookScreen()),
-            _entry(Icons.report_gmailerrorred_outlined, S.moderation,
+            _entry(AdminSections.books, Icons.menu_book_rounded, S.myBooks, () => const AdminBookScreen()),
+            _entry(AdminSections.moderation, Icons.report_gmailerrorred_outlined, S.moderation,
                 () => AdminReportScreen(initialTab: AdminReportScreen.initialTabFor(_overview)),
                 badge: _overview.pendingModerationCount),
-            _entry(Icons.category_outlined, S.categories, () => const AdminCategoryScreen()),
+            _entry(AdminSections.categories, Icons.category_outlined, S.categories, () => const AdminCategoryScreen()),
           ],
         ),
         (
           title: S.members,
           items: [
-            _entry(Icons.people_alt_outlined, S.memberControls, () => const AdminMemberScreen()),
-            _entry(Icons.workspace_premium_outlined, S.membershipTiers, () => const AdminLevelScreen()),
-            _entry(Icons.account_balance_wallet_outlined, S.wallets, () => const AdminWalletScreen()),
+            _entry(AdminSections.members, Icons.people_alt_outlined, S.memberControls, () => const AdminMemberScreen()),
+            _entry(AdminSections.tiers, Icons.workspace_premium_outlined, S.membershipTiers, () => const AdminLevelScreen()),
+            _entry(AdminSections.wallets, Icons.account_balance_wallet_outlined, S.wallets, () => const AdminWalletScreen()),
           ],
         ),
         (
           title: S.hardwareOperations,
           items: [
-            _entry(Icons.storage_rounded, S.lockerMonitor, () => const AdminCabinetScreen()),
-            _entry(Icons.inventory_2_outlined, S.booksLockers, () => const AdminCabinetDepositScreen()),
-            _entry(Icons.history_rounded, S.maintenanceLog, () => const AdminMaintenanceLogScreen()),
-            _entry(Icons.insights_rounded, S.reports, () => const AdminStatsScreen()),
-            _entry(Icons.campaign_outlined, S.announcements, () => const AdminAnnouncementScreen()),
-            _entry(Icons.support_agent_rounded, S.supportEnquiries, () => const AdminTicketScreen(),
+            _entry(AdminSections.cabinets, Icons.storage_rounded, S.lockerMonitor, () => const AdminCabinetScreen()),
+            _entry(AdminSections.deposits, Icons.inventory_2_outlined, S.booksLockers, () => const AdminCabinetDepositScreen()),
+            _entry(AdminSections.maintenance, Icons.history_rounded, S.maintenanceLog, () => const AdminMaintenanceLogScreen()),
+            _entry(AdminSections.stats, Icons.insights_rounded, S.reports, () => const AdminStatsScreen()),
+            _entry(AdminSections.announcements, Icons.campaign_outlined, S.announcements, () => const AdminAnnouncementScreen()),
+            _entry(AdminSections.tickets, Icons.support_agent_rounded, S.supportEnquiries, () => const AdminTicketScreen(),
                 badge: _overview.openTicketCount),
-            _entry(Icons.quiz_outlined, S.faq, () => const AdminFaqScreen()),
-            _entry(Icons.gavel_outlined, S.legalDocuments, () => const AdminLegalScreen()),
-            _entry(Icons.fact_check_outlined, S.adminAuditLog, () => const AdminOperationLogScreen()),
+            _entry(AdminSections.faq, Icons.quiz_outlined, S.faq, () => const AdminFaqScreen()),
+            _entry(AdminSections.legal, Icons.gavel_outlined, S.legalDocuments, () => const AdminLegalScreen()),
+            _entry(AdminSections.audit, Icons.fact_check_outlined, S.adminAuditLog, () => const AdminOperationLogScreen()),
           ],
         ),
         (
           title: S.systemOperations,
           items: [
-            _entry(Icons.auto_awesome_rounded, S.aiFeatures, () => const AdminAiScreen()),
-            _entry(Icons.login_rounded, S.signMethod, () => const AdminAuthScreen()),
-            _entry(Icons.backup_outlined, S.databaseBackups, () => const AdminBackupScreen()),
-            _entry(Icons.person_remove_outlined, S.pendingDeletions, () => const AdminDeletionScreen()),
+            _entry(AdminSections.ai, Icons.auto_awesome_rounded, S.aiFeatures, () => const AdminAiScreen()),
+            _entry(AdminSections.auth, Icons.login_rounded, S.signMethod, () => const AdminAuthScreen()),
+            _entry(AdminSections.backups, Icons.backup_outlined, S.databaseBackups, () => const AdminBackupScreen()),
+            _entry(AdminSections.deletions, Icons.person_remove_outlined, S.pendingDeletions, () => const AdminDeletionScreen()),
           ],
         ),
       ];
-
-  Widget _buildWide(AppColors c, AdminFrame frame) {
-    return ListView(
-      padding: frame.pad(const EdgeInsets.fromLTRB(24, 24, 24, 40)),
-      children: [
-        FadeSlideIn(
-          child: _tileGrid(
-            minTileWidth: 200,
-            height: 84,
-            avoidThreeColumns: true,
-            children: [
-              _statCard(c, Icons.people_alt_outlined, S.members2, _overview.memberCount,
-                  onTap: () => _open(const AdminMemberScreen())),
-              _statCard(c, Icons.receipt_long_outlined, S.todaySOrders, _overview.todayOrderCount,
-                  onTap: () => _open(const AdminOrderScreen())),
-              _statCard(
-                c,
-                Icons.gavel_rounded,
-                S.openCases,
-                _overview.pendingModerationCount + _overview.pendingDisputeCount,
-                alert: true,
-                onTap: _openCases,
-              ),
-              _statCard(c, Icons.storage_rounded, S.activeLockers, _overview.activeCabinetCount,
-                  onTap: () => _open(const AdminCabinetScreen())),
-            ],
-          ),
-        ),
-        for (final (i, section) in _sectionData().indexed)
-          FadeSlideIn(
-            index: i + 1,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _sectionTitle(c, section.title),
-                  _tileGrid(
-                    minTileWidth: 220,
-                    height: 68,
-                    children: [for (final entry in section.items) _menuTile(c, entry)],
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _tileGrid({
-    required double minTileWidth,
-    required double height,
-    required List<Widget> children,
-    bool avoidThreeColumns = false,
-  }) {
-    const gap = 12.0;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        var columns = ((constraints.maxWidth + gap) / (minTileWidth + gap)).floor().clamp(1, 4);
-        if (avoidThreeColumns && columns == 3) columns = 2;
-        final width = ((constraints.maxWidth - gap * (columns - 1)) / columns).floorToDouble();
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [for (final child in children) SizedBox(width: width, height: height, child: child)],
-        );
-      },
-    );
-  }
-
-  Widget _statCard(AppColors c, IconData icon, String label, int value, {required VoidCallback onTap, bool alert = false}) {
-    final tint = alert && value > 0 ? c.danger : c.accent;
-    return AppCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: tint.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
-            child: Icon(icon, color: tint, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: AnimatedCount(
-                    value: value.toDouble(),
-                    style: TextStyle(color: tint, fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: c.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _menuTile(AppColors c, _Entry entry) {
-    return AppCard(
-      onTap: entry.onTap,
-      padding: const EdgeInsets.only(left: 14, right: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
-            child: Icon(entry.icon, color: c.accent, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              entry.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 14.5, height: 1.3, fontWeight: FontWeight.w600, color: c.textPrimary),
-            ),
-          ),
-          if (entry.badge > 0) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(color: c.danger, borderRadius: BorderRadius.circular(12)),
-              child: Text(
-                entry.badge > 99 ? '99+' : '${entry.badge}',
-                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-          const SizedBox(width: 4),
-          Icon(Icons.chevron_right_rounded, size: 20, color: c.iconInactive),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(AppColors c, String title) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 10),
-        child: Text(
-          title,
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary, letterSpacing: 0.5),
-        ),
-      );
 
   void _openCases() => _open(_overview.pendingDisputeCount > 0 || _overview.pendingModerationCount == 0
       ? const AdminDisputeScreen()

@@ -12,6 +12,14 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../admin/admin_home_screen.dart';
+import '../home/home_screen.dart';
+import '../../services/app_permissions.dart';
+import '../../widgets/app_side_nav.dart';
+import '../../widgets/guards.dart';
+import '../../widgets/master_detail.dart';
+import 'account_privacy_screen.dart';
+import 'app_permissions_screen.dart';
+import 'tablet_list.dart';
 import '../selling/book_manage_screen.dart';
 import 'edit_profile_screen.dart';
 import 'help_center_screen.dart';
@@ -117,19 +125,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    if (context.isWide) return _buildTablet(c);
     final user = ApiService.currentUser;
 
     return Scaffold(
       backgroundColor: c.scaffold,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final twoColumn = context.isWide && constraints.maxWidth >= 600;
-          final maxWidth = twoColumn ? Breakpoints.listMaxWidth : Breakpoints.formMaxWidth;
           final padding = responsiveListPadding(
             constraints,
-            maxWidth: maxWidth,
-            horizontal: twoColumn ? 24 : 20,
-            top: twoColumn ? 20 : 14,
+            maxWidth: Breakpoints.formMaxWidth,
+            horizontal: 20,
+            top: 14,
             bottom: floatingNavClearance(context, 84),
           );
 
@@ -143,45 +150,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: ListView(
                     padding: padding,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: twoColumn
-                        ? [
-                            FadeSlideIn(child: _buildQuickActions(c)),
-                            const SizedBox(height: 24),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: FadeSlideIn(
-                                    index: 1,
-                                    child: _buildMenuSection(c, S.faqCatTrade, _tradeMenuItems()),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: FadeSlideIn(
-                                    index: 2,
-                                    child: _buildMenuSection(c, S.faqCatAccount, _accountMenuItems()),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                            Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 480),
-                                child: FadeSlideIn(index: 3, child: _buildLogoutButton(c)),
-                              ),
-                            ),
-                          ]
-                        : [
-                            FadeSlideIn(child: _buildQuickActions(c)),
-                            const SizedBox(height: 14),
-                            FadeSlideIn(index: 1, child: _buildMenuCard(_tradeMenuItems())),
-                            const SizedBox(height: 14),
-                            FadeSlideIn(index: 2, child: _buildMenuCard(_accountMenuItems())),
-                            const SizedBox(height: 14),
-                            FadeSlideIn(index: 3, child: _buildLogoutButton(c)),
-                          ],
+                    children: [
+                      FadeSlideIn(child: _buildQuickActions(c)),
+                      const SizedBox(height: 14),
+                      FadeSlideIn(index: 1, child: _buildMenuCard(_tradeMenuItems())),
+                      const SizedBox(height: 14),
+                      FadeSlideIn(index: 2, child: _buildMenuCard(_accountMenuItems())),
+                      const SizedBox(height: 14),
+                      FadeSlideIn(index: 3, child: _buildLogoutButton(c)),
+                    ],
                   ),
                 ),
               ),
@@ -189,6 +166,273 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         },
       ),
+    );
+  }
+
+  static const _profileId = 'profile';
+  final _editDirty = ValueNotifier<bool>(false);
+  bool _defaultScheduled = false;
+
+  @override
+  void dispose() {
+    _editDirty.dispose();
+    super.dispose();
+  }
+
+  Widget _editProfilePage() => EditProfileScreen(
+        dirty: _editDirty,
+        onSaved: () {
+          if (mounted) setState(() {});
+        },
+      );
+
+  /// 平板：左欄為帳戶清單，右欄顯示選取的頁面；直向寬度不足並排時點選改為推入新頁面。
+  Widget _buildTablet(AppColors c) {
+    return Material(
+      color: c.scaffold,
+      child: MasterDetail(
+        masterWidth: 360,
+        placeholderIcon: Icons.person_outline_rounded,
+        master: Builder(builder: (context) => _buildTabletMaster(context, c)),
+      ),
+    );
+  }
+
+  Future<void> _openDetail(BuildContext context, Object id, Widget page) async {
+    if (!MasterDetail.isSplit(context)) {
+      await _openAndRefresh(page);
+      return;
+    }
+    final current = MasterDetail.selectedId(context);
+    if (current == id) return;
+    if (current == _profileId && _editDirty.value && !await UnsavedGuard.confirm(context)) return;
+    _editDirty.value = false;
+    if (!context.mounted) return;
+    await MasterDetail.open<void>(context, page, id: id);
+    if (mounted) _loadStats();
+  }
+
+  // 並排時右欄預設顯示個人資料（第一項）；內容頁自行關閉或旋轉後恢復並排時也一樣
+  void _scheduleDefaultDetail(BuildContext context) {
+    if (_defaultScheduled) return;
+    _defaultScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _defaultScheduled = false;
+      if (!mounted || !context.mounted) return;
+      if (MasterDetail.isSplit(context) && MasterDetail.selectedId(context) == null) {
+        _openDetail(context, _profileId, _editProfilePage());
+      }
+    });
+  }
+
+  /// 側邊欄已有的頁面：切換到該分頁；不在平板外框內時推入新頁面。
+  void _openTab(int tab, Widget fallback) {
+    if (!HomeScreen.showTab(tab)) _openAndRefresh(fallback);
+  }
+
+  // 平板切換到側邊欄的訂單紀錄分頁並套用篩選，不在會員中心分頁內另開一份；手機推入新頁面
+  Future<void> _openOrders(OrderRole role, [String? filter]) async {
+    await OrderHistoryScreen.open(context, role: role, filter: filter);
+    if (mounted) _loadStats();
+  }
+
+  // 管理後台有自己的側邊欄，平板以全螢幕開啟、蓋住 App 的側邊欄
+  void _openAdmin() {
+    Navigator.of(context, rootNavigator: true).push(MaterialPageRoute<void>(builder: (_) => const AdminHomeScreen()));
+  }
+
+  Widget _buildTabletMaster(BuildContext context, AppColors c) {
+    final selected = MasterDetail.selectedId(context);
+    if (MasterDetail.isSplit(context) && selected == null) _scheduleDefaultDetail(context);
+    final isAdmin = ApiService.currentUser?.isAdmin == true;
+    // 直向的側邊欄為圖示列，沒有列出訂單紀錄、收藏、書籍管理與設定，由帳戶頁提供捷徑（切換到該分頁，不另開一份）
+    final railOnly = context.screenSize != ScreenSize.expanded;
+
+    Widget detail(String id, IconData icon, String title, Widget Function() page, {String? value}) => TabletListRow(
+          icon: icon,
+          title: title,
+          value: value,
+          selected: selected == id,
+          onTap: () => _openDetail(context, id, page()),
+        );
+
+    return TabletMasterColumn(
+      title: S.myAccount,
+      maxWidth: Breakpoints.formMaxWidth,
+      onRefresh: _refresh,
+      actions: [
+        HeaderIconButton(
+          key: const ValueKey('profile_qr_code'),
+          icon: Icons.qr_code_2_rounded,
+          tooltip: S.myQrCode,
+          onTap: _openShareProfile,
+        ),
+      ],
+      children: [
+        _buildTabletIdentity(context, c, selected == _profileId),
+        TabletListGroup(
+          children: [
+            _buildTabletLevelRow(context, c, selected == 'level'),
+            TabletListRow(
+              icon: Icons.monetization_on_outlined,
+              title: S.coins,
+              value: AnimatedCount.group(_stats.balance.toStringAsFixed(0)),
+              onTap: () => _openTab(AppSideNav.coinsTab, const WalletScreen()),
+            ),
+          ],
+        ),
+        TabletListGroup(
+          header: S.faqCatTrade,
+          children: [
+            if (railOnly)
+              TabletListRow(icon: Icons.receipt_long_outlined, title: S.orderHistory, onTap: () => _openOrders(OrderRole.buyer)),
+            TabletListRow(
+              icon: Icons.shopping_bag_outlined,
+              title: S.pickUp,
+              badge: _pendingPickup,
+              onTap: () => _openOrders(OrderRole.buyer, OrderHistoryScreen.awaitingPickup),
+            ),
+            TabletListRow(
+              icon: Icons.move_to_inbox_outlined,
+              title: S.orderPendingDeposit,
+              badge: _pendingDeposit,
+              onTap: () => _openOrders(OrderRole.seller, OrderHistoryScreen.awaitingDeposit),
+            ),
+            TabletListRow(
+              icon: Icons.event_available_outlined,
+              title: S.myReservations,
+              badge: _heldReservations,
+              onTap: () => _openTab(AppSideNav.reservationsTab, const MyReservationsScreen()),
+            ),
+            if (railOnly) ...[
+              TabletListRow(
+                icon: Icons.bookmark_outline_rounded,
+                title: S.saved,
+                value: _stats.favoriteCount > 0 ? '${_stats.favoriteCount}' : null,
+                onTap: () => _openTab(AppSideNav.savedTab, const FavoritesScreen()),
+              ),
+              TabletListRow(icon: Icons.library_books_outlined, title: S.myBooks, onTap: () => _openTab(AppSideNav.myBooksTab, const BookManageScreen())),
+            ],
+          ],
+        ),
+        TabletListGroup(
+          header: S.faqCatAccount,
+          children: [
+            detail('security', Icons.verified_user_outlined, S.accountSecurity, () => const SecurityCenterScreen()),
+            detail('privacy', Icons.manage_accounts_outlined, S.account, () => const AccountPrivacyScreen()),
+            if (AppPermissions.isSupportedPlatform)
+              detail('permissions', Icons.app_settings_alt_outlined, S.appPermissions, () => const AppPermissionsScreen()),
+          ],
+        ),
+        TabletListGroup(
+          children: [
+            detail('help', Icons.support_agent_rounded, S.helpCentre2, () => const HelpCenterScreen()),
+            if (railOnly) TabletListRow(icon: Icons.settings_outlined, title: S.settings, onTap: () => _openTab(AppSideNav.settingsTab, const SettingsScreen())),
+            if (isAdmin)
+              TabletListRow(
+                icon: Icons.admin_panel_settings_outlined,
+                title: S.admin,
+                trailing: Icon(Icons.open_in_new_rounded, size: 18, color: c.iconInactive),
+                onTap: _openAdmin,
+              ),
+          ],
+        ),
+        TabletListGroup(
+          children: [
+            TabletListRow(title: S.signOut, color: c.danger, centered: true, chevron: false, onTap: _confirmLogout),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletIdentity(BuildContext context, AppColors c, bool selected) {
+    final user = ApiService.currentUser;
+    final detail = [user?.bio, user?.email].firstWhere((s) => s != null && s.trim().isNotEmpty, orElse: () => null);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22),
+      child: Material(
+        color: selected ? Color.alphaBlend(c.accent.withValues(alpha: c.isDark ? 0.22 : 0.12), c.card) : c.card,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          key: const ValueKey('profile_edit_area'),
+          onTap: () => _openDetail(context, _profileId, _editProfilePage()),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+            child: Row(
+              children: [
+                UserAvatar(imageUrl: user?.avatarUrl, radius: 30),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        user?.nickname ?? S.user,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: selected ? c.accent : c.textPrimary),
+                      ),
+                      if (detail != null) ...[
+                        const SizedBox(height: 2),
+                        Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                      ],
+                      const SizedBox(height: 4),
+                      Text(S.editProfile, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5, color: c.textHint)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, size: 22, color: c.iconInactive),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabletLevelRow(BuildContext context, AppColors c, bool selected) {
+    final level = _level.currentLevel;
+    final style = LevelStyle.at(levelIndexOf(_level, level));
+    final hasLevels = _level.levels.isNotEmpty;
+    final progress = LevelProgress.from(_level);
+
+    return TabletListRow(
+      leading: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: style.accent),
+        child: Icon(style.icon, size: 14, color: Colors.white),
+      ),
+      title: S.membershipTier,
+      value: level?.levelName ?? AppLabels.noLevel,
+      selected: selected,
+      subtitle: !hasLevels
+          ? null
+          : progress.isMax
+              ? S.topTierReached
+              : S.morePointsReach(progress.remaining, _level.nextLevel?.levelName ?? ''),
+      bottom: !hasLevels
+          ? null
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: TweenAnimationBuilder<double>(
+                key: ValueKey(_levelAnimationKey),
+                tween: Tween(begin: 0, end: progress.ratio.clamp(0.0, 1.0)),
+                duration: Motion.count,
+                curve: Motion.emphasized,
+                builder: (_, value, _) => LinearProgressIndicator(
+                  value: value,
+                  minHeight: 6,
+                  color: style.accent,
+                  backgroundColor: c.inputFill,
+                ),
+              ),
+            ),
+      onTap: () => _openDetail(context, 'level', const MemberLevelScreen()),
     );
   }
 
@@ -378,12 +622,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLevelBadge() {
+    return PressableScale(
+      onTap: () => _openAndRefresh(const MemberLevelScreen()),
+      child: _levelChip(),
+    );
+  }
+
+  Widget _levelChip() {
     final level = _level.currentLevel;
     final style = LevelStyle.at(levelIndexOf(_level, level));
 
-    return PressableScale(
-      onTap: () => _openAndRefresh(const MemberLevelScreen()),
-      child: AnimatedContainer(
+    return AnimatedContainer(
         duration: const Duration(milliseconds: 320),
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.fromLTRB(9, 4, 12, 4),
@@ -423,7 +672,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -502,16 +750,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         label: S.pickUp,
         badge: _pendingPickup,
         badgeColor: c.danger,
-        onTap: () => _openAndRefresh(const OrderHistoryScreen(filter: OrderHistoryScreen.awaitingPickup)),
+        onTap: () => _openOrders(OrderRole.buyer, OrderHistoryScreen.awaitingPickup),
       ),
       QuickActionButton(
         icon: Icons.move_to_inbox_outlined,
         label: S.orderPendingDeposit,
         badge: _pendingDeposit,
         badgeColor: c.danger,
-        onTap: () => _openAndRefresh(
-          const OrderHistoryScreen(role: OrderRole.seller, filter: OrderHistoryScreen.awaitingDeposit),
-        ),
+        onTap: () => _openOrders(OrderRole.seller, OrderHistoryScreen.awaitingDeposit),
       ),
       QuickActionButton(
         icon: Icons.bookmark_outline_rounded,
@@ -559,7 +805,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppMenuItem(
           icon: Icons.receipt_long_outlined,
           title: S.orderHistory,
-          onTap: () => _openAndRefresh(const OrderHistoryScreen()),
+          onTap: () => _openOrders(OrderRole.buyer),
         ),
         AppMenuItem(
           icon: Icons.library_books_outlined,
@@ -598,19 +844,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
   }
 
-  Widget _buildMenuSection(AppColors c, String title, List<Widget> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 10),
-          child: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary)),
-        ),
-        _buildMenuCard(items),
-      ],
-    );
-  }
-
   Widget _buildMenuCard(List<Widget> items) {
     return AppCard(
       padding: EdgeInsets.zero,
@@ -618,18 +851,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _confirmLogout() async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: S.signOut2,
+      confirmLabel: S.signOut,
+      isDestructive: true,
+    );
+    if (confirmed) _handleLogout();
+  }
+
   Widget _buildLogoutButton(AppColors c) {
     return AppCard(
       padding: const EdgeInsets.symmetric(vertical: 15),
-      onTap: () async {
-        final confirmed = await showConfirmDialog(
-          context,
-          title: S.signOut2,
-          confirmLabel: S.signOut,
-          isDestructive: true,
-        );
-        if (confirmed) _handleLogout();
-      },
+      onTap: _confirmLogout,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

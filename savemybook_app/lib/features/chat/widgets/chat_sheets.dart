@@ -4,11 +4,18 @@ import '../../../i18n/strings.dart';
 import '../../../utils/app_colors.dart';
 import '../../../widgets/adaptive_sheet.dart';
 import '../../../widgets/animations.dart';
+import '../../../widgets/responsive.dart';
 
 enum ChatAttachChoice { camera, gallery, transfer, request, reserve, quickReplies }
 
-Future<ChatAttachChoice?> showChatAttachSheet(BuildContext context, {required bool canReserve, bool canTransfer = false}) {
+Future<ChatAttachChoice?> showChatAttachSheet(
+  BuildContext context, {
+  required bool canReserve,
+  bool canTransfer = false,
+  Rect? anchor,
+}) {
   final c = AppColors.of(context);
+  if (context.isWide) return _showAttachPopover(context, canReserve: canReserve, canTransfer: canTransfer, anchor: anchor);
   return showAppModalSheet<ChatAttachChoice>(
     context: context,
     backgroundColor: c.sheetBg,
@@ -51,6 +58,68 @@ Future<ChatAttachChoice?> showChatAttachSheet(BuildContext context, {required bo
         ),
       );
     },
+  );
+}
+
+Future<ChatAttachChoice?> _showAttachPopover(
+  BuildContext context, {
+  required bool canReserve,
+  required bool canTransfer,
+  Rect? anchor,
+}) {
+  final c = AppColors.of(context);
+  final items = [
+    (Icons.photo_camera_rounded, S.takePhoto, const Color(0xFF4F8CC9), ChatAttachChoice.camera),
+    (Icons.photo_library_rounded, S.chooseFromPhotos, const Color(0xFF3FA37C), ChatAttachChoice.gallery),
+    if (canTransfer) ...[
+      (Icons.payments_rounded, S.transfer, const Color(0xFF14A38B), ChatAttachChoice.transfer),
+      (Icons.request_quote_rounded, S.request, const Color(0xFFCF5C8A), ChatAttachChoice.request),
+    ],
+    if (canReserve) (Icons.event_available_rounded, S.reserveBook, const Color(0xFFD98613), ChatAttachChoice.reserve),
+    (Icons.bolt_rounded, S.quickReplies, const Color(0xFF8A6FD1), ChatAttachChoice.quickReplies),
+  ];
+  return showAppPopoverSheet<ChatAttachChoice>(
+    context: context,
+    anchor: anchor,
+    popoverWidth: 240,
+    backgroundColor: c.sheetBg,
+    builder: (ctx) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (icon, label, color, choice) in items)
+            InkWell(
+              onTap: () => Navigator.pop(ctx, choice),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: c.isDark ? 0.22 : 0.12),
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Icon(icon, color: color, size: 19),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15, color: c.textPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
   );
 }
 

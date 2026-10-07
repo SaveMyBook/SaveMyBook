@@ -12,6 +12,7 @@ import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/master_detail.dart';
 import '../../widgets/state_views.dart';
@@ -135,8 +136,8 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
           builder: (context, frame) => Column(
             children: [
               AppHeader(title: S.wallets, icon: Icons.account_balance_wallet_outlined),
-              if (frame.isWide)
-                AdminToolbar(frame: frame, search: _buildSearch(), filters: _buildFilters(c))
+              if (context.isWide)
+                AdminSearchBar(frame: frame, search: _buildSearch(), filter: _buildFilterChip())
               else ...[
                 Padding(
                   padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
@@ -174,6 +175,13 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
                                       ),
                                     ],
                                   )
+                                : context.isWide
+                                ? AdminRowList(
+                                    key: ValueKey('rows_$_filter'),
+                                    frame: frame,
+                                    itemCount: visible.length,
+                                    itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildRow(context, visible[i], c)),
+                                  )
                                 : AdminCardList(
                                     key: ValueKey('items_$_filter'),
                                     frame: frame,
@@ -201,6 +209,30 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
         onChanged: _onSearchChanged,
         onSubmitted: (_) => _load(),
       );
+
+  Widget _buildFilterChip() => AppSelectChip<String>(
+        value: _filter,
+        title: S.wallets2,
+        iconOnly: _filter == 'all',
+        highlighted: _filter != 'all',
+        options: [for (final f in _filters) AppSelectOption(value: f.key, label: f.label)],
+        onChanged: (value) => setState(() => _filter = value),
+      );
+
+  Widget _buildRow(BuildContext ctx, AdminWallet wallet, AppColors c) {
+    return AdminListRow(
+      selected: AdminListRow.isSelected(ctx, [wallet.userId]),
+      onTap: () => _openDetail(ctx, wallet),
+      onMenu: () => _copyEmail(wallet),
+      leading: UserAvatar(imageUrl: wallet.avatarUrl, radius: 18),
+      title: wallet.nickname,
+      subtitle: wallet.email,
+      status: wallet.frozenAmount > 0
+          ? StatusBadge(label: '${S.hold2} ${_coins(wallet.frozenAmount)}', color: c.warning, fontSize: 10)
+          : null,
+      amount: _coins(wallet.balance),
+    );
+  }
 
   Widget _buildFilters(AppColors c, {EdgeInsets padding = EdgeInsets.zero}) => ListView.separated(
         scrollDirection: Axis.horizontal,
@@ -709,6 +741,28 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
   }
 
   Widget _buildActions(AppColors c) {
+    if (context.isWide) {
+      return AdminButtonRow(
+        children: [
+          PrimaryButton(
+            label: S.addCoins,
+            icon: Icons.add_rounded,
+            height: 44,
+            expand: false,
+            color: c.success,
+            onPressed: _isBusy ? null : () => _adjust(isAdd: true),
+          ),
+          PrimaryButton(
+            label: S.deductCoins,
+            icon: Icons.remove_rounded,
+            height: 44,
+            expand: false,
+            color: c.danger,
+            onPressed: _isBusy ? null : () => _adjust(isAdd: false),
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         Expanded(

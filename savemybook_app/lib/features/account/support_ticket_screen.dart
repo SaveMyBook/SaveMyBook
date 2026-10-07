@@ -22,6 +22,7 @@ import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
 import '../admin/admin_content_screen.dart';
+import '../orders/widgets/tablet_controls.dart';
 import 'ai_support_entry.dart';
 import 'ticket_attachments.dart';
 
@@ -82,18 +83,25 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
   }
 
   Widget _buildMaster(AppColors c) {
+    final wide = context.isWide;
     return Scaffold(
       backgroundColor: c.scaffold,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _create,
-        backgroundColor: c.accent,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.edit_outlined, size: 20),
-        label: Text(S.askQuestion),
-      ),
+      floatingActionButton: wide
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _create,
+              backgroundColor: c.accent,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              label: Text(S.askQuestion),
+            ),
       body: Column(
         children: [
-          AppHeader(title: S.contactUs, icon: Icons.support_agent_rounded),
+          AppHeader(
+            title: S.contactUs,
+            icon: Icons.support_agent_rounded,
+            actions: [if (wide) HeaderIconButton(icon: Icons.edit_square, tooltip: S.askQuestion, onTap: _create)],
+          ),
           const AiSupportEntry(maxWidth: Breakpoints.readingMaxWidth, horizontal: 20),
           Expanded(
             child: SwitchIn(
@@ -117,7 +125,13 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                           : LayoutBuilder(builder: (context, constraints) => ListView.builder(
                               key: const ValueKey('items'),
                               physics: const AlwaysScrollableScrollPhysics(),
-                              padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 20, top: 16, bottom: 96),
+                              padding: responsiveListPadding(
+                                constraints,
+                                maxWidth: Breakpoints.readingMaxWidth,
+                                horizontal: 20,
+                                top: 16,
+                                bottom: wide ? 24 : 96,
+                              ),
                               itemCount: _tickets.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
@@ -133,9 +147,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
   }
 
   Widget _buildCard(BuildContext context, SupportTicket ticket, AppColors c) {
-    final card = AppCard(
-      onTap: () => _open(context, ticket),
-      child: Column(
+    final content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -179,9 +191,20 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
             ],
           ),
         ],
-      ),
-    );
+      );
     final selected = MasterDetail.selectedId(context) == ticket.ticketId;
+    if (context.isWide) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: TabletListItem(
+          selected: selected,
+          padding: const EdgeInsets.all(14),
+          onTap: () => _open(context, ticket),
+          child: content,
+        ),
+      );
+    }
+    final card = AppCard(onTap: () => _open(context, ticket), child: content);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: !selected
@@ -381,6 +404,21 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    if (context.isWide)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 160),
+                          child: PrimaryButton(
+                            label: S.actionSubmit,
+                            icon: Icons.send_rounded,
+                            expand: false,
+                            isLoading: _isSaving,
+                            onPressed: _submit,
+                          ),
+                        ),
+                      )
+                    else
                     PrimaryButton(
                       label: S.actionSubmit,
                       icon: Icons.send_rounded,
@@ -451,6 +489,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   final ApiService _api = ApiService();
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late final FocusNode _inputFocus = FocusNode(onKeyEvent: enterToSubmit(context, _controller, _send));
   late final TicketAttachmentController _attachments = widget.attachments ?? TicketAttachmentController();
 
   SupportTicket? _ticket;
@@ -467,6 +506,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _inputFocus.dispose();
     if (widget.attachments == null) _attachments.dispose();
     super.dispose();
   }
@@ -587,9 +627,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               if (widget.asAdmin && ticket?.fromAiSupport == true)
                 HeaderIconButton(icon: Icons.quiz_outlined, onTap: _createFaq),
               if (widget.asAdmin)
-                HeaderIconButton(icon: Icons.tune_rounded, onTap: _changeStatus)
+                HeaderIconButton(icon: Icons.tune_rounded, tooltip: S.changeStatus, onTap: _changeStatus)
               else if (canReply)
-                HeaderIconButton(icon: Icons.check_circle_outline_rounded, onTap: _close),
+                HeaderIconButton(icon: Icons.check_circle_outline_rounded, tooltip: S.close, onTap: _close),
             ],
           ),
           Expanded(
@@ -782,6 +822,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   Expanded(
                     child: AppTextField(
                       controller: _controller,
+                      focusNode: _inputFocus,
                       hint: S.writeReply,
                       minLines: 1,
                       maxLines: 4,
@@ -790,7 +831,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  PressableScale(
+                  Tooltip(
+                    message: S.send,
+                    child: PressableScale(
                     onTap: ready ? _send : null,
                     child: AnimatedContainer(
                       duration: Motion.micro,
@@ -807,6 +850,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             )
                           : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
                     ),
+                  ),
                   ),
                 ],
               ),

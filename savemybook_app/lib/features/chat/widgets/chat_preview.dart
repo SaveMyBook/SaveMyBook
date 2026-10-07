@@ -9,6 +9,7 @@ import '../../../services/api_service.dart';
 import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
+import '../../../widgets/app_dialogs.dart';
 import '../../../widgets/app_tiles.dart';
 import '../../../widgets/responsive.dart';
 import '../groups/group_avatar.dart';
@@ -43,6 +44,35 @@ Future<ChatPreviewAction?> showChatPreview(
         );
       },
     ),
+  );
+}
+
+Future<ChatPreviewAction?> showChatRoomMenu(BuildContext context, {required ChatRoom room, required bool muted}) {
+  final c = AppColors.of(context);
+  return showOptionSheet<ChatPreviewAction>(
+    context,
+    title: room.title,
+    options: [
+      SheetOption(value: ChatPreviewAction.open, label: S.openChat, icon: Icons.chat_bubble_outline_rounded),
+      if (room.unreadCount > 0)
+        SheetOption(value: ChatPreviewAction.markRead, label: S.markAsRead, icon: Icons.mark_chat_read_outlined),
+      SheetOption(
+        value: ChatPreviewAction.togglePin,
+        label: room.pinned ? S.unpin : S.pin,
+        icon: room.pinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
+      ),
+      SheetOption(
+        value: ChatPreviewAction.toggleMute,
+        label: muted ? S.unmute : S.mute,
+        icon: muted ? Icons.notifications_active_outlined : Icons.notifications_off_outlined,
+      ),
+      SheetOption(
+        value: ChatPreviewAction.delete,
+        label: room.isGroup ? S.leaveGroup : S.deleteChat,
+        icon: room.isGroup ? Icons.logout_rounded : Icons.delete_outline_rounded,
+        color: c.danger,
+      ),
+    ],
   );
 }
 

@@ -11,6 +11,9 @@ class ChatRoomAvatar extends StatelessWidget {
   final String? previewTitle;
   final VoidCallback? onTap;
 
+  // 預設底色是 inputFill，放在同色背景（淺色模式的 scaffold）上時要另外指定，否則圓形底會看不見
+  final Color? background;
+
   const ChatRoomAvatar({
     super.key,
     required this.imageUrl,
@@ -19,6 +22,7 @@ class ChatRoomAvatar extends StatelessWidget {
     this.enablePreview = false,
     this.previewTitle,
     this.onTap,
+    this.background,
   });
 
   @override
@@ -31,6 +35,7 @@ class ChatRoomAvatar extends StatelessWidget {
         enablePreview: enablePreview,
         previewTitle: previewTitle,
         onTap: onTap,
+        background: background,
       );
     }
     final c = AppColors.of(context);

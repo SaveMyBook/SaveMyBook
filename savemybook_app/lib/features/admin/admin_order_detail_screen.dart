@@ -166,6 +166,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                 actions: [
                   HeaderIconButton(
                     icon: Icons.copy_rounded,
+                    tooltip: S.copy,
                     onTap: () => _copy(widget.orderNo, S.orderNumberCopied),
                   ),
                 ],

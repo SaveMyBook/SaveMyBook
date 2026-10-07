@@ -161,7 +161,7 @@ void main() {
     if (_shotsDir != null) await _loadFonts();
   });
 
-  testWidgets('橫向並排：列表與聊天室同時顯示，點另一個聊天切換右側，面板改為置中對話框', (tester) async {
+  testWidgets('橫向並排：列表與聊天室同時顯示，點另一個聊天切換右側，附加功能為彈出選單、轉帳為置中對話框', (tester) async {
     await _run(tester, _landscape, const ChatListScreen(), () async {
       expect(find.text(S.selectChat), findsOneWidget);
       await tester.tap(_room(3));
@@ -185,17 +185,18 @@ void main() {
 
       await tester.tap(find.descendant(of: find.byType(ChatRoomScreen), matching: find.byIcon(Icons.add_rounded)));
       await _settle(tester);
-      expect(find.byType(Dialog), findsOneWidget);
+      expect(find.byType(Dialog), findsNothing);
       expect(find.byType(BottomSheet), findsNothing);
       expect(find.text(S.takePhoto), findsOneWidget);
       await _snap(tester, 'chat_attach_dialog');
       await tester.tapAt(const Offset(10, 10));
       await _settle(tester);
-      expect(find.byType(Dialog), findsNothing);
+      expect(find.text(S.takePhoto), findsNothing);
 
       await tester.tap(find.descendant(of: find.byType(ChatRoomScreen), matching: find.byIcon(Icons.add_rounded)));
       await _settle(tester);
-      await tester.tap(find.descendant(of: find.byType(Dialog), matching: find.text(S.transfer)));
+      // 彈出選單在最上層，聊天內容的轉帳卡片也有同樣的文字
+      await tester.tap(find.text(S.transfer).last);
       await _settle(tester);
       expect(find.byType(Dialog), findsOneWidget);
       expect(find.text(S.confirmTransfer), findsOneWidget);
@@ -214,9 +215,9 @@ void main() {
       expect(find.byType(ChatRoomScreen), findsOneWidget);
       expect(_room(3), findsNothing, reason: '聊天室蓋住列表');
       expect(tester.getSize(find.byType(ChatRoomScreen)).width, _portrait.width);
-      expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
       await _snap(tester, 'chat_room_port');
-      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+      await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
       await _settle(tester);
       expect(_room(3), findsOneWidget);
     });
@@ -231,11 +232,11 @@ void main() {
     });
   });
 
-  testWidgets('橫向直接開啟聊天室：訊息與輸入列置中限制寬度', (tester) async {
+  testWidgets('橫向直接開啟聊天室：訊息與輸入列撐滿欄位，不置中成窄欄', (tester) async {
     await _run(tester, _landscape, const ChatRoomScreen(roomId: 2), () async {
       final field = tester.getRect(find.byType(TextField));
-      expect(field.left, greaterThan(200));
-      expect(field.right, lessThan(_landscape.width - 200));
+      expect(field.left, lessThan(100));
+      expect(field.right, greaterThan(_landscape.width - 100));
       await tester.tap(find.text(S.scamSafetyTips).first);
       await _settle(tester);
       expect(find.byType(Dialog), findsOneWidget);

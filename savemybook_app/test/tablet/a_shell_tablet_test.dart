@@ -161,9 +161,12 @@ void main() {
       await _run(tester, size, () async {
         final extended = size.width >= 1024;
         final navWidth = tester.getSize(find.byType(AppSideNav)).width;
-        expect(navWidth, extended ? 232 : 88);
+        expect(navWidth, extended ? AppSideNav.extendedWidth : AppSideNav.railWidth);
         expect(find.byType(CustomBottomNav), findsNothing);
-        for (final label in [S.home, S.alerts, S.chat, S.cart, S.sellBook, S.collect, S.member]) {
+        final labels = extended
+            ? [S.home, S.alerts, S.chat, S.cart, S.sellBook, S.collect, S.orderHistory, S.myReservations, S.saved, S.coins, S.myBooks, S.myAccount]
+            : [S.home, S.alerts, S.chat, S.cart, S.sellBook, S.collect, S.member];
+        for (final label in labels) {
           expect(_sideNavText(label), findsOneWidget, reason: label);
         }
         expect(find.byType(CartIconButton), findsNothing);
@@ -174,7 +177,6 @@ void main() {
         await tester.drag(find.byType(CustomScrollView).first, Offset(0, -size.height * 0.9));
         await _settle(tester);
         expect(_columnsInFirstRow(tester), extended ? 5 : 4);
-        final gridWidth = tester.getSize(find.byType(BookCard).first).width;
         await _shot(tester, 'home_grid_$label');
 
         await tester.tap(find.byIcon(Icons.view_agenda_rounded));
@@ -204,8 +206,10 @@ void main() {
 
         await tester.drag(find.byType(CustomScrollView).first, Offset(0, size.height * 2));
         await _settle(tester);
-        final tile = find.descendant(of: find.byType(WideDiscoveryPanel), matching: find.byType(Hero)).first;
-        expect(tester.getSize(tile).width, moreOrLessEquals(gridWidth, epsilon: 0.5), reason: '推薦卡片寬度與下方格狀一致');
+        final tiles = find.byType(ShelfBookTile);
+        expect(tiles, findsWidgets);
+        final widths = tiles.evaluate().map((e) => tester.getSize(find.byWidget(e.widget)).width).toSet();
+        expect(widths, hasLength(1), reason: '推薦書架的卡片固定同寬');
       });
     });
 

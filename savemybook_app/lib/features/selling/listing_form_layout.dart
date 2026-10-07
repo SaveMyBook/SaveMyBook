@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../i18n/strings.dart';
+import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
 
 class ListingFormLayout {
@@ -18,6 +20,14 @@ class ListingFormLayout {
       horizontal: context.isWide ? 24 : 16,
       top: top,
       bottom: bottom,
+    );
+  }
+
+  static Widget action(BuildContext context, Widget button) {
+    if (!context.isWide) return button;
+    return Align(
+      alignment: AlignmentDirectional.centerEnd,
+      child: ConstrainedBox(constraints: const BoxConstraints(minWidth: 200), child: button),
     );
   }
 
@@ -73,6 +83,62 @@ class ListingPhotoStrip extends StatelessWidget {
           children: [for (final tile in tiles) tile(width)],
         );
       },
+    );
+  }
+}
+
+class ListingStepIndicator extends StatelessWidget {
+  final int step;
+
+  const ListingStepIndicator({super.key, required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final labels = [S.bookDetails, S.detailsPhotos];
+    return Semantics(
+      label: '$step / ${labels.length}',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < labels.length; i++) ...[
+            if (i > 0) Container(width: 28, height: 1.5, margin: const EdgeInsets.symmetric(horizontal: 10), color: c.divider),
+            _dot(c, i + 1),
+            const SizedBox(width: 8),
+            Text(
+              labels[i],
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: i + 1 == step ? FontWeight.w700 : FontWeight.w500,
+                color: i + 1 == step ? c.textPrimary : c.textSecondary,
+              ),
+            ),
+          ],
+          const SizedBox(width: 12),
+        ],
+      ),
+    );
+  }
+
+  Widget _dot(AppColors c, int index) {
+    final done = index < step;
+    final current = index == step;
+    return Container(
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: done || current ? c.accent : Colors.transparent,
+        border: done || current ? null : Border.all(color: c.border, width: 1.5),
+      ),
+      child: done
+          ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+          : Text(
+              '$index',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: current ? Colors.white : c.textSecondary),
+            ),
     );
   }
 }

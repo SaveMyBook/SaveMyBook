@@ -55,9 +55,11 @@ Future<T?> showAppPicker<T>(
   String? searchHint,
   String? emptyText,
   Widget? header,
+  Rect? anchor,
 }) async {
   final picked = await _openPicker<T>(
     context,
+    anchor: anchor,
     title: title,
     subtitle: subtitle,
     options: options,
@@ -82,12 +84,15 @@ Future<_Picked<T>?> _openPicker<T>(
   String? searchHint,
   String? emptyText,
   Widget? header,
+  Rect? anchor,
 }) {
   final c = AppColors.of(context);
   FocusManager.instance.primaryFocus?.unfocus();
 
-  return showAppModalSheet<_Picked<T>>(
+  return showAppPopoverSheet<_Picked<T>>(
     context: context,
+    anchor: anchor,
+    popoverWidth: 360,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: c.sheetBg,
@@ -544,6 +549,7 @@ class _AppSelectState<T> extends State<AppSelect<T>> {
     setState(() => _open = true);
     final picked = await _openPicker<T>(
       context,
+      anchor: PointerAnchor.of(context),
       title: widget.title ?? widget.hint ?? S.actionSelect,
       subtitle: widget.sheetSubtitle,
       options: widget.options,
@@ -699,6 +705,7 @@ class _AppSelectChipState<T> extends State<AppSelectChip<T>> {
     setState(() => _open = true);
     final picked = await _openPicker<T>(
       context,
+      anchor: PointerAnchor.of(context),
       title: widget.title,
       options: widget.options,
       selected: widget.value,

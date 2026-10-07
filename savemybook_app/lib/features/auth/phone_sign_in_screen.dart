@@ -122,7 +122,8 @@ class _PhoneSignInScreenState extends State<PhoneSignInScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: Column(
+      body: AuthTabletFrame(
+        child: Column(
         children: [
           AppHeader(
             title: widget.linking ? S.linkMobileNumber : S.signWithMobileNumber,
@@ -221,6 +222,7 @@ class _PhoneSignInScreenState extends State<PhoneSignInScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 }
@@ -301,7 +303,8 @@ class _SmsCodeScreenState extends State<SmsCodeScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: Column(
+      body: AuthTabletFrame(
+        child: Column(
         children: [
           AppHeader(title: S.enterCode, icon: Icons.password_rounded),
           Expanded(
@@ -355,6 +358,7 @@ class _SmsCodeScreenState extends State<SmsCodeScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

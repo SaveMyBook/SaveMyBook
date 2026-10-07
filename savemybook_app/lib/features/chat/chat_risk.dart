@@ -172,8 +172,9 @@ void showFraudTipsSheet(BuildContext context) {
     (Icons.report_gmailerrorred_rounded, S.cancelInstallmentsAccountFrozenPaymentVerification),
     (Icons.flag_outlined, S.ifSeeSuspiciousMessageReportAdministrator),
   ];
-  showAppModalSheet<void>(
+  showAppPopoverSheet<void>(
     context: context,
+    popoverWidth: 420,
     isScrollControlled: true,
     backgroundColor: c.sheetBg,
     constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.8, maxWidth: 640),

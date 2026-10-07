@@ -139,6 +139,7 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final sessions = _sessions;
+    final wide = context.isWide;
 
     final Widget body;
     if (_loading) {
@@ -160,7 +161,7 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
         onRefresh: _load,
         child: LayoutBuilder(builder: (context, constraints) => ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
+          padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: wide ? 24 : 20, top: 20, bottom: 40),
           children: [
             if (current.isNotEmpty) ...[
               _sectionTitle(c, S.device),
@@ -188,23 +189,29 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
             else
               for (final s in others) FadeSlideIn(index: index++, child: _tile(c, s)),
             const SizedBox(height: 24),
-            if (others.isNotEmpty)
-              OutlinedButton.icon(
-                onPressed: _bulkBusy ? null : () => _revokeAll(includeCurrent: false),
-                icon: const Icon(Icons.logout_rounded),
-                label: Text(S.signOutAllOtherDevices),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: c.danger,
-                  side: BorderSide(color: c.danger.withValues(alpha: 0.5)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+            if (wide)
+              // 平板：兩個登出按鈕放在清單右下方，寬度依文字
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: _bulkBusy ? null : () => _revokeAll(includeCurrent: true),
+                    style: TextButton.styleFrom(minimumSize: const Size(0, 44), padding: const EdgeInsets.symmetric(horizontal: 16)),
+                    child: Text(S.signOutAllDevicesIncludingOne, style: TextStyle(color: c.danger)),
+                  ),
+                  if (others.isNotEmpty) _revokeOthersButton(c, compact: true),
+                ],
+              )
+            else ...[
+              if (others.isNotEmpty) _revokeOthersButton(c),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: _bulkBusy ? null : () => _revokeAll(includeCurrent: true),
+                child: Text(S.signOutAllDevicesIncludingOne, style: TextStyle(color: c.danger)),
               ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: _bulkBusy ? null : () => _revokeAll(includeCurrent: true),
-              child: Text(S.signOutAllDevicesIncludingOne, style: TextStyle(color: c.danger)),
-            ),
+            ],
           ],
         )),
       );
@@ -217,6 +224,20 @@ class _LoginDevicesScreenState extends State<LoginDevicesScreen> {
           AppHeader(title: S.signedDevices, icon: Icons.devices_rounded),
           Expanded(child: SwitchIn(child: body)),
         ],
+      ),
+    );
+  }
+
+  Widget _revokeOthersButton(AppColors c, {bool compact = false}) {
+    return OutlinedButton.icon(
+      onPressed: _bulkBusy ? null : () => _revokeAll(includeCurrent: false),
+      icon: const Icon(Icons.logout_rounded),
+      label: Text(S.signOutAllOtherDevices),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: c.danger,
+        side: BorderSide(color: c.danger.withValues(alpha: 0.5)),
+        padding: compact ? const EdgeInsets.symmetric(horizontal: 18, vertical: 12) : const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

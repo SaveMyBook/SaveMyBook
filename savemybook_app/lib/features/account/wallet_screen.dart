@@ -14,6 +14,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/state_views.dart';
 import '../orders/dispute_screen.dart';
 import '../orders/order_detail_screen.dart';
+import '../orders/widgets/tablet_controls.dart';
 import '../selling/pending_income_screen.dart';
 import '../../i18n/strings.dart';
 
@@ -113,7 +114,7 @@ class _WalletScreenState extends State<WalletScreen> {
                               SliverPadding(
                                 padding: EdgeInsets.fromLTRB(side, 20, side, 0),
                                 sliver: SliverToBoxAdapter(
-                                  child: FadeSlideIn(child: _buildBalanceCard(c)),
+                                  child: FadeSlideIn(child: context.isWide ? _buildBalanceRow(c) : _buildBalanceCard(c)),
                                 ),
                               ),
                               SliverPadding(
@@ -215,8 +216,13 @@ class _WalletScreenState extends State<WalletScreen> {
               padding: EdgeInsets.only(left: left, right: right),
               sliver: SliverList.list(
                 children: [
-                  for (final t in group.items)
-                    RevealOnScroll(index: index++, child: _buildTransaction(t, c)),
+                  for (final (i, t) in group.items.indexed)
+                    RevealOnScroll(
+                      index: index++,
+                      child: context.isWide
+                          ? _buildTransactionRow(t, c, first: i == 0, last: i == group.items.length - 1)
+                          : _buildTransaction(t, c),
+                    ),
                 ],
               ),
             ),
@@ -234,6 +240,31 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget _buildTransactionsHeader(AppColors c) {
     final incomeCount = _transactions.where((t) => t.isIncome).length;
     final expenseCount = _transactions.length - incomeCount;
+
+    if (context.isWide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(S.transactions, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary)),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SegmentedFilter<_TxnFilter>(
+              value: _filter,
+              onChanged: (filter) => setState(() => _filter = filter),
+              options: [
+                SegmentOption(_TxnFilter.all, S.actionAll, count: _transactions.length),
+                SegmentOption(_TxnFilter.income, S.income, count: incomeCount),
+                SegmentOption(_TxnFilter.expense, S.spending, count: expenseCount),
+              ],
+            ),
+          ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,6 +313,78 @@ class _WalletScreenState extends State<WalletScreen> {
             color: selected ? Colors.white : c.textSecondary,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceRow(AppColors c) {
+    return AppCard(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: c.accent.withValues(alpha: 0.08),
+                  border: Border.all(color: c.accent, width: 2.5),
+                ),
+                child: Center(
+                  child: Text(
+                    '\$',
+                    textScaler: TextScaler.noScaling,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: c.accent),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(S.balance, style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: AnimatedCount(
+                        value: _wallet.balance,
+                        thousands: true,
+                        duration: Motion.count,
+                        style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: c.textPrimary),
+                      ),
+                    ),
+                    if (_wallet.frozenAmount > 0)
+                      Text(S.hold(_wallet.frozenAmount.toStringAsFixed(0)), style: TextStyle(fontSize: 12, color: c.warning)),
+                    if (_wallet.pendingIncome > 0)
+                      Text(
+                        '${S.pendingPayouts} \$${_money(_wallet.pendingIncome)}',
+                        style: TextStyle(fontSize: 12, color: c.textHint),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(child: _summaryTile(c, S.totalIncome, _wallet.totalIncome, c.success, Icons.south_west_rounded)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _summaryTile(c, S.totalSpending, _wallet.totalExpense, c.danger, Icons.north_east_rounded)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Divider(height: 1, thickness: 1, color: c.divider),
+          _linkRow(c, Icons.query_stats_rounded, S.pendingPayouts, _openPendingIncome),
+          Divider(height: 1, thickness: 1, indent: 44, color: c.divider),
+          _linkRow(c, Icons.gavel_rounded, S.dispute, _openDisputes),
+        ],
       ),
     );
   }
@@ -341,6 +444,12 @@ class _WalletScreenState extends State<WalletScreen> {
               Expanded(child: _summaryTile(c, S.totalSpending, _wallet.totalExpense, c.danger, Icons.north_east_rounded)),
             ],
           ),
+          if (context.isWide) ...[
+            const SizedBox(height: 14),
+            _linkRow(c, Icons.query_stats_rounded, S.pendingPayouts, _openPendingIncome),
+            Divider(height: 1, thickness: 1, indent: 44, color: c.divider),
+            _linkRow(c, Icons.gavel_rounded, S.dispute, _openDisputes),
+          ] else ...[
           const SizedBox(height: 18),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -349,28 +458,60 @@ class _WalletScreenState extends State<WalletScreen> {
                 child: QuickActionButton(
                   icon: Icons.query_stats_rounded,
                   label: S.pendingPayouts,
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const PendingIncomeScreen()),
-                    );
-                    _load();
-                  },
+                  onTap: _openPendingIncome,
                 ),
               ),
               Expanded(
                 child: QuickActionButton(
                   icon: Icons.gavel_rounded,
                   label: S.dispute,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const DisputeScreen()),
-                  ),
+                  onTap: _openDisputes,
                 ),
               ),
             ],
           ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Future<void> _openPendingIncome() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PendingIncomeScreen()),
+    );
+    _load();
+  }
+
+  void _openDisputes() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const DisputeScreen()),
+    );
+  }
+
+  Widget _linkRow(AppColors c, IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+              child: Icon(icon, size: 17, color: c.accent),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, color: c.textPrimary)),
+            ),
+            Icon(Icons.chevron_right_rounded, color: c.iconInactive),
+          ],
+        ),
       ),
     );
   }
@@ -528,6 +669,89 @@ class _WalletScreenState extends State<WalletScreen> {
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _copyReference(WalletTransaction t) {
+    if (t.orderNo != null) {
+      _copy(S.orderNumber, t.orderNo!);
+    } else if (t.txnNo.isNotEmpty) {
+      _copy(S.transactionId, t.txnNo);
+    }
+  }
+
+  Widget _buildTransactionRow(WalletTransaction t, AppColors c, {required bool first, required bool last}) {
+    final tint = t.isIncome ? c.success : c.danger;
+    final isTransfer = t.type == 'transfer_in' || t.type == 'transfer_out';
+    final radius = BorderRadius.vertical(
+      top: first ? const Radius.circular(16) : Radius.zero,
+      bottom: last ? const Radius.circular(16) : Radius.zero,
+    );
+    return Padding(
+      padding: EdgeInsets.only(bottom: last ? 10 : 0),
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: c.card, borderRadius: radius),
+        child: Column(
+          children: [
+            if (!first) Divider(height: 1, thickness: 1, indent: 70, color: c.divider),
+            TabletListItem(
+              borderRadius: radius,
+              padding: const EdgeInsets.fromLTRB(14, 10, 16, 10),
+              onTap: () => _showDetail(t),
+              onMenu: () => _copyReference(t),
+              child: Row(
+                children: [
+                  if (isTransfer)
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(color: tint.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+                      child: Icon(t.type == 'transfer_in' ? Icons.call_received_rounded : Icons.call_made_rounded, color: tint, size: 20),
+                    )
+                  else
+                    BookThumbnail(imageUrl: t.bookImageUrl, width: 42, height: 56, radius: 6),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isTransfer ? t.typeText : t.bookTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: c.textPrimary),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          t.description.isEmpty ? t.typeText : t.description,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(formatDate(t.createdAt?.toLocal()), maxLines: 1, style: TextStyle(fontSize: 12, color: c.textHint)),
+                  const SizedBox(width: 16),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 72, maxWidth: 120),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '${t.isIncome ? '+' : '-'}\$${_money(t.amount)}',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: tint),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

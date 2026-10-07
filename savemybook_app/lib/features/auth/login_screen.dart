@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_service.dart';
 import '../../services/home_widget_service.dart';
@@ -11,11 +12,13 @@ import '../../widgets/biometric_icon.dart';
 import '../../widgets/pin_pad.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
+import '../../widgets/app_header.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../home/home_screen.dart';
 import '../../models/auth_social.dart';
 import '../security/passkey_sign_in_button.dart';
+import 'auth_wide_card.dart';
 import 'register_screen.dart';
 import 'social_sign_in.dart';
 import '../../services/social_auth_service.dart';
@@ -301,7 +304,10 @@ class _LoginScreenState extends State<LoginScreen> {
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => FocusScope.of(context).unfocus(),
-        child: wide ? _buildWide(c) : SafeArea(child: _buildScrollable(c, horizontal: 32)),
+        // 平板的狀態列疊在內容上（左側品牌區塊、右側頁面底色），依目前主題決定文字顏色
+        child: wide
+            ? AnnotatedRegion<SystemUiOverlayStyle>(value: TabletToolbar.overlayStyle(c), child: _buildWide(c))
+            : SafeArea(child: _buildScrollable(c, horizontal: 32)),
       ),
     );
   }
@@ -340,66 +346,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Row(
       children: [
-        Expanded(flex: 5, child: _buildBrandPanel()),
+        const Expanded(flex: 5, child: AuthBrandPanel()),
         Expanded(flex: 6, child: formSide),
       ],
-    );
-  }
-
-  Widget _buildBrandPanel() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryDark],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -80,
-            bottom: -60,
-            child: Icon(Icons.menu_book_rounded, size: 360, color: Colors.white.withValues(alpha: 0.06)),
-          ),
-          Center(
-            child: FadeSlideIn(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(36),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 30, offset: const Offset(0, 12))],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        width: 112,
-                        height: 112,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Icon(Icons.menu_book_rounded, size: 88, color: AppColors.primary),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      kAppName,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

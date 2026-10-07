@@ -124,7 +124,7 @@ class _SellerScreenState extends State<SellerScreen> {
                         ),
                         if (_books.isNotEmpty)
                           Positioned(
-                            right: 16,
+                            right: context.isWide ? 24 : 16,
                             bottom: MediaQuery.of(context).padding.bottom + 16,
                             child: BackToTopButton(controller: _scrollController, threshold: 600),
                           ),
@@ -138,6 +138,7 @@ class _SellerScreenState extends State<SellerScreen> {
   }
 
   Widget _buildProfile(AppColors c, double side) {
+    if (context.isWide) return _buildTabletProfile(c, side);
     return Container(
       margin: EdgeInsets.fromLTRB(side, 16, side, 12),
       padding: const EdgeInsets.all(16),
@@ -178,6 +179,41 @@ class _SellerScreenState extends State<SellerScreen> {
                     _isLoading ? S.loading2 : S.sale2(_books.length),
                     key: ValueKey(_isLoading ? -1 : _books.length),
                     style: TextStyle(fontSize: 13, color: c.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletProfile(AppColors c, double side) {
+    final name = widget.sellerName.isEmpty ? S.unknownUser : widget.sellerName;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(side, 24, side, 20),
+      child: Row(
+        children: [
+          UserAvatar(imageUrl: widget.sellerAvatarUrl, radius: 32, enablePreview: true, previewTitle: widget.sellerName),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                SwitchIn(
+                  alignment: AlignmentDirectional.topStart,
+                  child: Text(
+                    _isLoading ? S.loading2 : S.sale2(_books.length),
+                    key: ValueKey(_isLoading ? -1 : _books.length),
+                    style: TextStyle(fontSize: 14, color: c.textSecondary),
                   ),
                 ),
               ],

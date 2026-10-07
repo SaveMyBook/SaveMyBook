@@ -19,6 +19,7 @@ import '../chat/ai/ai_feedback_bar.dart';
 import '../chat/widgets/chat_bubbles.dart';
 import '../chat/widgets/chat_input_accessories.dart';
 import '../orders/order_detail_screen.dart';
+import '../orders/widgets/tablet_controls.dart';
 import 'ai_consent_sheet.dart';
 import 'support_ticket_screen.dart';
 import '../../i18n/strings.dart';
@@ -70,6 +71,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> with WidgetsBindingOb
   final ApiService _api = ApiService();
   final TextEditingController _input = TextEditingController();
   final ScrollController _scroll = ScrollController();
+  late final FocusNode _inputFocus = FocusNode(onKeyEvent: enterToSubmit(context, _input, () => _send()));
 
   final List<AiChatItem> _items = [];
   bool _loading = true;
@@ -107,6 +109,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> with WidgetsBindingOb
     WidgetsBinding.instance.removeObserver(this);
     _input.dispose();
     _scroll.dispose();
+    _inputFocus.dispose();
     super.dispose();
   }
 
@@ -381,16 +384,19 @@ class _AiSupportScreenState extends State<AiSupportScreen> with WidgetsBindingOb
             title: S.aiSupport,
             icon: Icons.support_agent_rounded,
             actions: [
-              if (_items.isNotEmpty) HeaderIconButton(icon: Icons.add_comment_outlined, onTap: _newConversation),
+              if (context.isWide) ToolbarTextButton(label: S.talkPerson, icon: Icons.support_agent_rounded, onPressed: _escalate),
+              if (_items.isNotEmpty)
+                HeaderIconButton(icon: Icons.add_comment_outlined, tooltip: S.newConversation, onTap: _newConversation),
             ],
           ),
-          ResponsiveListPadding(
-            maxWidth: Breakpoints.readingMaxWidth,
-            horizontal: 14,
-            top: 8,
-            bottom: 0,
-            builder: (context, padding) => Padding(padding: padding.copyWith(right: padding.right - 8), child: _toolbar(c)),
-          ),
+          if (!context.isWide)
+            ResponsiveListPadding(
+              maxWidth: Breakpoints.readingMaxWidth,
+              horizontal: 14,
+              top: 8,
+              bottom: 0,
+              builder: (context, padding) => Padding(padding: padding.copyWith(right: padding.right - 8), child: _toolbar(c)),
+            ),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -777,6 +783,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> with WidgetsBindingOb
         Expanded(
           child: AppTextField(
             controller: _input,
+            focusNode: _inputFocus,
             hint: S.typeQuestion,
             minLines: 1,
             maxLines: 4,
@@ -791,7 +798,9 @@ class _AiSupportScreenState extends State<AiSupportScreen> with WidgetsBindingOb
           valueListenable: _input,
           builder: (_, value, _) {
             final ready = value.text.trim().isNotEmpty && !_waiting;
-            return PressableScale(
+            return Tooltip(
+              message: S.send,
+              child: PressableScale(
               onTap: ready ? _send : null,
               child: AnimatedContainer(
                 duration: Motion.micro,
@@ -807,6 +816,7 @@ class _AiSupportScreenState extends State<AiSupportScreen> with WidgetsBindingOb
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 22),
+              ),
               ),
             );
           },

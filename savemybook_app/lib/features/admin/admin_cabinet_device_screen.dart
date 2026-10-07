@@ -241,13 +241,13 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
 
   Future<T?> _menu<T>({required String title, String? subtitle, required List<_MenuEntry<T>> entries}) {
     final c = AppColors.of(context);
-    return showAppModalSheet<T>(
+    return showAppPopoverSheet<T>(
       context: context,
+      popoverWidth: 340,
       backgroundColor: c.sheetBg,
       isScrollControlled: true,
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.75, maxWidth: 640),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      dialogMaxWidth: 440,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

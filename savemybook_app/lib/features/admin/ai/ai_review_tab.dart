@@ -186,14 +186,14 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
             onRefresh: _load,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 40),
               children: [
                 for (final (i, item) in _items.indexed)
                   KeyedSubtree(
                     key: ValueKey(item.bookId),
                     child: RevealOnScroll(
                       index: i,
-                      child: _leavingWrap(item, _tile(c, item, selected: item.bookId == selected.bookId), gap: 10),
+                      child: _leavingWrap(item, _row(c, item, selected: item.bookId == selected.bookId), gap: 2),
                     ),
                   ),
               ],
@@ -224,7 +224,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
-                      child: _actions(c, selected),
+                      child: _actions(c, selected, compact: true),
                     ),
                   ),
                 ),
@@ -236,62 +236,24 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
     );
   }
 
-  Widget _tile(AppColors c, AiReviewItem item, {required bool selected}) {
+  Widget _row(AppColors c, AiReviewItem item, {required bool selected}) {
     final reject = item.verdict == 'reject';
-    final radius = BorderRadius.circular(14);
-    return Material(
-      color: selected ? c.accent.withValues(alpha: 0.12) : c.card,
-      borderRadius: radius,
-      child: InkWell(
-        borderRadius: radius,
-        onTap: () {
-          if (selected) return;
-          HapticFeedback.selectionClick();
-          setState(() => _selectedId = item.bookId);
-        },
-        child: AnimatedContainer(
-          duration: Motion.base,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(color: selected ? c.accent : Colors.transparent, width: 1.4),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: AppNetworkImage(url: item.imageUrl, width: 44, height: 60, fallbackIconSize: 18),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(item.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13.5, height: 1.35, fontWeight: FontWeight.w600, color: c.textPrimary)),
-                    const SizedBox(height: 4),
-                    Text(
-                      [
-                        if (item.sellerName.isNotEmpty) item.sellerName,
-                        if (item.price > 0) '\$${item.price.toStringAsFixed(0)}',
-                        formatRelative(item.createdAt),
-                      ].join('・'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
-                    ),
-                    const SizedBox(height: 6),
-                    StatusBadge(label: reject ? S.likelyViolation : S.needsReview, color: reject ? c.danger : c.warning, fontSize: 10),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+    return AdminListRow(
+      selected: selected,
+      onTap: () {
+        if (selected) return;
+        HapticFeedback.selectionClick();
+        setState(() => _selectedId = item.bookId);
+      },
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: AppNetworkImage(url: item.imageUrl, width: 36, height: 48, fallbackIconSize: 16),
       ),
+      title: item.title,
+      subtitle: item.sellerName,
+      status: StatusBadge(label: reject ? S.likelyViolation : S.needsReview, color: reject ? c.danger : c.warning, fontSize: 10),
+      amount: item.price > 0 ? '\$${item.price.toStringAsFixed(0)}' : null,
+      time: formatRelative(item.createdAt),
     );
   }
 
@@ -543,9 +505,34 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
     );
   }
 
-  Widget _actions(AppColors c, AiReviewItem item) {
+  Widget _actions(AppColors c, AiReviewItem item, {bool compact = false}) {
     final busy = _busy.contains(item.bookId);
     final leaving = _leaving[item.bookId];
+    final rejectButton = OutlinedButton.icon(
+      onPressed: busy ? null : () => _decide(item, approve: false),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: c.danger,
+        side: BorderSide(color: c.danger.withValues(alpha: 0.5)),
+        padding: EdgeInsets.symmetric(vertical: 11, horizontal: compact ? 20 : 0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      icon: const Icon(Icons.block_rounded, size: 17),
+      label: Text(S.reject, style: const TextStyle(fontWeight: FontWeight.w600)),
+    );
+    final approveButton = ElevatedButton.icon(
+      onPressed: busy ? null : () => _decide(item, approve: true),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: c.success,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: EdgeInsets.symmetric(vertical: 11, horizontal: compact ? 20 : 0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      icon: busy
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          : const Icon(Icons.check_rounded, size: 18),
+      label: Text(S.approve, style: const TextStyle(fontWeight: FontWeight.bold)),
+    );
     return AnimatedSwitcher(
       duration: Motion.base,
       child: leaving != null
@@ -559,41 +546,16 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: leaving ? c.success : c.danger)),
               ],
             )
-          : Row(
-              key: const ValueKey('actions'),
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: busy ? null : () => _decide(item, approve: false),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: c.danger,
-                      side: BorderSide(color: c.danger.withValues(alpha: 0.5)),
-                      padding: const EdgeInsets.symmetric(vertical: 11),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.block_rounded, size: 17),
-                    label: Text(S.reject, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  ),
+          : compact
+              ? AdminButtonRow(key: const ValueKey('actions'), minWidth: 140, children: [rejectButton, approveButton])
+              : Row(
+                  key: const ValueKey('actions'),
+                  children: [
+                    Expanded(child: rejectButton),
+                    const SizedBox(width: 10),
+                    Expanded(child: approveButton),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: busy ? null : () => _decide(item, approve: true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: c.success,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 11),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: busy
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Icon(Icons.check_rounded, size: 18),
-                    label: Text(S.approve, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
     );
   }
 }

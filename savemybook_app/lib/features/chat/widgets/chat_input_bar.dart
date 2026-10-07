@@ -7,6 +7,7 @@ import '../../../i18n/strings.dart';
 import '../../../services/voice_service.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
+import '../../../widgets/responsive.dart';
 import '../mentions/chat_mention_controller.dart';
 import '../mentions/chat_mention_panel.dart';
 import 'chat_format.dart';
@@ -26,6 +27,8 @@ class ChatInputBar extends StatefulWidget {
   final ValueChanged<VoiceStartResult> onVoiceUnavailable;
   final VoidCallback onVoiceTooShort;
 
+  final GlobalKey? attachKey;
+
   const ChatInputBar({
     super.key,
     required this.controller,
@@ -40,6 +43,7 @@ class ChatInputBar extends StatefulWidget {
     this.top,
     this.mentions,
     this.quickRepliesOpen = false,
+    this.attachKey,
   });
 
   @override
@@ -164,14 +168,18 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
     final c = AppColors.of(context);
     final bottom = MediaQuery.paddingOf(context).bottom;
     final voiceOpen = _voiceOpen && widget.enabled;
+    final wide = context.isWide;
 
     return Container(
-      decoration: BoxDecoration(
-        color: c.card,
-        boxShadow: [
-          BoxShadow(color: c.shadow.withValues(alpha: c.isDark ? 0.3 : 0.06), blurRadius: 16, offset: const Offset(0, -4)),
-        ],
-      ),
+      // 平板底色不可改成 scaffold：淺色模式下輸入框與按鈕的底色與其相同，會看不見
+      decoration: wide
+          ? BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider)))
+          : BoxDecoration(
+              color: c.card,
+              boxShadow: [
+                BoxShadow(color: c.shadow.withValues(alpha: c.isDark ? 0.3 : 0.06), blurRadius: 16, offset: const Offset(0, -4)),
+              ],
+            ),
       child: ChatLane(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -249,9 +257,11 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         _CircleIconButton(
+          key: widget.attachKey,
           icon: Icons.add_rounded,
           color: widget.enabled ? c.accent : c.iconInactive,
           background: c.inputFill,
+          tooltip: context.isWide ? S.moreOptions : null,
           onTap: widget.enabled ? widget.onAttach : null,
         ),
         const SizedBox(width: 8),
@@ -391,13 +401,14 @@ class _CircleIconButton extends StatelessWidget {
   final IconData icon;
   final Color color;
   final Color background;
+  final String? tooltip;
   final VoidCallback? onTap;
 
-  const _CircleIconButton({required this.icon, required this.color, required this.background, this.onTap});
+  const _CircleIconButton({super.key, required this.icon, required this.color, required this.background, this.tooltip, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    final button = Material(
       color: background,
       shape: const CircleBorder(),
       child: InkWell(
@@ -406,5 +417,7 @@ class _CircleIconButton extends StatelessWidget {
         child: SizedBox(width: 44, height: 44, child: Icon(icon, color: color, size: 24)),
       ),
     );
+    final message = tooltip;
+    return message == null ? button : Tooltip(message: message, child: button);
   }
 }

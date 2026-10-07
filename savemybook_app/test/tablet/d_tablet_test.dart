@@ -27,6 +27,7 @@ import 'package:savemybook_app/services/api_service.dart';
 import 'package:savemybook_app/services/locale_provider.dart';
 import 'package:savemybook_app/services/theme_provider.dart';
 import 'package:savemybook_app/utils/app_theme.dart';
+import 'package:savemybook_app/widgets/animations.dart';
 import 'package:savemybook_app/widgets/app_buttons.dart';
 import 'package:savemybook_app/widgets/state_views.dart';
 
@@ -216,13 +217,14 @@ void main() {
   for (final size in _sizes) {
     final label = _label(size);
 
-    testWidgets('商品詳情 $label：封面在左完整顯示、資訊與底部操作列在右', (tester) async {
+    testWidgets('商品詳情 $label：封面在左完整顯示、資訊與購買按鈕在右', (tester) async {
       await _check(tester, 'book_detail', size, () => BookDetailScreen(book: _book()), (tester, size) async {
-        final gallery = _rect(tester, find.byType(StickyPane));
-        expect(gallery.width, inInclusiveRange(260, 520));
-        final title = _rect(tester, find.text(fixture.longTitle));
+        if (size == _landscape) expect(find.byType(StickyPane), findsOneWidget);
+        final gallery = _rect(tester, find.byWidgetPredicate((w) => w is Hero && w.tag == 'book_image_${_book().bookId}'));
+        expect(gallery.width, inInclusiveRange(180, 520));
+        final title = _rect(tester, find.descendant(of: find.byType(SingleChildScrollView), matching: find.text(fixture.longTitle)));
         expect(title.left, greaterThan(gallery.right));
-        final chat = _rect(tester, find.byTooltip(S.messageSeller));
+        final chat = _rect(tester, find.widgetWithText(OutlinedButton, S.messageSeller));
         expect(chat.left, greaterThan(gallery.right));
       });
     });
@@ -289,10 +291,12 @@ void main() {
       });
     });
 
-    testWidgets('書籍管理 $label：卡片多欄', (tester) async {
+    testWidgets('書籍管理 $label：一列一筆', (tester) async {
       await _check(tester, 'book_manage', size, fixture.screens['BookManageSeller']!, (tester, size) async {
-        final lefts = {for (final e in find.byType(AppCard).evaluate()) tester.getRect(find.byWidget(e.widget)).left.round()};
-        expect(lefts.length, greaterThanOrEqualTo(2));
+        final rows = find.byType(RevealOnScroll).evaluate().toList();
+        expect(rows.length, greaterThanOrEqualTo(2));
+        final lefts = {for (final e in rows) tester.getRect(find.byWidget(e.widget)).left.round()};
+        expect(lefts, hasLength(1));
       });
     });
 

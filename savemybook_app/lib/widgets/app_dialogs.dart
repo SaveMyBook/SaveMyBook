@@ -348,12 +348,15 @@ Future<T?> showOptionSheet<T>(
   required String title,
   String? subtitle,
   required List<SheetOption<T>> options,
+  Rect? anchor,
 }) {
   final c = AppColors.of(context);
   final reserveLeading = options.any((o) => o.icon != null);
 
-  return showAppModalSheet<T>(
+  return showAppPopoverSheet<T>(
     context: context,
+    anchor: anchor,
+    popoverWidth: 300,
     backgroundColor: c.sheetBg,
     isScrollControlled: true,
     constraints: BoxConstraints(
@@ -395,6 +398,9 @@ Future<T?> showOptionSheet<T>(
               children: options
                   .map(
                     (o) => ListTile(
+                      // 平板彈出框比照 iPad 選單的行高
+                      dense: isPopoverSheet(ctx),
+                      minTileHeight: isPopoverSheet(ctx) ? 44 : null,
                       leading: o.icon != null
                           ? Icon(o.icon, color: o.color ?? c.textPrimary)
                           : (reserveLeading ? const SizedBox(width: 24) : null),

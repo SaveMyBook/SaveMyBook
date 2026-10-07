@@ -96,11 +96,12 @@ class _PickupSuccessScreenState extends State<PickupSuccessScreen> {
                   FadeSlideIn(
                     index: 6,
                     child: SizedBox(
-                      width: double.infinity,
+                      width: context.isWide ? null : double.infinity,
                       height: 48,
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).maybePop(),
                         style: ElevatedButton.styleFrom(
+                          minimumSize: context.isWide ? const Size(220, 48) : null,
                           backgroundColor: c.accent,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

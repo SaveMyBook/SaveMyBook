@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/support.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
+import '../../widgets/app_header.dart';
 import 'auth_wide_card.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
@@ -133,7 +135,9 @@ class _LegalConsentScreenState extends State<LegalConsentScreen> {
         backgroundColor: c.scaffold,
         body: SafeArea(
           child: context.isWide
-              ? Padding(
+              ? AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: TabletToolbar.overlayStyle(c),
+                  child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Center(
                     child: ConstrainedBox(
@@ -144,6 +148,7 @@ class _LegalConsentScreenState extends State<LegalConsentScreen> {
                       ),
                     ),
                   ),
+                ),
                 )
               : ResponsiveCenter(maxWidth: Breakpoints.readingMaxWidth, child: _buildContent(c, doc)),
         ),
@@ -206,6 +211,39 @@ class _LegalConsentScreenState extends State<LegalConsentScreen> {
             ),
           ),
         ),
+        if (card)
+          // 平板卡片：提示文字在左、按鈕靠右且寬度依文字
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: _read ? 0 : 1,
+                    child: Text(S.scrollEndContinue, style: TextStyle(fontSize: 12, color: c.textHint)),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _isSubmitting ? null : _decline,
+                  style: TextButton.styleFrom(minimumSize: const Size(0, 44), padding: const EdgeInsets.symmetric(horizontal: 16)),
+                  child: Text(S.decline, style: TextStyle(color: c.textSecondary)),
+                ),
+                const SizedBox(width: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 160),
+                  child: PrimaryButton(
+                    label: S.iVeReadAccept,
+                    height: 44,
+                    expand: false,
+                    isLoading: _isSubmitting,
+                    onPressed: _read ? _accept : null,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           child: Column(

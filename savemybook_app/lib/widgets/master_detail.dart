@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../i18n/strings.dart';
 import '../utils/app_colors.dart';
+import 'app_header.dart';
 
 /// 主從版面：寬度足夠（平板橫向）時左側列表、右側內容；寬度不足時只顯示列表，開啟內容改為推入新頁面。
 ///
@@ -217,15 +218,23 @@ class _Placeholder extends StatelessWidget {
     // 使用的頁面不一定在 Scaffold 內，沒有 Material 時文字會出現除錯用的黃色底線
     return Material(
       color: Theme.of(context).scaffoldBackgroundColor,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 48, color: c.textHint),
-            const SizedBox(height: 12),
-            Text(text, style: TextStyle(fontSize: 14, color: c.textSecondary)),
-          ],
-        ),
+      child: Column(
+        children: [
+          // 空白工具列讓左右兩欄頁首的分隔線相連
+          const TabletToolbar(),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 48, color: c.textHint),
+                  const SizedBox(height: 12),
+                  Text(text, style: TextStyle(fontSize: 14, color: c.textSecondary)),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

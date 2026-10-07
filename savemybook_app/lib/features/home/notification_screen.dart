@@ -16,6 +16,7 @@ import '../../widgets/state_views.dart';
 import '../../widgets/swipe_action.dart';
 import '../../widgets/buyer/undo_snackbar.dart';
 import '../../services/notification_router.dart';
+import '../orders/widgets/tablet_controls.dart';
 import 'announcement_screen.dart';
 import '../../i18n/strings.dart';
 
@@ -348,24 +349,130 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
     }
   }
 
+  List<Widget> get _headerActions => _tabs.index == 0
+      ? [
+          HeaderIconButton(icon: Icons.done_all_rounded, tooltip: S.markAllRead, onTap: _markAllRead),
+          HeaderIconButton(icon: Icons.delete_sweep_outlined, tooltip: S.clearAll, onTap: _clearAll),
+        ]
+      : const [];
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    return Scaffold(
-      backgroundColor: c.scaffold,
-      body: Column(
+    if (context.isWide) {
+      return Scaffold(
+        backgroundColor: c.scaffold,
+        body: LayoutBuilder(
+          builder: (context, constraints) => constraints.maxWidth >= _sidebarMinWidth ? _buildSidebarLayout(c) : _buildTabs(c),
+        ),
+      );
+    }
+    return Scaffold(backgroundColor: c.scaffold, body: _buildTabs(c));
+  }
+
+  static const double _sidebarMinWidth = 680;
+  static const double _sidebarWidth = 232;
+
+  Widget _buildSidebarLayout(AppColors c) {
+    return Column(
+      children: [
+        AppHeader(
+          title: S.notifications,
+          icon: Icons.notifications_none_rounded,
+          showBack: !widget.embedded,
+          actions: _headerActions,
+        ),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(width: _sidebarWidth, child: _buildSidebar(c)),
+              VerticalDivider(width: 1, thickness: 1, color: c.divider),
+              Expanded(
+                child: IndexedStack(
+                  index: _tabs.index,
+                  children: [
+                    _buildFeed(c, asRows: true),
+                    LayoutBuilder(
+                      builder: (context, constraints) => AnnouncementList(
+                        padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 24, bottom: _bottomSpace),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSidebar(AppColors c) {
+    void showAlerts(NotificationCategory? category) {
+      if (_tabs.index != 0) _tabs.index = 0;
+      _selectCategory(category);
+    }
+
+    return ValueListenableBuilder<Map<NotificationCategory, int>>(
+      valueListenable: ApiService.unreadNotificationsByCategory,
+      builder: (context, byCategory, _) => ValueListenableBuilder<int>(
+        valueListenable: ApiService.unreadNotificationCount,
+        builder: (context, total, _) => ListView(
+          key: const ValueKey('notification_sidebar'),
+          padding: EdgeInsets.fromLTRB(12, 14, 12, _bottomSpace),
+          children: [
+            _SidebarHeading(label: S.alerts),
+            _SidebarItem(
+              key: const ValueKey('notification_category_all'),
+              icon: Icons.inbox_outlined,
+              tone: c.accent,
+              label: S.actionAll,
+              unread: total,
+              selected: _tabs.index == 0 && _category == null,
+              onTap: () => showAlerts(null),
+            ),
+            for (final category in NotificationCategory.center)
+              _SidebarItem(
+                key: ValueKey('notification_category_${category.key}'),
+                icon: category.icon,
+                tone: category.toneOf(c),
+                label: category.label,
+                unread: byCategory[category] ?? 0,
+                selected: _tabs.index == 0 && _category == category,
+                onTap: () => showAlerts(category),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              child: Divider(height: 1, thickness: 1, color: c.divider),
+            ),
+            _SidebarItem(
+              key: const ValueKey('notification_announcements'),
+              icon: Icons.campaign_outlined,
+              tone: c.accent,
+              label: S.announcements3,
+              selected: _tabs.index == 1,
+              onTap: () {
+                if (_tabs.index == 1) return;
+                HapticFeedback.selectionClick();
+                _tabs.index = 1;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabs(AppColors c) {
+    return Column(
         children: [
           AppHeader(
             title: S.notifications,
             icon: Icons.notifications_none_rounded,
             showBack: !widget.embedded,
-            actions: _tabs.index == 0
-                ? [
-                    HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead),
-                    HeaderIconButton(icon: Icons.delete_sweep_outlined, onTap: _clearAll),
-                  ]
-                : const [],
+            actions: _headerActions,
             bottom: AppTabBar(controller: _tabs, tabs: [S.alerts, S.announcements3]),
           ),
           Expanded(
@@ -384,7 +491,6 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
             ),
           ),
         ],
-      ),
     );
   }
 
@@ -435,7 +541,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
     );
   }
 
-  Widget _buildFeed(AppColors c) {
+  Widget _buildFeed(AppColors c, {bool asRows = false}) {
     final category = _category;
     final feed = _feed;
     final visible = feed.items.where((n) => !_pendingDelete.contains(n.notificationId)).toList();
@@ -467,8 +573,10 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                           return false;
                         },
                         child: LayoutBuilder(builder: (context, constraints) {
-                          final columns = _columns(constraints);
-                          final padding = _listPadding(constraints, top: context.isWide ? 12 : 10, bottom: bottom);
+                          final columns = asRows ? 1 : _columns(constraints);
+                          final padding = asRows
+                              ? responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 24, top: 16, bottom: bottom)
+                              : _listPadding(constraints, top: context.isWide ? 12 : 10, bottom: bottom);
                           final rows = (visible.length / columns).ceil();
                           return ListView.builder(
                             key: ValueKey('items_${category?.key}'),
@@ -488,7 +596,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                               Widget tile(int i) => RevealOnScroll(
                                     key: ValueKey(visible[i].notificationId),
                                     index: i,
-                                    child: _buildTile(visible[i], c, uniform: columns > 1),
+                                    child: asRows ? _buildRow(visible[i], c) : _buildTile(visible[i], c, uniform: columns > 1),
                                   );
                               if (columns == 1) return tile(row);
                               return Row(
@@ -517,6 +625,109 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
     if (!context.isWide) return responsiveListPadding(constraints, top: top, bottom: bottom);
     final maxWidth = _columns(constraints) > 1 ? Breakpoints.listMaxWidth + 160 : Breakpoints.readingMaxWidth;
     return responsiveListPadding(constraints, maxWidth: maxWidth, horizontal: 24, top: top, bottom: bottom);
+  }
+
+  void _showMenu(AppNotification n) {
+    showItemMenu(
+      context,
+      title: n.title,
+      actions: [
+        MenuAction(S.viewDetails, Icons.open_in_new_rounded, () => _onTapNotification(n)),
+        if (!n.isRead) MenuAction(S.markAsRead, Icons.mark_email_read_outlined, () => _markRead(n)),
+        MenuAction(S.actionDelete, Icons.delete_outline_rounded, () => _delete(n), destructive: true),
+      ],
+    );
+  }
+
+  Widget _buildRow(AppNotification n, AppColors c) {
+    final tone = n.category.toneOf(c);
+    return SwipeActionTile(
+      itemKey: ValueKey('notification_${n.notificationId}'),
+      startToEnd: n.isRead
+          ? null
+          : SwipeAction(
+              icon: Icons.mark_email_read_outlined,
+              label: S.read,
+              color: c.success,
+              onTrigger: () => _markRead(n),
+            ),
+      endToStart: SwipeAction(
+        icon: Icons.delete_outline_rounded,
+        label: S.actionDelete,
+        color: c.danger,
+        dismisses: true,
+        onTrigger: () async => true,
+        onDismissed: () => _delete(n),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: TabletListItem(
+          onTap: () => _onTapNotification(n),
+          onMenu: () => _showMenu(n),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedContainer(
+                duration: Motion.base,
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: n.isRead ? 0.07 : 0.14),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(n.icon, size: 18, color: tone.withValues(alpha: n.isRead ? 0.6 : 1)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            n.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: n.isRead ? FontWeight.w500 : FontWeight.bold,
+                              color: c.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(formatRelative(n.createdAt?.toLocal()), style: TextStyle(fontSize: 12, color: c.textHint)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      n.content,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: PopIn(
+                  triggerKey: n.isRead,
+                  child: n.isRead
+                      ? const SizedBox(width: 8, height: 8)
+                      : Container(width: 8, height: 8, decoration: BoxDecoration(color: c.danger, shape: BoxShape.circle)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // 多欄時固定標題與內文的行數，同一列的卡片才會等高
@@ -679,6 +890,88 @@ class _CategoryChip extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SidebarHeading extends StatelessWidget {
+  final String label;
+
+  const _SidebarHeading({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
+      child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: c.textSecondary)),
+    );
+  }
+}
+
+class _SidebarItem extends StatelessWidget {
+  final IconData icon;
+  final Color tone;
+  final String label;
+  final int unread;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SidebarItem({
+    super.key,
+    required this.icon,
+    required this.tone,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.unread = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Semantics(
+        button: true,
+        selected: selected,
+        child: Material(
+          color: selected ? tabletSelectionColor(c) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Icon(icon, size: 20, color: selected ? c.accent : tone),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                        color: selected ? c.accent : c.textPrimary,
+                      ),
+                    ),
+                  ),
+                  if (unread > 0) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      unread > 99 ? '99+' : '$unread',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? c.accent : c.textSecondary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

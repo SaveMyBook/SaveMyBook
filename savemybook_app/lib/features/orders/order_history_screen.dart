@@ -10,11 +10,14 @@ import '../../widgets/app_header.dart';
 import '../../widgets/master_detail.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
+import '../../widgets/app_side_nav.dart';
 import '../cabinet/cabinet_entry.dart';
+import '../home/home_screen.dart';
 import '../selling/book_deposit_actions.dart';
 import 'dispute_screen.dart';
 import 'order_detail_screen.dart';
 import 'widgets/order_record_card.dart';
+import 'widgets/tablet_controls.dart';
 
 enum OrderRole { buyer, seller }
 
@@ -37,6 +40,16 @@ class OrderHistoryScreen extends StatefulWidget {
   static String actionFilterOf(OrderRole role) => role == OrderRole.buyer ? awaitingPickup : awaitingDeposit;
 
   static String purchaseFilterAfterPayment(bool readyForPickup) => readyForPickup ? awaitingPickup : awaitingDeposit;
+
+  static final ValueNotifier<({OrderRole role, String? filter})?> _requested = ValueNotifier(null);
+
+  static Future<void> open(BuildContext context, {OrderRole role = OrderRole.buyer, String? filter}) async {
+    if (HomeScreen.showTab(AppSideNav.ordersTab)) {
+      _requested.value = (role: role, filter: filter);
+      return;
+    }
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => OrderHistoryScreen(role: role, filter: filter)));
+  }
 
   static String filterLabel(OrderRole role, String filter) => switch (filter) {
     awaitingPickup => role == OrderRole.buyer ? S.orderBuyerDeposited : S.orderSellerAwaitingPickup,
@@ -62,20 +75,27 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
   @override
   void initState() {
     super.initState();
+    // 平板由其他頁面切換過來時分頁可能尚未建立，要求的篩選在此套用
+    final request = OrderHistoryScreen._requested.value;
+    if (request != null) OrderHistoryScreen._requested.value = null;
+    final initialRole = request?.role ?? widget.role;
+    final initialFilter = request != null ? request.filter : widget.filter;
     _filters = {
       for (final role in OrderRole.values)
-        role: role == widget.role && OrderHistoryScreen.filtersOf(role).contains(widget.filter)
-            ? widget.filter!
+        role: role == initialRole && OrderHistoryScreen.filtersOf(role).contains(initialFilter)
+            ? initialFilter!
             : OrderHistoryScreen.filtersOf(role).first,
     };
-    _tabController = TabController(length: OrderRole.values.length, vsync: this, initialIndex: widget.role.index);
+    _tabController = TabController(length: OrderRole.values.length, vsync: this, initialIndex: initialRole.index);
     _tabController.addListener(_onTabChanged);
+    OrderHistoryScreen._requested.addListener(_onRequested);
     _load();
     _loadCounts();
   }
 
   @override
   void dispose() {
+    OrderHistoryScreen._requested.removeListener(_onRequested);
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
@@ -91,6 +111,21 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
     if (_tabController.indexIsChanging) return;
     setState(() {});
     _load();
+  }
+
+  void _onRequested() {
+    final request = OrderHistoryScreen._requested.value;
+    if (request == null) return;
+    OrderHistoryScreen._requested.value = null;
+    final filter = request.filter;
+    if (filter != null && OrderHistoryScreen.filtersOf(request.role).contains(filter)) _filters[request.role] = filter;
+    if (_tabController.index != request.role.index) {
+      _tabController.index = request.role.index;
+    } else {
+      setState(() {});
+      _load();
+    }
+    _loadCounts();
   }
 
   void _selectFilter(String filter) {
@@ -231,6 +266,32 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
       onSecondary = () => _cancelOrder(order);
     }
 
+    if (context.isWide) {
+      return OrderRecordRow(
+        order: order,
+        asSeller: asSeller,
+        selected: MasterDetail.selectedId(context) == order.orderId,
+        onTap: () => _openDetail(context, order),
+        onMenu: () => showItemMenu(
+          context,
+          title: S.order(order.orderNo),
+          actions: [
+            MenuAction(S.viewOrder, Icons.receipt_long_outlined, () => _openDetail(context, order)),
+            if (action != null && onAction != null)
+              MenuAction(action, action == S.completeOrder ? Icons.task_alt_rounded : Icons.qr_code_scanner_rounded, onAction),
+            if (secondary != null && onSecondary != null)
+              secondary == S.cancelOrder
+                  ? MenuAction(secondary, Icons.cancel_outlined, onSecondary, destructive: true)
+                  : MenuAction(secondary, Icons.report_gmailerrorred_rounded, onSecondary),
+          ],
+        ),
+        actionLabel: action,
+        onAction: onAction,
+        secondaryLabel: secondary,
+        onSecondary: onSecondary,
+      );
+    }
+
     return OrderRecordCard(
       order: order,
       asSeller: asSeller,
@@ -278,7 +339,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
                   tabs: [S.purchaseOrders, S.salesOrders],
                   badges: [for (final r in OrderRole.values) _counts[r] ?? 0],
                 ),
-                _buildFilterBar(c),
+                context.isWide ? _buildTabletFilterBar(c) : _buildFilterBar(c),
               ],
             ),
           ),
@@ -309,6 +370,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
   }
 
   Widget _buildList(List<Order> orders) {
+    if (context.isWide) return _buildTabletList(orders);
     return LayoutBuilder(
       builder: (context, constraints) {
         final padding = responsiveListPadding(
@@ -339,6 +401,56 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
                       : const SizedBox.shrink(),
                 ),
               ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTabletList(List<Order> orders) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final padding = MasterDetail.isSplit(context)
+            ? EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.paddingOf(context).bottom + 24)
+            : responsiveListPadding(
+                constraints,
+                maxWidth: Breakpoints.listMaxWidth,
+                horizontal: 24,
+                top: 16,
+                bottom: MediaQuery.paddingOf(context).bottom + 24,
+              );
+        return ListView.separated(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: padding,
+          itemCount: orders.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          itemBuilder: (context, i) => RevealOnScroll(
+            key: ValueKey('order_${orders[i].orderId}'),
+            index: i,
+            child: _buildCard(context, orders[i]),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTabletFilterBar(AppColors c) {
+    final role = _role;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = MasterDetail.isSplit(context)
+            ? 16.0
+            : responsiveListPadding(constraints, maxWidth: Breakpoints.listMaxWidth, horizontal: 24).left;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(side, 6, side, 12),
+          child: SegmentedFilter<String>(
+            key: ValueKey('order_filters_${role.name}'),
+            value: _filter,
+            onChanged: _selectFilter,
+            options: [
+              for (final filter in OrderHistoryScreen.filtersOf(role))
+                SegmentOption(filter, OrderHistoryScreen.filterLabel(role, filter)),
             ],
           ),
         );

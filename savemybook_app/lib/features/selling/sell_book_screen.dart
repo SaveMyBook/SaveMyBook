@@ -14,6 +14,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
+import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/guards.dart';
 import '../../widgets/responsive.dart';
@@ -673,7 +674,10 @@ class _SellBookScreenState extends State<SellBookScreen> {
         keyboardType: TextInputType.multiline,
       ),
     ));
-    final next = PrimaryButton(label: S.next, height: 50, icon: Icons.arrow_forward_rounded, onPressed: _onNext);
+    final next = ListingFormLayout.action(
+      context,
+      PrimaryButton(label: S.next, height: 50, icon: Icons.arrow_forward_rounded, expand: !context.isWide, onPressed: _onNext),
+    );
 
     if (split) {
       return ListingFormLayout.columns(
@@ -780,6 +784,10 @@ class _SellBookScreenState extends State<SellBookScreen> {
   Widget _buildAppBar(AppColors c) {
     final canPop = ModalRoute.of(context)?.canPop ?? false;
     final inTab = context.findAncestorWidgetOfExactType<IndexedStack>() != null;
+
+    if (context.isWide) {
+      return TabletToolbar(title: S.sellBook, showBack: canPop && !inTab, actions: const [ListingStepIndicator(step: 1)]);
+    }
 
     return Container(
       decoration: BoxDecoration(color: c.headerBg),

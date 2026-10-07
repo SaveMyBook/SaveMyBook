@@ -108,8 +108,8 @@ class _LegalSectionPageState extends State<LegalSectionPage> {
           AppHeader(
             title: _headline(_index),
             actions: [
-              HeaderIconButton(icon: Icons.toc_rounded, onTap: _jump),
-              if (section != null) HeaderIconButton(icon: Icons.delete_outline_rounded, onTap: _delete),
+              HeaderIconButton(icon: Icons.toc_rounded, tooltip: S.goSection, onTap: _jump),
+              if (section != null) HeaderIconButton(icon: Icons.delete_outline_rounded, tooltip: S.actionDelete, onTap: _delete),
             ],
           ),
           Expanded(

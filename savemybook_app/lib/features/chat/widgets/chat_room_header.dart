@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../i18n/strings.dart';
 import '../../../utils/app_colors.dart';
 import '../../../widgets/app_header.dart';
+import '../../../widgets/responsive.dart';
 import '../groups/group_avatar.dart';
 
 class ChatRoomHeader extends StatelessWidget {
@@ -30,6 +31,7 @@ class ChatRoomHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    if (context.isWide) return _buildTablet(context, c);
     const titleStyle = TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold, height: 1.25);
 
     return LightStatusBar(
@@ -110,6 +112,75 @@ class ChatRoomHeader extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTablet(BuildContext context, AppColors c) {
+    final back = showBack && (Navigator.maybeOf(context)?.canPop() ?? false);
+    final subtitle = isGroup && memberCount > 0 ? S.membersP0(memberCount) : null;
+    return TabletToolbar(
+      showBack: back,
+      titleWidget: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onOpenSettings,
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (showAvatar) ...[
+                    ChatRoomAvatar(imageUrl: avatarUrl, isGroup: isGroup, radius: 18, background: c.isDark ? null : c.card),
+                    const SizedBox(width: 10),
+                  ],
+                  Flexible(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, height: 1.25, color: c.textPrimary),
+                              ),
+                            ),
+                            if (muted) ...[
+                              const SizedBox(width: 6),
+                              Icon(Icons.notifications_off_rounded, size: 15, color: c.textHint),
+                            ],
+                          ],
+                        ),
+                        if (subtitle != null)
+                          Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, height: 1.3, color: c.textSecondary),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        IconButton(
+          onPressed: onOpenSettings,
+          tooltip: S.chatSettings,
+          icon: Icon(Icons.more_horiz_rounded, color: onOpenSettings == null ? c.iconInactive : c.textPrimary),
+        ),
+      ],
     );
   }
 }

@@ -275,7 +275,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: Column(
+      body: AuthTabletFrame(
+        child: Column(
         children: [
           AppHeader(title: S.createAccount, icon: Icons.person_add_alt_1_rounded),
           Expanded(
@@ -399,6 +400,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import '../../../i18n/strings.dart';
 import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/app_radius.dart';
+import '../../../widgets/responsive.dart';
 import '../../../widgets/state_views.dart';
 
 class LegalPreview extends StatelessWidget {
@@ -23,13 +24,14 @@ class LegalPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final tablet = context.isWide;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 40 + bottomInset),
       children: [
         Row(
           children: [
-            Icon(Icons.smartphone_rounded, size: 13, color: c.textHint),
+            Icon(tablet ? Icons.tablet_mac_rounded : Icons.smartphone_rounded, size: 13, color: c.textHint),
             const SizedBox(width: 5),
             Expanded(
               child: Text(
@@ -52,7 +54,7 @@ class LegalPreview extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
+              tablet ? _tabletHeader(c) : Container(
                 height: 46,
                 color: c.headerBg,
                 padding: const EdgeInsets.symmetric(horizontal: 44),
@@ -95,4 +97,20 @@ class LegalPreview extends StatelessWidget {
       ],
     );
   }
+
+  Widget _tabletHeader(AppColors c) => Container(
+        height: 46,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          color: c.scaffold,
+          border: Border(bottom: BorderSide(color: c.divider)),
+        ),
+        child: Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: c.textPrimary, fontSize: 17, fontWeight: FontWeight.w700),
+        ),
+      );
 }

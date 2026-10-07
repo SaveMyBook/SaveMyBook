@@ -8,6 +8,13 @@ import 'notification_screen.dart';
 import '../account/profile_screen.dart';
 import '../selling/sell_book_screen.dart';
 import '../orders/pickup_book_screen.dart';
+import '../orders/order_history_screen.dart';
+import '../orders/my_reservations_screen.dart';
+import '../books/favorites_screen.dart';
+import '../selling/book_manage_screen.dart';
+import '../account/wallet_screen.dart';
+import '../account/settings_screen.dart';
+import 'search_screen.dart';
 import '../../models/category.dart';
 import '../../models/ai.dart';
 import '../../models/book.dart';
@@ -16,6 +23,7 @@ import '../../services/api_service.dart';
 import '../../services/home_preferences.dart';
 import '../../services/home_widget_service.dart';
 import '../../services/server_compat.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_toast.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_select.dart';
@@ -46,6 +54,8 @@ class HomeScreen extends StatefulWidget {
   static NavigatorState? get tabNavigator => _HomeScreenState._active?._visibleTabNavigator();
 
   static bool showNotifications() => _HomeScreenState._active?._showTab(_alertsTab) ?? false;
+  /// 平板：切換到側邊欄的分頁（[AppSideNav] 的分頁編號）並回到該分頁的第一頁；手機或首頁不在最上層時回傳 false。
+  static bool showTab(int index) => _HomeScreenState._active?._showTab(index) ?? false;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -60,9 +70,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   int _selectedIndex = 0;
   bool _sideNav = false;
-  final List<_TabSlot> _tabs = List.generate(7, (_) => _TabSlot());
+  final List<_TabSlot> _tabs = List.generate(AppSideNav.tabCount, (_) => _TabSlot());
+  bool _sidebarOverlay = false;
   final Set<int> _openedTabs = {0, 1, 2, 3, 4};
-  int _cartGeneration = 0;
+  // 其他分頁會改動內容的分頁（購物車、代幣、收藏、預約）：從別的分頁切回且停在第一頁時重新建立以取得最新資料
+  static const _reloadOnEnter = {
+    AppSideNav.cartTab,
+    AppSideNav.coinsTab,
+    AppSideNav.savedTab,
+    AppSideNav.reservationsTab,
+  };
+  final Map<int, int> _generations = {};
   bool _isLoadingInitial = true;
   bool _isLoadingMore = false;
   bool _hasMoreData = true;
@@ -93,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
   final ValueNotifier<double> _categoryScrollProgress = ValueNotifier<double>(0);
-  final ValueNotifier<bool> _categoryScrollable = ValueNotifier<bool>(false);
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   bool _isGridView = true;
 
@@ -145,7 +162,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _scrollController.dispose();
     _categoryScrollController.dispose();
     _categoryScrollProgress.dispose();
-    _categoryScrollable.dispose();
     super.dispose();
   }
 
@@ -362,6 +378,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       options: [SheetOption(value: 'dismiss', label: S.notInterested, icon: Icons.visibility_off_outlined)],
     );
     if (action != 'dismiss' || !mounted) return;
+    await _dismissRecommendation(book);
+  }
+
+  Future<void> _dismissRecommendation(Book book) async {
     setState(() => _hiddenRecommendations.add(book.bookId));
     final undo = await showUndoSnackBar(context, S.bookNoLongerRecommended, icon: Icons.visibility_off_outlined);
     if (undo) {
@@ -385,7 +405,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     setState(() {
-      if (i == AppSideNav.cartTab && _openedTabs.contains(i) && !_tabs[i].canPop) _cartGeneration++;
+      if (_reloadOnEnter.contains(i) && _openedTabs.contains(i) && !_tabs[i].canPop) {
+        _generations[i] = (_generations[i] ?? 0) + 1;
+      }
       _openedTabs.add(i);
       _selectedIndex = i;
     });
@@ -484,41 +506,166 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final pages = [
       ...children,
       const ChatListScreen(),
-      KeyedSubtree(key: ValueKey(_cartGeneration), child: const CartScreen()),
+      const CartScreen(),
+      const OrderHistoryScreen(),
+      const MyReservationsScreen(),
+      const FavoritesScreen(),
+      const BookManageScreen(),
+      const WalletScreen(),
+      const SettingsScreen(),
     ];
+    for (final i in _reloadOnEnter) {
+      pages[i] = KeyedSubtree(key: ValueKey(_generations[i] ?? 0), child: pages[i]);
+    }
+    final extended = context.screenSize == ScreenSize.expanded;
+    if (extended) _sidebarOverlay = false;
+
+    void selectFromOverlay(int index) {
+      setState(() => _sidebarOverlay = false);
+      _onNavSelected(index);
+    }
+
     return PopScope(
-      canPop: !_tabs[_selectedIndex].canPop,
+      canPop: !_tabs[_selectedIndex].canPop && !_sidebarOverlay,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _popCurrentTab();
+        if (didPop) return;
+        if (_sidebarOverlay) {
+          setState(() => _sidebarOverlay = false);
+        } else {
+          _popCurrentTab();
+        }
       },
-      child: Scaffold(
-        body: Row(
-          children: [
-            AppSideNav(
-              selectedIndex: _selectedIndex,
-              onItemSelected: _onNavSelected,
-              extended: context.screenSize == ScreenSize.expanded,
-            ),
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeLeft: true,
-                child: _TabPages(
-                  pages: pages,
-                  child: IndexedStack(
-                    index: _selectedIndex,
-                    children: [
-                      for (var i = 0; i < pages.length; i++)
-                        _openedTabs.contains(i) ? _buildTabNavigator(i) : const SizedBox.shrink(),
-                    ],
-                  ),
+      child: CallbackShortcuts(
+        bindings: _shortcuts(),
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            body: Stack(
+              children: [
+                Row(
+                  children: [
+                    AppSideNav(
+                      selectedIndex: _selectedIndex,
+                      onItemSelected: _onNavSelected,
+                      extended: extended,
+                      onSearch: _openSearch,
+                      onToggle: extended ? null : () => setState(() => _sidebarOverlay = true),
+                    ),
+                    Expanded(
+                      child: MediaQuery.removePadding(
+                        context: context,
+                        removeLeft: true,
+                        child: _TabPages(
+                          pages: pages,
+                          child: IndexedStack(
+                            index: _selectedIndex,
+                            children: [
+                              // 隱藏的分頁仍在畫面樹中，最上層推入頁面時 Hero 會掃到它們，同一本書在兩個分頁會造成標籤重複
+                              for (var i = 0; i < pages.length; i++)
+                                _openedTabs.contains(i)
+                                    ? HeroMode(enabled: i == _selectedIndex, child: _buildTabNavigator(i))
+                                    : const SizedBox.shrink(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+                // 直向時完整側邊欄以浮層展開，選取後收合；收合時不留在畫面樹中，避免螢幕閱讀器讀到隱藏的側邊欄
+                if (!extended) ...[
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: !_sidebarOverlay,
+                      child: AnimatedOpacity(
+                        duration: Motion.base,
+                        opacity: _sidebarOverlay ? 1 : 0,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _sidebarOverlay = false),
+                          child: ColoredBox(color: AppColors.of(context).scrim),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    child: AnimatedSwitcher(
+                      duration: Motion.base,
+                      switchInCurve: Motion.standard,
+                      switchOutCurve: Motion.standard,
+                      transitionBuilder: (child, animation) => SlideTransition(
+                        position: Tween(begin: const Offset(-1, 0), end: Offset.zero).animate(animation),
+                        child: child,
+                      ),
+                      child: _sidebarOverlay
+                          ? Material(
+                              key: const ValueKey('sidebar-overlay'),
+                              elevation: 16,
+                              child: AppSideNav(
+                                selectedIndex: _selectedIndex,
+                                onItemSelected: selectFromOverlay,
+                                extended: true,
+                                onSearch: () {
+                                  setState(() => _sidebarOverlay = false);
+                                  _openSearch();
+                                },
+                                onToggle: () => setState(() => _sidebarOverlay = false),
+                              ),
+                            )
+                          : const SizedBox.shrink(key: ValueKey('sidebar-closed')),
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  Map<ShortcutActivator, VoidCallback> _shortcuts() {
+    final tabs = [
+      AppSideNav.homeTab,
+      AppSideNav.alertsTab,
+      AppSideNav.chatTab,
+      AppSideNav.cartTab,
+      AppSideNav.ordersTab,
+      AppSideNav.collectTab,
+      AppSideNav.memberTab,
+    ];
+    const digits = [
+      LogicalKeyboardKey.digit1,
+      LogicalKeyboardKey.digit2,
+      LogicalKeyboardKey.digit3,
+      LogicalKeyboardKey.digit4,
+      LogicalKeyboardKey.digit5,
+      LogicalKeyboardKey.digit6,
+      LogicalKeyboardKey.digit7,
+    ];
+    final bindings = <ShortcutActivator, VoidCallback>{};
+    // iPad 的實體鍵盤用 Command，Android 平板用 Ctrl
+    for (final meta in [true, false]) {
+      SingleActivator key(LogicalKeyboardKey k) => SingleActivator(k, meta: meta, control: !meta);
+      for (var i = 0; i < tabs.length; i++) {
+        bindings[key(digits[i])] = () => _showTab(tabs[i]);
+      }
+      bindings[key(LogicalKeyboardKey.keyF)] = _openSearch;
+      bindings[key(LogicalKeyboardKey.keyN)] = () => _showTab(AppSideNav.sellTab);
+    }
+    return bindings;
+  }
+
+  Future<void> _openSearch() async {
+    if (!_showTab(AppSideNav.homeTab)) return;
+    final navigator = _tabs[AppSideNav.homeTab].key.currentState;
+    if (navigator == null) return;
+    final result = await navigator.push<String>(
+      MaterialPageRoute(builder: (_) => SearchScreen(initialKeyword: _currentKeyword)),
+    );
+    if (result != null && mounted) _onSearchChanged(result);
   }
 
   Widget _buildTabNavigator(int index) {
@@ -547,6 +694,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildHomeContent() {
     final c = AppColors.of(context);
+    final wide = context.isWide;
 
     return Column(
       children: [
@@ -563,21 +711,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(
-                      child: NotificationListener<ScrollMetricsNotification>(
-                        onNotification: (notification) {
-                          _categoryScrollable.value = notification.metrics.maxScrollExtent > 0;
-                          return false;
-                        },
-                        child: _buildCategories(),
-                      ),
-                    ),
-                    SliverToBoxAdapter(child: _buildCategoryProgress(c)),
+                    if (wide)
+                      SliverToBoxAdapter(child: _buildCategoryWrap(c))
+                    else ...[
+                      SliverToBoxAdapter(child: _buildCategories()),
+                      SliverToBoxAdapter(child: _categoryProgressBar(c)),
+                    ],
                     SliverToBoxAdapter(child: _buildDiscoverySections()),
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(_inset, 24, _inset, 12),
-                        child: _buildSortAndLayoutRow(),
+                        padding: EdgeInsets.fromLTRB(_inset, wide ? 28 : 24, _inset, wide ? 14 : 12),
+                        child: wide ? _buildWideSortRow(c) : _buildSortAndLayoutRow(),
                       ),
                     ),
                     _buildBookSliver(c),
@@ -617,26 +761,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
     final searchBar = SearchBarWidget(currentKeyword: _currentKeyword, onSearch: _onSearchChanged);
 
+    // 直向時側邊欄收成圖示列、沒有搜尋框，平板頁首要保留搜尋框
     if (context.isWide) {
-      return LightStatusBar(
-        child: Container(
-          decoration: BoxDecoration(
-            color: c.headerBg,
-            borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+      return LayoutBuilder(
+        builder: (context, constraints) => TabletToolbar(
+          titleWidget: Text(
+            S.hi(userName),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: c.textPrimary),
           ),
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(_inset, 12, _inset, 20),
-              child: LayoutBuilder(
-                builder: (context, constraints) => Row(children: [
-                  Expanded(child: greeting),
-                  const SizedBox(width: 16),
-                  SizedBox(width: (constraints.maxWidth * 0.5).clamp(280.0, 460.0), child: searchBar),
-                ]),
-              ),
-            ),
-          ),
+          actions: [
+            SizedBox(width: (constraints.maxWidth * 0.4).clamp(260.0, 400.0), child: searchBar),
+            const SizedBox(width: 12),
+          ],
         ),
       );
     }
@@ -779,15 +917,84 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
     );
   }
-
-  Widget _buildCategoryProgress(AppColors c) {
-    if (context.isWide) {
-      return ValueListenableBuilder<bool>(
-        valueListenable: _categoryScrollable,
-        builder: (context, scrollable, _) => scrollable ? _categoryProgressBar(c) : const SizedBox(height: 10),
+  Widget _buildCategoryWrap(AppColors c) {
+    final padding = EdgeInsets.symmetric(horizontal: _inset);
+    if (_categories.isEmpty) {
+      return Padding(
+        padding: padding,
+        child: Shimmer(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [for (var i = 0; i < 6; i++) SkeletonBox(width: 72.0 + (i % 3) * 14, height: 34, radius: 17)],
+          ),
+        ),
       );
     }
-    return _categoryProgressBar(c);
+    return Padding(
+      padding: padding,
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          _categoryChip(
+            c,
+            label: S.actionAll,
+            selected: _selectedCategoryIds.isEmpty,
+            onTap: _selectedCategoryIds.isEmpty ? null : _clearCategories,
+          ),
+          for (final cat in _categories)
+            _categoryChip(
+              c,
+              label: cat.categoryName,
+              selected: _selectedCategoryIds.contains(cat.categoryId),
+              onTap: () => _onCategoryTapped(cat.categoryId),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _categoryChip(AppColors c, {required String label, required bool selected, VoidCallback? onTap}) {
+    const shape = StadiumBorder();
+    return Material(
+      color: selected ? c.accent : c.card,
+      shape: StadiumBorder(side: BorderSide(color: selected ? c.accent : c.border)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: shape,
+        child: AnimatedContainer(
+          duration: Motion.micro,
+          constraints: const BoxConstraints(minHeight: 34),
+          padding: EdgeInsets.fromLTRB(selected ? 10 : 16, 6, 16, 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                label,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? Colors.white : c.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _clearCategories() {
+    HapticFeedback.selectionClick();
+    setState(_selectedCategoryIds.clear);
+    _reloadBooks(showSkeleton: true);
   }
 
   Widget _categoryProgressBar(AppColors c) {
@@ -862,6 +1069,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 books: [for (final g in groups) ...g.books],
                 onOpen: (book) => unawaited(_apiService.logRecommendationClick(book.bookId)),
                 onLongPress: _onRecommendationLongPress,
+                onDismiss: _dismissRecommendation,
                 groups: [
                   for (final g in groups)
                     DiscoveryGroup(title: _groupTitle(g.group, single: groups.length == 1), books: g.books, reasons: g.group.reasons),
@@ -916,6 +1124,104 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ],
     );
   }
+  Widget _buildWideSortRow(AppColors c) {
+    final radius = BorderRadius.circular(10);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 36),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _isBrowsingAll ? S.allBooks : S.results,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: c.textPrimary),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Material(
+            color: c.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: radius,
+              side: BorderSide(color: c.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Builder(
+              builder: (buttonContext) => InkWell(
+                onTap: () => _pickSortFrom(buttonContext),
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 34),
+                  padding: const EdgeInsets.fromLTRB(10, 0, 6, 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.swap_vert_rounded, size: 18, color: c.accent),
+                      const SizedBox(width: 6),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 160),
+                        child: Text(
+                          _currentSortLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: c.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Icon(Icons.expand_more_rounded, size: 20, color: c.textSecondary),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Material(
+            color: c.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: radius,
+              side: BorderSide(color: c.border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _wideLayoutToggle(c, Icons.grid_view_rounded, true),
+                  _wideLayoutToggle(c, Icons.view_agenda_rounded, false),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _wideLayoutToggle(AppColors c, IconData icon, bool grid) {
+    final active = _isGridView == grid;
+    final radius = BorderRadius.circular(8);
+    return Tooltip(
+      message: grid ? S.gridView : S.listView,
+      child: Material(
+        color: active ? c.accent : Colors.transparent,
+        borderRadius: radius,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: active
+              ? null
+              : () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _isGridView = grid);
+                },
+          child: SizedBox(
+            width: 38,
+            height: 30,
+            child: Icon(icon, size: 18, color: active ? Colors.white : c.textSecondary),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _layoutToggle(AppColors c, IconData icon, bool grid) {
     final active = _isGridView == grid;
@@ -937,6 +1243,62 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         child: Icon(icon, size: 18, color: active ? Colors.white : c.iconInactive),
       ),
     );
+  }
+
+  Future<void> _pickSortFrom(BuildContext buttonContext) async {
+    final c = AppColors.of(context);
+    final picked = await showAppPopoverSheet<String>(
+      context: context,
+      anchor: PointerAnchor.of(buttonContext),
+      popoverWidth: 240,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+              child: Text(
+                S.sortBy,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textSecondary),
+              ),
+            ),
+            for (final o in _sortOptions)
+              InkWell(
+                onTap: () => Navigator.pop(ctx, o.code),
+                child: SizedBox(
+                  height: 44,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 24,
+                        child: o.code == _currentSort ? Icon(Icons.check_rounded, size: 18, color: c.accent) : null,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          o.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: o.code == _currentSort ? FontWeight.w600 : FontWeight.w400,
+                            color: o.code == _currentSort ? c.accent : c.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && picked != _currentSort) _onSortChanged(picked);
   }
 
   Future<void> _pickSort() async {

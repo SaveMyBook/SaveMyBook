@@ -16,6 +16,7 @@ import '../../../widgets/app_tiles.dart';
 import '../../../widgets/responsive.dart';
 import '../../../widgets/state_views.dart';
 import '../widgets/chat_format.dart';
+import 'group_form_sheet.dart';
 import 'member_picker.dart';
 import '../../../i18n/strings.dart';
 
@@ -117,11 +118,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         backgroundColor: c.scaffold,
         body: Column(
           children: [
-            AppHeader(
-              title: _profileStep ? S.groupDetails : S.selectMembers,
-              icon: Icons.group_add_outlined,
-              onBack: _back,
-            ),
+            _header(c),
             Expanded(
               child: AnimatedSwitcher(
                 duration: Motion.base,
@@ -141,6 +138,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                           onChanged: (value) => setState(() => _selected = value),
                           confirmLabel: S.next,
                           onConfirm: () => setState(() => _profileStep = true),
+                          showConfirmBar: !context.isWide,
                         ),
                       ),
               ),
@@ -148,6 +146,28 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _header(AppColors c) {
+    final title = _profileStep ? S.groupDetails : S.selectMembers;
+    if (!context.isWide) return AppHeader(title: title, icon: Icons.group_add_outlined, onBack: _back);
+    final close = !_profileStep && isGroupFlowSheet(context);
+    final count = _selected.length;
+    final name = _name.text.trim();
+    return TabletToolbar(
+      title: title,
+      showBack: !close,
+      onBack: _back,
+      leading: close ? GroupFlowCloseButton(onPressed: _back) : null,
+      actions: [
+        _profileStep
+            ? GroupToolbarButton(label: S.createGroup, onPressed: name.isEmpty || _creating ? null : _create)
+            : GroupToolbarButton(
+                label: count == 0 ? S.next : '${S.next}（$count）',
+                onPressed: count == 0 ? null : () => setState(() => _profileStep = true),
+              ),
+      ],
     );
   }
 
@@ -279,38 +299,39 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             },
           ),
         ),
-        Container(
-          decoration: BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider))),
-          child: SafeArea(
-            top: false,
-            child: LayoutBuilder(
-              builder: (context, constraints) => Padding(
-                padding: responsiveListPadding(
-                  constraints,
-                  maxWidth: constraints.maxWidth >= 900 ? 480 : Breakpoints.formMaxWidth,
-                  top: 10,
-                  bottom: 10,
-                ),
-                child: SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: name.isEmpty || _creating ? null : _create,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: chatMineBubble(c),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: c.inputFill,
-                      disabledForegroundColor: c.textHint,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        if (!context.isWide)
+          Container(
+            decoration: BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider))),
+            child: SafeArea(
+              top: false,
+              child: LayoutBuilder(
+                builder: (context, constraints) => Padding(
+                  padding: responsiveListPadding(
+                    constraints,
+                    maxWidth: constraints.maxWidth >= 900 ? 480 : Breakpoints.formMaxWidth,
+                    top: 10,
+                    bottom: 10,
+                  ),
+                  child: SizedBox(
+                    height: 48,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: name.isEmpty || _creating ? null : _create,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: chatMineBubble(c),
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: c.inputFill,
+                        disabledForegroundColor: c.textHint,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: Text(S.createGroup, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                     ),
-                    child: Text(S.createGroup, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

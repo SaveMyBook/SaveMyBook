@@ -4663,5 +4663,15 @@
     }
   },
   "accessibleRamp": "Ramp",
-  "singleExit": "Single exit"
+  "singleExit": "Single exit",
+  "sideNavBrowse": "Browse",
+  "sideNavMessages": "Messages",
+  "sideNavTrade": "Shopping",
+  "sideNavSelling": "Selling",
+  "showSidebar": "Show sidebar",
+  "hideSidebar": "Hide sidebar",
+  "gridView": "Grid view",
+  "listView": "List view",
+  "addFavorite": "Save",
+  "removeFavorite": "Remove from saved"
 }

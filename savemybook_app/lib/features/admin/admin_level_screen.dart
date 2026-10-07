@@ -173,7 +173,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
               title: S.membershipTiers,
               icon: Icons.workspace_premium_outlined,
               actions: [
-                HeaderIconButton(icon: Icons.add_rounded, onTap: _isBusy || _isLoading ? null : () => _edit()),
+                HeaderIconButton(icon: Icons.add_rounded, tooltip: S.newTier, onTap: _isBusy || _isLoading ? null : () => _edit()),
               ],
             ),
             Expanded(

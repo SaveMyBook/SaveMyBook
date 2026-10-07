@@ -9,6 +9,7 @@ import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
@@ -294,26 +295,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   ],
                 ),
               ),
-              if (reportTab && frame.isWide)
-                AdminToolbar(
-                  frame: frame,
-                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                  searchWidth: split ? _listWidth - 40 : null,
-                  search: AppSearchField(
-                    controller: _searchController,
-                    hint: S.searchReportedItemReporterReason,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  filters: types.length > 1
-                      ? ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _chip(S.actionAll, 'all', c),
-                            for (final entry in types.entries) _chip(entry.value, entry.key, c),
-                          ],
-                        )
-                      : null,
-                ),
+              if (reportTab && context.isWide && !split) _buildSearchBar(c, frame, types),
               if (reportTab && !frame.isWide)
                 Padding(
                   padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
@@ -346,7 +328,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                         child: _isLoading
                             ? const LoadingView.list()
                             : split
-                                ? _buildSplit(c)
+                                ? _buildSplit(c, types)
                                 : _buildList(c, frame),
                       ),
                       AiReviewTab(onCountChanged: _setReviewCount),
@@ -364,7 +346,30 @@ class _AdminReportScreenState extends State<AdminReportScreen>
 
   static const double _listWidth = 380;
 
-  Widget _buildSplit(AppColors c) {
+  Widget _buildSearchBar(AppColors c, AdminFrame frame, Map<String, String> types) => AdminSearchBar(
+        frame: frame,
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
+        search: AppSearchField(
+          controller: _searchController,
+          hint: S.searchReportedItemReporterReason,
+          onChanged: (_) => setState(() {}),
+        ),
+        filter: types.length > 1
+            ? AppSelectChip<String>(
+                value: _type,
+                title: S.type,
+                iconOnly: _type == 'all',
+                highlighted: _type != 'all',
+                options: [
+                  AppSelectOption(value: 'all', label: S.actionAll),
+                  for (final entry in types.entries) AppSelectOption(value: entry.key, label: entry.value),
+                ],
+                onChanged: (value) => setState(() => _type = value),
+              )
+            : null,
+      );
+
+  Widget _buildSplit(AppColors c, Map<String, String> types) {
     final pending = _isPendingTab;
     final reports = _visible(pending: pending);
     final selected = reports.where((r) => r.reportId == _selectedId).firstOrNull ?? reports.firstOrNull;
@@ -373,7 +378,15 @@ class _AdminReportScreenState extends State<AdminReportScreen>
       key: ValueKey('split_$pending'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(width: _listWidth, child: _buildList(c, const AdminFrame(_listWidth), selectedId: selected?.reportId)),
+        SizedBox(
+          width: _listWidth,
+          child: Column(
+            children: [
+              _buildSearchBar(c, const AdminFrame(_listWidth), types),
+              Expanded(child: _buildList(c, const AdminFrame(_listWidth), selectedId: selected?.reportId)),
+            ],
+          ),
+        ),
         VerticalDivider(width: 1, thickness: 1, color: c.divider),
         Expanded(
           child: SwitchIn(
@@ -454,33 +467,48 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   ),
                 ],
               )
-            : AdminCardList(
-                key: ValueKey('items_${pending}_$_type'),
+            : context.isWide
+            ? AdminRowList(
+                key: ValueKey('rows_${pending}_$_type'),
                 frame: frame,
-                padding: split ? const EdgeInsets.fromLTRB(24, 16, 16, 24) : const EdgeInsets.all(16),
                 itemCount: reports.length,
                 itemBuilder: (_, i) => RevealOnScroll(
                   index: i,
-                  child: split
-                      ? Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: AdminSelectionBorder(
-                            selected: reports[i].reportId == selectedId,
-                            child: _buildCard(reports[i], c, pending: pending, split: true),
-                          ),
-                        )
-                      : _buildCard(reports[i], c, pending: pending),
+                  child: _buildRow(reports[i], c, pending: pending, split: split, selected: reports[i].reportId == selectedId),
                 ),
+              )
+            : AdminCardList(
+                key: ValueKey('items_${pending}_$_type'),
+                frame: frame,
+                padding: const EdgeInsets.all(16),
+                itemCount: reports.length,
+                itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(reports[i], c, pending: pending)),
               ),
       ),
     );
   }
 
-  Widget _buildCard(ReportCase report, AppColors c, {required bool pending, bool split = false}) {
-    void select() => setState(() => _selectedId = report.reportId);
+  Widget _buildRow(ReportCase report, AppColors c, {required bool pending, required bool split, required bool selected}) {
+    return AdminListRow(
+      selected: split && selected,
+      onTap: split ? () => setState(() => _selectedId = report.reportId) : pending ? () => _review(report) : null,
+      leading: AdminRowThumbnail(imageUrl: report.targetImageUrl),
+      title: report.targetTitle,
+      tags: [StatusBadge(label: report.targetTypeText, color: c.neutral, fontSize: 10)],
+      subtitle: S.reportedByP0(report.reporterName),
+      detail: S.reasonP02(report.reason),
+      status: pending ? null : StatusBadge(label: report.statusText, color: c.reportStatusColor(report.status)),
+      time: formatDateTime(report.createdAt),
+      trailing: pending && !split
+          ? SmallActionButton(label: S.review, filled: true, onTap: _isBusy ? null : () => _review(report))
+          : null,
+    );
+  }
+
+  Widget _buildCard(ReportCase report, AppColors c, {required bool pending}) {
     return AppCard(
-      margin: split ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
-      onTap: split ? select : pending ? () => _review(report) : null,
+      margin: const EdgeInsets.only(bottom: 12),
+      onTap: pending ? () => _review(report) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -538,7 +566,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   ? SmallActionButton(
                       label: S.review,
                       filled: true,
-                      onTap: _isBusy ? null : split ? select : () => _review(report),
+                      onTap: _isBusy ? null : () => _review(report),
                     )
                   : StatusBadge(label: report.statusText, color: c.reportStatusColor(report.status)),
             ],
@@ -685,10 +713,9 @@ class _ReportPaneState extends State<_ReportPane> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
-                child: Row(
+                child: AdminButtonRow(
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
+                    OutlinedButton(
                         onPressed: widget.busy ? null : () => _submit('dismissed'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: c.textSecondary,
@@ -696,11 +723,8 @@ class _ReportPaneState extends State<_ReportPane> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: Text(S.dismissReport, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
+                    ElevatedButton(
                         onPressed: widget.busy ? null : () => _submit('resolved'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: c.accent,
@@ -709,7 +733,6 @@ class _ReportPaneState extends State<_ReportPane> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: Text(S.violationConfirmed, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      ),
                     ),
                   ],
                 ),

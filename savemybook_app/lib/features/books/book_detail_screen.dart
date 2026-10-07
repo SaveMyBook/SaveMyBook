@@ -17,7 +17,9 @@ import '../../widgets/app_tiles.dart';
 import '../../widgets/favorite_button.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/app_side_nav.dart';
 import '../../widgets/responsive.dart';
+import '../../widgets/search_bar_widget.dart';
 import '../../widgets/state_views.dart';
 import '../../widgets/buyer/book_strip.dart';
 import '../../widgets/buyer/fly_to_cart.dart';
@@ -50,6 +52,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   final ApiService _api = ApiService();
   final GlobalKey _cartIconKey = GlobalKey();
   final GlobalKey _addButtonKey = GlobalKey();
+  final GlobalKey _actionsKey = GlobalKey();
+  final GlobalKey _scrollKey = GlobalKey();
 
   late Book _book = widget.book;
   int _currentImageIndex = 0;
@@ -61,6 +65,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   bool _locating = false;
   bool _gone = false;
   bool _depositing = false;
+  bool _actionsScrolledAway = false;
+  bool _actionsCheckPending = false;
 
   List<String> get _images => _book.imageUrls;
 
@@ -78,6 +84,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       _api.fetchCartBookIds();
     }
     RecentlyViewed.add(widget.book);
+    _scrollController.addListener(_onTabletScroll);
     _loadDetail();
     _loadSimilar();
     _resolveDistance(request: false);
@@ -132,7 +139,23 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   void _openCart() {
+    if (HomeScreen.showTab(AppSideNav.cartTab)) return;
     Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+  }
+
+  Future<void> _openSearch() async {
+    final navigator = Navigator.of(context);
+    final keyword = await navigator.push<String>(
+      PageRouteBuilder(
+        pageBuilder: (_, _, _) => const SearchScreen(initialKeyword: ''),
+        transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
+      ),
+    );
+    if (keyword == null || keyword.isEmpty || !mounted) return;
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => HomeScreen(initialKeyword: keyword)),
+      (_) => false,
+    );
   }
 
   Future<void> _addToCart() async {
@@ -190,10 +213,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     if (!mounted) return;
     if (result.outcome == DirectPurchaseOutcome.failed) _loadDetail();
     if (result.outcome != DirectPurchaseOutcome.viewOrders) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => OrderHistoryScreen(filter: OrderHistoryScreen.purchaseFilterAfterPayment(result.readyForPickup))),
-    );
+    await OrderHistoryScreen.open(context, filter: OrderHistoryScreen.purchaseFilterAfterPayment(result.readyForPickup));
   }
 
   Future<void> _chatWithSeller() async {
@@ -300,18 +320,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   static const double _wideGap = 32;
-  static const double _splitWidth = 680;
   static const double _wideTop = 24;
   static const double _wideBottom = 32;
-
-  ({double side, double gallery, double galleryHeight})? _splitGeometry(BoxConstraints constraints, double barHeight) {
-    if (constraints.maxWidth < _splitWidth) return null;
-    final side = responsiveListPadding(constraints, maxWidth: 1160, horizontal: 24).left;
-    final content = constraints.maxWidth - side * 2;
-    final maxHeight = math.max(320.0, constraints.maxHeight - barHeight - _wideTop - _wideBottom);
-    final gallery = math.min(content * 0.42, maxHeight * 3 / 4).clamp(260.0, 520.0);
-    return (side: side, gallery: gallery, galleryHeight: math.min(gallery * 4 / 3, maxHeight));
-  }
 
   List<Widget> _buildDetails(AppColors c) {
     return [
@@ -328,6 +338,46 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     ];
   }
 
+  List<Widget> _buildTabletSummary(AppColors c) {
+    return [
+      _buildAvailabilityBanner(c),
+      _buildTitleRow(c),
+      const SizedBox(height: 10),
+      _buildPriceAndConditionRow(c),
+      const SizedBox(height: 20),
+      KeyedSubtree(key: _actionsKey, child: _buildTabletActions(c)),
+    ];
+  }
+
+  // 捲動位置超出範圍時，版面會在下一次排版直接修正位置而不再通知監聽者，排版後要再判斷一次
+  void _onTabletScroll() {
+    _checkActionsScrolledAway();
+    if (_actionsCheckPending) return;
+    _actionsCheckPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _actionsCheckPending = false;
+      if (mounted) _checkActionsScrolledAway();
+    });
+  }
+
+  void _checkActionsScrolledAway() {
+    final actions = _actionsKey.currentContext?.findRenderObject();
+    final viewport = _scrollKey.currentContext?.findRenderObject();
+    if (actions is! RenderBox || viewport is! RenderBox || !actions.attached || !viewport.attached) return;
+    final away = actions.localToGlobal(Offset(0, actions.size.height)).dy < viewport.localToGlobal(Offset.zero).dy;
+    if (away != _actionsScrolledAway) setState(() => _actionsScrolledAway = away);
+  }
+
+  List<Widget> _buildTabletBody(AppColors c, {bool withInfo = true}) {
+    final description = _book.description.trim().isNotEmpty;
+    return [
+      if (withInfo) _buildInfoCard(c),
+      if (description) ...[if (withInfo) const SizedBox(height: 24), _buildDescription(c)],
+      if (withInfo || description) const SizedBox(height: 24),
+      _buildPickupCard(c),
+      if (!_isOwnBook) ...[const SizedBox(height: 12), _buildSellerInfo(c)],
+    ];
+  }
 
   Widget _buildSimilar({required bool inset}) {
     final books = _similar;
@@ -359,7 +409,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       backgroundColor: c.scaffold,
       body: Column(
         children: [
-          _buildCustomAppBar(c),
+          compact ? _buildCustomAppBar(c) : _buildTabletToolbar(c),
           if (_gone)
             Expanded(
               child: Center(
@@ -396,83 +446,162 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               ),
             )
           else
-            Expanded(child: LayoutBuilder(builder: (context, constraints) => _buildWide(c, constraints))),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) => RefreshIndicator(
+                  color: c.accent,
+                  onRefresh: _loadDetail,
+                  child: constraints.maxWidth >= 760 && constraints.maxWidth >= constraints.maxHeight
+                      ? _buildLandscape(c, constraints)
+                      : _buildPortrait(c, constraints),
+                ),
+              ),
+            ),
         ],
       ),
       bottomNavigationBar: _gone || !compact ? null : _buildBottomActionsContent(c, 16, 16),
     );
   }
 
-  Widget _buildWide(AppColors c, BoxConstraints constraints) {
-    final barHeight = 12 + 48 + 12 + 1 + MediaQuery.paddingOf(context).bottom;
-    final split = _splitGeometry(constraints, barHeight);
-    final double left;
-    final double right;
-    final Widget content;
-    if (split == null) {
-      final padding = responsiveListPadding(
-        constraints,
-        maxWidth: Breakpoints.readingMaxWidth,
-        horizontal: 24,
-        top: 20,
-        bottom: 28,
-      );
-      left = padding.left;
-      right = padding.right;
-      content = SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageCarousel(c, height: 460, radius: 20),
-            const SizedBox(height: 20),
-            ..._buildDetails(c),
-            _buildSimilar(inset: false),
-          ],
-        ),
-      );
-    } else {
-      left = split.side + split.gallery + _wideGap;
-      right = split.side;
-      content = SingleChildScrollView(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(split.side, _wideTop, split.side, _wideBottom),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: split.galleryHeight),
-                  child: Padding(
-                    padding: EdgeInsets.only(left: split.gallery + _wideGap),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _buildDetails(c)),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  width: split.gallery,
-                  child: StickyPane(
-                    controller: _scrollController,
-                    child: _buildImageCarousel(c, height: split.galleryHeight, radius: 20),
-                  ),
-                ),
-              ],
+  // StickyPane 只在所在的 Stack 範圍內固定，相似書籍要放在右欄內，封面才會一路固定
+  Widget _buildLandscape(AppColors c, BoxConstraints constraints) {
+    final side = responsiveListPadding(constraints, maxWidth: 1160, horizontal: 24).left;
+    final content = constraints.maxWidth - side * 2;
+    final maxHeight = math.max(320.0, constraints.maxHeight - _wideTop - _wideBottom);
+    final gallery = math.min(content * 0.4, maxHeight * 3 / 4).clamp(240.0, 480.0);
+    final galleryHeight = math.min(gallery * 4 / 3, maxHeight);
+    return SingleChildScrollView(
+      key: _scrollKey,
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(side, _wideTop, side, _wideBottom),
+      child: Stack(
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(minHeight: galleryHeight),
+            child: Padding(
+              padding: EdgeInsets.only(left: gallery + _wideGap),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ..._buildTabletSummary(c),
+                  const SizedBox(height: 28),
+                  ..._buildTabletBody(c),
+                  _buildSimilar(inset: false),
+                ],
+              ),
             ),
-            _buildSimilar(inset: false),
-          ],
+          ),
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: gallery,
+            child: StickyPane(
+              controller: _scrollController,
+              child: _buildImageCarousel(c, height: galleryHeight, radius: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPortrait(AppColors c, BoxConstraints constraints) {
+    final padding = responsiveListPadding(constraints, maxWidth: 880, horizontal: 24, top: _wideTop, bottom: _wideBottom);
+    final content = constraints.maxWidth - padding.horizontal;
+    final gallery = (content * 0.4).clamp(180.0, 340.0);
+    final infoBeside = content - gallery - 28 >= 380;
+    return SingleChildScrollView(
+      key: _scrollKey,
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: gallery, child: _buildImageCarousel(c, height: gallery * 4 / 3, radius: 20)),
+              const SizedBox(width: 28),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ..._buildTabletSummary(c),
+                    if (infoBeside) ...[const SizedBox(height: 24), _buildInfoCard(c)],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          ..._buildTabletBody(c, withInfo: !infoBeside),
+          _buildSimilar(inset: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletToolbar(AppColors c) {
+    return LayoutBuilder(
+      builder: (context, constraints) => TabletToolbar(
+        showBack: Navigator.canPop(context),
+        titleWidget: AnimatedOpacity(
+          opacity: _actionsScrolledAway && !_gone ? 1 : 0,
+          duration: Motion.base,
+          child: Text(
+            _book.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: c.textPrimary),
+          ),
         ),
-      );
-    }
-    return Column(
-      children: [
-        Expanded(child: RefreshIndicator(color: c.accent, onRefresh: _loadDetail, child: content)),
-        _buildBottomActionsContent(c, left, right),
-      ],
+        actions: [
+          SwitchIn(
+            alignment: AlignmentDirectional.centerEnd,
+            child: _actionsScrolledAway && _purchasable && !_isOwnBook && !_gone
+                ? Padding(
+                    key: const ValueKey('buy'),
+                    padding: const EdgeInsets.only(right: 12),
+                    child: FilledButton.icon(
+                      onPressed: _isBuying || _isAddingToCart ? null : _buyNow,
+                      icon: const Icon(Icons.bolt_rounded, size: 18),
+                      label: Text(S.buyNow2, maxLines: 1),
+                      style: _tabletButtonStyle(
+                        background: c.accent,
+                        foreground: Colors.white,
+                        disabledBackground: c.accent.withValues(alpha: 0.6),
+                        disabledForeground: Colors.white,
+                      ).copyWith(
+                        minimumSize: const WidgetStatePropertyAll(Size(0, 36)),
+                        padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey('none')),
+          ),
+          SizedBox(
+            width: (constraints.maxWidth * 0.4).clamp(240.0, 400.0),
+            child: Semantics(
+              button: true,
+              label: S.actionSearch,
+              child: SearchFieldFrame(
+                onTap: _openSearch,
+                child: Text(
+                  S.searchTitleAuthorPublisher,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: c.textHint, fontSize: 14),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          KeyedSubtree(key: _cartIconKey, child: CartIconButton(onTap: _openCart)),
+        ],
+      ),
     );
   }
 
@@ -493,21 +622,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () async {
-                      final navigator = Navigator.of(context);
-                      final keyword = await navigator.push<String>(
-                        PageRouteBuilder(
-                          pageBuilder: (_, _, _) => const SearchScreen(initialKeyword: ''),
-                          transitionsBuilder: (_, animation, _, child) =>
-                              FadeTransition(opacity: animation, child: child),
-                        ),
-                      );
-                      if (keyword == null || keyword.isEmpty || !mounted) return;
-                      navigator.pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => HomeScreen(initialKeyword: keyword)),
-                        (_) => false,
-                      );
-                    },
+                    onTap: _openSearch,
                     child: Container(
                       height: 40,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1194,18 +1309,54 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   Widget _buildSellerInfo(AppColors c) {
     final sellerName = _book.sellerName.isEmpty ? S.roleAdmin : _book.sellerName;
     final avatarUrl = _book.sellerAvatarUrl;
+    final VoidCallback? openSeller = _book.sellerId == 0
+        ? null
+        : () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SellerScreen(sellerId: _book.sellerId, sellerName: sellerName, sellerAvatarUrl: avatarUrl),
+            ),
+          );
+
+    if (context.isWide) {
+      return Material(
+        color: c.card,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: openSeller,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+            child: Row(
+              children: [
+                UserAvatar(imageUrl: avatarUrl, radius: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(S.seller, style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                      const SizedBox(height: 2),
+                      Text(
+                        sellerName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c.textPrimary),
+                      ),
+                    ],
+                  ),
+                ),
+                if (openSeller != null) Icon(Icons.chevron_right_rounded, size: 20, color: c.iconInactive),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return PressableScale(
       scale: 0.985,
-      onTap: _book.sellerId == 0
-          ? null
-          : () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    SellerScreen(sellerId: _book.sellerId, sellerName: sellerName, sellerAvatarUrl: avatarUrl),
-              ),
-            ),
+      onTap: openSeller,
       child: Row(
         children: [
           UserAvatar(imageUrl: avatarUrl, radius: 18),
@@ -1425,6 +1576,111 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     ],
                   ),
                 ),
+        ),
+      ),
+    );
+  }
+
+  ButtonStyle _tabletButtonStyle({
+    required Color background,
+    required Color foreground,
+    Color? disabledBackground,
+    Color? disabledForeground,
+  }) {
+    return FilledButton.styleFrom(
+      backgroundColor: background,
+      foregroundColor: foreground,
+      disabledBackgroundColor: disabledBackground,
+      disabledForegroundColor: disabledForeground,
+      minimumSize: const Size(0, 46),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
+
+  Widget _buildTabletActions(AppColors c) {
+    if (_isOwnBook) {
+      final canEdit = !_book.isDeposited && (_book.status == 'removed' || (_book.status == 'on_sale' && !_book.isHeld));
+      final lockedStatus = _book.isDeposited ? S.inLocker : _book.ownerStatusText;
+      return Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: FilledButton.icon(
+          onPressed: canEdit ? _openEdit : null,
+          icon: Icon(canEdit ? Icons.edit_outlined : Icons.lock_outline_rounded, size: 18),
+          label: Text(canEdit ? S.editBook : S.p0CannotEdit(lockedStatus), maxLines: 1, overflow: TextOverflow.ellipsis),
+          style: _tabletButtonStyle(
+            background: c.accent,
+            foreground: Colors.white,
+            disabledBackground: c.card,
+            disabledForeground: c.textHint,
+          ),
+        ),
+      );
+    }
+
+    final reservedForMe = _book.reservedForMe && (_book.reservedUntil?.isAfter(DateTime.now()) ?? false);
+    final buyColor = reservedForMe ? c.success : c.accent;
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        if (_purchasable)
+          FilledButton.icon(
+            onPressed: _isBuying || _isAddingToCart ? null : _buyNow,
+            icon: _isBuying
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.bolt_rounded, size: 19),
+            label: Text(S.buyNow2, maxLines: 1, overflow: TextOverflow.ellipsis),
+            style: _tabletButtonStyle(
+              background: buyColor,
+              foreground: Colors.white,
+              disabledBackground: buyColor.withValues(alpha: 0.6),
+              disabledForeground: Colors.white,
+            ),
+          ),
+        ValueListenableBuilder<Set<int>>(
+          valueListenable: ApiService.cartBookIds,
+          builder: (context, ids, _) => _buildTabletCartButton(c, ids.contains(_book.bookId)),
+        ),
+        OutlinedButton.icon(
+          onPressed: _chatWithSeller,
+          icon: const Icon(Icons.chat_bubble_outline, size: 19),
+          label: Text(S.messageSeller, maxLines: 1, overflow: TextOverflow.ellipsis),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: c.accent,
+            side: BorderSide(color: c.accent.withValues(alpha: 0.55)),
+            minimumSize: const Size(0, 46),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletCartButton(AppColors c, bool inCart) {
+    final (String label, IconData icon, VoidCallback? onTap) = _book.status != 'on_sale'
+        ? (_book.statusText, Icons.block_rounded, null)
+        : _book.isReservedByOthers
+        ? (S.reserved, Icons.lock_clock_rounded, null)
+        : inCart
+        ? (S.cart2, Icons.check_circle_rounded, _openCart)
+        : (S.addCart, Icons.add_shopping_cart_rounded, _addToCart);
+    return KeyedSubtree(
+      key: _addButtonKey,
+      child: FilledButton.icon(
+        onPressed: onTap == null ? null : (_isAddingToCart ? () {} : onTap),
+        icon: _isAddingToCart
+            ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
+            : Icon(icon, size: 19),
+        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        style: _tabletButtonStyle(
+          background: c.accent.withValues(alpha: c.isDark ? 0.18 : 0.1),
+          foreground: c.accent,
+          disabledBackground: c.card,
+          disabledForeground: c.textHint,
         ),
       ),
     );

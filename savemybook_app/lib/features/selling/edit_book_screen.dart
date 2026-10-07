@@ -17,6 +17,7 @@ import '../../widgets/state_views.dart';
 import '../books/barcode_scanner_screen.dart';
 import 'ai_listing_assist.dart';
 import 'edit_book_detail_screen.dart';
+import '../../widgets/responsive.dart';
 import 'listing_form_layout.dart';
 import 'sell_book_screen.dart' show parsePublishDate;
 import '../../i18n/strings.dart';
@@ -257,7 +258,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
         backgroundColor: c.scaffold,
         body: Column(
           children: [
-            AppHeader(title: S.editBook, icon: Icons.edit_note_rounded),
+            AppHeader(
+              title: S.editBook,
+              icon: Icons.edit_note_rounded,
+              actions: context.isWide ? const [ListingStepIndicator(step: 1)] : const [],
+            ),
             Expanded(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -420,7 +425,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
         ),
       )),
     );
-    final next = PrimaryButton(label: S.next, icon: Icons.arrow_forward_rounded, onPressed: _next);
+    final next = ListingFormLayout.action(
+      context,
+      PrimaryButton(label: S.next, icon: Icons.arrow_forward_rounded, expand: !context.isWide, onPressed: _next),
+    );
 
     return SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,

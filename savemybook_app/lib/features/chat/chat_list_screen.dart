@@ -24,6 +24,7 @@ import '../../widgets/swipe_action.dart';
 import 'chat_room_screen.dart';
 import 'groups/create_group_screen.dart';
 import 'groups/group_avatar.dart';
+import 'groups/group_form_sheet.dart';
 import '../../i18n/strings.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -193,7 +194,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   }
 
   Future<void> _createGroup() async {
-    final roomId = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => const CreateGroupScreen()));
+    final roomId = await openGroupFlow<int>(context, const CreateGroupScreen());
     if (roomId == null || !mounted) return;
     await _load();
     if (!mounted) return;
@@ -250,6 +251,15 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
 
   Future<void> _preview(ChatRoom room) async {
     final action = await showChatPreview(context, room: room, muted: room.muted);
+    await _runRoomAction(room, action);
+  }
+
+  Future<void> _contextMenu(ChatRoom room) async {
+    final action = await showChatRoomMenu(context, room: room, muted: room.muted);
+    await _runRoomAction(room, action);
+  }
+
+  Future<void> _runRoomAction(ChatRoom room, ChatPreviewAction? action) async {
     if (!mounted || action == null) return;
     switch (action) {
       case ChatPreviewAction.open:
@@ -311,8 +321,8 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
             title: S.chats,
             icon: Icons.chat_bubble_outline_rounded,
             actions: [
-              HeaderIconButton(icon: Icons.group_add_outlined, onTap: _createGroup),
-              HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead),
+              HeaderIconButton(icon: Icons.group_add_outlined, onTap: _createGroup, tooltip: context.isWide ? S.createGroup : null),
+              HeaderIconButton(icon: Icons.done_all_rounded, onTap: _markAllRead, tooltip: context.isWide ? S.markAllAsRead : null),
             ],
           ),
           Expanded(
@@ -338,7 +348,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
           if (status.bookChat && _query.isEmpty) _buildAdvisorTile(context, c),
         ];
 
-        final side = context.isWide && !MasterDetail.isSplit(context) ? 24.0 : 16.0;
+        final side = !context.isWide ? 16.0 : (MasterDetail.isSplit(context) ? 12.0 : 24.0);
         if (_rooms.isEmpty) {
           return ListView(
             key: const ValueKey('empty'),
@@ -405,8 +415,58 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     );
   }
 
+  Widget _tabletRow(
+    AppColors c, {
+    Key? key,
+    required bool selected,
+    required VoidCallback onTap,
+    VoidCallback? onLongPress,
+    VoidCallback? onContextMenu,
+    required Widget child,
+  }) {
+    final tint = c.accent.withValues(alpha: c.isDark ? 0.22 : 0.12);
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Material(
+        // 底色必須不透明：左右滑動時底下的操作色塊才不會透出來
+        color: selected ? Color.alphaBlend(tint, c.scaffold) : c.scaffold,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          onSecondaryTapUp: onContextMenu == null ? null : (_) => onContextMenu(),
+          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), child: child),
+        ),
+      ),
+    );
+  }
+
   Widget _buildAdvisorTile(BuildContext context, AppColors c) {
     final selected = MasterDetail.selectedId(context) == _advisorId;
+    if (context.isWide) {
+      return _tabletRow(
+        c,
+        key: const ValueKey('ai_book_advisor'),
+        selected: selected,
+        onTap: () => MasterDetail.open(_pane, const AiBookChatScreen(), id: _advisorId),
+        child: Row(
+          children: [
+            const AiAvatar(size: 48),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                S.aiBookAdvisor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final card = AppCard(
       key: const ValueKey('ai_book_advisor'),
       margin: selected ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
@@ -452,6 +512,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
           onTrigger: () => _toggleMute(room),
         ),
       ],
+      backgroundMargin: EdgeInsets.only(bottom: context.isWide ? 2 : 12),
       endToStart: SwipeAction(
         icon: room.isGroup ? Icons.logout_rounded : Icons.delete_outline_rounded,
         label: room.isGroup ? S.leave : S.actionDelete,
@@ -497,161 +558,174 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     final mentioned = unread && room.mentionUnread;
     final previewColor = unread ? c.textPrimary : c.textSecondary;
 
+    final wide = context.isWide;
+    final content = Row(
+      children: [
+        ChatRoomAvatar(
+          imageUrl: room.avatarUrl,
+          isGroup: room.isGroup,
+          radius: wide ? 24 : 26,
+          background: wide && !c.isDark ? c.card : null,
+          enablePreview: true,
+          previewTitle: room.title,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            room.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: unread ? FontWeight.w800 : FontWeight.bold,
+                              color: c.textPrimary,
+                            ),
+                          ),
+                        ),
+                        if (room.isGroup) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            '(${room.memberCount})',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: c.textSecondary),
+                          ),
+                        ],
+                        if (muted) ...[
+                          const SizedBox(width: 6),
+                          Icon(Icons.notifications_off_rounded, size: 14, color: c.textHint),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: Motion.base,
+                        transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                        child: room.pinned
+                            ? Padding(
+                                key: const ValueKey('pinned'),
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Transform.rotate(
+                                  angle: 0.6,
+                                  child: Icon(Icons.push_pin_rounded, size: 13, color: c.accent),
+                                ),
+                              )
+                            : const SizedBox(key: ValueKey('unpinned')),
+                      ),
+                      Text(
+                        formatRelative(room.updatedAt),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: unread ? c.accent : c.textHint,
+                          fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  if (mine) ...[
+                    Icon(
+                      room.lastIsRead ? Icons.done_all_rounded : Icons.check_rounded,
+                      size: 15,
+                      color: room.lastIsRead ? c.accent : c.textHint,
+                      semanticLabel: room.lastIsRead ? S.read : null,
+                    ),
+                    const SizedBox(width: 3),
+                  ],
+                  if (kindIcon != null && !mentioned) ...[
+                    Icon(kindIcon, size: 15, color: previewColor),
+                    const SizedBox(width: 3),
+                  ],
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(children: [
+                        if (mentioned) ...[
+                          TextSpan(
+                            text: '${S.mentioned} ',
+                            style: TextStyle(fontWeight: FontWeight.w700, color: c.accent),
+                          ),
+                          if (kindIcon != null)
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 3),
+                                child: Icon(kindIcon, size: 15, color: previewColor),
+                              ),
+                            ),
+                        ],
+                        TextSpan(text: sender == null ? room.lastMessage : '$sender：${room.lastMessage}'),
+                      ]),
+                      key: mentioned ? const ValueKey('mention_unread') : null,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: previewColor,
+                        fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AnimatedSwitcher(
+                    duration: Motion.base,
+                    transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                    child: unread
+                        ? Container(
+                            key: ValueKey(room.unreadCount),
+                            constraints: const BoxConstraints(minWidth: 20),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: c.danger,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          )
+                        : const SizedBox.shrink(key: ValueKey('none')),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (wide) {
+      return _tabletRow(
+        c,
+        selected: selected,
+        onTap: () => _openChat(roomId: room.roomId, title: room.title),
+        onLongPress: () => _preview(room),
+        onContextMenu: () => _contextMenu(room),
+        child: content,
+      );
+    }
     final card = AppCard(
       margin: selected ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       onTap: () => _openChat(roomId: room.roomId, title: room.title),
       onLongPress: () => _preview(room),
-      child: Row(
-        children: [
-          ChatRoomAvatar(
-            imageUrl: room.avatarUrl,
-            isGroup: room.isGroup,
-            radius: 26,
-            enablePreview: true,
-            previewTitle: room.title,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              room.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: unread ? FontWeight.w800 : FontWeight.bold,
-                                color: c.textPrimary,
-                              ),
-                            ),
-                          ),
-                          if (room.isGroup) ...[
-                            const SizedBox(width: 4),
-                            Text(
-                              '(${room.memberCount})',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: c.textSecondary),
-                            ),
-                          ],
-                          if (muted) ...[
-                            const SizedBox(width: 6),
-                            Icon(Icons.notifications_off_rounded, size: 14, color: c.textHint),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedSwitcher(
-                          duration: Motion.base,
-                          transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-                          child: room.pinned
-                              ? Padding(
-                                  key: const ValueKey('pinned'),
-                                  padding: const EdgeInsets.only(right: 4),
-                                  child: Transform.rotate(
-                                    angle: 0.6,
-                                    child: Icon(Icons.push_pin_rounded, size: 13, color: c.accent),
-                                  ),
-                                )
-                              : const SizedBox(key: ValueKey('unpinned')),
-                        ),
-                        Text(
-                          formatRelative(room.updatedAt),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: unread ? c.accent : c.textHint,
-                            fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    if (mine) ...[
-                      Icon(
-                        room.lastIsRead ? Icons.done_all_rounded : Icons.check_rounded,
-                        size: 15,
-                        color: room.lastIsRead ? c.accent : c.textHint,
-                        semanticLabel: room.lastIsRead ? S.read : null,
-                      ),
-                      const SizedBox(width: 3),
-                    ],
-                    if (kindIcon != null && !mentioned) ...[
-                      Icon(kindIcon, size: 15, color: previewColor),
-                      const SizedBox(width: 3),
-                    ],
-                    Expanded(
-                      child: Text.rich(
-                        TextSpan(children: [
-                          if (mentioned) ...[
-                            TextSpan(
-                              text: '${S.mentioned} ',
-                              style: TextStyle(fontWeight: FontWeight.w700, color: c.accent),
-                            ),
-                            if (kindIcon != null)
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 3),
-                                  child: Icon(kindIcon, size: 15, color: previewColor),
-                                ),
-                              ),
-                          ],
-                          TextSpan(text: sender == null ? room.lastMessage : '$sender：${room.lastMessage}'),
-                        ]),
-                        key: mentioned ? const ValueKey('mention_unread') : null,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: previewColor,
-                          fontWeight: unread ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    AnimatedSwitcher(
-                      duration: Motion.base,
-                      transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-                      child: unread
-                          ? Container(
-                              key: ValueKey(room.unreadCount),
-                              constraints: const BoxConstraints(minWidth: 20),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: c.danger,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                              ),
-                            )
-                          : const SizedBox.shrink(key: ValueKey('none')),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: content,
     );
     return selected ? _selectedFrame(c, card) : card;
   }

@@ -10,6 +10,7 @@ import '../../utils/app_colors.dart';
 import 'legal_doc_screen.dart';
 import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/motion.dart';
@@ -23,6 +24,7 @@ import '../../services/push_service.dart';
 import '../../services/api_service.dart';
 import '../../models/support.dart';
 import '../../i18n/strings.dart';
+import 'tablet_list.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -130,6 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    if (context.isWide) return _buildTablet(c);
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -139,7 +142,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final twoColumn = context.isWide && constraints.maxWidth >= 840;
                 var index = 0;
                 final sections = [
                   _section(c, index++, S.preferences, _buildAppearanceCard(c)),
@@ -151,23 +153,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 return ListView(
                   padding: responsiveListPadding(
                     constraints,
-                    maxWidth: twoColumn ? Breakpoints.listMaxWidth : Breakpoints.formMaxWidth,
-                    horizontal: context.isWide ? 24 : 20,
+                    maxWidth: Breakpoints.formMaxWidth,
+                    horizontal: 20,
                     top: 20,
                     bottom: 40,
                   ),
-                  children: twoColumn
-                      ? [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: sections.sublist(0, 2))),
-                              const SizedBox(width: 24),
-                              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: sections.sublist(2))),
-                            ],
-                          ),
-                        ]
-                      : sections,
+                  children: sections,
                 );
               },
             ),
@@ -218,13 +209,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String? subtitle,
     required bool value,
     ValueChanged<bool>? onChanged,
+    Key? switchKey,
   }) {
     return _SettingsRow(
       leading: leading,
       title: title,
       subtitle: subtitle,
       onTap: onChanged == null ? null : () => onChanged(!value),
-      trailing: Switch.adaptive(value: value, activeThumbColor: c.accent, onChanged: onChanged),
+      trailing: Switch.adaptive(key: switchKey, value: value, activeThumbColor: c.accent, onChanged: onChanged),
     );
   }
 
@@ -388,6 +380,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           c,
           leading: _icon(c, item.icon),
           title: item.title,
+          // 載入完成時換一個新的開關，避免 iOS 樣式開關在第一次繪製前就開始切換動畫而出錯
+          switchKey: ValueKey(settings == null),
           value: switch (item.key) {
             'order' => settings?.order ?? true,
             'message' => settings?.message ?? true,
@@ -414,6 +408,196 @@ class _SettingsScreenState extends State<SettingsScreen> {
             S.supportRepliesPasswordResetsPolicyUpdates,
             style: TextStyle(fontSize: 12, height: 1.5, color: c.textSecondary),
           ),
+        ),
+      ],
+    );
+  }
+
+  static const _privacyId = 'privacy';
+  bool _defaultScheduled = false;
+
+  /// 平板：比照 iPad「設定」，左欄列出所有設定（選項以彈出選單選擇、開關直接切換），
+  /// 帳號管理、法律文件等子頁面顯示在右欄；直向寬度不足並排時為置中的分組清單，子頁面推入新頁面。
+  Widget _buildTablet(AppColors c) {
+    return Material(
+      color: c.scaffold,
+      child: MasterDetail(
+        masterWidth: 360,
+        placeholderIcon: Icons.settings_outlined,
+        master: Builder(builder: (context) => _buildTabletMaster(context, c)),
+      ),
+    );
+  }
+
+  void _openTabletDetail(BuildContext context, Object id, Widget page) {
+    if (MasterDetail.selectedId(context) == id) return;
+    MasterDetail.open<void>(context, page, id: id);
+  }
+
+  // 並排時右欄預設顯示第一個子頁面，避免右側只有提示文字
+  void _scheduleDefaultDetail(BuildContext context) {
+    if (_defaultScheduled) return;
+    _defaultScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _defaultScheduled = false;
+      if (!mounted || !context.mounted) return;
+      if (MasterDetail.isSplit(context) && MasterDetail.selectedId(context) == null) {
+        _openTabletDetail(context, _privacyId, const AccountPrivacyScreen());
+      }
+    });
+  }
+
+  Widget _buildTabletMaster(BuildContext context, AppColors c) {
+    final split = MasterDetail.isSplit(context);
+    final selected = MasterDetail.selectedId(context);
+    if (split && selected == null) _scheduleDefaultDetail(context);
+
+    Widget page(String id, IconData icon, String title, Widget Function() build) => TabletListRow(
+          icon: icon,
+          title: title,
+          selected: selected == id,
+          onTap: () => _openTabletDetail(context, id, build()),
+        );
+
+    final picker = Icon(Icons.unfold_more_rounded, size: 18, color: c.iconInactive);
+    final settings = _notificationSettings;
+
+    return TabletMasterColumn(
+      title: S.settings,
+      maxWidth: Breakpoints.formMaxWidth,
+      children: [
+        TabletListGroup(
+          header: S.preferences,
+          children: [
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: themeProvider,
+              builder: (context, mode, _) => TabletListRow(
+                icon: _themeIcon(mode),
+                title: S.appearance,
+                value: _themeLabel(mode),
+                trailing: picker,
+                onTap: () => _pickTheme(mode),
+              ),
+            ),
+            ValueListenableBuilder<AppPalette>(
+              valueListenable: paletteProvider,
+              builder: (context, palette, _) => TabletListRow(
+                leading: _PaletteDot(palette: palette, size: 20),
+                title: S.themeColour,
+                value: _paletteName(palette),
+                trailing: picker,
+                onTap: _pickPalette,
+              ),
+            ),
+            ValueListenableBuilder<Locale?>(
+              valueListenable: localeProvider,
+              builder: (context, locale, _) => TabletListRow(
+                icon: Icons.language_rounded,
+                title: S.language,
+                value: locale == null ? S.languageSystem : LocaleProvider.nameOf(locale),
+                trailing: picker,
+                onTap: () => _pickLanguage(locale),
+              ),
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: HomePreferences.showDiscovery,
+              builder: (context, show, _) => TabletListRow(
+                icon: Icons.auto_awesome_outlined,
+                title: S.homeRecommendations,
+                trailing: Switch.adaptive(
+                  value: show,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  activeThumbColor: c.accent,
+                  onChanged: (value) {
+                    HapticFeedback.selectionClick();
+                    HomePreferences.setShowDiscovery(value);
+                  },
+                ),
+                onTap: () => HomePreferences.setShowDiscovery(!show),
+              ),
+            ),
+          ],
+        ),
+        TabletListGroup(
+          header: S.alerts,
+          footer: S.supportRepliesPasswordResetsPolicyUpdates,
+          children: [
+            if (_isAdmin)
+              TabletListRow(
+                icon: Icons.notifications_active_outlined,
+                title: S.sendTestNotification,
+                subtitle: S.arrives10SecondsGoHomeScreen,
+                trailing: _sendingTestPush
+                    ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))
+                    : Icon(Icons.send_rounded, size: 18, color: c.accent),
+                onTap: _sendingTestPush ? null : _sendTestPush,
+              ),
+            if (_notificationLoadFailed)
+              TabletListRow(
+                leading: Icon(Icons.cloud_off_rounded, size: 22, color: c.warning),
+                title: S.couldNotLoadNotificationSettings,
+                trailing: Text(S.retry, style: TextStyle(color: c.accent, fontWeight: FontWeight.w600)),
+                onTap: _loadNotificationSettings,
+              ),
+            for (final item in [
+              (key: 'order', icon: Icons.receipt_long_outlined, title: S.orderProgress, value: settings?.order),
+              (key: 'message', icon: Icons.chat_bubble_outline_rounded, title: S.chatMessages, value: settings?.message),
+              (key: 'promotion', icon: Icons.local_offer_outlined, title: S.promotions2, value: settings?.promotion),
+            ])
+              TabletListRow(
+                icon: item.icon,
+                title: item.title,
+                // 載入完成時換一個新的開關，避免 iOS 樣式開關在第一次繪製前就開始切換動畫而出錯
+                trailing: Switch.adaptive(
+                  key: ValueKey(settings == null),
+                  value: item.value ?? true,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  activeThumbColor: c.accent,
+                  onChanged: settings == null ? null : (v) => _toggleNotification(item.key, v),
+                ),
+                onTap: settings == null ? null : () => _toggleNotification(item.key, !(item.value ?? true)),
+              ),
+            TabletListRow(
+              icon: Icons.tune_rounded,
+              title: S.systemNotificationSettings,
+              trailing: Icon(Icons.open_in_new_rounded, size: 18, color: c.iconInactive),
+              onTap: PushService.openSystemSettings,
+            ),
+          ],
+        ),
+        TabletListGroup(
+          header: S.privacy,
+          children: [
+            page(_privacyId, Icons.shield_outlined, S.account, () => const AccountPrivacyScreen()),
+            page('blocked', Icons.block_rounded, S.blockedUsers, () => const BlockedUsersScreen()),
+            if (AppPermissions.isSupportedPlatform)
+              page('permissions', Icons.app_settings_alt_outlined, S.appPermissions, () => const AppPermissionsScreen()),
+          ],
+        ),
+        TabletListGroup(
+          header: S.about2,
+          children: [
+            page('terms', Icons.description_outlined, S.termsService, () => LegalDocScreen(docKey: 'terms', fallbackTitle: S.termsService)),
+            page(
+              'privacy_policy',
+              Icons.privacy_tip_outlined,
+              S.privacyPolicy,
+              () => LegalDocScreen(docKey: 'privacy', fallbackTitle: S.privacyPolicy, icon: Icons.privacy_tip_outlined),
+            ),
+            page(
+              'about',
+              Icons.info_outline_rounded,
+              S.aboutSavemybook,
+              () => LegalDocScreen(docKey: 'about', fallbackTitle: S.aboutUs, icon: Icons.info_outline_rounded),
+            ),
+            TabletListRow(
+              icon: Icons.cleaning_services_outlined,
+              title: S.clearCache,
+              chevron: false,
+              trailing: _clearingCache ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent)) : null,
+              onTap: _clearingCache ? null : _clearCache,
+            ),
+          ],
         ),
       ],
     );
@@ -470,17 +654,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _pickPalette() async {
-    await showAppModalSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      dialogMaxWidth: 440,
-      builder: (sheetContext) => ValueListenableBuilder<AppPalette>(
+    final wide = context.isWide;
+    Widget builder(BuildContext sheetContext) => ValueListenableBuilder<AppPalette>(
         valueListenable: paletteProvider,
         builder: (context, current, _) {
           final c = AppColors.of(context);
           return Container(
-            decoration: BoxDecoration(color: c.sheetBg, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+            decoration: BoxDecoration(color: c.sheetBg, borderRadius: wide ? null : const BorderRadius.vertical(top: Radius.circular(24))),
             child: SafeArea(
               top: false,
               child: Padding(
@@ -550,6 +730,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         );
                       },
                     ),
+                    if (!wide) ...[
                     const SizedBox(height: 20),
                     FilledButton(
                       onPressed: () => Navigator.pop(sheetContext),
@@ -560,14 +741,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       child: Text(S.completed, style: const TextStyle(fontWeight: FontWeight.w600)),
                     ),
+                    ],
                   ],
                 ),
               ),
             ),
           );
         },
-      ),
-    );
+      );
+    // 平板以彈出選單呈現：點選即套用，點選外側關閉
+    if (wide) {
+      await showAppPopoverSheet<void>(context: context, popoverWidth: 400, isScrollControlled: true, backgroundColor: AppColors.of(context).sheetBg, builder: builder);
+    } else {
+      await showAppModalSheet<void>(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: builder);
+    }
   }
 
   Future<void> _pickLanguage(Locale? current) async {

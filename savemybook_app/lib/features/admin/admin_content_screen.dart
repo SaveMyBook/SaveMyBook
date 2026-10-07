@@ -470,7 +470,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
               title: S.faq,
               icon: Icons.quiz_outlined,
               actions: [
-                HeaderIconButton(icon: Icons.add_rounded, onTap: () => _edit()),
+                HeaderIconButton(icon: Icons.add_rounded, tooltip: S.newQuestion, onTap: () => _edit()),
               ],
             ),
             Expanded(

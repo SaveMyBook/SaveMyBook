@@ -754,6 +754,7 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
       title: member.displayName,
       subtitle: member.alias != null ? member.nickname : null,
       onTap: () => _memberActions(member),
+      onSecondaryTap: context.isWide ? () => _memberActions(member) : null,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -776,6 +777,8 @@ class _SettingsTile extends StatelessWidget {
   final Widget trailing;
   final VoidCallback? onTap;
 
+  final VoidCallback? onSecondaryTap;
+
   const _SettingsTile({
     required this.leading,
     required this.title,
@@ -784,6 +787,7 @@ class _SettingsTile extends StatelessWidget {
     this.subtitle,
     this.titleColor,
     this.onTap,
+    this.onSecondaryTap,
   });
 
   @override
@@ -798,6 +802,7 @@ class _SettingsTile extends StatelessWidget {
                 HapticFeedback.selectionClick();
                 onTap!();
               },
+        onSecondaryTap: onSecondaryTap,
         child: AnimatedContainer(
           duration: Motion.micro,
           constraints: const BoxConstraints(minHeight: 58),

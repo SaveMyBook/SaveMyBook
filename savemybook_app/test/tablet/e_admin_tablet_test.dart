@@ -18,6 +18,7 @@ import 'package:savemybook_app/features/admin/admin_category_screen.dart';
 import 'package:savemybook_app/features/admin/admin_deletion_screen.dart';
 import 'package:savemybook_app/features/admin/admin_dispute_screen.dart';
 import 'package:savemybook_app/features/admin/admin_home_screen.dart';
+import 'package:savemybook_app/features/admin/admin_layout.dart';
 import 'package:savemybook_app/features/admin/admin_member_detail_screen.dart';
 import 'package:savemybook_app/features/admin/admin_member_screen.dart';
 import 'package:savemybook_app/features/admin/admin_operation_log_screen.dart';
@@ -26,6 +27,7 @@ import 'package:savemybook_app/features/admin/admin_order_screen.dart';
 import 'package:savemybook_app/features/admin/admin_report_screen.dart';
 import 'package:savemybook_app/features/admin/admin_ticket_screen.dart';
 import 'package:savemybook_app/features/admin/admin_wallet_screen.dart';
+import 'package:savemybook_app/features/admin/admin_workspace.dart';
 import 'package:savemybook_app/features/admin/dispute_ai_panel.dart';
 import 'package:savemybook_app/features/admin/reported_message_panel.dart';
 import 'package:savemybook_app/i18n/app_localizations.dart';
@@ -196,7 +198,7 @@ void main() {
 
   group('後台首頁', () {
     for (final size in [_landscape, _portrait]) {
-      testWidgets('平板 ${size.width.toInt()}：總覽數字與功能分成多欄卡片', (tester) => run(tester, () async {
+      testWidgets('平板 ${size.width.toInt()}：後台側邊欄與總覽數字卡', (tester) => run(tester, () async {
             final errors = await _open(tester, size, const AdminHomeScreen());
             await _snap(tester, 'home_${size.width.toInt()}');
 
@@ -204,10 +206,9 @@ void main() {
             final members = tester.getRect(find.text(S.members2));
             final orders = tester.getRect(find.text(S.todaySOrders));
             expect(members.center.dy, closeTo(orders.center.dy, 1), reason: '總覽數字卡排在同一列');
-            final books = tester.getRect(find.text(S.myBooks));
-            final moderation = tester.getRect(find.text(S.moderation));
-            expect(books.center.dy, closeTo(moderation.center.dy, 1), reason: '同一區塊的功能並排');
-            expect(moderation.left, greaterThan(books.right));
+            final nav = tester.getRect(find.byType(AdminSideNav).first);
+            expect(members.left, greaterThan(nav.right), reason: '功能入口移到側邊欄，右側為總覽');
+            expect(find.byTooltip(S.moderation).evaluate().isNotEmpty || find.text(S.moderation).evaluate().isNotEmpty, isTrue);
             expect(errors, isEmpty);
             await _close(tester);
           }));
@@ -225,12 +226,13 @@ void main() {
     testWidgets('會員管控 1180×820：左側列表、右側會員設定，列表仍在', (tester) => run(tester, () async {
           final errors = await _open(tester, _landscape, const AdminMemberScreen());
           expect(find.text(S.selectItemToView), findsOneWidget);
-          final cards = find.byType(AppCard);
-          final count = cards.evaluate().length;
-          await _tap(tester, cards.first);
+          final rows = find.byType(AdminListRow);
+          final count = rows.evaluate().length;
+          await _tap(tester, rows.first);
           await _snap(tester, 'members_split');
           expect(find.byType(AdminMemberDetailScreen), findsOneWidget);
-          expect(find.byType(AppCard), findsAtLeastNWidgets(count), reason: '列表仍在左側');
+          expect(find.byType(AdminListRow), findsAtLeastNWidgets(count), reason: '列表仍在左側');
+          expect(tester.widget<AdminListRow>(find.byType(AdminListRow).first).selected, isTrue, reason: '選取的項目有底色');
           final detail = tester.getRect(find.byType(AdminMemberDetailScreen));
           expect(detail.left, greaterThan(300));
           expect(errors, isEmpty);
@@ -241,7 +243,7 @@ void main() {
           final errors = await _open(tester, _portrait, const AdminMemberScreen());
           await _snap(tester, 'members_portrait');
           expect(find.text(S.selectItemToView), findsNothing);
-          await _tap(tester, find.byType(AppCard).first);
+          await _tap(tester, find.byType(AdminListRow).first);
           expect(find.byType(AdminMemberDetailScreen), findsOneWidget);
           expect(tester.getRect(find.byType(AdminMemberDetailScreen)).left, 0);
           expect(find.byType(AdminMemberScreen, skipOffstage: true), findsNothing);
@@ -251,7 +253,7 @@ void main() {
 
     testWidgets('訂單管理 1180×820 並排，820×1180 單欄', (tester) => run(tester, () async {
           var errors = await _open(tester, _landscape, const AdminOrderScreen());
-          await _tap(tester, find.byType(AppCard).first);
+          await _tap(tester, find.byType(AdminListRow).first);
           await _snap(tester, 'orders_split');
           expect(find.byType(AdminOrderDetailScreen), findsOneWidget);
           expect(find.byType(AdminOrderScreen), findsOneWidget);
@@ -261,7 +263,7 @@ void main() {
 
           errors = await _open(tester, _portrait, const AdminOrderScreen());
           await _snap(tester, 'orders_portrait');
-          await _tap(tester, find.byType(AppCard).first);
+          await _tap(tester, find.byType(AdminListRow).first);
           expect(tester.getRect(find.byType(AdminOrderDetailScreen)).left, 0);
           expect(errors, isEmpty);
           await _close(tester);
@@ -292,7 +294,7 @@ void main() {
 
     testWidgets('錢包管理 1180×820 並排；調整餘額為對話框', (tester) => run(tester, () async {
           final errors = await _open(tester, _landscape, const AdminWalletScreen());
-          await _tap(tester, find.byType(AppCard).first);
+          await _tap(tester, find.byType(AdminListRow).first);
           expect(find.byType(AdminWalletDetailScreen), findsOneWidget);
           await _snap(tester, 'wallets_split');
           await _tap(tester, find.text(S.addCoins));

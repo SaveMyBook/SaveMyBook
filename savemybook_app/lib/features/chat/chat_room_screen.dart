@@ -15,9 +15,12 @@ import '../../services/realtime_service.dart';
 import '../../services/voice_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_dialogs.dart';
+import '../../widgets/app_side_nav.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/animations.dart';
+import '../../widgets/responsive.dart';
 import 'media/chat_album.dart';
 import 'media/chat_media_upload.dart';
 import 'mentions/chat_mention_controller.dart';
@@ -44,6 +47,7 @@ import '../../widgets/image_save_feedback.dart';
 import '../../widgets/image_viewer.dart';
 import '../../widgets/state_views.dart';
 import '../books/book_detail_screen.dart';
+import '../home/home_screen.dart';
 import '../orders/cart_screen.dart';
 import '../books/seller_screen.dart';
 
@@ -91,6 +95,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   final ScrollController _scroll = ScrollController();
   final Key _centerKey = const ValueKey('chat_center');
   final GlobalKey _typingKey = GlobalKey();
+  final GlobalKey _attachKey = GlobalKey();
 
   final List<ChatMessage> _messages = [];
   final Set<int> _ids = {};
@@ -1194,7 +1199,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   Future<void> _openAttachSheet() async {
     if (_editing != null) _cancelEdit();
     FocusScope.of(context).unfocus();
-    final choice = await showChatAttachSheet(context, canReserve: _canReserve, canTransfer: _canTransfer);
+    final button = _attachKey.currentContext;
+    final choice = await showChatAttachSheet(
+      context,
+      canReserve: _canReserve,
+      canTransfer: _canTransfer,
+      anchor: button == null ? null : PointerAnchor.of(button),
+    );
     if (!mounted || choice == null) return;
 
     switch (choice) {
@@ -1545,6 +1556,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       showAppSnackBar(context, error, isError: true);
       return;
     }
+    // 平板的購物車是側邊欄分頁，切過去而不是在聊天室裡再開一份
+    if (HomeScreen.showTab(AppSideNav.cartTab)) return;
     Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
   }
 
@@ -1632,6 +1645,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             onVoiceUnavailable: _onVoiceUnavailable,
             onVoiceTooShort: () => showAppSnackBar(context, S.holdMicTalkReleaseSend),
             mentions: _isGroup ? _mentions : null,
+            attachKey: _attachKey,
           ),
         ],
       ),
@@ -1650,7 +1664,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
   Widget _buildConversation() {
     return LayoutBuilder(builder: (context, constraints) {
-      final side = math.max(0.0, (constraints.maxWidth - kChatLaneMaxWidth) / 2);
+      final side = chatLaneSide(context, constraints.maxWidth);
       return _buildMessages(constraints.maxWidth - side * 2, side);
     });
   }
@@ -1887,7 +1901,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     final c = AppColors.of(context);
     final isMine = entry.senderId == _myId;
     final isCard = entry.kind == 'reservation' || entry.kind == 'transfer';
-    final maxBubble = isCard ? math.min(lane * 0.78, 340.0) : math.min(lane * 0.7, 420.0);
+    final wide = context.isWide;
+    final maxBubble = isCard ? math.min(lane * 0.78, 340.0) : math.min(lane * 0.7, wide ? 520.0 : 420.0);
     final meta = _buildMeta(entry, next, isMine, groupEnd);
     final message = entry.message;
     final canSwipeReply =
@@ -1898,6 +1913,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: isCard ? null : () => _showMessageMenu(entry),
+        onSecondaryTapUp: isCard || !wide ? null : (_) => _showMessageMenu(entry),
         child: _buildContent(entry, isMine, groupStart, groupEnd, lane),
       ),
     );
