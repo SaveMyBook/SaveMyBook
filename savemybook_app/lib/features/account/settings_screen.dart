@@ -8,6 +8,7 @@ import '../../services/home_preferences.dart';
 import '../../services/theme_provider.dart';
 import '../../utils/app_colors.dart';
 import 'legal_doc_screen.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
@@ -138,7 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final twoColumn = context.screenSize == ScreenSize.expanded && constraints.maxWidth >= 840;
+                final twoColumn = context.isWide && constraints.maxWidth >= 840;
                 var index = 0;
                 final sections = [
                   _section(c, index++, S.preferences, _buildAppearanceCard(c)),
@@ -151,7 +152,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: responsiveListPadding(
                     constraints,
                     maxWidth: twoColumn ? Breakpoints.listMaxWidth : Breakpoints.formMaxWidth,
-                    horizontal: 20,
+                    horizontal: context.isWide ? 24 : 20,
                     top: 20,
                     bottom: 40,
                   ),
@@ -161,7 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: sections.sublist(0, 2))),
-                              const SizedBox(width: 20),
+                              const SizedBox(width: 24),
                               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: sections.sublist(2))),
                             ],
                           ),
@@ -469,10 +470,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _pickPalette() async {
-    await showModalBottomSheet<void>(
+    await showAppModalSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      dialogMaxWidth: 440,
       builder: (sheetContext) => ValueListenableBuilder<AppPalette>(
         valueListenable: paletteProvider,
         builder: (context, current, _) {
@@ -487,10 +489,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Container(width: 40, height: 4, decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2))),
-                    ),
-                    const SizedBox(height: 16),
+                    if (!isDialogSheet(context)) ...[
+                      Center(
+                        child: Container(width: 40, height: 4, decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2))),
+                      ),
+                      const SizedBox(height: 16),
+                    ] else
+                      const SizedBox(height: 12),
                     Text(S.themeColour, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: c.textPrimary)),
                     const SizedBox(height: 20),
                     LayoutBuilder(

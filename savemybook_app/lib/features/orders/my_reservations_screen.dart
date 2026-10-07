@@ -193,22 +193,48 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> with Single
                         color: c.accent,
                         onRefresh: _load,
                         child: LayoutBuilder(
-                          builder: (context, constraints) => ListView.separated(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: responsiveListPadding(
+                          builder: (context, constraints) {
+                            final bottom = MediaQuery.of(context).padding.bottom + 16;
+                            final wide = context.isWide;
+                            final columns = wide ? ((constraints.maxWidth - 48 + 12) / 332).floor().clamp(1, 3) : 1;
+                            final padding = responsiveListPadding(
                               constraints,
-                              maxWidth: Breakpoints.formMaxWidth,
-                              top: 12,
-                              bottom: MediaQuery.of(context).padding.bottom + 16,
-                            ),
-                            itemCount: items.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 12),
-                            itemBuilder: (_, i) => RevealOnScroll(
-                              key: ValueKey(items[i].reservationId),
-                              index: i,
-                              child: _buildCard(items[i], c, held: held),
-                            ),
-                          ),
+                              maxWidth: columns > 1 ? Breakpoints.listMaxWidth + 160 : Breakpoints.formMaxWidth,
+                              horizontal: wide ? 24 : 16,
+                              top: wide ? 16 : 12,
+                              bottom: bottom,
+                            );
+                            Widget card(int i) => RevealOnScroll(
+                                  key: ValueKey(items[i].reservationId),
+                                  index: i,
+                                  child: _buildCard(items[i], c, held: held),
+                                );
+                            final rows = (items.length / columns).ceil();
+                            return ListView.separated(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: padding,
+                              itemCount: rows,
+                              separatorBuilder: (_, _) => const SizedBox(height: 12),
+                              itemBuilder: (_, row) => columns == 1
+                                  ? card(row)
+                                  // 同一列的卡片等高，按鈕列才會對齊
+                                  : IntrinsicHeight(
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          for (var col = 0; col < columns; col++) ...[
+                                            if (col > 0) const SizedBox(width: 12),
+                                            Expanded(
+                                              child: row * columns + col < items.length
+                                                  ? card(row * columns + col)
+                                                  : const SizedBox.shrink(),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                            );
+                          },
                         ),
                       ),
               ),
@@ -227,6 +253,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> with Single
       padding: const EdgeInsets.all(12),
       onTap: () => _openBook(r),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(

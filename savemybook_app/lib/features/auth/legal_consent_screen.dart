@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
+import 'auth_wide_card.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
@@ -131,95 +132,109 @@ class _LegalConsentScreenState extends State<LegalConsentScreen> {
       child: Scaffold(
         backgroundColor: c.scaffold,
         body: SafeArea(
-          child: ResponsiveCenter(
-          maxWidth: Breakpoints.readingMaxWidth,
+          child: context.isWide
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: Breakpoints.formMaxWidth, maxHeight: 860),
+                      child: DecoratedBox(
+                        decoration: authCardDecoration(c),
+                        child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: _buildContent(c, doc, card: true)),
+                      ),
+                    ),
+                  ),
+                )
+              : ResponsiveCenter(maxWidth: Breakpoints.readingMaxWidth, child: _buildContent(c, doc)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(AppColors c, LegalDoc doc, {bool card = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_docs.length > 1)
-                      Text(
-                        '${_index + 1} / ${_docs.length}',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.accent),
-                      ),
-                    const SizedBox(height: 4),
-                    SwitchIn(
-                      alignment: AlignmentDirectional.topStart,
-                      child: Text(
-                      S.p0BeenUpdated(doc.title),
-                      key: ValueKey(doc.key),
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: c.textPrimary),
-                    ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      S.readLatestVersionUpdatedP0Accept(formatDate(doc.updatedAt)),
-                      style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary),
-                    ),
-                  ],
+              if (_docs.length > 1)
+                Text(
+                  '${_index + 1} / ${_docs.length}',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: c.accent),
                 ),
+              const SizedBox(height: 4),
+              SwitchIn(
+                alignment: AlignmentDirectional.topStart,
+                child: Text(
+                S.p0BeenUpdated(doc.title),
+                key: ValueKey(doc.key),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: c.textPrimary),
               ),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: c.card,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: (n) {
-                      if (!_read && n.metrics.extentAfter < 40) setState(() => _read = true);
-                      return false;
-                    },
-                    child: SingleChildScrollView(
-                      key: ValueKey(doc.key + doc.version.toString()),
-                      controller: _scroll,
-                      padding: const EdgeInsets.all(20),
-                      child: SelectableText(
-                        doc.content,
-                        style: TextStyle(fontSize: 14, height: 1.8, color: c.textPrimary),
-                      ),
-                    ),
-                  ),
-                ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                child: Column(
-                  children: [
-                    AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: _read ? 0 : 1,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          S.scrollEndContinue,
-                          style: TextStyle(fontSize: 12, color: c.textHint),
-                        ),
-                      ),
-                    ),
-                    PrimaryButton(
-                      label: S.iVeReadAccept,
-                      isLoading: _isSubmitting,
-                      onPressed: _read ? _accept : null,
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _isSubmitting ? null : _decline,
-                      child: Text(S.decline, style: TextStyle(color: c.textSecondary)),
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 6),
+              Text(
+                S.readLatestVersionUpdatedP0Accept(formatDate(doc.updatedAt)),
+                style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary),
               ),
             ],
           ),
+        ),
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: card ? c.inputFill : c.card,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (!_read && n.metrics.extentAfter < 40) setState(() => _read = true);
+                return false;
+              },
+              child: SingleChildScrollView(
+                key: ValueKey(doc.key + doc.version.toString()),
+                controller: _scroll,
+                padding: const EdgeInsets.all(20),
+                child: SelectableText(
+                  doc.content,
+                  style: TextStyle(fontSize: 14, height: 1.8, color: c.textPrimary),
+                ),
+              ),
+            ),
           ),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          child: Column(
+            children: [
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _read ? 0 : 1,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    S.scrollEndContinue,
+                    style: TextStyle(fontSize: 12, color: c.textHint),
+                  ),
+                ),
+              ),
+              PrimaryButton(
+                label: S.iVeReadAccept,
+                isLoading: _isSubmitting,
+                onPressed: _read ? _accept : null,
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: _isSubmitting ? null : _decline,
+                child: Text(S.decline, style: TextStyle(color: c.textSecondary)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

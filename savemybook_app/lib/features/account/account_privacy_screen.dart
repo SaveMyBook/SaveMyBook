@@ -236,13 +236,9 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                   : RefreshIndicator(
                       color: c.accent,
                       onRefresh: _load,
-                      child: LayoutBuilder(
-                      builder: (context, constraints) => ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
-                      children: [
-                        Reveal(visible: _pendingDeletion, child: _buildPendingCard(c)),
-                        FadeSlideIn(
+                      child: LayoutBuilder(builder: (context, constraints) {
+                        final split = context.isWide && constraints.maxWidth >= 900;
+                        final data = FadeSlideIn(
                           child: ValueListenableBuilder<AiStatusInfo>(
                             valueListenable: AiStatus.listenable,
                             builder: (context, status, _) => _buildSection(c, S.data, [
@@ -260,9 +256,8 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                               if (_showsAiConsent(status)) _buildAiConsentItem(c, status),
                             ]),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        FadeSlideIn(index: 1, child: _buildSection(c, S.faqCatAccount, [
+                        );
+                        final account = FadeSlideIn(index: 1, child: _buildSection(c, S.faqCatAccount, [
                           AppMenuItem(
                             icon: Icons.person_remove_rounded,
                             title: _pendingDeletion ? S.cancelAccountDeletion : S.deleteAccount,
@@ -270,10 +265,35 @@ class _AccountPrivacyScreenState extends State<AccountPrivacyScreen> {
                             isLast: true,
                             onTap: _pendingDeletion ? _cancelDeletion : _requestDeletion,
                           ),
-                        ])),
-                      ],
-                    ),
-                    ),
+                        ]));
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: responsiveListPadding(
+                            constraints,
+                            maxWidth: split ? Breakpoints.listMaxWidth : Breakpoints.formMaxWidth,
+                            horizontal: context.isWide ? 24 : 20,
+                            top: 20,
+                            bottom: 40,
+                          ),
+                          children: [
+                            Reveal(visible: _pendingDeletion, child: _buildPendingCard(c)),
+                            if (split)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: data),
+                                  const SizedBox(width: 24),
+                                  Expanded(child: account),
+                                ],
+                              )
+                            else ...[
+                              data,
+                              const SizedBox(height: 24),
+                              account,
+                            ],
+                          ],
+                        );
+                      }),
                     ),
             ),
           ),

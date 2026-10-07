@@ -9,8 +9,15 @@ class LegalPreview extends StatelessWidget {
   final String title;
   final String content;
   final DateTime updatedAt;
+  final double horizontalPadding;
 
-  const LegalPreview({super.key, required this.title, required this.content, required this.updatedAt});
+  const LegalPreview({
+    super.key,
+    required this.title,
+    required this.content,
+    required this.updatedAt,
+    this.horizontalPadding = 20,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +25,7 @@ class LegalPreview extends StatelessWidget {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return ListView(
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 40 + bottomInset),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 40 + bottomInset),
       children: [
         Row(
           children: [

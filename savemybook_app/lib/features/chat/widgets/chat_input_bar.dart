@@ -172,56 +172,58 @@ class _ChatInputBarState extends State<ChatInputBar> with WidgetsBindingObserver
           BoxShadow(color: c.shadow.withValues(alpha: c.isDark ? 0.3 : 0.06), blurRadius: 16, offset: const Offset(0, -4)),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedSize(
-            duration: Motion.base,
-            curve: Motion.standard,
-            alignment: Alignment.bottomCenter,
-            child: widget.top ?? const SizedBox(width: double.infinity),
-          ),
-          if (widget.mentions != null) _buildMentionPanel(widget.mentions!),
-          AnimatedPadding(
-            duration: Motion.base,
-            curve: Motion.standard,
-            padding: EdgeInsets.fromLTRB(8, 8, 8, voiceOpen ? 8 : bottom + 8),
-            child: IgnorePointer(
-              ignoring: _voiceBusy,
-              child: AnimatedOpacity(
-                duration: Motion.micro,
-                opacity: _voiceBusy ? 0.45 : 1,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(child: _buildComposer(c)),
-                    const SizedBox(width: 8),
-                    _buildTrailingButton(c, voiceOpen),
-                  ],
+      child: ChatLane(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSize(
+              duration: Motion.base,
+              curve: Motion.standard,
+              alignment: Alignment.bottomCenter,
+              child: widget.top ?? const SizedBox(width: double.infinity),
+            ),
+            if (widget.mentions != null) _buildMentionPanel(widget.mentions!),
+            AnimatedPadding(
+              duration: Motion.base,
+              curve: Motion.standard,
+              padding: EdgeInsets.fromLTRB(8, 8, 8, voiceOpen ? 8 : bottom + 8),
+              child: IgnorePointer(
+                ignoring: _voiceBusy,
+                child: AnimatedOpacity(
+                  duration: Motion.micro,
+                  opacity: _voiceBusy ? 0.45 : 1,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(child: _buildComposer(c)),
+                      const SizedBox(width: 8),
+                      _buildTrailingButton(c, voiceOpen),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          AnimatedSize(
-            duration: Motion.base,
-            curve: Motion.standard,
-            alignment: Alignment.topCenter,
-            child: voiceOpen
-                ? DecoratedBox(
-                    decoration: BoxDecoration(border: Border(top: BorderSide(color: c.divider))),
-                    child: VoiceRecorderPanel(
-                      recorder: _recorder,
-                      height: _panelHeight(context, bottom),
-                      bottomInset: bottom,
-                      onSend: widget.onVoice,
-                      onUnavailable: widget.onVoiceUnavailable,
-                      onBusyChanged: (busy) => setState(() => _voiceBusy = busy),
-                      onClose: _closeVoice,
-                    ),
-                  )
-                : const SizedBox(width: double.infinity),
-          ),
-        ],
+            AnimatedSize(
+              duration: Motion.base,
+              curve: Motion.standard,
+              alignment: Alignment.topCenter,
+              child: voiceOpen
+                  ? DecoratedBox(
+                      decoration: BoxDecoration(border: Border(top: BorderSide(color: c.divider))),
+                      child: VoiceRecorderPanel(
+                        recorder: _recorder,
+                        height: _panelHeight(context, bottom),
+                        bottomInset: bottom,
+                        onSend: widget.onVoice,
+                        onUnavailable: widget.onVoiceUnavailable,
+                        onBusyChanged: (busy) => setState(() => _voiceBusy = busy),
+                        onClose: _closeVoice,
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -414,17 +414,21 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
         color: c.accent,
         onRefresh: _load,
         child: LayoutBuilder(
-          builder: (context, constraints) => ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: responsiveListPadding(
-              constraints,
-              maxWidth: Breakpoints.formMaxWidth,
-              horizontal: 20,
-              top: 20,
-              bottom: 40,
-            ),
-            children: info.isGroup ? _groupSections(c, info) : _directSections(c, info),
-          ),
+          builder: (context, constraints) {
+            final sections = info.isGroup ? _groupSections(c, info) : _directSections(c, info);
+            if (constraints.maxWidth >= 900 && sections.length == 4) return _twoColumns(info, sections, constraints);
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: responsiveListPadding(
+                constraints,
+                maxWidth: Breakpoints.formMaxWidth,
+                horizontal: 20,
+                top: 20,
+                bottom: 40,
+              ),
+              children: sections,
+            );
+          },
         ),
       );
     }
@@ -437,6 +441,25 @@ class _ChatRoomSettingsScreenState extends State<ChatRoomSettingsScreen> {
           Expanded(child: SwitchIn(child: body)),
         ],
       ),
+    );
+  }
+
+  Widget _twoColumns(ChatRoomInfo info, List<Widget> sections, BoxConstraints constraints) {
+    final left = info.isGroup ? [sections[0], sections[1], sections[3]] : sections.sublist(0, 2);
+    final right = info.isGroup ? [sections[2]] : sections.sublist(2);
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: responsiveListPadding(constraints, maxWidth: Breakpoints.listMaxWidth, horizontal: 24, top: 28, bottom: 40),
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: left)),
+            const SizedBox(width: 24),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: right)),
+          ],
+        ),
+      ],
     );
   }
 

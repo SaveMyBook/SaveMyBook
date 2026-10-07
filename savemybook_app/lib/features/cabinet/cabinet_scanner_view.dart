@@ -8,6 +8,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../i18n/strings.dart';
 import '../../utils/app_info.dart';
+import '../../widgets/responsive.dart';
 
 bool get cabinetPasteEnabled => kDebugMode || const bool.fromEnvironment('CABINET_PASTE');
 
@@ -144,21 +145,36 @@ class _CabinetScannerViewState extends State<CabinetScannerView> {
       top: false,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final frame = math.max(0.0, math.min(260.0, math.min(constraints.maxHeight * 0.42, constraints.maxWidth - 64)));
+          final wide = context.isWide;
+          final frame = wide
+              ? math.max(0.0, math.min(340.0, math.min(constraints.maxHeight * 0.48, constraints.maxWidth - 96)))
+              : math.max(0.0, math.min(260.0, math.min(constraints.maxHeight * 0.42, constraints.maxWidth - 64)));
+          final text = Text(
+            hint,
+            textAlign: TextAlign.center,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.92)),
+          );
           return Column(
             children: [
               const Spacer(flex: 2),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  hint,
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.92)),
-                ),
+                child: wide
+                    ? ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10), child: text),
+                        ),
+                      )
+                    : text,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: wide ? 24 : 20),
               IgnorePointer(
                 child: SizedBox(
                   width: frame,

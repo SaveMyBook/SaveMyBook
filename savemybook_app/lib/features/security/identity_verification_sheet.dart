@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../i18n/strings.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/biometric_icon.dart';
@@ -25,7 +26,7 @@ Future<String?> showIdentityVerificationSheet(
   PasskeyVerify? onPasskey,
 }) {
   final c = AppColors.of(context);
-  return showModalBottomSheet<String>(
+  return showAppModalSheet<String>(
     context: context,
     isScrollControlled: true,
     backgroundColor: c.sheetBg,
@@ -189,21 +190,25 @@ class _IdentityVerificationSheetState extends State<IdentityVerificationSheet> {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        // 對話框已自行避開鍵盤，再加一次會留下雙倍空白
+        padding: EdgeInsets.only(bottom: isDialogSheet(context) ? 0 : MediaQuery.viewInsetsOf(context).bottom),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
+              if (!isDialogSheet(context)) ...[
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 18),
+                const SizedBox(height: 18),
+              ] else
+                const SizedBox(height: 12),
               _header(c),
               const SizedBox(height: 20),
               if (_usePasskey)

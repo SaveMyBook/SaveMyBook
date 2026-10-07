@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
@@ -6,7 +8,9 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import 'admin_cabinet_deposit_screen.dart';
 import 'admin_cabinet_device_screen.dart';
@@ -182,8 +186,9 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       (value: 'maintenance', label: S.slotMaintenance),
     ];
 
-    final picked = await showModalBottomSheet<String>(
+    final picked = await showAppModalSheet<String>(
       context: context,
+      dialogMaxWidth: 420,
       isScrollControlled: true,
       backgroundColor: c.card,
       shape: const RoundedRectangleBorder(
@@ -259,77 +264,112 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
     return Scaffold(
       backgroundColor: c.scaffold,
       body: AdminLayout(
-        builder: (context, frame) => Column(
-          children: [
-            AppHeader(
-              title: S.lockerMonitor,
-              icon: Icons.storage_rounded,
-              actions: [
-                HeaderIconButton(
-                  icon: Icons.inventory_2_outlined,
-                  onTap: _openDeposits,
-                ),
-                HeaderIconButton(
-                  icon: Icons.add_rounded,
-                  onTap: () => _openEditor(),
-                ),
-              ],
-            ),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
-              child: AppSearchField(
-                controller: _searchController,
-                hint: S.searchLockerNameAddress,
-                onChanged: (_) => setState(() {}),
-              ),
-            ),
-            SizedBox(
-              height: 34,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16)),
-                children: [
-                  _chip(S.actionAll, 'all', c),
-                  _chip(S.active, 'active', c),
-                  _chip(S.disabled, 'disabled', c),
-                  _chip(S.slotMaintenance, 'maintenance', c),
+        builder: (context, frame) {
+          EdgeInsets inset(double top, double bottom) => frame.isWide
+              ? frame.inset(EdgeInsets.fromLTRB(24, top, 24, bottom), maxWidth: 1200)
+              : frame.inset(EdgeInsets.fromLTRB(16, top, 16, bottom));
+          final columns = frame.isWide
+              ? Breakpoints.columnsFor(math.min(frame.width, 1200) - 48, minTileWidth: 360, min: 1, max: 3)
+              : 1;
+          final rows = (filtered.length / columns).ceil();
+          return Column(
+            children: [
+              AppHeader(
+                title: S.lockerMonitor,
+                icon: Icons.storage_rounded,
+                actions: [
+                  HeaderIconButton(
+                    icon: Icons.inventory_2_outlined,
+                    onTap: _openDeposits,
+                  ),
+                  HeaderIconButton(
+                    icon: Icons.add_rounded,
+                    onTap: () => _openEditor(),
+                  ),
                 ],
               ),
-            ),
-            Expanded(
-              child: SwitchIn(child: _isLoading
-                  ? const LoadingView.list()
-                  : RefreshIndicator(
-                      color: c.accent,
-                      onRefresh: _load,
-                      child: SwitchIn(child: filtered.isEmpty
-                          ? ListView(key: const ValueKey('empty'),
-                              children: [
-                                const SizedBox(height: 80),
-                                EmptyView(
-                                  icon: Icons.inbox_outlined,
-                                  message: S.noLockersMatch,
-                                  actionLabel: hasQuery ? S.clearFilters : S.refresh,
-                                  onAction: () {
-                                    if (hasQuery) {
-                                      _searchController.clear();
-                                      setState(() => _status = 'all');
-                                    } else {
-                                      _load();
-                                    }
-                                  },
-                                ),
-                              ],
-                            )
-                          : ListView.builder(key: ValueKey('items_$_status'),
-                              padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 24)),
-                              itemCount: filtered.length,
-                              itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCabinetCard(filtered[i], c)),
-                            )),
-                    )),
-            ),
+              Padding(
+                padding: inset(16, 8),
+                child: AppSearchField(
+                  controller: _searchController,
+                  hint: S.searchLockerNameAddress,
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              SizedBox(
+                height: 34,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: inset(0, 0),
+                  children: [
+                    _chip(S.actionAll, 'all', c),
+                    _chip(S.active, 'active', c),
+                    _chip(S.disabled, 'disabled', c),
+                    _chip(S.slotMaintenance, 'maintenance', c),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SwitchIn(child: _isLoading
+                    ? const LoadingView.list()
+                    : RefreshIndicator(
+                        color: c.accent,
+                        onRefresh: _load,
+                        child: SwitchIn(child: filtered.isEmpty
+                            ? ListView(key: const ValueKey('empty'),
+                                children: [
+                                  const SizedBox(height: 80),
+                                  EmptyView(
+                                    icon: Icons.inbox_outlined,
+                                    message: S.noLockersMatch,
+                                    actionLabel: hasQuery ? S.clearFilters : S.refresh,
+                                    onAction: () {
+                                      if (hasQuery) {
+                                        _searchController.clear();
+                                        setState(() => _status = 'all');
+                                      } else {
+                                        _load();
+                                      }
+                                    },
+                                  ),
+                                ],
+                              )
+                            : columns == 1
+                                ? ListView.builder(key: ValueKey('items_$_status'),
+                                    padding: inset(12, 24),
+                                    itemCount: filtered.length,
+                                    itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCabinetCard(filtered[i], c)),
+                                  )
+                                : ListView.builder(key: ValueKey('grid_$_status'),
+                                    padding: inset(12, 24),
+                                    itemCount: rows,
+                                    itemBuilder: (_, row) => RevealOnScroll(
+                                      index: row,
+                                      child: _cardRow(
+                                        [for (final cabinet in filtered.skip(row * columns).take(columns)) _buildCabinetCard(cabinet, c)],
+                                        columns,
+                                      ),
+                                    ),
+                                  )),
+                      )),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _cardRow(List<Widget> cards, int columns) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < columns; i++) ...[
+            if (i > 0) const SizedBox(width: 12),
+            Expanded(child: i < cards.length ? cards[i] : const SizedBox.shrink()),
           ],
-        ),
+        ],
       ),
     );
   }

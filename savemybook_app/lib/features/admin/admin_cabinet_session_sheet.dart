@@ -8,6 +8,7 @@ import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_radius.dart';
 import '../../utils/cabinet_labels.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_tiles.dart';
@@ -25,12 +26,13 @@ Color adminCabinetSessionColor(AppColors c, String status) => switch (status) {
 Future<bool> showAdminCabinetSessionSheet(BuildContext context, String sessionNo) async {
   final c = AppColors.of(context);
   var resolved = false;
-  await showModalBottomSheet<void>(
+  await showAppModalSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: c.sheetBg,
     constraints: const BoxConstraints(maxWidth: 640),
+    dialogMaxWidth: 600,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => AdminCabinetSessionSheet(sessionNo: sessionNo, onResolved: () => resolved = true),
   );
@@ -130,17 +132,7 @@ class _AdminCabinetSessionSheetState extends State<AdminCabinetSessionSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 38,
-              height: 4,
-              margin: const EdgeInsets.only(top: 10, bottom: 14),
-              decoration: BoxDecoration(
-                color: c.iconInactive.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
+          const SheetHandle(margin: EdgeInsets.only(top: 10, bottom: 14)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(

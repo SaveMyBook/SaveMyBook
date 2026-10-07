@@ -1143,7 +1143,12 @@ class DemoApp extends StatelessWidget {
           ],
         );
       },
-      home: home,
+      // 畫面在 App 內都是推入的頁面；直接當根頁面時 AppHeader 會因沒有上一頁而隱藏返回鍵
+      onGenerateInitialRoutes: (_) => [
+        PageRouteBuilder<void>(pageBuilder: (_, _, _) => const SizedBox.shrink()),
+        MaterialPageRoute<void>(builder: (_) => home),
+      ],
+      onGenerateRoute: (_) => null,
     );
   }
 }

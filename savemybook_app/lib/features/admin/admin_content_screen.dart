@@ -4,6 +4,7 @@ import '../../models/support.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
@@ -11,6 +12,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/app_radius.dart';
@@ -97,23 +99,52 @@ class _AdminLegalScreenState extends State<AdminLegalScreen> {
                     : RefreshIndicator(
                         color: c.accent,
                         onRefresh: _load,
-                        child: ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: frame.inset(const EdgeInsets.fromLTRB(20, 20, 20, 40)),
-                          children: [
-                            for (var i = 0; i < keys.length; i++)
-                              FadeSlideIn(
-                                index: i,
-                                child: _buildCard(keys[i], c),
+                        child: frame.isWide
+                            ? _buildGrid(keys, frame, c)
+                            : ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: frame.inset(const EdgeInsets.fromLTRB(20, 20, 20, 40)),
+                                children: [
+                                  for (var i = 0; i < keys.length; i++)
+                                    FadeSlideIn(
+                                      index: i,
+                                      child: _buildCard(keys[i], c),
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
                       ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildGrid(List<String> keys, AdminFrame frame, AppColors c) {
+    final columns = frame.width >= 840 ? 2 : 1;
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: frame.inset(const EdgeInsets.fromLTRB(24, 24, 24, 40), maxWidth: columns == 1 ? Breakpoints.readingMaxWidth : 1040),
+      children: [
+        for (var row = 0; row * columns < keys.length; row++)
+          FadeSlideIn(
+            index: row,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < columns; i++) ...[
+                    if (i > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: row * columns + i < keys.length ? _buildCard(keys[row * columns + i], c) : const SizedBox.shrink(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -247,7 +278,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     var visible = faq?.isVisible ?? true;
     var showErrors = false;
 
-    final saved = await showModalBottomSheet<bool>(
+    final saved = await showAppModalSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -255,30 +286,22 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      dialogMaxWidth: 600,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(ctx).unfocus(),
           child: Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            // 對話框本身已依鍵盤高度上移，內容再加鍵盤高度會被擠扁
+            padding: EdgeInsets.only(bottom: isDialogSheet(ctx) ? 0 : MediaQuery.of(ctx).viewInsets.bottom),
             child: SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(20, 10, 20, 24 + MediaQuery.of(ctx).padding.bottom),
+              padding: EdgeInsets.fromLTRB(20, isDialogSheet(ctx) ? 4 : 10, 20, 24 + MediaQuery.of(ctx).padding.bottom),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 38,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 14),
-                      decoration: BoxDecoration(
-                        color: c.iconInactive.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
+                  const SheetHandle(margin: EdgeInsets.only(bottom: 14)),
                   Text(
                     faq == null ? S.newQuestion : S.editQuestion,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),
@@ -477,7 +500,7 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
                                         child: _buildSectionHeader(entry.key, entry.value.length, c, frame),
                                       ),
                                       SliverPadding(
-                                        padding: frame.inset(const EdgeInsets.symmetric(horizontal: 20)),
+                                        padding: _faqInset(frame, const EdgeInsets.symmetric(horizontal: 20)),
                                         sliver: SliverReorderableList(
                                           itemCount: entry.value.length,
                                           onReorder: (from, to) => _reorder(entry.key, from, to),
@@ -500,9 +523,13 @@ class _AdminFaqScreenState extends State<AdminFaqScreen> {
     );
   }
 
+  static EdgeInsets _faqInset(AdminFrame frame, EdgeInsets base) => frame.isWide
+      ? frame.inset(base.copyWith(left: 24, right: 24), maxWidth: Breakpoints.readingMaxWidth)
+      : frame.inset(base);
+
   Widget _buildSectionHeader(String category, int count, AppColors c, AdminFrame frame) {
     return Padding(
-      padding: frame.inset(const EdgeInsets.fromLTRB(20, 12, 20, 10)),
+      padding: _faqInset(frame, const EdgeInsets.fromLTRB(20, 12, 20, 10)),
       child: Row(
         children: [
           Container(

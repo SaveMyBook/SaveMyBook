@@ -6,12 +6,14 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
@@ -90,7 +92,15 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
         _ => _wallets,
       };
 
-  Future<void> _openDetail(AdminWallet wallet) async {
+  Future<void> _openDetail(BuildContext ctx, AdminWallet wallet) async {
+    if (MasterDetail.isSplit(ctx)) {
+      MasterDetail.open(
+        ctx,
+        AdminWalletDetailScreen(userId: wallet.userId, onChanged: () => _load(showLoading: false)),
+        id: wallet.userId,
+      );
+      return;
+    }
     if (_navigating) return;
     _navigating = true;
     try {
@@ -119,170 +129,185 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: AdminLayout(
-        builder: (context, frame) => Column(
-          children: [
-            AppHeader(title: S.wallets, icon: Icons.account_balance_wallet_outlined),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
-              child: AppSearchField(
-                controller: _searchController,
-                hint: S.searchDisplayNameEmail,
-                onChanged: _onSearchChanged,
-                onSubmitted: (_) => _load(),
-              ),
-            ),
-            SizedBox(
-              height: 34,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16)),
-                itemCount: _filters.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final f = _filters[i];
-                  final selected = _filter == f.key;
-                  return PressableScale(
-                    scale: 0.94,
-                    onTap: () => setState(() => _filter = f.key),
-                    child: AnimatedContainer(
-                      duration: Motion.micro,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: selected ? c.accent : c.categoryChip,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        f.label,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                          color: selected ? Colors.white : c.accent,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Expanded(
-              child: SwitchIn(
-                child: _isLoading
-                    ? const LoadingView.list()
-                    : RefreshIndicator(
-                        color: c.accent,
-                        onRefresh: () => _load(showLoading: false),
-                        child: SwitchIn(
-                          child: visible.isEmpty
-                              ? ListView(
-                                  key: const ValueKey('empty'),
-                                  children: [
-                                    const SizedBox(height: 60),
-                                    EmptyView(
-                                      icon: Icons.account_balance_wallet_outlined,
-                                      message: S.noMembersMatch,
-                                      actionLabel: filtered ? S.clearFilters : S.refresh,
-                                      onAction: () {
-                                        if (filtered) {
-                                          _searchController.clear();
-                                          _filter = 'all';
-                                        }
-                                        _load();
-                                      },
+      body: MasterDetail(
+        placeholderIcon: Icons.account_balance_wallet_outlined,
+        master: AdminLayout(
+          builder: (context, frame) => Column(
+            children: [
+              AppHeader(title: S.wallets, icon: Icons.account_balance_wallet_outlined),
+              if (frame.isWide)
+                AdminToolbar(frame: frame, search: _buildSearch(), filters: _buildFilters(c))
+              else ...[
+                Padding(
+                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
+                  child: _buildSearch(),
+                ),
+                SizedBox(
+                  height: 34,
+                  child: _buildFilters(c, padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16))),
+                ),
+              ],
+              Expanded(
+                child: SwitchIn(
+                  child: _isLoading
+                      ? const LoadingView.list()
+                      : RefreshIndicator(
+                          color: c.accent,
+                          onRefresh: () => _load(showLoading: false),
+                          child: SwitchIn(
+                            child: visible.isEmpty
+                                ? ListView(
+                                    key: const ValueKey('empty'),
+                                    children: [
+                                      const SizedBox(height: 60),
+                                      EmptyView(
+                                        icon: Icons.account_balance_wallet_outlined,
+                                        message: S.noMembersMatch,
+                                        actionLabel: filtered ? S.clearFilters : S.refresh,
+                                        onAction: () {
+                                          if (filtered) {
+                                            _searchController.clear();
+                                            _filter = 'all';
+                                          }
+                                          _load();
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                : AdminCardList(
+                                    key: ValueKey('items_$_filter'),
+                                    frame: frame,
+                                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                                    itemCount: visible.length,
+                                    itemBuilder: (_, i) => RevealOnScroll(
+                                      index: i,
+                                      child: _buildCard(context, visible[i], c),
                                     ),
-                                  ],
-                                )
-                              : ListView.builder(
-                                  key: ValueKey('items_$_filter'),
-                                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 24)),
-                                  itemCount: visible.length,
-                                  itemBuilder: (_, i) => RevealOnScroll(
-                                    index: i,
-                                    child: _buildCard(visible[i], c),
                                   ),
-                                ),
+                          ),
                         ),
-                      ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCard(AdminWallet wallet, AppColors c) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _openDetail(wallet),
-      onLongPress: () => _copyEmail(wallet),
-      child: Row(
-        children: [
-          UserAvatar(imageUrl: wallet.avatarUrl, radius: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  wallet.nickname,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: c.textPrimary,
-                  ),
+  Widget _buildSearch() => AppSearchField(
+        controller: _searchController,
+        hint: S.searchDisplayNameEmail,
+        onChanged: _onSearchChanged,
+        onSubmitted: (_) => _load(),
+      );
+
+  Widget _buildFilters(AppColors c, {EdgeInsets padding = EdgeInsets.zero}) => ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: padding,
+        itemCount: _filters.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final f = _filters[i];
+          final selected = _filter == f.key;
+          return PressableScale(
+            scale: 0.94,
+            onTap: () => setState(() => _filter = f.key),
+            child: AnimatedContainer(
+              duration: Motion.micro,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? c.accent : c.categoryChip,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                f.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                  color: selected ? Colors.white : c.accent,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  wallet.email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: c.textSecondary),
-                ),
-                if (wallet.frozenAmount > 0) ...[
-                  const SizedBox(height: 4),
-                  StatusBadge(
-                    label: '${S.hold2} ${_coins(wallet.frozenAmount)}',
-                    color: c.warning,
-                    fontSize: 10,
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    _coins(wallet.balance),
+          );
+        },
+      );
+
+  Widget _buildCard(BuildContext ctx, AdminWallet wallet, AppColors c) {
+    return AdminSelectable(
+      ids: [wallet.userId],
+      builder: (margin) => AppCard(
+        margin: margin,
+        onTap: () => _openDetail(ctx, wallet),
+        onLongPress: () => _copyEmail(wallet),
+        child: Row(
+          children: [
+            UserAvatar(imageUrl: wallet.avatarUrl, radius: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    wallet.nickname,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: c.accent,
+                      color: c.textPrimary,
                     ),
                   ),
-                ),
-                Text(
-                  S.faqCatWallet,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 10, color: c.textHint),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    wallet.email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: c.textSecondary),
+                  ),
+                  if (wallet.frozenAmount > 0) ...[
+                    const SizedBox(height: 4),
+                    StatusBadge(
+                      label: '${S.hold2} ${_coins(wallet.frozenAmount)}',
+                      color: c.warning,
+                      fontSize: 10,
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right_rounded, color: c.iconInactive),
-        ],
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _coins(wallet.balance),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: c.accent,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    S.faqCatWallet,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 10, color: c.textHint),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: c.iconInactive),
+          ],
+        ),
       ),
     );
   }
@@ -290,8 +315,9 @@ class _AdminWalletScreenState extends State<AdminWalletScreen> {
 
 class AdminWalletDetailScreen extends StatefulWidget {
   final int userId;
+  final VoidCallback? onChanged;
 
-  const AdminWalletDetailScreen({super.key, required this.userId});
+  const AdminWalletDetailScreen({super.key, required this.userId, this.onChanged});
 
   @override
   State<AdminWalletDetailScreen> createState() => _AdminWalletDetailScreenState();
@@ -359,7 +385,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
     String? amountError;
     String? reasonError;
 
-    final submitted = await showModalBottomSheet<bool>(
+    final submitted = await showAppModalSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: c.sheetBg,
@@ -475,6 +501,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
     } else {
       HapticFeedback.mediumImpact();
       showAppSnackBar(context, S.balanceAdjusted);
+      widget.onChanged?.call();
       await _load();
     }
   }
@@ -510,7 +537,7 @@ class _AdminWalletDetailScreenState extends State<AdminWalletDetailScreen> {
                             color: c.accent,
                             onRefresh: _load,
                             child: ListView(
-                              padding: frame.inset(
+                              padding: frame.pad(
                                 const EdgeInsets.fromLTRB(20, 20, 20, 40),
                                 maxWidth: frame.isExpanded ? 1120 : Breakpoints.readingMaxWidth,
                               ),

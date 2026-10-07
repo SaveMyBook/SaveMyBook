@@ -290,7 +290,13 @@ class _BookManageScreenState extends State<BookManageScreen> {
       onRefresh: _load,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final padding = responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth, top: 12, bottom: 32);
+          final padding = responsiveListPadding(
+            constraints,
+            maxWidth: Breakpoints.pageMaxWidth,
+            horizontal: context.isWide ? 24 : 16,
+            top: 12,
+            bottom: 32,
+          );
           final columns = context.isWide
               ? ((constraints.maxWidth - padding.horizontal + 12) / 372).floor().clamp(1, 4)
               : 1;
@@ -397,8 +403,10 @@ class _BookManageScreenState extends State<BookManageScreen> {
 
   Widget _buildFilterBar(AppColors c) {
     return LayoutBuilder(
-      builder: (context, constraints) =>
-          _buildFilterContent(c, responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth).left),
+      builder: (context, constraints) => _buildFilterContent(
+        c,
+        responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth, horizontal: context.isWide ? 24 : 16).left,
+      ),
     );
   }
 
@@ -412,15 +420,21 @@ class _BookManageScreenState extends State<BookManageScreen> {
         children: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: side),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: c.divider),
-              ),
-              child: AppSearchField(
-                controller: _searchController,
-                hint: S.searchTitleAuthorIsbn2,
-                onChanged: (value) => setState(() => _keyword = value.trim()),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: context.isWide ? 560 : double.infinity),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: c.divider),
+                  ),
+                  child: AppSearchField(
+                    controller: _searchController,
+                    hint: S.searchTitleAuthorIsbn2,
+                    onChanged: (value) => setState(() => _keyword = value.trim()),
+                  ),
+                ),
               ),
             ),
           ),

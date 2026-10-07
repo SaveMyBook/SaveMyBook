@@ -50,6 +50,8 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    // 平板左右並排時右側內容與分頁的第一頁沒有上一頁，不顯示返回鍵
+    final back = showBack && (onBack != null || (Navigator.maybeOf(context)?.canPop() ?? false));
 
     final radius = bottom == null
         ? const BorderRadius.only(
@@ -105,7 +107,7 @@ class AppHeader extends StatelessWidget {
                           ],
                         ),
                       ),
-                      if (showBack)
+                      if (back)
                         Positioned(
                           left: 4,
                           child: IconButton(

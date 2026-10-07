@@ -155,23 +155,24 @@ class _AdminBackupScreenState extends State<AdminBackupScreen> {
                     : RefreshIndicator(
                         color: c.accent,
                         onRefresh: _load,
-                        child: ListView.builder(
-                          padding: frame.inset(const EdgeInsets.fromLTRB(16, 20, 16, 32)),
-                          itemCount: _backups.isEmpty ? 2 : _backups.length + 1,
+                        child: AdminCardList(
+                          frame: frame,
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                          maxColumns: _backups.isEmpty ? 1 : 3,
+                          equalHeight: false,
+                          header: FadeSlideIn(
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildHeaderCard(c, wide: frame.isWide),
+                            ),
+                          ),
+                          itemCount: _backups.isEmpty ? 1 : _backups.length,
                           itemBuilder: (_, i) {
-                            if (i == 0) {
-                              return FadeSlideIn(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 16),
-                                  child: _buildHeaderCard(c, wide: frame.isWide),
-                                ),
-                              );
-                            }
                             if (_backups.isEmpty) return _buildEmptyRow(c);
 
-                            final record = _backups[i - 1];
+                            final record = _backups[i];
                             return RevealOnScroll(
-                              index: i,
+                              index: i + 1,
                               child: _buildRow(record, c),
                             );
                           },

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../firebase_options.dart';
 import '../models/notification_category.dart';
 import '../features/chat/chat_room_screen.dart';
+import '../features/home/home_screen.dart';
 import '../features/home/notification_screen.dart';
 import '../widgets/in_app_banner.dart';
 import 'api_service.dart';
@@ -208,7 +209,7 @@ class PushService {
       _pendingOpen = data;
       return;
     }
-    final navigator = navigatorKey?.currentState;
+    final navigator = HomeScreen.tabNavigator ?? navigatorKey?.currentState;
     if (navigator == null) return;
 
     final api = ApiService();
@@ -221,7 +222,7 @@ class PushService {
       relatedType: relatedType.isEmpty ? null : relatedType,
       relatedId: int.tryParse('${data['related_id']}'),
     );
-    if (!opened) {
+    if (!opened && !HomeScreen.showNotifications()) {
       navigatorKey?.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationScreen()));
     }
   }

@@ -70,7 +70,7 @@ class _AiDecisionsTabState extends State<AiDecisionsTab> with AutomaticKeepAlive
       builder: (context, frame) => Column(
         children: [
           Padding(
-            padding: frame.inset(const EdgeInsets.fromLTRB(16, 14, 16, 4), maxWidth: 1200),
+            padding: frame.inset(EdgeInsets.fromLTRB(frame.isWide ? 24 : 16, 14, frame.isWide ? 24 : 16, 4), maxWidth: 1200),
             child: Align(alignment: Alignment.centerLeft, child: AiPeriodPicker(period: _period, onChanged: _setPeriod)),
           ),
           Expanded(
@@ -92,7 +92,7 @@ class _AiDecisionsTabState extends State<AiDecisionsTab> with AutomaticKeepAlive
                             duration: Motion.micro,
                             child: ListView(
                               physics: const AlwaysScrollableScrollPhysics(),
-                              padding: frame.inset(const EdgeInsets.fromLTRB(16, 10, 16, 40), maxWidth: 1200),
+                              padding: frame.inset(EdgeInsets.fromLTRB(frame.isWide ? 24 : 16, 10, frame.isWide ? 24 : 16, 40), maxWidth: 1200),
                               children: _sections(c, report, frame),
                             ),
                           ),

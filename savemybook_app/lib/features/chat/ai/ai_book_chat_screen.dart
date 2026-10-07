@@ -496,7 +496,23 @@ class _AiBookChatScreenState extends State<AiBookChatScreen> {
             ),
           ],
         ),
-        if (item.books.isNotEmpty)
+        if (item.books.isNotEmpty && context.isWide)
+          Padding(
+            padding: const EdgeInsets.only(left: 38, top: 8, right: 8),
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final (i, book) in item.books.indexed)
+                  FadeSlideIn(
+                    index: i,
+                    offsetY: 10,
+                    child: SizedBox(height: AiBookChatCard.height, child: AiBookChatCard(suggestion: book)),
+                  ),
+              ],
+            ),
+          )
+        else if (item.books.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: SizedBox(

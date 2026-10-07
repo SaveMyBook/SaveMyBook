@@ -20,6 +20,7 @@ import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../books/barcode_scanner_screen.dart';
 import 'ai_listing_assist.dart';
+import 'listing_form_layout.dart';
 import 'sell_book_detail_screen.dart';
 import '../../i18n/strings.dart';
 
@@ -494,12 +495,8 @@ class _SellBookScreenState extends State<SellBookScreen> {
                 builder: (context, constraints) => SingleChildScrollView(
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   physics: const ClampingScrollPhysics(),
-                  padding: responsiveListPadding(
-                    constraints,
-                    maxWidth: Breakpoints.formMaxWidth,
-                    bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-                  ),
-                  child: _buildStep1(c),
+                  padding: ListingFormLayout.padding(context, constraints, bottom: MediaQuery.of(context).viewInsets.bottom + 16),
+                  child: _buildStep1(c, split: ListingFormLayout.isSplit(constraints)),
                 ),
               ),
             ),
@@ -509,178 +506,195 @@ class _SellBookScreenState extends State<SellBookScreen> {
     );
   }
 
-  Widget _buildStep1(AppColors c) {
+  Widget _buildStep1(AppColors c, {bool split = false}) {
     final isbnText = _isbnController.text.trim();
     final canLookup = normalizeIsbn(isbnText) != null;
 
+    final draft = AnimatedSize(
+      duration: Motion.base,
+      curve: Motion.emphasized,
+      alignment: Alignment.topCenter,
+      child: _draftOffer == null ? const SizedBox(width: double.infinity) : _buildDraftBanner(c),
+    );
+    final ai = ValueListenableBuilder<AiStatusInfo>(
+      valueListenable: AiStatus.listenable,
+      builder: (context, status, _) => AnimatedSize(
+        duration: Motion.base,
+        curve: Motion.emphasized,
+        alignment: Alignment.topCenter,
+        child: status.listingAssist
+            ? Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: AiAssistButton(onTap: _onAiAssist, busy: _aiRunning),
+              )
+            : const SizedBox(width: double.infinity),
+      ),
+    );
+    final isbn = _flashed('isbn', FormRowCard(
+      label: 'ISBN',
+      labelWidth: 88,
+      child: Row(
+        children: [
+          Expanded(
+            child: AppTextField(
+              controller: _isbnController,
+              hint: S.tapIconRightScan,
+              maxLength: 13,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.search,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9Xx]')),
+                TextInputFormatter.withFunction(
+                  (_, value) => value.copyWith(text: value.text.toUpperCase()),
+                ),
+              ],
+              suffix: SwitchIn(
+                duration: Motion.micro,
+                child: canLookup
+                    ? IconButton(
+                        key: const ValueKey('lookup'),
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(Icons.search_rounded, size: 20, color: c.accent),
+                        onPressed: () => _fetchBookInfoByIsbn(isbnText),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('none')),
+              ),
+              onChanged: (_) => setState(() {}),
+              onSubmitted: (value) {
+                if (value.trim().isNotEmpty) _fetchBookInfoByIsbn(value);
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+          Semantics(
+            button: true,
+            label: S.scan,
+            child: PressableScale(
+              haptic: true,
+              onTap: _onScanISBN,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.qr_code_scanner_rounded, size: 20, color: c.accent),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ));
+    final title = _flashed('title', FormRowCard(
+      label: S.title,
+      labelWidth: 88,
+      isRequired: true,
+      child: AppTextField(
+        controller: _titleController,
+        maxLength: 255,
+        textInputAction: TextInputAction.next,
+        errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle2 : null,
+        onChanged: (_) => setState(() {}),
+      ),
+    ));
+    final author = _flashed('author', FormRowCard(
+      label: S.author2,
+      labelWidth: 88,
+      child: AppTextField(controller: _authorController, maxLength: 255, textInputAction: TextInputAction.next),
+    ));
+    final publisher = _flashed('publisher', FormRowCard(
+      label: S.publisher2,
+      labelWidth: 88,
+      child: AppTextField(controller: _publisherController, maxLength: 255, textInputAction: TextInputAction.next),
+    ));
+    final publishDate = _flashed('publish_date', FormRowCard(
+      label: S.publicationDate,
+      labelWidth: 88,
+      child: AppDateField(
+        value: _selectedDate,
+        hint: S.tapPickPublicationDate,
+        helpText: S.pickPublicationDate,
+        onChanged: (value) {
+          setState(() => _selectedDate = value);
+          _scheduleSave();
+        },
+      ),
+    ));
+    final category = _flashed('category', FormRowCard(
+      label: S.category,
+      labelWidth: 88,
+      isRequired: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppSelect<int>(
+            value: _categoryId,
+            loading: _isLoadingCategories,
+            title: S.pickCategory,
+            leadingIcon: Icons.category_outlined,
+            errorText: _showErrors && _categoryId == null ? S.chooseCategory2 : null,
+            options: [
+              for (final cat in _categories) AppSelectOption(value: cat.categoryId, label: cat.categoryName),
+            ],
+            onChanged: _categories.isEmpty
+                ? null
+                : (value) {
+                    setState(() => _categoryId = value);
+                    _scheduleSave();
+                  },
+          ),
+          if (!_isLoadingCategories && _categories.isEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _loadCategories,
+                style: TextButton.styleFrom(
+                  foregroundColor: c.accent,
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                icon: const Icon(Icons.refresh_rounded, size: 16),
+                label: Text(S.couldnTLoadCategoriesTapRetry, style: const TextStyle(fontSize: 12)),
+              ),
+            ),
+        ],
+      ),
+    ));
+    final description = _flashed('description', FormRowCard(
+      label: S.description,
+      labelWidth: 88,
+      alignTop: true,
+      child: AppTextField(
+        controller: _descriptionController,
+        minLines: split ? 8 : 3,
+        maxLines: split ? 14 : 6,
+        maxLength: 5000,
+        keyboardType: TextInputType.multiline,
+      ),
+    ));
+    final next = PrimaryButton(label: S.next, height: 50, icon: Icons.arrow_forward_rounded, onPressed: _onNext);
+
+    if (split) {
+      return ListingFormLayout.columns(
+        left: [draft, ai, isbn, description],
+        right: [title, author, publisher, publishDate, category, MissingHint(missing: _missing), next, const SizedBox(height: 24)],
+      );
+    }
     return Column(
       children: [
-        AnimatedSize(
-          duration: Motion.base,
-          curve: Motion.emphasized,
-          alignment: Alignment.topCenter,
-          child: _draftOffer == null ? const SizedBox(width: double.infinity) : _buildDraftBanner(c),
-        ),
-        ValueListenableBuilder<AiStatusInfo>(
-          valueListenable: AiStatus.listenable,
-          builder: (context, status, _) => AnimatedSize(
-            duration: Motion.base,
-            curve: Motion.emphasized,
-            alignment: Alignment.topCenter,
-            child: status.listingAssist
-                ? Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: AiAssistButton(onTap: _onAiAssist, busy: _aiRunning),
-                  )
-                : const SizedBox(width: double.infinity),
-          ),
-        ),
-        _flashed('isbn', FormRowCard(
-          label: 'ISBN',
-          labelWidth: 88,
-          child: Row(
-            children: [
-              Expanded(
-                child: AppTextField(
-                  controller: _isbnController,
-                  hint: S.tapIconRightScan,
-                  maxLength: 13,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.search,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9Xx]')),
-                    TextInputFormatter.withFunction(
-                      (_, value) => value.copyWith(text: value.text.toUpperCase()),
-                    ),
-                  ],
-                  suffix: SwitchIn(
-                    duration: Motion.micro,
-                    child: canLookup
-                        ? IconButton(
-                            key: const ValueKey('lookup'),
-                            visualDensity: VisualDensity.compact,
-                            icon: Icon(Icons.search_rounded, size: 20, color: c.accent),
-                            onPressed: () => _fetchBookInfoByIsbn(isbnText),
-                          )
-                        : const SizedBox.shrink(key: ValueKey('none')),
-                  ),
-                  onChanged: (_) => setState(() {}),
-                  onSubmitted: (value) {
-                    if (value.trim().isNotEmpty) _fetchBookInfoByIsbn(value);
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Semantics(
-                button: true,
-                label: S.scan,
-                child: PressableScale(
-                  haptic: true,
-                  onTap: _onScanISBN,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: c.accent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.qr_code_scanner_rounded, size: 20, color: c.accent),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        )),
-        _flashed('title', FormRowCard(
-          label: S.title,
-          labelWidth: 88,
-          isRequired: true,
-          child: AppTextField(
-            controller: _titleController,
-            maxLength: 255,
-            textInputAction: TextInputAction.next,
-            errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle2 : null,
-            onChanged: (_) => setState(() {}),
-          ),
-        )),
-        _flashed('author', FormRowCard(
-          label: S.author2,
-          labelWidth: 88,
-          child: AppTextField(controller: _authorController, maxLength: 255, textInputAction: TextInputAction.next),
-        )),
-        _flashed('publisher', FormRowCard(
-          label: S.publisher2,
-          labelWidth: 88,
-          child: AppTextField(controller: _publisherController, maxLength: 255, textInputAction: TextInputAction.next),
-        )),
-        _flashed('publish_date', FormRowCard(
-          label: S.publicationDate,
-          labelWidth: 88,
-          child: AppDateField(
-            value: _selectedDate,
-            hint: S.tapPickPublicationDate,
-            helpText: S.pickPublicationDate,
-            onChanged: (value) {
-              setState(() => _selectedDate = value);
-              _scheduleSave();
-            },
-          ),
-        )),
-        _flashed('category', FormRowCard(
-          label: S.category,
-          labelWidth: 88,
-          isRequired: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppSelect<int>(
-                value: _categoryId,
-                loading: _isLoadingCategories,
-                title: S.pickCategory,
-                leadingIcon: Icons.category_outlined,
-                errorText: _showErrors && _categoryId == null ? S.chooseCategory2 : null,
-                options: [
-                  for (final cat in _categories) AppSelectOption(value: cat.categoryId, label: cat.categoryName),
-                ],
-                onChanged: _categories.isEmpty
-                    ? null
-                    : (value) {
-                        setState(() => _categoryId = value);
-                        _scheduleSave();
-                      },
-              ),
-              if (!_isLoadingCategories && _categories.isEmpty)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: _loadCategories,
-                    style: TextButton.styleFrom(
-                      foregroundColor: c.accent,
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                    ),
-                    icon: const Icon(Icons.refresh_rounded, size: 16),
-                    label: Text(S.couldnTLoadCategoriesTapRetry, style: const TextStyle(fontSize: 12)),
-                  ),
-                ),
-            ],
-          ),
-        )),
-        _flashed('description', FormRowCard(
-          label: S.description,
-          labelWidth: 88,
-          alignTop: true,
-          child: AppTextField(
-            controller: _descriptionController,
-            minLines: 3,
-            maxLines: 6,
-            maxLength: 5000,
-            keyboardType: TextInputType.multiline,
-          ),
-        )),
+        draft,
+        ai,
+        isbn,
+        title,
+        author,
+        publisher,
+        publishDate,
+        category,
+        description,
         const SizedBox(height: 12),
         MissingHint(missing: _missing),
-        PrimaryButton(label: S.next, height: 50, icon: Icons.arrow_forward_rounded, onPressed: _onNext),
+        next,
         SizedBox(height: context.usesSideNavigation ? 24 : 120),
       ],
     );

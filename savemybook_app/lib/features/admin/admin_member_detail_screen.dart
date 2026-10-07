@@ -19,8 +19,9 @@ import 'admin_layout.dart';
 
 class AdminMemberDetailScreen extends StatefulWidget {
   final int userId;
+  final VoidCallback? onChanged;
 
-  const AdminMemberDetailScreen({super.key, required this.userId});
+  const AdminMemberDetailScreen({super.key, required this.userId, this.onChanged});
 
   @override
   State<AdminMemberDetailScreen> createState() => _AdminMemberDetailScreenState();
@@ -71,6 +72,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
     } else {
       showAppSnackBar(context, successMessage);
+      widget.onChanged?.call();
       await _load();
     }
   }
@@ -370,7 +372,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                             color: c.accent,
                             onRefresh: _load,
                             child: ListView(
-                              padding: frame.inset(
+                              padding: frame.pad(
                                 const EdgeInsets.fromLTRB(20, 20, 20, 40),
                                 maxWidth: frame.isExpanded ? 1120 : Breakpoints.readingMaxWidth,
                               ),

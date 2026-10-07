@@ -149,7 +149,7 @@ class _AdminAnnouncementEditScreenState extends State<AdminAnnouncementEditScree
                     absorbing: _isSaving,
                     child: SingleChildScrollView(
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: frame.inset(
+                      padding: frame.pad(
                         EdgeInsets.fromLTRB(16, 20, 16, MediaQuery.of(context).viewInsets.bottom + 20),
                         maxWidth: Breakpoints.formMaxWidth,
                       ),

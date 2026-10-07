@@ -73,7 +73,7 @@ class _SellerScreenState extends State<SellerScreen> {
           LayoutBuilder(
             builder: (context, constraints) => _buildProfile(
               c,
-              responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth).left,
+              responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth, horizontal: context.isWide ? 24 : 16).left,
             ),
           ),
           Expanded(
@@ -107,6 +107,7 @@ class _SellerScreenState extends State<SellerScreen> {
                                       padding: responsiveListPadding(
                                         constraints,
                                         maxWidth: Breakpoints.pageMaxWidth,
+                                        horizontal: context.isWide ? 24 : 16,
                                         top: 4,
                                         bottom: MediaQuery.of(context).padding.bottom + 24,
                                       ),

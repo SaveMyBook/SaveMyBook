@@ -13,6 +13,7 @@ import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/state_views.dart';
@@ -217,12 +218,13 @@ Future<AiListingAssist?> runAiListingAssist(
         ];
   final c = AppColors.of(context);
   var needsConsent = false;
-  final result = await showModalBottomSheet<AiListingAssist>(
+  final result = await showAppModalSheet<AiListingAssist>(
     context: context,
     isDismissible: false,
     enableDrag: false,
     backgroundColor: c.sheetBg,
     constraints: const BoxConstraints(maxWidth: 520),
+    dialogMaxWidth: 460,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => AiAssistProgressSheet(
       steps: steps,
@@ -459,11 +461,12 @@ Future<AiListingSelection?> showAiListingResultSheet(
   required AiListingTargets targets,
 }) {
   final c = AppColors.of(context);
-  return showModalBottomSheet<AiListingSelection>(
+  return showAppModalSheet<AiListingSelection>(
     context: context,
     isScrollControlled: true,
     backgroundColor: c.sheetBg,
     constraints: BoxConstraints(maxWidth: 640, maxHeight: MediaQuery.sizeOf(context).height * 0.9),
+    dialogMaxWidth: 600,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => AiListingResultSheet(result: result, targets: targets),
   );
@@ -549,12 +552,9 @@ class _AiListingResultSheetState extends State<AiListingResultSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 10),
-          Center(
-            child: Container(width: 36, height: 4, decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2))),
-          ),
+          const SheetHandle(margin: EdgeInsets.only(top: 10)),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+            padding: EdgeInsets.fromLTRB(20, isDialogSheet(context) ? 6 : 14, 20, 6),
             child: Row(
               children: [
                 Icon(Icons.auto_awesome_rounded, color: c.accent, size: 20),

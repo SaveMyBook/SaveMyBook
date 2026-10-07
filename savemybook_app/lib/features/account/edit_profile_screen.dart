@@ -165,11 +165,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () => FocusScope.of(context).unfocus(),
-              child: LayoutBuilder(builder: (context, constraints) => SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 20),
-              child: Column(
-                children: [
+              child: LayoutBuilder(builder: (context, constraints) {
+                final identity = <Widget>[
                   Stack(
                     children: [
                       PressableScale(
@@ -217,7 +214,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 18),
+                ];
+                final fields = <Widget>[
                   FormRowCard(
                     label: S.bio,
                     alignTop: true,
@@ -269,10 +267,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     isLoading: _isSaving,
                     onPressed: _save,
                   ),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            )),
+                ];
+                if (context.isWide && constraints.maxWidth >= 900) {
+                  return SingleChildScrollView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: responsiveListPadding(constraints, maxWidth: Breakpoints.listMaxWidth, horizontal: 24, top: 24, bottom: 40),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 280,
+                          child: AppCard(
+                            padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+                            child: Column(children: identity),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(child: Column(children: fields)),
+                      ],
+                    ),
+                  );
+                }
+                return SingleChildScrollView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: responsiveListPadding(
+                    constraints,
+                    maxWidth: Breakpoints.formMaxWidth,
+                    horizontal: context.isWide ? 24 : 20,
+                    top: 20,
+                    bottom: 20,
+                  ),
+                  child: Column(
+                    children: [
+                      ...identity,
+                      const SizedBox(height: 18),
+                      ...fields,
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                );
+              }),
             ),
           ),
         ],

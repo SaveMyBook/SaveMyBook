@@ -12,6 +12,7 @@ import '../../utils/app_colors.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/app_radius.dart';
 import '../../utils/cabinet_labels.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
@@ -240,19 +241,18 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
 
   Future<T?> _menu<T>({required String title, String? subtitle, required List<_MenuEntry<T>> entries}) {
     final c = AppColors.of(context);
-    return showModalBottomSheet<T>(
+    return showAppModalSheet<T>(
       context: context,
       backgroundColor: c.sheetBg,
       isScrollControlled: true,
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.75, maxWidth: 640),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      dialogMaxWidth: 440,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 10),
-            Container(width: 36, height: 4, decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 12),
+            const SheetHandle(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(title,
@@ -489,7 +489,7 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
     final options = _placeOptions(summary, door);
     if (options.isEmpty) return;
     final c = AppColors.of(context);
-    final picked = await showModalBottomSheet<int>(
+    final picked = await showAppModalSheet<int>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -663,8 +663,8 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
                                 controller: _scroll,
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 padding: frame.inset(
-                                  const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                                  maxWidth: frame.isExpanded ? 1120 : Breakpoints.readingMaxWidth,
+                                  frame.isWide ? const EdgeInsets.fromLTRB(24, 20, 24, 32) : const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                                  maxWidth: _twoColumns(frame) ? 1120 : Breakpoints.readingMaxWidth,
                                 ),
                                 child: _buildBody(summary, frame, c),
                               ),
@@ -678,6 +678,8 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
     );
   }
 
+  static bool _twoColumns(AdminFrame frame) => frame.width >= 840;
+
   Widget _buildBody(AdminCabinetDeviceSummary summary, AdminFrame frame, AppColors c) {
     final primary = <Widget>[
       _buildDevice(summary, c),
@@ -689,7 +691,7 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
       if (_reviews.isNotEmpty) _buildReviews(c),
       _buildHistory(c),
     ];
-    if (frame.isExpanded) {
+    if (_twoColumns(frame)) {
       return AdminColumns(spacing: 12, columns: [primary, secondary]);
     }
     return Column(
@@ -1355,14 +1357,7 @@ class _PlaceSheetState extends State<_PlaceSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 38,
-              height: 4,
-              margin: const EdgeInsets.only(top: 10, bottom: 14),
-              decoration: BoxDecoration(color: c.iconInactive.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
+          const SheetHandle(margin: EdgeInsets.only(top: 10, bottom: 14)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(

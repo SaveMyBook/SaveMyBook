@@ -3,8 +3,10 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
@@ -70,7 +72,9 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
                                 ],
                               )
                             : ListView.builder(key: const ValueKey('items'), 
-                                padding: frame.inset(const EdgeInsets.all(16)),
+                                padding: frame.isWide
+                                    ? frame.inset(const EdgeInsets.all(24), maxWidth: Breakpoints.readingMaxWidth)
+                                    : frame.inset(const EdgeInsets.all(16)),
                                 itemCount: _logs.length,
                                 itemBuilder: (_, i) => RevealOnScroll(
                                   index: i,
@@ -87,7 +91,7 @@ class _AdminMaintenanceLogScreenState extends State<AdminMaintenanceLogScreen> {
   }
 
   void _showDetail(MaintenanceLog log, AppColors c) {
-    showModalBottomSheet<void>(
+    showAppModalSheet<void>(
       context: context,
       backgroundColor: c.sheetBg,
       shape: const RoundedRectangleBorder(

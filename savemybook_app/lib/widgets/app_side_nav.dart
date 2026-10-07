@@ -11,6 +11,9 @@ import 'app_asset_image.dart';
 import 'app_header.dart';
 
 class AppSideNav extends StatelessWidget {
+  static const int chatTab = 5;
+  static const int cartTab = 6;
+
   final int selectedIndex;
   final ValueChanged<int> onItemSelected;
   final bool extended;
@@ -22,18 +25,34 @@ class AppSideNav extends StatelessWidget {
     final c = AppColors.of(context);
     final padding = MediaQuery.paddingOf(context);
     final items = [
-      (icon: Icons.home_outlined, active: Icons.home_rounded, label: S.home, badge: null as ValueListenable<int>?),
-      (icon: Icons.notifications_none_rounded, active: Icons.notifications_rounded, label: S.alerts, badge: ApiService.unreadNotificationCount),
-      (icon: Icons.add_rounded, active: Icons.add_rounded, label: S.sellBook, badge: null),
-      (icon: Icons.qr_code_scanner_rounded, active: Icons.qr_code_scanner_rounded, label: S.collect, badge: null),
-      (icon: Icons.person_outline_rounded, active: Icons.person_rounded, label: S.member, badge: null),
+      (index: 0, icon: Icons.home_outlined, active: Icons.home_rounded, label: S.home, badge: null as ValueListenable<int>?),
+      (index: 1, icon: Icons.notifications_none_rounded, active: Icons.notifications_rounded, label: S.alerts, badge: ApiService.unreadNotificationCount),
+      (index: chatTab, icon: Icons.chat_bubble_outline_rounded, active: Icons.chat_bubble_rounded, label: S.chat, badge: ApiService.unreadChatCount),
+      (index: cartTab, icon: Icons.shopping_cart_outlined, active: Icons.shopping_cart_rounded, label: S.cart, badge: ApiService.cartCount),
+      (index: 3, icon: Icons.qr_code_scanner_rounded, active: Icons.qr_code_scanner_rounded, label: S.collect, badge: null),
+      (index: 4, icon: Icons.person_outline_rounded, active: Icons.person_rounded, label: S.member, badge: null),
     ];
+
+    Widget item(int index, IconData icon, IconData active, String label, ValueListenable<int>? badge, {bool prominent = false}) {
+      return _SideNavItem(
+        icon: selectedIndex == index ? active : icon,
+        label: label,
+        selected: selectedIndex == index,
+        prominent: prominent,
+        extended: extended,
+        badge: badge,
+        onTap: () {
+          if (selectedIndex != index) HapticFeedback.selectionClick();
+          onItemSelected(index);
+        },
+      );
+    }
 
     return AnimatedContainer(
       duration: Motion.base,
       curve: Motion.standard,
       width: (extended ? 232 : 88) + padding.left,
-      padding: EdgeInsets.fromLTRB(padding.left + 12, padding.top + 16, 12, padding.bottom + 16),
+      padding: EdgeInsets.fromLTRB(padding.left + 12, padding.top + 16, 12, 0),
       decoration: BoxDecoration(
         color: c.card,
         border: Border(right: BorderSide(color: c.divider)),
@@ -42,7 +61,7 @@ class AppSideNav extends StatelessWidget {
         crossAxisAlignment: extended ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: extended ? 8 : 0, bottom: 24),
+            padding: EdgeInsets.only(left: extended ? 8 : 0, bottom: 20),
             child: Row(
               mainAxisSize: extended ? MainAxisSize.max : MainAxisSize.min,
               children: [
@@ -64,21 +83,22 @@ class AppSideNav extends StatelessWidget {
               ],
             ),
           ),
-          for (final (i, item) in items.indexed) ...[
-            _SideNavItem(
-              icon: selectedIndex == i ? item.active : item.icon,
-              label: item.label,
-              selected: selectedIndex == i,
-              prominent: i == 2,
-              extended: extended,
-              badge: item.badge,
-              onTap: () {
-                if (selectedIndex != i) HapticFeedback.selectionClick();
-                onItemSelected(i);
-              },
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: padding.bottom + 16),
+              child: Column(
+                crossAxisAlignment: extended ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
+                children: [
+                  item(2, Icons.add_rounded, Icons.add_rounded, S.sellBook, null, prominent: true),
+                  SizedBox(height: extended ? 16 : 12),
+                  for (final entry in items) ...[
+                    item(entry.index, entry.icon, entry.active, entry.label, entry.badge),
+                    SizedBox(height: extended ? 4 : 2),
+                  ],
+                ],
+              ),
             ),
-            const SizedBox(height: 6),
-          ],
+          ),
         ],
       ),
     );

@@ -533,6 +533,7 @@ abstract class AppLocalizations {
   String get enquiryNotFound;
   String get support;
   String get supportAgent;
+  String get selectItemToView;
   String get writeReply;
   String get coins;
   String get transactions;
@@ -4114,6 +4115,9 @@ class _LEn extends AppLocalizations {
 
   @override
   String get supportAgent => 'Support agent';
+
+  @override
+  String get selectItemToView => 'Select an item on the left';
 
   @override
   String get writeReply => 'Write a reply…';
@@ -11792,6 +11796,9 @@ class _LJa extends AppLocalizations {
   String get supportAgent => 'サポート担当者';
 
   @override
+  String get selectItemToView => '左側から項目を選択してください';
+
+  @override
   String get writeReply => '返信を入力…';
 
   @override
@@ -19466,6 +19473,9 @@ class _LKo extends AppLocalizations {
 
   @override
   String get supportAgent => '상담원';
+
+  @override
+  String get selectItemToView => '왼쪽에서 항목을 선택하세요';
 
   @override
   String get writeReply => '답변 입력…';
@@ -27144,6 +27154,9 @@ class _LZh extends AppLocalizations {
   String get supportAgent => '客服人員';
 
   @override
+  String get selectItemToView => '請從左側選擇項目';
+
+  @override
   String get writeReply => '輸入回覆…';
 
   @override
@@ -34820,6 +34833,9 @@ class _LZhHans extends AppLocalizations {
   String get supportAgent => '客服人员';
 
   @override
+  String get selectItemToView => '请从左侧选择项目';
+
+  @override
   String get writeReply => '输入回复…';
 
   @override
@@ -42494,6 +42510,9 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get supportAgent => '客服人員';
+
+  @override
+  String get selectItemToView => '請從左側選擇項目';
 
   @override
   String get writeReply => '輸入回覆…';

@@ -721,6 +721,7 @@
   "enquiryNotFound": "找不到此提问",
   "support": "客服",
   "supportAgent": "客服人员",
+  "selectItemToView": "请从左侧选择项目",
   "writeReply": "输入回复…",
   "coins": "代币中心",
   "transactions": "交易记录",

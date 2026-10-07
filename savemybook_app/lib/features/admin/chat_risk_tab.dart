@@ -9,6 +9,7 @@ import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import 'admin_layout.dart';
 import 'admin_member_detail_screen.dart';
@@ -98,21 +99,58 @@ class _ChatRiskTabState extends State<ChatRiskTab> with AutomaticKeepAliveClient
                   color: c.accent,
                   onRefresh: _load,
                   child: AdminLayout(
-                    builder: (context, frame) => ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 40)),
-                      itemCount: _items.length,
-                      itemBuilder: (_, i) => RevealOnScroll(
-                        index: i,
-                        child: Padding(padding: const EdgeInsets.only(bottom: 14), child: _card(c, _items[i])),
-                      ),
-                    ),
+                    builder: (context, frame) {
+                      if (!frame.isWide) {
+                        return ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 40)),
+                          itemCount: _items.length,
+                          itemBuilder: (_, i) => RevealOnScroll(
+                            index: i,
+                            child: Padding(padding: const EdgeInsets.only(bottom: 14), child: _card(c, _items[i])),
+                          ),
+                        );
+                      }
+                      final columns = frame.width >= 840 ? 2 : 1;
+                      final rows = (_items.length / columns).ceil();
+                      return ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: frame.inset(
+                          const EdgeInsets.fromLTRB(24, 20, 24, 40),
+                          maxWidth: columns == 1 ? Breakpoints.readingMaxWidth : 1200,
+                        ),
+                        itemCount: rows,
+                        itemBuilder: (_, row) {
+                          final alerts = _items.skip(row * columns).take(columns).toList();
+                          return RevealOnScroll(
+                            key: ValueKey(alerts.map((a) => a.alertId).join(',')),
+                            index: row,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 14),
+                              child: IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    for (var i = 0; i < columns; i++) ...[
+                                      if (i > 0) const SizedBox(width: 14),
+                                      Expanded(
+                                        child: i < alerts.length ? _card(c, alerts[i], fill: columns > 1) : const SizedBox.shrink(),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
     );
   }
 
-  Widget _card(AppColors c, ChatRiskAlert alert) {
+  Widget _card(AppColors c, ChatRiskAlert alert, {bool fill = false}) {
     final busy = _busy.contains(alert.alertId);
     final categories = <ChatRiskCategory>{for (final s in alert.samples) ...s.categories};
     final count = alert.hitCount;
@@ -196,6 +234,7 @@ class _ChatRiskTabState extends State<ChatRiskTab> with AutomaticKeepAliveClient
             ),
           ],
           const SizedBox(height: 12),
+          if (fill) const Spacer(),
           AnimatedOpacity(
             duration: Motion.micro,
             opacity: busy ? 0.5 : 1,

@@ -136,6 +136,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                       padding: responsiveListPadding(
                                         constraints,
                                         maxWidth: Breakpoints.pageMaxWidth,
+                                        horizontal: context.isWide ? 24 : 16,
                                         bottom: MediaQuery.of(context).padding.bottom + 24,
                                       ),
                                       gridDelegate: BookCard.gridDelegateOf(context),

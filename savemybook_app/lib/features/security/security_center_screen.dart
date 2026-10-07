@@ -190,10 +190,9 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                         setState(() => _passkeysTick += 1);
                         return _load();
                       },
-                      child: LayoutBuilder(builder: (context, constraints) => ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
-                        children: [
+                      child: LayoutBuilder(builder: (context, constraints) {
+                        final split = context.isWide && constraints.maxWidth >= 900;
+                        final left = [
                           if (!_status.available) ...[
                             FadeSlideIn(child: _unavailableCard(c)),
                             const SizedBox(height: 16),
@@ -205,7 +204,8 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                           const SizedBox(height: 24),
                           _sectionTitle(c, S.sign),
                           FadeSlideIn(index: 3, child: _signInCard(c)),
-                          const SizedBox(height: 24),
+                        ];
+                        final right = [
                           if (_status.passkeyAvailable && _passkeySupported) ...[
                             _sectionTitle(c, S.passkeys),
                             FadeSlideIn(
@@ -226,8 +226,30 @@ class _SecurityCenterScreenState extends State<SecurityCenterScreen> {
                               },
                             ),
                           ),
-                        ],
-                      )),
+                        ];
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: responsiveListPadding(
+                            constraints,
+                            maxWidth: split ? Breakpoints.listMaxWidth + 160 : Breakpoints.formMaxWidth,
+                            horizontal: context.isWide ? 24 : 20,
+                            top: 20,
+                            bottom: 40,
+                          ),
+                          children: split
+                              ? [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: left)),
+                                      const SizedBox(width: 24),
+                                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: right)),
+                                    ],
+                                  ),
+                                ]
+                              : [...left, const SizedBox(height: 24), ...right],
+                        );
+                      }),
                     ),
             ),
           ),

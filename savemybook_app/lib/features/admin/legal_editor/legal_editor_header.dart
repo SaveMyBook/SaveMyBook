@@ -11,11 +11,13 @@ class LegalEditorHeaderBar extends StatelessWidget {
   final bool dirty;
   final bool saving;
   final VoidCallback? onSave;
+  final bool showPreview;
 
   const LegalEditorHeaderBar({
     super.key,
     required this.selectedMode,
     required this.onSelectMode,
+    this.showPreview = true,
     required this.dirty,
     required this.saving,
     required this.onSave,
@@ -31,7 +33,7 @@ class LegalEditorHeaderBar extends StatelessWidget {
         children: [
           Expanded(
             child: _ModeSegments(
-              labels: [S.sections, S.plainText, S.preview],
+              labels: [S.sections, S.plainText, if (showPreview) S.preview],
               selected: selectedMode,
               onSelect: onSelectMode,
             ),

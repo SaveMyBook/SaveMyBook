@@ -156,116 +156,141 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     final path = _avatarPath;
     final count = _selected.length + 1;
 
+    final avatar = Center(
+      child: GestureDetector(
+        onTap: _pickAvatar,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 104,
+              height: 104,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: c.accent.withValues(alpha: c.isDark ? 0.24 : 0.12),
+              ),
+              child: path != null
+                  ? Image.file(File(path), fit: BoxFit.cover)
+                  : Icon(Icons.groups_rounded, size: 52, color: c.accent),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 2,
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: chatMineBubble(c),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: c.scaffold, width: 3),
+                ),
+                child: const Icon(Icons.photo_camera_rounded, size: 16, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    final nameField = TextField(
+      controller: _name,
+      autofocus: false,
+      maxLength: kGroupNameMax,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => _create(),
+      style: TextStyle(color: c.textPrimary, fontSize: 16, fontWeight: FontWeight.w600),
+      decoration: InputDecoration(
+        hintText: S.groupName,
+        hintStyle: TextStyle(color: c.textHint, fontSize: 16, fontWeight: FontWeight.w500),
+        filled: true,
+        fillColor: c.card,
+        counterStyle: TextStyle(color: c.textHint, fontSize: 11),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: c.accent, width: 1.4),
+        ),
+      ),
+    );
+    final members = <Widget>[
+      Padding(
+        padding: const EdgeInsets.only(left: 4, bottom: 10),
+        child: Text(
+          S.membersP0(count),
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary),
+        ),
+      ),
+      AppCard(
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
+        child: LayoutBuilder(
+          builder: (context, box) {
+            const cell = 68.0;
+            final perRow = math.max(1, ((box.maxWidth + 4) / (cell + 4)).floor());
+            final spacing = perRow > 1 ? (box.maxWidth - perRow * cell) / (perRow - 1) : 0.0;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: 10,
+              children: [
+                _memberCell(c, name: ApiService.currentUser?.nickname ?? '', avatarUrl: ApiService.currentUser?.avatarUrl),
+                for (final (i, p) in _selected.indexed)
+                  FadeSlideIn(
+                    index: i + 1,
+                    child: _memberCell(c, name: p.displayName, avatarUrl: p.avatarUrl, onRemove: () => _remove(p)),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    ];
+
     return Column(
       children: [
         Expanded(
           child: LayoutBuilder(
-            builder: (context, constraints) => ListView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 28, bottom: 24),
-              children: [
-                Center(
-                  child: GestureDetector(
-                    onTap: _pickAvatar,
-                    child: Stack(
-                      clipBehavior: Clip.none,
+            builder: (context, constraints) {
+              if (constraints.maxWidth >= 900) {
+                return ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: responsiveListPadding(constraints, maxWidth: 860, horizontal: 24, top: 32, bottom: 24),
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 104,
-                          height: 104,
-                          clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: c.accent.withValues(alpha: c.isDark ? 0.24 : 0.12),
-                          ),
-                          child: path != null
-                              ? Image.file(File(path), fit: BoxFit.cover)
-                              : Icon(Icons.groups_rounded, size: 52, color: c.accent),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 2,
-                          child: Container(
-                            width: 34,
-                            height: 34,
-                            decoration: BoxDecoration(
-                              color: chatMineBubble(c),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: c.scaffold, width: 3),
-                            ),
-                            child: const Icon(Icons.photo_camera_rounded, size: 16, color: Colors.white),
+                        SizedBox(width: 240, child: avatar),
+                        const SizedBox(width: 32),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [nameField, const SizedBox(height: 12), ...members],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextField(
-                  controller: _name,
-                  autofocus: false,
-                  maxLength: kGroupNameMax,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _create(),
-                  style: TextStyle(color: c.textPrimary, fontSize: 16, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    hintText: S.groupName,
-                    hintStyle: TextStyle(color: c.textHint, fontSize: 16, fontWeight: FontWeight.w500),
-                    filled: true,
-                    fillColor: c.card,
-                    counterStyle: TextStyle(color: c.textHint, fontSize: 11),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: c.accent, width: 1.4),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, bottom: 10),
-                  child: Text(
-                    S.membersP0(count),
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary),
-                  ),
-                ),
-                AppCard(
-                  padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
-                  child: LayoutBuilder(
-                    builder: (context, box) {
-                      const cell = 68.0;
-                      final perRow = math.max(1, ((box.maxWidth + 4) / (cell + 4)).floor());
-                      final spacing = perRow > 1 ? (box.maxWidth - perRow * cell) / (perRow - 1) : 0.0;
-                      return Wrap(
-                        spacing: spacing,
-                        runSpacing: 10,
-                        children: [
-                          _memberCell(c, name: ApiService.currentUser?.nickname ?? '', avatarUrl: ApiService.currentUser?.avatarUrl),
-                          for (final (i, p) in _selected.indexed)
-                            FadeSlideIn(
-                              index: i + 1,
-                              child: _memberCell(c, name: p.displayName, avatarUrl: p.avatarUrl, onRemove: () => _remove(p)),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+                  ],
+                );
+              }
+              return ListView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: responsiveListPadding(constraints, maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 28, bottom: 24),
+                children: [avatar, const SizedBox(height: 24), nameField, const SizedBox(height: 12), ...members],
+              );
+            },
           ),
         ),
         Container(
           decoration: BoxDecoration(color: c.card, border: Border(top: BorderSide(color: c.divider))),
           child: SafeArea(
             top: false,
-            child: ResponsiveListPadding(
-              maxWidth: Breakpoints.formMaxWidth,
-              top: 10,
-              bottom: 10,
-              builder: (context, padding) => Padding(
-                padding: padding,
+            child: LayoutBuilder(
+              builder: (context, constraints) => Padding(
+                padding: responsiveListPadding(
+                  constraints,
+                  maxWidth: constraints.maxWidth >= 900 ? 480 : Breakpoints.formMaxWidth,
+                  top: 10,
+                  bottom: 10,
+                ),
                 child: SizedBox(
                   height: 48,
                   width: double.infinity,

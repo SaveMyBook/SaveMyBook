@@ -7,6 +7,7 @@ import '../../../services/api_service.dart';
 import '../../../services/verification_service.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
+import '../../../widgets/adaptive_sheet.dart';
 import '../../../widgets/app_dialogs.dart';
 import '../../../widgets/app_tiles.dart';
 import '../../../widgets/state_views.dart';
@@ -40,10 +41,11 @@ Future<ChatMessage?> startCoinTransfer(
 
   FocusScope.of(context).unfocus();
   final c = AppColors.of(context);
-  final draft = await showModalBottomSheet<_TransferDraft>(
+  final draft = await showAppModalSheet<_TransferDraft>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    dialogMaxWidth: 440,
     backgroundColor: c.sheetBg,
     constraints: const BoxConstraints(maxWidth: 480),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
@@ -283,7 +285,9 @@ class _TransferSheetState extends State<_TransferSheet> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final insets = MediaQuery.viewInsetsOf(context).bottom;
+    final dialog = isDialogSheet(context);
+    // 對話框本身已依鍵盤高度內縮，面板模式才需要自行墊高
+    final insets = dialog ? 0.0 : MediaQuery.viewInsetsOf(context).bottom;
     final title = widget.request ? S.request : S.transfer;
 
     return Focus(
@@ -295,19 +299,12 @@ class _TransferSheetState extends State<_TransferSheet> {
         child: SafeArea(
           top: false,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+            padding: EdgeInsets.fromLTRB(20, 10, 20, dialog ? 20 : 12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-                  ),
-                ),
-                const SizedBox(height: 14),
+                const SheetHandle(margin: EdgeInsets.only(bottom: 14)),
                 Text(
                   title,
                   textAlign: TextAlign.center,

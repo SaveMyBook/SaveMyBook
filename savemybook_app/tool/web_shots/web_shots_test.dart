@@ -64,12 +64,17 @@ import 'package:savemybook_app/widgets/pin_pad.dart';
 import 'covers.dart';
 import 'demo_data.dart';
 
-const _logicalSize = Size(393, 852);
-const _pixelRatio = 3.0;
-const _topInset = 59.0;
-const _bottomInset = 34.0;
+// 檢查平板版面時可用 SHOTS_SIZE=820x1180（邏輯像素）、SHOTS_OUT 改輸出資料夾、SHOTS_THEME=dark 改深色模式
+final _env = Platform.environment;
+final _wide = _env['SHOTS_SIZE'] != null;
+final _logicalSize = _wide
+    ? Size(double.parse(_env['SHOTS_SIZE']!.split('x')[0]), double.parse(_env['SHOTS_SIZE']!.split('x')[1]))
+    : const Size(393, 852);
+final _pixelRatio = _wide ? 2.0 : 3.0;
+final _topInset = _wide ? 24.0 : 59.0;
+final _bottomInset = _wide ? 20.0 : 34.0;
 
-final _outDir = Directory('${Directory.current.path}/../savemybook_web/assets-src/screens');
+final _outDir = Directory(_env['SHOTS_OUT'] ?? '${Directory.current.path}/../savemybook_web/assets-src/screens');
 final _navigatorKey = GlobalKey<NavigatorState>();
 final _overlay = ValueNotifier<ScreenOverlay>(const ScreenOverlay());
 
@@ -535,7 +540,7 @@ class DemoApp extends StatelessWidget {
       navigatorKey: _navigatorKey,
       locale: const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant', countryCode: 'TW'),
       supportedLocales: LocaleProvider.supported,
-      theme: AppTheme.build(Brightness.light),
+      theme: AppTheme.build(_env['SHOTS_THEME'] == 'dark' ? Brightness.dark : Brightness.light),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -558,7 +563,12 @@ class DemoApp extends StatelessWidget {
           ],
         );
       },
-      home: home,
+      // 畫面在 App 內都是推入的頁面；直接當根頁面時 AppHeader 會因沒有上一頁而隱藏返回鍵
+      onGenerateInitialRoutes: (_) => [
+        PageRouteBuilder<void>(pageBuilder: (_, _, _) => const SizedBox.shrink()),
+        MaterialPageRoute<void>(builder: (_) => home),
+      ],
+      onGenerateRoute: (_) => null,
     );
   }
 }
@@ -572,8 +582,8 @@ Future<void> _shoot(WidgetTester tester, Shot shot) async {
   tester.view
     ..physicalSize = _logicalSize * _pixelRatio
     ..devicePixelRatio = _pixelRatio
-    ..padding = const FakeViewPadding(top: _topInset * _pixelRatio, bottom: _bottomInset * _pixelRatio)
-    ..viewPadding = const FakeViewPadding(top: _topInset * _pixelRatio, bottom: _bottomInset * _pixelRatio);
+    ..padding = FakeViewPadding(top: _topInset * _pixelRatio, bottom: _bottomInset * _pixelRatio)
+    ..viewPadding = FakeViewPadding(top: _topInset * _pixelRatio, bottom: _bottomInset * _pixelRatio);
   addTearDown(tester.view.reset);
 
   // ignore: invalid_use_of_visible_for_testing_member

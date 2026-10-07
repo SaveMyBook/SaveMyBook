@@ -14,6 +14,7 @@ class OrderRecordCard extends StatelessWidget {
   final String? secondaryLabel;
   final VoidCallback? onSecondary;
   final VoidCallback? onTap;
+  final bool selected;
 
   const OrderRecordCard({
     super.key,
@@ -24,6 +25,7 @@ class OrderRecordCard extends StatelessWidget {
     this.secondaryLabel,
     this.onSecondary,
     this.onTap,
+    this.selected = false,
   });
 
   @override
@@ -37,7 +39,7 @@ class OrderRecordCard extends StatelessWidget {
     ].where((s) => s.isNotEmpty).join('・');
     final hint = TextStyle(fontSize: 12, color: c.textSecondary);
 
-    return AppCard(
+    final card = AppCard(
       padding: const EdgeInsets.all(14),
       onTap: onTap,
       child: Column(
@@ -143,6 +145,15 @@ class OrderRecordCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+    if (!selected) return card;
+    return DecoratedBox(
+      position: DecorationPosition.foreground,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.accent, width: 2),
+      ),
+      child: card,
     );
   }
 

@@ -9,6 +9,7 @@ import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/guards.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
@@ -60,11 +61,8 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
     if (created == true && mounted) _load();
   }
 
-  Future<void> _open(SupportTicket ticket) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: ticket.ticketId)),
-    );
+  Future<void> _open(BuildContext context, SupportTicket ticket) async {
+    await MasterDetail.open(context, TicketDetailScreen(ticketId: ticket.ticketId), id: ticket.ticketId);
     if (mounted) _load();
   }
 
@@ -72,6 +70,18 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
+    // 右側提示畫面需要 Material 祖先提供文字樣式
+    return Material(
+      color: c.scaffold,
+      child: MasterDetail(
+        masterWidth: 400,
+        placeholderIcon: Icons.support_agent_rounded,
+        master: _buildMaster(c),
+      ),
+    );
+  }
+
+  Widget _buildMaster(AppColors c) {
     return Scaffold(
       backgroundColor: c.scaffold,
       floatingActionButton: FloatingActionButton.extended(
@@ -111,7 +121,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                               itemCount: _tickets.length,
                               itemBuilder: (_, i) => RevealOnScroll(
                                 index: i,
-                                child: _buildCard(_tickets[i], c),
+                                child: _buildCard(context, _tickets[i], c),
                               ),
                             ))),
                     ),
@@ -122,10 +132,9 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
     );
   }
 
-  Widget _buildCard(SupportTicket ticket, AppColors c) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _open(ticket),
+  Widget _buildCard(BuildContext context, SupportTicket ticket, AppColors c) {
+    final card = AppCard(
+      onTap: () => _open(context, ticket),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,6 +180,20 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
           ),
         ],
       ),
+    );
+    final selected = MasterDetail.selectedId(context) == ticket.ticketId;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: !selected
+          ? card
+          : DecoratedBox(
+              position: DecorationPosition.foreground,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: c.accent, width: 2),
+              ),
+              child: card,
+            ),
     );
   }
 }
@@ -590,7 +613,11 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                                 index: i,
                                 offsetY: 10,
                                 stagger: const Duration(milliseconds: 24),
-                                child: _buildMessage(ticket.messages[i], c),
+                                child: _buildMessage(
+                                  ticket.messages[i],
+                                  c,
+                                  math.min(constraints.maxWidth, Breakpoints.readingMaxWidth) * 0.7,
+                                ),
                               ),
                           ],
                         )),
@@ -629,10 +656,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     );
   }
 
-  Widget _buildMessage(TicketMessage message, AppColors c) {
+  Widget _buildMessage(TicketMessage message, AppColors c, double bubbleMaxWidth) {
     final isMine = !message.isStaff;
     final alignRight = widget.asAdmin ? message.isStaff : isMine;
-    final bubbleMaxWidth = math.min(MediaQuery.of(context).size.width, Breakpoints.readingMaxWidth) * 0.7;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

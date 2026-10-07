@@ -275,75 +275,85 @@ class _CartScreenState extends State<CartScreen> {
     final c = AppColors.of(context);
     final visible = _visibleItems;
     final unavailable = _unavailableItems;
-    final expanded = context.screenSize == ScreenSize.expanded;
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: Column(
-        children: [
-          AppHeader(
-            title: S.cart,
-            icon: Icons.shopping_cart_outlined,
-            actions: [
-              if (unavailable.isNotEmpty)
-                HeaderIconButton(
-                  icon: Icons.cleaning_services_outlined,
-                  onTap: () => _removeWithUndo(unavailable),
-                ),
-            ],
-          ),
-          if (!expanded)
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final side = responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth).left;
-                return Reveal(
-                  visible: _availableItems.isNotEmpty,
-                  child: _buildSelectAllRow(c, padding: EdgeInsets.fromLTRB(side, 10, side, 2)),
-                );
-              },
-            ),
-          Expanded(
-            child: SwitchIn(
-              child: _isLoading
-                  ? const LoadingView.list()
-                  : RefreshIndicator(
-                      color: c.accent,
-                      onRefresh: _load,
-                      child: SwitchIn(
-                        child: visible.isEmpty
-                            ? ListView(
-                                key: ValueKey(_loadFailed ? 'failed' : 'empty'),
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                children: [
-                                  const SizedBox(height: 80),
-                                  _loadFailed
-                                      ? EmptyView(
-                                          icon: Icons.cloud_off_rounded,
-                                          message: S.loadFailed,
-                                          actionLabel: S.reload,
-                                          onAction: () {
-                                            setState(() => _isLoading = true);
-                                            _load();
-                                          },
-                                        )
-                                      : EmptyView(
-                                          icon: Icons.remove_shopping_cart_outlined,
-                                          message: S.cartEmpty,
-                                          actionLabel: S.browseBooks,
-                                          onAction: () => Navigator.maybePop(context),
-                                        ),
-                                ],
-                              )
-                            : expanded
-                                ? _buildWideLayout(c)
-                                : _buildList(c),
-                      ),
-                    ),
-            ),
-          ),
-          if (visible.isNotEmpty && !expanded) _buildCheckoutBar(c),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) => _buildBody(c, visible, unavailable, constraints),
       ),
+    );
+  }
+
+  Widget _buildBody(AppColors c, List<CartItem> visible, List<CartItem> unavailable, BoxConstraints constraints) {
+    final expanded = context.isWide && constraints.maxWidth >= 840;
+    return Column(
+      children: [
+        AppHeader(
+          title: S.cart,
+          icon: Icons.shopping_cart_outlined,
+          actions: [
+            if (unavailable.isNotEmpty)
+              HeaderIconButton(
+                icon: Icons.cleaning_services_outlined,
+                onTap: () => _removeWithUndo(unavailable),
+              ),
+          ],
+        ),
+        if (!expanded)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final side = responsiveListPadding(
+                constraints,
+                maxWidth: Breakpoints.readingMaxWidth,
+                horizontal: context.isWide ? 24 : 16,
+              ).left;
+              return Reveal(
+                visible: _availableItems.isNotEmpty,
+                child: _buildSelectAllRow(c, padding: EdgeInsets.fromLTRB(side, 10, side, 2)),
+              );
+            },
+          ),
+        Expanded(
+          child: SwitchIn(
+            child: _isLoading
+                ? const LoadingView.list()
+                : RefreshIndicator(
+                    color: c.accent,
+                    onRefresh: _load,
+                    child: SwitchIn(
+                      child: visible.isEmpty
+                          ? ListView(
+                              key: ValueKey(_loadFailed ? 'failed' : 'empty'),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                const SizedBox(height: 80),
+                                _loadFailed
+                                    ? EmptyView(
+                                        icon: Icons.cloud_off_rounded,
+                                        message: S.loadFailed,
+                                        actionLabel: S.reload,
+                                        onAction: () {
+                                          setState(() => _isLoading = true);
+                                          _load();
+                                        },
+                                      )
+                                    : EmptyView(
+                                        icon: Icons.remove_shopping_cart_outlined,
+                                        message: S.cartEmpty,
+                                        actionLabel: S.browseBooks,
+                                        onAction: () => Navigator.maybePop(context),
+                                      ),
+                              ],
+                            )
+                          : expanded
+                              ? _buildWideLayout(c)
+                              : _buildList(c),
+                    ),
+                  ),
+          ),
+        ),
+        if (visible.isNotEmpty && !expanded) _buildCheckoutBar(c),
+      ],
     );
   }
 
@@ -353,7 +363,13 @@ class _CartScreenState extends State<CartScreen> {
       key: const ValueKey('items'),
       builder: (context, constraints) => ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, top: 4),
+        padding: responsiveListPadding(
+          constraints,
+          maxWidth: Breakpoints.readingMaxWidth,
+          horizontal: context.isWide ? 24 : 16,
+          top: 4,
+          bottom: context.isWide ? 24 : 16,
+        ),
         itemCount: rows.length,
         itemBuilder: (_, i) => _buildRow(c, rows[i], i),
       ),
@@ -960,6 +976,21 @@ class _CartScreenState extends State<CartScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (context.isWide) {
+          final side = responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 24).left;
+          return Padding(
+            padding: EdgeInsets.fromLTRB(side, 0, side, MediaQuery.of(context).padding.bottom + 16),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+              decoration: BoxDecoration(
+                color: c.card,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: c.shadow, blurRadius: 24, offset: const Offset(0, 6))],
+              ),
+              child: content,
+            ),
+          );
+        }
         final side = responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth).left;
         return Container(
           padding: EdgeInsets.only(

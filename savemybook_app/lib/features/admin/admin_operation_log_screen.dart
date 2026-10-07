@@ -152,18 +152,30 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
         builder: (context, frame) => Column(
           children: [
             AppHeader(title: S.adminAuditLog, icon: Icons.fact_check_outlined),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 8)),
-              child: AppSearchField(
-                controller: _search,
-                hint: S.searchActions,
-                onChanged: _onSearchChanged,
-                onSubmitted: (_) => _load(showLoading: true),
+            if (frame.isWide)
+              AdminToolbar(
+                frame: frame,
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 10),
+                search: AppSearchField(
+                  controller: _search,
+                  hint: S.searchActions,
+                  onChanged: _onSearchChanged,
+                  onSubmitted: (_) => _load(showLoading: true),
+                ),
+              )
+            else
+              Padding(
+                padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 8)),
+                child: AppSearchField(
+                  controller: _search,
+                  hint: S.searchActions,
+                  onChanged: _onSearchChanged,
+                  onSubmitted: (_) => _load(showLoading: true),
+                ),
               ),
-            ),
             if (frame.isWide)
               Padding(
-                padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16)),
+                padding: frame.pad(const EdgeInsets.symmetric(horizontal: 24)),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Wrap(
@@ -211,9 +223,11 @@ class _AdminOperationLogScreenState extends State<AdminOperationLogScreen> {
                                     ),
                                   ],
                                 )
-                              : ListView.builder(
+                              : AdminCardList(
                                   key: ValueKey('items_$_targetType'),
-                                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 24)),
+                                  frame: frame,
+                                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                                  equalHeight: false,
                                   itemCount: _logs.length,
                                   itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(_logs[i], c)),
                                 ),

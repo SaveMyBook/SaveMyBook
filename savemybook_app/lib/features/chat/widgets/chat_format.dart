@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../utils/app_colors.dart';
 import '../../../i18n/strings.dart';
+import '../../../widgets/responsive.dart';
 
 String _two(int v) => v.toString().padLeft(2, '0');
 
@@ -49,3 +50,20 @@ String chatDuration(int seconds) {
 Color chatMineBubble(AppColors c) => c.isDark ? c.bubbleMineDark : AppColors.primary;
 
 Color chatTheirsBubble(AppColors c) => c.isDark ? const Color(0xFF242628) : Colors.white;
+
+const double kChatLaneMaxWidth = Breakpoints.readingMaxWidth;
+
+class ChatLane extends StatelessWidget {
+  final Widget child;
+
+  const ChatLane({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      heightFactor: 1,
+      child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: kChatLaneMaxWidth), child: child),
+    );
+  }
+}

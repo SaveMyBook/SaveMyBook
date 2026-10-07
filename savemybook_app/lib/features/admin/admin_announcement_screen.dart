@@ -118,7 +118,7 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                 height: 46,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
+                  padding: frame.pad(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
                   children: [
                     _chip(S.actionAll, 'all', _announcements.length, c),
                     _chip(S.published, 'published', _announcements.where((a) => a.isPublished).length, c),
@@ -144,8 +144,9 @@ class _AdminAnnouncementScreenState extends State<AdminAnnouncementScreen> {
                                 ),
                               ],
                             )
-                          : ListView.builder(key: ValueKey('items_$_filter'),
-                              padding: frame.inset(const EdgeInsets.all(16)),
+                          : AdminCardList(key: ValueKey('items_$_filter'),
+                              frame: frame,
+                              padding: const EdgeInsets.all(16),
                               itemCount: visible.length,
                               itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildCard(visible[i], c, wide: frame.isWide)),
                             )),

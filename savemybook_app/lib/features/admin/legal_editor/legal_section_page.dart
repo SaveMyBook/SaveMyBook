@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../i18n/strings.dart';
@@ -8,6 +10,7 @@ import '../../../widgets/animations.dart';
 import '../../../widgets/app_dialogs.dart';
 import '../../../widgets/app_forms.dart';
 import '../../../widgets/app_header.dart';
+import '../../../widgets/responsive.dart';
 import 'legal_section.dart';
 import 'legal_text.dart';
 
@@ -110,64 +113,69 @@ class _LegalSectionPageState extends State<LegalSectionPage> {
             ],
           ),
           Expanded(
-            child: SwitchIn(
-              duration: Motion.micro,
-              child: ListView(
-                key: ValueKey(section?.id ?? 'intro'),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                children: [
-                  if (section != null) ...[
-                    _label(S.sectionTitle, c),
-                    AppTextField(
-                      controller: section.title,
-                      hint: S.sectionTitle,
-                      maxLength: LegalText.maxTitleLength,
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 18),
-                  ],
-                  Row(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final side = math.max(20.0, (constraints.maxWidth - Breakpoints.readingMaxWidth) / 2);
+                return SwitchIn(
+                  duration: Motion.micro,
+                  child: ListView(
+                    key: ValueKey(section?.id ?? 'intro'),
+                    padding: EdgeInsets.fromLTRB(side, 16, side, 24),
                     children: [
-                      Expanded(child: _label(section == null ? S.preamble : S.sectionContent, c)),
-                      ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: section?.body ?? widget.intro,
-                        builder: (_, value, _) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            S.p0Characters(LegalText.charCount(value.text)),
-                            style: TextStyle(fontSize: 12, color: c.textHint),
+                      if (section != null) ...[
+                        _label(S.sectionTitle, c),
+                        AppTextField(
+                          controller: section.title,
+                          hint: S.sectionTitle,
+                          maxLength: LegalText.maxTitleLength,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        const SizedBox(height: 18),
+                      ],
+                      Row(
+                        children: [
+                          Expanded(child: _label(section == null ? S.preamble : S.sectionContent, c)),
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: section?.body ?? widget.intro,
+                            builder: (_, value, _) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Text(
+                                S.p0Characters(LegalText.charCount(value.text)),
+                                style: TextStyle(fontSize: 12, color: c.textHint),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: c.card,
+                          borderRadius: BorderRadius.circular(AppRadius.field),
+                          border: Border.all(color: c.border),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: TextField(
+                          controller: section?.body ?? widget.intro,
+                          maxLines: null,
+                          minLines: 12,
+                          keyboardType: TextInputType.multiline,
+                          scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+                          style: TextStyle(fontSize: 15, height: 1.8, color: c.textPrimary),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            filled: false,
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                            hintText: section == null ? S.unnumberedOpeningTextLeaveEmptyIf : S.bodySectionSingleLineBreaksKept,
+                            hintMaxLines: 4,
+                            hintStyle: TextStyle(color: c.textHint, height: 1.8, fontSize: 14),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: c.card,
-                      borderRadius: BorderRadius.circular(AppRadius.field),
-                      border: Border.all(color: c.border),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    child: TextField(
-                      controller: section?.body ?? widget.intro,
-                      maxLines: null,
-                      minLines: 12,
-                      keyboardType: TextInputType.multiline,
-                      scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-                      style: TextStyle(fontSize: 15, height: 1.8, color: c.textPrimary),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: false,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        hintText: section == null ? S.unnumberedOpeningTextLeaveEmptyIf : S.bodySectionSingleLineBreaksKept,
-                        hintMaxLines: 4,
-                        hintStyle: TextStyle(color: c.textHint, height: 1.8, fontSize: 14),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
           Container(
@@ -176,31 +184,36 @@ class _LegalSectionPageState extends State<LegalSectionPage> {
               color: c.card,
               border: Border(top: BorderSide(color: c.divider)),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _NavButton(
-                    icon: Icons.chevron_left_rounded,
-                    label: _index <= 0 ? S.preamble : S.previous,
-                    onTap: _index < 0 ? null : () => _go(_index - 1),
-                  ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _NavButton(
+                        icon: Icons.chevron_left_rounded,
+                        label: _index <= 0 ? S.preamble : S.previous,
+                        onTap: _index < 0 ? null : () => _go(_index - 1),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        _isIntro ? '—' : '${_index + 1} / ${widget.sections.length}',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textSecondary),
+                      ),
+                    ),
+                    Expanded(
+                      child: _NavButton(
+                        icon: _index + 1 < widget.sections.length ? Icons.chevron_right_rounded : Icons.add_rounded,
+                        label: _index + 1 < widget.sections.length ? S.next2 : S.addSection,
+                        trailingIcon: true,
+                        onTap: _next,
+                      ),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    _isIntro ? '—' : '${_index + 1} / ${widget.sections.length}',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textSecondary),
-                  ),
-                ),
-                Expanded(
-                  child: _NavButton(
-                    icon: _index + 1 < widget.sections.length ? Icons.chevron_right_rounded : Icons.add_rounded,
-                    label: _index + 1 < widget.sections.length ? S.next2 : S.addSection,
-                    trailingIcon: true,
-                    onTap: _next,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],

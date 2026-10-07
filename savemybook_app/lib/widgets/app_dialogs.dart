@@ -4,6 +4,7 @@ import '../utils/app_colors.dart';
 import '../utils/app_radius.dart';
 import '../utils/motion.dart';
 import '../i18n/strings.dart';
+import 'adaptive_sheet.dart';
 
 Future<T?> _showAnimatedDialog<T>(
   BuildContext context, {
@@ -351,7 +352,7 @@ Future<T?> showOptionSheet<T>(
   final c = AppColors.of(context);
   final reserveLeading = options.any((o) => o.icon != null);
 
-  return showModalBottomSheet<T>(
+  return showAppModalSheet<T>(
     context: context,
     backgroundColor: c.sheetBg,
     isScrollControlled: true,
@@ -366,13 +367,7 @@ Future<T?> showOptionSheet<T>(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 10),
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-          ),
-          const SizedBox(height: 12),
+          const SheetHandle(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(

@@ -13,6 +13,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../cabinet/cabinet_messages.dart';
 import '../selling/book_deposit_actions.dart';
@@ -200,93 +201,120 @@ class _AdminCabinetDepositScreenState extends State<AdminCabinetDepositScreen> {
     return Scaffold(
       backgroundColor: c.scaffold,
       body: AdminLayout(
-        builder: (context, frame) => Column(
-          children: [
-            AppHeader(title: S.booksLockers, icon: Icons.inventory_2_outlined),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
-              child: SizedBox(
-                height: 34,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          _chip(S.actionAll, !_overdue, () => _setFilter(overdue: false, cabinetId: _cabinetId), c),
-                          _chip(S.overdue, _overdue, () => _setFilter(overdue: true, cabinetId: _cabinetId), c),
-                        ],
+        builder: (context, frame) {
+          EdgeInsets inset(double top, double bottom) => frame.isWide
+              ? frame.inset(EdgeInsets.fromLTRB(24, top, 24, bottom), maxWidth: 1200)
+              : frame.inset(EdgeInsets.fromLTRB(16, top, 16, bottom));
+          final columns = frame.isWide
+              ? Breakpoints.columnsFor(math.min(frame.width, 1200) - 48, minTileWidth: 380, min: 1, max: 3)
+              : 1;
+          final rows = (_items.length / columns).ceil();
+          return Column(
+            children: [
+              AppHeader(title: S.booksLockers, icon: Icons.inventory_2_outlined),
+              Padding(
+                padding: inset(12, 0),
+                child: SizedBox(
+                  height: 34,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _chip(S.actionAll, !_overdue, () => _setFilter(overdue: false, cabinetId: _cabinetId), c),
+                            _chip(S.overdue, _overdue, () => _setFilter(overdue: true, cabinetId: _cabinetId), c),
+                          ],
+                        ),
                       ),
-                    ),
-                    if (_cabinets.isNotEmpty)
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 170),
-                        child: _buildCabinetFilter(c),
-                      ),
-                  ],
+                      if (_cabinets.isNotEmpty)
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 170),
+                          child: _buildCabinetFilter(c),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: SwitchIn(
-                child: _isLoading
-                    ? LoadingView.list(key: ValueKey('loading_${_overdue}_$_cabinetId'))
-                    : RefreshIndicator(
-                        key: ValueKey('list_${_overdue}_$_cabinetId'),
-                        color: c.accent,
-                        onRefresh: _load,
-                        child: _items.isEmpty
-                            ? ListView(
-                                children: [
-                                  const SizedBox(height: 80),
-                                  EmptyView(
-                                    icon: Icons.inventory_2_outlined,
-                                    message: _overdue ? S.noOverdueBooks : S.noBooksCurrentlyStoredLockers,
-                                    actionLabel: _filtered ? S.clearFilters : S.refresh,
-                                    onAction: _filtered ? () => _setFilter(overdue: false, cabinetId: null) : _load,
-                                  ),
-                                ],
-                              )
-                            : NotificationListener<ScrollNotification>(
-                                onNotification: (notification) {
-                                  if (notification.metrics.extentAfter < 400) _loadMore();
-                                  return false;
-                                },
-                                child: ListView.builder(
-                                  physics: const AlwaysScrollableScrollPhysics(),
-                                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 24)),
-                                  itemCount: _items.length + (_hasMore ? 1 : 0),
-                                  itemBuilder: (_, i) {
-                                    if (i >= _items.length) {
-                                      if (!_loadingMore) {
-                                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                                          if (mounted) _loadMore();
-                                        });
+              Expanded(
+                child: SwitchIn(
+                  child: _isLoading
+                      ? LoadingView.list(key: ValueKey('loading_${_overdue}_$_cabinetId'))
+                      : RefreshIndicator(
+                          key: ValueKey('list_${_overdue}_$_cabinetId'),
+                          color: c.accent,
+                          onRefresh: _load,
+                          child: _items.isEmpty
+                              ? ListView(
+                                  children: [
+                                    const SizedBox(height: 80),
+                                    EmptyView(
+                                      icon: Icons.inventory_2_outlined,
+                                      message: _overdue ? S.noOverdueBooks : S.noBooksCurrentlyStoredLockers,
+                                      actionLabel: _filtered ? S.clearFilters : S.refresh,
+                                      onAction: _filtered ? () => _setFilter(overdue: false, cabinetId: null) : _load,
+                                    ),
+                                  ],
+                                )
+                              : NotificationListener<ScrollNotification>(
+                                  onNotification: (notification) {
+                                    if (notification.metrics.extentAfter < 400) _loadMore();
+                                    return false;
+                                  },
+                                  child: ListView.builder(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    padding: inset(12, 24),
+                                    itemCount: rows + (_hasMore ? 1 : 0),
+                                    itemBuilder: (_, i) {
+                                      if (i >= rows) {
+                                        if (!_loadingMore) {
+                                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                                            if (mounted) _loadMore();
+                                          });
+                                        }
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 16),
+                                          child: Center(
+                                            child: SizedBox(
+                                              width: 22,
+                                              height: 22,
+                                              child: CircularProgressIndicator(strokeWidth: 2, color: c.accent),
+                                            ),
+                                          ),
+                                        );
                                       }
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 16),
-                                        child: Center(
-                                          child: SizedBox(
-                                            width: 22,
-                                            height: 22,
-                                            child: CircularProgressIndicator(strokeWidth: 2, color: c.accent),
+                                      if (columns == 1) {
+                                        return RevealOnScroll(
+                                          key: ValueKey(_items[i].bookId),
+                                          index: i,
+                                          child: _buildCard(_items[i], c),
+                                        );
+                                      }
+                                      final row = _items.skip(i * columns).take(columns).toList();
+                                      return RevealOnScroll(
+                                        key: ValueKey(row.map((d) => d.bookId).join(',')),
+                                        index: i,
+                                        child: IntrinsicHeight(
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              for (var j = 0; j < columns; j++) ...[
+                                                if (j > 0) const SizedBox(width: 12),
+                                                Expanded(child: j < row.length ? _buildCard(row[j], c, fill: true) : const SizedBox.shrink()),
+                                              ],
+                                            ],
                                           ),
                                         ),
                                       );
-                                    }
-                                    return RevealOnScroll(
-                                      key: ValueKey(_items[i].bookId),
-                                      index: i,
-                                      child: _buildCard(_items[i], c),
-                                    );
-                                  },
+                                    },
+                                  ),
                                 ),
-                              ),
-                      ),
+                        ),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -354,7 +382,7 @@ class _AdminCabinetDepositScreenState extends State<AdminCabinetDepositScreen> {
     );
   }
 
-  Widget _buildCard(CabinetDeposit item, AppColors c) {
+  Widget _buildCard(CabinetDeposit item, AppColors c, {bool fill = false}) {
     final seller = item.sellerDeleted || item.sellerName.isEmpty ? S.deletedUser : item.sellerName;
     final cabinet = _cabinetOf(item);
     final door = item.doorLabel;
@@ -426,6 +454,7 @@ class _AdminCabinetDepositScreenState extends State<AdminCabinetDepositScreen> {
                 ),
             ],
           ),
+          if (fill) const Spacer(),
           const SizedBox(height: 10),
           Row(
             children: [

@@ -32,7 +32,11 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // 只有手機鎖定直向；平板鎖定後無法橫向使用左右並排的版面
+  final view = WidgetsBinding.instance.platformDispatcher.views.first;
+  if (view.physicalSize.shortestSide / view.devicePixelRatio < 600) {
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
   runApp(const SaveMyBookApp());
 }
 
@@ -140,7 +144,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     final roomId = await ApiService().openChatRoom(userId: userId);
     if (roomId == null) return;
 
-    navigatorKey.currentState?.push(
+    (HomeScreen.tabNavigator ?? navigatorKey.currentState)?.push(
       MaterialPageRoute(builder: (_) => ChatRoomScreen(roomId: roomId)),
     );
   }
@@ -160,7 +164,7 @@ class _SaveMyBookAppState extends State<SaveMyBookApp> {
     final book = await ApiService().fetchBookByShareToken(token);
     if (book == null) return;
 
-    navigatorKey.currentState?.push(
+    (HomeScreen.tabNavigator ?? navigatorKey.currentState)?.push(
       MaterialPageRoute(builder: (_) => BookDetailScreen(book: book)),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../models/ai.dart';
 import '../../services/ai_status.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/state_views.dart';
@@ -16,12 +17,13 @@ String aiProviderNames(AiStatusInfo status) =>
 
 Future<bool> showAiConsentSheet(BuildContext context, {AiStatusInfo? status}) async {
   final c = AppColors.of(context);
-  final agreed = await showModalBottomSheet<bool>(
+  final agreed = await showAppModalSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: c.sheetBg,
     constraints: BoxConstraints(maxWidth: 560, maxHeight: MediaQuery.sizeOf(context).height * 0.9),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    dialogMaxWidth: 560,
     builder: (_) => AiConsentSheet(status: status ?? AiStatus.value),
   );
   return agreed == true;
@@ -61,14 +63,7 @@ class AiConsentSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 10),
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
+          const SheetHandle(margin: EdgeInsets.only(top: 10)),
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),

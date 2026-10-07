@@ -8,6 +8,7 @@ import '../../models/cabinet.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_radius.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/state_views.dart';
@@ -29,7 +30,7 @@ Future<AdminCabinetOpenResult> showAdminCabinetOpenSheet(
 }) async {
   final c = AppColors.of(context);
   var created = false;
-  final result = await showModalBottomSheet<AdminCabinetOpenResult>(
+  final result = await showAppModalSheet<AdminCabinetOpenResult>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -292,6 +293,8 @@ class _AdminCabinetOpenSheetState extends State<AdminCabinetOpenSheet> {
     final c = AppColors.of(context);
     final door = S.doorP0(widget.label);
     final name = widget.cabinetName;
+    // 對話框本身已依鍵盤高度上移，內容再加鍵盤高度會被擠扁
+    final keyboard = isDialogSheet(context) ? 0.0 : MediaQuery.of(context).viewInsets.bottom;
 
     return PopScope(
       canPop: _sessionNo == null,
@@ -299,24 +302,14 @@ class _AdminCabinetOpenSheetState extends State<AdminCabinetOpenSheet> {
         if (!didPop) _close();
       },
       child: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(bottom: keyboard),
         child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(20, 10, 20, 24 + MediaQuery.of(context).padding.bottom),
+          padding: EdgeInsets.fromLTRB(20, isDialogSheet(context) ? 4 : 10, 20, 24 + MediaQuery.of(context).padding.bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 38,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 14),
-                  decoration: BoxDecoration(
-                    color: c.iconInactive.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              const SheetHandle(margin: EdgeInsets.only(bottom: 14)),
               Text(S.openDoorRemotely, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary)),
               const SizedBox(height: 4),
               Text(

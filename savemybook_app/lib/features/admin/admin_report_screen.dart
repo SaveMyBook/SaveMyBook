@@ -3,12 +3,14 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
@@ -48,6 +50,9 @@ class _AdminReportScreenState extends State<AdminReportScreen>
   String _type = 'all';
   int? _reviewCount;
   int? _riskCount;
+  int? _selectedId;
+
+  static const double _splitWidth = 840;
 
   bool get _isPendingTab => _tabController.index == 0;
   bool get _isReviewTab => _tabController.index == AdminReportScreen.listingReviewTab;
@@ -117,10 +122,11 @@ class _AdminReportScreenState extends State<AdminReportScreen>
 
     setState(() => _isBusy = true);
     try {
-      final result = await showModalBottomSheet<String>(
+      final result = await showAppModalSheet<String>(
         context: context,
         isScrollControlled: true,
         backgroundColor: c.card,
+        dialogMaxWidth: 600,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
@@ -205,37 +211,50 @@ class _AdminReportScreenState extends State<AdminReportScreen>
       );
 
       if (result == null || !mounted) return;
-      final note = noteController.text.trim();
-      final delist = result == 'resolved' && removeTarget;
+      await _resolve(report, result, noteController.text.trim(), removeTarget);
+    } finally {
+      if (mounted) setState(() => _isBusy = false);
+    }
+  }
 
-      if (delist) {
-        final ok = await showConfirmDialog(
-          context,
-          title: S.delistListing,
-          message: S.p0TakenDownRightAwayOther(report.targetTitle),
-          confirmLabel: S.violationConfirmed,
-          isDestructive: true,
-        );
-        if (!ok || !mounted) return;
-      }
+  Future<void> _resolve(ReportCase report, String result, String note, bool removeTarget) async {
+    final delist = result == 'resolved' && removeTarget;
 
-      final error = await runBusy(
+    if (delist) {
+      final ok = await showConfirmDialog(
         context,
-        () => _api.resolveReport(
-          report.reportId,
-          status: result,
-          adminNote: note.isEmpty ? null : note,
-          removeTarget: delist,
-        ),
+        title: S.delistListing,
+        message: S.p0TakenDownRightAwayOther(report.targetTitle),
+        confirmLabel: S.violationConfirmed,
+        isDestructive: true,
       );
-      if (!mounted) return;
+      if (!ok || !mounted) return;
+    }
 
-      if (error != null) {
-        if (error.isNotEmpty && error != S.verificationCancelled) showAppSnackBar(context, error, isError: true);
-      } else {
-        showAppSnackBar(context, S.reportHandled);
-        await _load(showLoading: false);
-      }
+    final error = await runBusy(
+      context,
+      () => _api.resolveReport(
+        report.reportId,
+        status: result,
+        adminNote: note.isEmpty ? null : note,
+        removeTarget: delist,
+      ),
+    );
+    if (!mounted) return;
+
+    if (error != null) {
+      if (error.isNotEmpty && error != S.verificationCancelled) showAppSnackBar(context, error, isError: true);
+    } else {
+      showAppSnackBar(context, S.reportHandled);
+      await _load(showLoading: false);
+    }
+  }
+
+  Future<void> _resolveSelected(ReportCase report, String result, String note, bool removeTarget) async {
+    if (_isBusy) return;
+    setState(() => _isBusy = true);
+    try {
+      await _resolve(report, result, note, removeTarget);
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -258,63 +277,121 @@ class _AdminReportScreenState extends State<AdminReportScreen>
     return Scaffold(
       backgroundColor: c.scaffold,
       body: AdminLayout(
-        builder: (context, frame) => Column(
-          children: [
-            AppHeader(
-              title: S.moderation,
-              icon: Icons.report_gmailerrorred_outlined,
-              bottom: AppTabBar(
-                controller: _tabController,
-                tabs: [
-                  pendingCount > 0 ? '${S.ticketOpen} $pendingCount' : S.ticketOpen,
-                  S.reportResolved,
-                  reviewCount > 0 ? '${S.listingReview} $reviewCount' : S.listingReview,
-                  riskCount > 0 ? '$riskLabel $riskCount' : riskLabel,
-                ],
-              ),
-            ),
-            if (reportTab)
-              Padding(
-                padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
-                child: AppSearchField(
-                  controller: _searchController,
-                  hint: S.searchReportedItemReporterReason,
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-            if (reportTab && types.length > 1)
-              SizedBox(
-                height: 42,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 8, 16, 0)),
-                  children: [
-                    _chip(S.actionAll, 'all', c),
-                    for (final entry in types.entries) _chip(entry.value, entry.key, c),
+        builder: (context, frame) {
+          final split = frame.width >= _splitWidth;
+          return Column(
+            children: [
+              AppHeader(
+                title: S.moderation,
+                icon: Icons.report_gmailerrorred_outlined,
+                bottom: AppTabBar(
+                  controller: _tabController,
+                  tabs: [
+                    pendingCount > 0 ? '${S.ticketOpen} $pendingCount' : S.ticketOpen,
+                    S.reportResolved,
+                    reviewCount > 0 ? '${S.listingReview} $reviewCount' : S.listingReview,
+                    riskCount > 0 ? '$riskLabel $riskCount' : riskLabel,
                   ],
                 ),
               ),
-            Expanded(
-              child: SwipeTabs(
-                controller: _tabController,
-                // 分頁須常駐，分頁上的待處理數由各分頁的 onCountChanged 回報。
-                child: IndexedStack(
-                  index: reviewTab ? 1 : riskTab ? 2 : 0,
-                  children: [
-                    SwitchIn(
-                      child: _isLoading
-                          ? const LoadingView.list()
-                          : _buildList(c, frame),
-                    ),
-                    AiReviewTab(onCountChanged: _setReviewCount),
-                    ChatRiskTab(onCountChanged: _setRiskCount),
-                  ],
+              if (reportTab && frame.isWide)
+                AdminToolbar(
+                  frame: frame,
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  searchWidth: split ? _listWidth - 40 : null,
+                  search: AppSearchField(
+                    controller: _searchController,
+                    hint: S.searchReportedItemReporterReason,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  filters: types.length > 1
+                      ? ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _chip(S.actionAll, 'all', c),
+                            for (final entry in types.entries) _chip(entry.value, entry.key, c),
+                          ],
+                        )
+                      : null,
+                ),
+              if (reportTab && !frame.isWide)
+                Padding(
+                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
+                  child: AppSearchField(
+                    controller: _searchController,
+                    hint: S.searchReportedItemReporterReason,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              if (reportTab && !frame.isWide && types.length > 1)
+                SizedBox(
+                  height: 42,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: frame.inset(const EdgeInsets.fromLTRB(16, 8, 16, 0)),
+                    children: [
+                      _chip(S.actionAll, 'all', c),
+                      for (final entry in types.entries) _chip(entry.value, entry.key, c),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: SwipeTabs(
+                  controller: _tabController,
+                  // 分頁須常駐，分頁上的待處理數由各分頁的 onCountChanged 回報。
+                  child: IndexedStack(
+                    index: reviewTab ? 1 : riskTab ? 2 : 0,
+                    children: [
+                      SwitchIn(
+                        child: _isLoading
+                            ? const LoadingView.list()
+                            : split
+                                ? _buildSplit(c)
+                                : _buildList(c, frame),
+                      ),
+                      AiReviewTab(onCountChanged: _setReviewCount),
+                      ChatRiskTab(onCountChanged: _setRiskCount),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
+    );
+  }
+
+  static const double _listWidth = 380;
+
+  Widget _buildSplit(AppColors c) {
+    final pending = _isPendingTab;
+    final reports = _visible(pending: pending);
+    final selected = reports.where((r) => r.reportId == _selectedId).firstOrNull ?? reports.firstOrNull;
+
+    return Row(
+      key: ValueKey('split_$pending'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(width: _listWidth, child: _buildList(c, const AdminFrame(_listWidth), selectedId: selected?.reportId)),
+        VerticalDivider(width: 1, thickness: 1, color: c.divider),
+        Expanded(
+          child: SwitchIn(
+            child: selected == null
+                ? Center(
+                    key: const ValueKey('none'),
+                    child: Icon(Icons.verified_outlined, size: 48, color: c.textHint),
+                  )
+                : _ReportPane(
+                    key: ValueKey(selected.reportId),
+                    report: selected,
+                    pending: pending,
+                    busy: _isBusy,
+                    onSubmit: (result, note, removeTarget) => _resolveSelected(selected, result, note, removeTarget),
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -346,7 +423,8 @@ class _AdminReportScreenState extends State<AdminReportScreen>
     );
   }
 
-  Widget _buildList(AppColors c, AdminFrame frame) {
+  Widget _buildList(AppColors c, AdminFrame frame, {int? selectedId}) {
+    final split = selectedId != null;
     final pending = _isPendingTab;
     final reports = _visible(pending: pending);
     final filtered = _searchController.text.trim().isNotEmpty || _type != 'all';
@@ -376,23 +454,33 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   ),
                 ],
               )
-            : ListView.builder(
+            : AdminCardList(
                 key: ValueKey('items_${pending}_$_type'),
-                padding: frame.inset(const EdgeInsets.all(16)),
+                frame: frame,
+                padding: split ? const EdgeInsets.fromLTRB(24, 16, 16, 24) : const EdgeInsets.all(16),
                 itemCount: reports.length,
                 itemBuilder: (_, i) => RevealOnScroll(
                   index: i,
-                  child: _buildCard(reports[i], c, pending: pending),
+                  child: split
+                      ? Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: AdminSelectionBorder(
+                            selected: reports[i].reportId == selectedId,
+                            child: _buildCard(reports[i], c, pending: pending, split: true),
+                          ),
+                        )
+                      : _buildCard(reports[i], c, pending: pending),
                 ),
               ),
       ),
     );
   }
 
-  Widget _buildCard(ReportCase report, AppColors c, {required bool pending}) {
+  Widget _buildCard(ReportCase report, AppColors c, {required bool pending, bool split = false}) {
+    void select() => setState(() => _selectedId = report.reportId);
     return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: pending ? () => _review(report) : null,
+      margin: split ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
+      onTap: split ? select : pending ? () => _review(report) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -450,7 +538,7 @@ class _AdminReportScreenState extends State<AdminReportScreen>
                   ? SmallActionButton(
                       label: S.review,
                       filled: true,
-                      onTap: _isBusy ? null : () => _review(report),
+                      onTap: _isBusy ? null : split ? select : () => _review(report),
                     )
                   : StatusBadge(label: report.statusText, color: c.reportStatusColor(report.status)),
             ],
@@ -469,5 +557,166 @@ class _AdminReportScreenState extends State<AdminReportScreen>
     final relative = formatRelative(dt);
     final exact = formatDateTime(dt);
     return exact.startsWith(relative) ? exact : '$relative・$exact';
+  }
+}
+
+class _ReportPane extends StatefulWidget {
+  final ReportCase report;
+  final bool pending;
+  final bool busy;
+  final Future<void> Function(String result, String note, bool removeTarget) onSubmit;
+
+  const _ReportPane({super.key, required this.report, required this.pending, required this.busy, required this.onSubmit});
+
+  @override
+  State<_ReportPane> createState() => _ReportPaneState();
+}
+
+class _ReportPaneState extends State<_ReportPane> {
+  final TextEditingController _noteController = TextEditingController();
+  late bool _removeTarget = widget.report.targetType == 'book';
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _submit(String result) {
+    FocusScope.of(context).unfocus();
+    widget.onSubmit(result, _noteController.text.trim(), _removeTarget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final report = widget.report;
+    final note = report.adminNote ?? '';
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
+                child: AppCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BookThumbnail(imageUrl: report.targetImageUrl, width: 52, height: 66, radius: 8),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  report.targetTitle,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  children: [
+                                    StatusBadge(label: report.targetTypeText, color: c.neutral, fontSize: 10),
+                                    if (!widget.pending)
+                                      StatusBadge(label: report.statusText, color: c.reportStatusColor(report.status)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(S.reportedByP0(report.reporterName), style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                      const SizedBox(height: 4),
+                      Text(S.reasonP02(report.reason),
+                          style: TextStyle(fontSize: 13, height: 1.5, color: c.textSecondary)),
+                      const SizedBox(height: 4),
+                      Text(formatDateTime(report.createdAt), style: TextStyle(fontSize: 11, color: c.textHint)),
+                      if (report.message != null) ...[
+                        const SizedBox(height: 14),
+                        ReportedMessagePanel(reportId: report.reportId, message: report.message!),
+                      ],
+                      if (!widget.pending && note.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(S.noteP0(note), style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                      ],
+                      if (widget.pending) ...[
+                        const SizedBox(height: 16),
+                        AppTextField(
+                          controller: _noteController,
+                          maxLines: 3,
+                          maxLength: 500,
+                          hint: S.handlingNoteOptional,
+                        ),
+                        if (report.targetType == 'book')
+                          CheckboxListTile(
+                            contentPadding: EdgeInsets.zero,
+                            value: _removeTarget,
+                            activeColor: c.accent,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            title: Text(S.delistListingAsWell, style: TextStyle(fontSize: 14, color: c.textPrimary)),
+                            onChanged: (value) => setState(() => _removeTarget = value ?? false),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (widget.pending)
+          Container(
+            padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + MediaQuery.paddingOf(context).bottom),
+            decoration: BoxDecoration(border: Border(top: BorderSide(color: c.divider))),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: widget.busy ? null : () => _submit('dismissed'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: c.textSecondary,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text(S.dismissReport, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: widget.busy ? null : () => _submit('resolved'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: c.accent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text(S.violationConfirmed, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }

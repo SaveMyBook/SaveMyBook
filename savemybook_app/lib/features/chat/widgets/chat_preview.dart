@@ -10,6 +10,7 @@ import '../../../utils/api_helpers.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
 import '../../../widgets/app_tiles.dart';
+import '../../../widgets/responsive.dart';
 import '../groups/group_avatar.dart';
 import '../media/chat_network_image.dart';
 import 'chat_format.dart';
@@ -22,7 +23,8 @@ Future<ChatPreviewAction?> showChatPreview(
   required bool muted,
 }) {
   HapticFeedback.mediumImpact();
-  return Navigator.of(context).push<ChatPreviewAction>(
+  // 平板的列表在分頁自己的 Navigator 內，預覽開在最上層才會連側邊欄一起蓋住
+  return Navigator.of(context, rootNavigator: context.isWide).push<ChatPreviewAction>(
     PageRouteBuilder(
       opaque: false,
       barrierDismissible: true,

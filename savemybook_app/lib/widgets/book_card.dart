@@ -2,9 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:marquee/marquee.dart';
 import 'app_tiles.dart';
 import 'favorite_button.dart';
+import 'responsive.dart';
 import 'state_views.dart';
 import '../models/book.dart';
 import '../features/books/book_detail_screen.dart';
@@ -35,12 +37,26 @@ class BookCard extends StatelessWidget {
     return gridHeight + math.max(0.0, grown * 1.5);
   }
 
-  static SliverGridDelegate gridDelegateOf(BuildContext context) => SliverGridDelegateWithMaxCrossAxisExtent(
-    maxCrossAxisExtent: 240,
-    crossAxisSpacing: 12,
-    mainAxisSpacing: 12,
-    mainAxisExtent: gridHeightOf(context),
-  );
+  static const double gridSpacing = 12;
+
+  static const double _minTileWidth = 145;
+
+  static int columnsFor(double width) =>
+      ((width + gridSpacing) / (_minTileWidth + gridSpacing)).floor().clamp(2, 6);
+
+  static double tileWidthFor(double width) {
+    final columns = columnsFor(width);
+    return (width - gridSpacing * (columns - 1)) / columns;
+  }
+
+  static SliverGridDelegate gridDelegateOf(BuildContext context) => context.isWide
+      ? _WideGridDelegate(mainAxisExtent: gridHeightOf(context))
+      : SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 240,
+          crossAxisSpacing: gridSpacing,
+          mainAxisSpacing: gridSpacing,
+          mainAxisExtent: gridHeightOf(context),
+        );
 
   static const double listHeight = 140;
 
@@ -297,4 +313,27 @@ class BookCard extends StatelessWidget {
     );
   }
 
+}
+
+class _WideGridDelegate extends SliverGridDelegate {
+  final double mainAxisExtent;
+
+  const _WideGridDelegate({required this.mainAxisExtent});
+
+  @override
+  SliverGridLayout getLayout(SliverConstraints constraints) {
+    final width = constraints.crossAxisExtent;
+    final tileWidth = BookCard.tileWidthFor(width);
+    return SliverGridRegularTileLayout(
+      crossAxisCount: BookCard.columnsFor(width),
+      mainAxisStride: mainAxisExtent + BookCard.gridSpacing,
+      crossAxisStride: tileWidth + BookCard.gridSpacing,
+      childMainAxisExtent: mainAxisExtent,
+      childCrossAxisExtent: tileWidth,
+      reverseCrossAxis: axisDirectionIsReversed(constraints.crossAxisDirection),
+    );
+  }
+
+  @override
+  bool shouldRelayout(_WideGridDelegate oldDelegate) => oldDelegate.mainAxisExtent != mainAxisExtent;
 }

@@ -7,6 +7,7 @@ import '../../widgets/app_buttons.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/pin_pad.dart';
+import 'auth_wide_card.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../account/legal_doc_screen.dart';
@@ -94,11 +95,8 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
               behavior: HitTestBehavior.opaque,
               onTap: () => FocusScope.of(context).unfocus(),
               child: LayoutBuilder(
-                builder: (context, constraints) => ListView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: responsiveListPadding(constraints,
-                      maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
-                  children: [
+                builder: (context, constraints) {
+                  final children = [
                     FadeSlideIn(
                       child: _field(
                         c,
@@ -136,8 +134,15 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
                       index: 4,
                       child: PrimaryButton(label: S.createAccount, height: 50, onPressed: _submit),
                     ),
-                  ],
-                ),
+                  ];
+                  if (context.isWide) return AuthWideCard(children: children);
+                  return ListView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: responsiveListPadding(constraints,
+                        maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
+                    children: children,
+                  );
+                },
               ),
             ),
           ),
@@ -158,7 +163,7 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
     int? maxLength,
     bool isLast = false,
   }) {
-    return AppCard(
+    return AuthSection(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       child: Column(
@@ -208,7 +213,7 @@ class _SocialProfileScreenState extends State<SocialProfileScreen> {
           MaterialPageRoute(builder: (_) => LegalDocScreen(docKey: key, fallbackTitle: title, icon: icon)),
         );
 
-    return AppCard(
+    return AuthSection(
       onTap: () => setState(() => _agreed = !_agreed),
       padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
       child: Row(

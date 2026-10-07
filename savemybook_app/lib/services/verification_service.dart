@@ -5,6 +5,7 @@ import '../models/security.dart';
 import '../features/security/identity_verification_sheet.dart';
 import '../features/security/payment_pin_screen.dart';
 import '../utils/app_colors.dart';
+import '../widgets/adaptive_sheet.dart';
 import '../widgets/app_dialogs.dart';
 import '../widgets/pin_pad.dart';
 import '../widgets/state_views.dart';
@@ -190,11 +191,12 @@ class VerificationService {
   }) {
     final c = AppColors.of(context);
     final summary = paymentSummary;
-    return showModalBottomSheet<String>(
+    return showAppModalSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: c.sheetBg,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      dialogMaxWidth: 400,
       builder: (sheetContext) => _PinSheet(
         request: request,
         summary: summary,
@@ -232,8 +234,12 @@ class _PinSheet extends StatelessWidget {
         child: PinEntryPanel(
           header: Column(
             children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2))),
-              const SizedBox(height: 16),
+              if (isDialogSheet(context))
+                const SizedBox(height: 12)
+              else ...[
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2))),
+                const SizedBox(height: 16),
+              ],
               if (request.isPayment && summary != null) ...[
                 Text(S.amount, style: TextStyle(fontSize: 13, color: c.textSecondary)),
                 const SizedBox(height: 4),

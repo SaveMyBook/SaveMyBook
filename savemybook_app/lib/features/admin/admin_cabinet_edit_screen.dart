@@ -297,7 +297,7 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
     final c = AppColors.of(context);
     final coordinate = FilteringTextInputFormatter.allow(RegExp(r'^-?\d{0,3}(\.\d{0,7})?'));
 
-    final fields = <Widget>[
+    final location = <Widget>[
       _field(S.lockerName, _nameController, c, errorKey: 'name', maxLength: 100),
       _field(S.address, _addressController, c, errorKey: 'address', maxLines: 2, maxLength: 500),
       _field(
@@ -319,6 +319,8 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
         inputFormatters: [coordinate],
       ),
       _buildLocationTools(c),
+    ];
+    final details = <Widget>[
       _buildPreview(c),
       if (!_isEdit)
         _field(
@@ -333,35 +335,68 @@ class _AdminCabinetEditScreenState extends State<AdminCabinetEditScreen> {
       _timeField(S.openingHours, _openController, c, errorKey: 'open', hint: '09:00'),
       _timeField(S.closingTime, _closeController, c, errorKey: 'close', hint: '21:00'),
     ];
+    final fields = [...location, ...details];
+    final submit = PrimaryButton(
+      label: _isEdit ? S.saveChanges : S.createLocker,
+      isLoading: _isSaving,
+      onPressed: _save,
+    );
 
     return UnsavedGuard(
       isDirty: _dirty && !_saved,
       child: Scaffold(
         backgroundColor: c.scaffold,
         body: AdminLayout(
-          builder: (context, frame) => Column(
-            children: [
-              AppHeader(title: _isEdit ? S.editLocker : S.newLocker, icon: Icons.storage_rounded),
-              Expanded(
-                child: SingleChildScrollView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: frame.inset(const EdgeInsets.all(20), maxWidth: Breakpoints.formMaxWidth),
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < fields.length; i++) FadeSlideIn(index: i, child: fields[i]),
-                      const SizedBox(height: 28),
-                      PrimaryButton(
-                        label: _isEdit ? S.saveChanges : S.createLocker,
-                        isLoading: _isSaving,
-                        onPressed: _save,
-                      ),
-                      const SizedBox(height: 40),
-                    ],
+          builder: (context, frame) {
+            final twoColumns = frame.width >= 900;
+            return Column(
+              children: [
+                AppHeader(title: _isEdit ? S.editLocker : S.newLocker, icon: Icons.storage_rounded),
+                Expanded(
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: frame.inset(
+                      frame.isWide ? const EdgeInsets.all(24) : const EdgeInsets.all(20),
+                      maxWidth: twoColumns ? 1080 : Breakpoints.formMaxWidth,
+                    ),
+                    child: Column(
+                      children: [
+                        if (twoColumns)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    for (var i = 0; i < location.length; i++) FadeSlideIn(index: i, child: location[i]),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    for (var i = 0; i < details.length; i++) FadeSlideIn(index: i, child: details[i]),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          for (var i = 0; i < fields.length; i++) FadeSlideIn(index: i, child: fields[i]),
+                        const SizedBox(height: 28),
+                        if (frame.isWide)
+                          ConstrainedBox(constraints: const BoxConstraints(maxWidth: 480), child: submit)
+                        else
+                          submit,
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
     );

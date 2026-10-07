@@ -254,7 +254,10 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
     }
   }
 
+  bool get _wide => context.isWide;
+
   Widget _scroll(AppColors c, List<Widget> children, {Widget? bottom}) {
+    if (_wide) return _panel(c, children, bottom: bottom, stretch: true);
     return Column(
       children: [
         Expanded(
@@ -276,6 +279,7 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
   }
 
   Widget _centered(AppColors c, List<Widget> children, {Widget? bottom}) {
+    if (_wide) return _panel(c, children, bottom: bottom, stretch: false);
     return Column(
       children: [
         Expanded(
@@ -291,6 +295,55 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
         ),
         if (bottom != null) _bottomBar(c, bottom),
       ],
+    );
+  }
+
+  Widget _panel(AppColors c, List<Widget> children, {Widget? bottom, required bool stretch}) {
+    final vertical = MediaQuery.viewInsetsOf(context).bottom > 0 ? 16.0 : 32.0;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, vertical, 24, vertical + MediaQuery.paddingOf(context).bottom),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: c.card,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: c.shadow.withValues(alpha: 0.08), blurRadius: 24, offset: const Offset(0, 8))],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(24, 28, 24, bottom == null ? 28 : 20),
+                    child: Column(
+                      crossAxisAlignment: stretch ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
+                      children: children,
+                    ),
+                  ),
+                ),
+                if (bottom != null)
+                  Container(
+                    padding: EdgeInsets.fromLTRB(24, stretch ? 16 : 0, 24, 24),
+                    decoration: stretch ? BoxDecoration(border: Border(top: BorderSide(color: c.divider))) : null,
+                    child: bottom,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _box(AppColors c, Widget child) {
+    if (!_wide) return AppCard(child: child);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: c.inputFill.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(16)),
+      child: child,
     );
   }
 
@@ -442,8 +495,9 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
 
   Widget _cabinetCard(AppColors c, CabinetSession session) {
     final cabinet = session.cabinet;
-    return AppCard(
-      child: Column(
+    return _box(
+      c,
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -629,8 +683,9 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
         for (final kind in CabinetItemKind.values)
           if (groups[kind] case final items?) ...[
             const SizedBox(height: 14),
-            AppCard(
-              child: Column(
+            _box(
+              c,
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SectionHeading(title: _sectionTitle(kind)),
@@ -783,8 +838,9 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
       ),
       const SizedBox(height: 16),
       for (final door in doors) ...[
-        AppCard(
-          child: Column(
+        _box(
+          c,
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _doorHeading(c, session, door),
@@ -837,8 +893,9 @@ class _CabinetFlowScreenState extends State<CabinetFlowScreen> with WidgetsBindi
   Widget _resultItems(AppColors c, CabinetSession session) {
     final items = session.selectedItems;
     if (items.isEmpty) return const SizedBox.shrink();
-    return AppCard(
-      child: Column(
+    return _box(
+      c,
+      Column(
         children: [
           for (var i = 0; i < items.length; i++) ...[if (i > 0) Divider(height: 20, color: c.divider), _resultRow(c, items[i])],
         ],

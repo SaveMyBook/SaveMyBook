@@ -8,6 +8,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import 'auth_wide_card.dart';
 import '../../widgets/guards.dart';
 import '../../widgets/pin_pad.dart';
 import '../../widgets/state_views.dart';
@@ -142,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decorationColor: c.accent,
     );
 
-    return AppCard(
+    return AuthSection(
       onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
       padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
       child: Row(
@@ -227,7 +228,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return FadeSlideIn(
       index: index,
-      child: AppCard(
+      child: AuthSection(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
         child: Column(
@@ -281,10 +282,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => FocusScope.of(context).unfocus(),
-              child: LayoutBuilder(builder: (context, constraints) => ListView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: responsiveListPadding(constraints, maxWidth: 520, horizontal: 20, top: context.isWide ? 32 : 20, bottom: 40),
-                children: [
+              child: LayoutBuilder(builder: (context, constraints) {
+                final children = [
                   _buildField(
                     index: 1,
                     icon: Icons.badge_outlined,
@@ -389,8 +388,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: _handleRegister,
                     ),
                   ),
-                ],
-              )),
+                ];
+                if (context.isWide) return AuthWideCard(children: children);
+                return ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: responsiveListPadding(constraints, maxWidth: 520, horizontal: 20, top: 20, bottom: 40),
+                  children: children,
+                );
+              }),
             ),
           ),
         ],

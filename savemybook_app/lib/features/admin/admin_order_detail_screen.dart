@@ -18,8 +18,9 @@ import 'admin_layout.dart';
 class AdminOrderDetailScreen extends StatefulWidget {
   final int orderId;
   final String orderNo;
+  final VoidCallback? onChanged;
 
-  const AdminOrderDetailScreen({super.key, required this.orderId, required this.orderNo});
+  const AdminOrderDetailScreen({super.key, required this.orderId, required this.orderNo, this.onChanged});
 
   @override
   State<AdminOrderDetailScreen> createState() => _AdminOrderDetailScreenState();
@@ -112,6 +113,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
       return;
     }
     showAppSnackBar(context, S.orderStatusUpdated);
+    widget.onChanged?.call();
     await _load();
   }
 
@@ -188,7 +190,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
                               color: c.accent,
                               onRefresh: _load,
                               child: ListView(
-                                padding: frame.inset(
+                                padding: frame.pad(
                                   const EdgeInsets.fromLTRB(16, 16, 16, 32),
                                   maxWidth: frame.isExpanded ? 1120 : Breakpoints.readingMaxWidth,
                                 ),
@@ -677,7 +679,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
 
   Widget _buildBottomBar(AdminOrderDetail detail, AppColors c, AdminFrame frame) {
     return Container(
-      padding: frame.inset(
+      padding: frame.pad(
         EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
         maxWidth: frame.isExpanded ? 1120 : Breakpoints.readingMaxWidth,
       ),

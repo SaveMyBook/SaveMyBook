@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../i18n/strings.dart';
 import '../../../utils/app_colors.dart';
+import '../../../widgets/adaptive_sheet.dart';
 import '../../../widgets/animations.dart';
 
 enum ChatAttachChoice { camera, gallery, transfer, request, reserve, quickReplies }
 
 Future<ChatAttachChoice?> showChatAttachSheet(BuildContext context, {required bool canReserve, bool canTransfer = false}) {
   final c = AppColors.of(context);
-  return showModalBottomSheet<ChatAttachChoice>(
+  return showAppModalSheet<ChatAttachChoice>(
     context: context,
     backgroundColor: c.sheetBg,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
@@ -25,22 +26,19 @@ Future<ChatAttachChoice?> showChatAttachSheet(BuildContext context, {required bo
         if (canReserve) tile(Icons.event_available_rounded, S.reserveBook, const Color(0xFFD98613), ChatAttachChoice.reserve),
         tile(Icons.bolt_rounded, S.quickReplies, const Color(0xFF8A6FD1), ChatAttachChoice.quickReplies),
       ];
+      final dialog = isDialogSheet(ctx);
       return SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, dialog ? 24 : 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 18),
+              const SheetHandle(margin: EdgeInsets.only(bottom: 18)),
               LayoutBuilder(
                 builder: (_, constraints) {
                   final columns = constraints.maxWidth >= 480 ? 6 : 4;
                   return Wrap(
+                    alignment: dialog ? WrapAlignment.center : WrapAlignment.start,
                     runSpacing: 16,
                     children: [
                       for (final t in tiles) SizedBox(width: constraints.maxWidth / columns, child: Center(child: t)),
@@ -58,9 +56,10 @@ Future<ChatAttachChoice?> showChatAttachSheet(BuildContext context, {required bo
 
 void showChatSelectableTextSheet(BuildContext context, String text) {
   final c = AppColors.of(context);
-  showModalBottomSheet<void>(
+  showAppModalSheet<void>(
     context: context,
     isScrollControlled: true,
+    dialogMaxWidth: 600,
     backgroundColor: c.sheetBg,
     constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7, maxWidth: 640),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),

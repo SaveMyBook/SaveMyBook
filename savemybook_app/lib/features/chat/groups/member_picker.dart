@@ -156,8 +156,13 @@ class _ChatMemberPickerState extends State<ChatMemberPicker> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) => _build(context, constraints.maxWidth >= 900));
+  }
+
+  Widget _build(BuildContext context, bool twoColumns) {
     final c = AppColors.of(context);
     final contacts = _contacts;
+    final laneWidth = twoColumns ? Breakpoints.listMaxWidth : Breakpoints.formMaxWidth;
 
     final Widget body;
     if (contacts == null) {
@@ -172,7 +177,7 @@ class _ChatMemberPickerState extends State<ChatMemberPicker> {
       final visible = _visible;
       body = ResponsiveListPadding(
         key: const ValueKey('list'),
-        maxWidth: Breakpoints.formMaxWidth,
+        maxWidth: laneWidth,
         top: 4,
         bottom: 24,
         builder: (context, padding) => visible.isEmpty
@@ -183,12 +188,31 @@ class _ChatMemberPickerState extends State<ChatMemberPicker> {
                   EmptyView(icon: Icons.search_off_rounded, message: S.noMatchingPeople),
                 ],
               )
-            : ListView.builder(
-                padding: padding,
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                itemCount: visible.length,
-                itemBuilder: (_, i) => FadeSlideIn(index: i, child: _tile(c, visible[i])),
-              ),
+            : twoColumns
+                ? ListView.builder(
+                    padding: padding,
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    itemCount: (visible.length / 2).ceil(),
+                    itemBuilder: (_, row) => Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final i in [row * 2, row * 2 + 1]) ...[
+                          if (i.isOdd) const SizedBox(width: 12),
+                          Expanded(
+                            child: i < visible.length
+                                ? FadeSlideIn(index: i, child: _tile(c, visible[i]))
+                                : const SizedBox.shrink(),
+                          ),
+                        ],
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: padding,
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    itemCount: visible.length,
+                    itemBuilder: (_, i) => FadeSlideIn(index: i, child: _tile(c, visible[i])),
+                  ),
       );
     }
 
@@ -198,7 +222,7 @@ class _ChatMemberPickerState extends State<ChatMemberPicker> {
     return Column(
       children: [
         ResponsiveListPadding(
-          maxWidth: Breakpoints.formMaxWidth,
+          maxWidth: laneWidth,
           top: 16,
           bottom: 0,
           builder: (context, padding) => Padding(
@@ -230,7 +254,7 @@ class _ChatMemberPickerState extends State<ChatMemberPicker> {
           child: SafeArea(
             top: false,
             child: ResponsiveListPadding(
-              maxWidth: Breakpoints.formMaxWidth,
+              maxWidth: twoColumns ? 480 : Breakpoints.formMaxWidth,
               top: 10,
               bottom: 10,
               builder: (context, padding) => Padding(

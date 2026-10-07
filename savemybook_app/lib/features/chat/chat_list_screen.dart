@@ -17,6 +17,8 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/master_detail.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../widgets/swipe_action.dart';
 import 'chat_room_screen.dart';
@@ -156,10 +158,8 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
   }
 
   Future<void> _deleteDismissed(ChatRoom room) async {
-    setState(() {
-      _rooms = _rooms.where((r) => r.roomId != room.roomId).toList();
-      if (_selectedRoomId == room.roomId) _selectedRoomId = null;
-    });
+    if (MasterDetail.selectedId(_pane) == room.roomId) MasterDetail.close(_pane);
+    setState(() => _rooms = _rooms.where((r) => r.roomId != room.roomId).toList());
 
     final String? error;
     if (room.isGroup) {
@@ -198,15 +198,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     await _load();
     if (!mounted) return;
     final room = _rooms.where((r) => r.roomId == roomId).firstOrNull;
-    if (_split) {
-      setState(() => _selectedRoomId = roomId);
-      return;
-    }
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => ChatRoomScreen(roomId: roomId, partnerName: room?.title ?? '')),
-    );
-    _load();
+    await _openChat(roomId: roomId, title: room?.title ?? '');
   }
 
   Future<bool> _toggleMute(ChatRoom room) async {
@@ -261,7 +253,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     if (!mounted || action == null) return;
     switch (action) {
       case ChatPreviewAction.open:
-        await _openRoom(room);
+        await _openChat(roomId: room.roomId, title: room.title);
       case ChatPreviewAction.markRead:
         await _api.fetchChatMessages(room.roomId, limit: 1);
         if (!mounted) return;
@@ -276,24 +268,25 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     }
   }
 
-  static const double _splitMinWidth = 840;
-  static const double _listPaneWidth = 360;
+  static const _advisorId = 'ai_book_advisor';
 
-  int? _selectedRoomId;
-  bool _split = false;
+  final GlobalKey _paneKey = GlobalKey();
 
-  Future<void> _openRoom(ChatRoom room) async {
-    if (_split) {
-      if (_selectedRoomId != room.roomId) setState(() => _selectedRoomId = room.roomId);
-      return;
-    }
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatRoomScreen(roomId: room.roomId, partnerName: room.title),
+  // 開啟聊天室須用 MasterDetail 之下且不會隨列表捲動被回收的 context
+  BuildContext get _pane => _paneKey.currentContext ?? context;
+
+  Future<void> _openChat({required int roomId, required String title}) async {
+    final split = MasterDetail.isSplit(_pane);
+    await MasterDetail.open(
+      _pane,
+      ChatRoomScreen(
+        roomId: roomId,
+        partnerName: title,
+        onClose: split ? () => MasterDetail.close(_pane) : null,
       ),
+      id: roomId,
     );
-    _load();
+    if (mounted) _load();
   }
 
   @override
@@ -302,47 +295,17 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          _split = constraints.maxWidth >= _splitMinWidth;
-          if (!_split) return _buildListPane(c);
-
-          final selected = _rooms.where((r) => r.roomId == _selectedRoomId).firstOrNull;
-          return Row(
-            children: [
-              SizedBox(
-                width: _listPaneWidth,
-                child: MediaQuery.removePadding(context: context, removeRight: true, child: _buildListPane(c)),
-              ),
-              VerticalDivider(width: 1, thickness: 1, color: c.divider),
-              Expanded(
-                child: MediaQuery.removePadding(
-                  context: context,
-                  removeLeft: true,
-                  child: selected == null
-                      ? Center(
-                          child: EmptyView(icon: Icons.forum_outlined, message: _rooms.isEmpty ? S.noConversationsYet : S.selectChat),
-                        )
-                      : ChatRoomScreen(
-                          key: ValueKey('room_${selected.roomId}'),
-                          roomId: selected.roomId,
-                          partnerName: selected.title,
-                          onClose: () {
-                            setState(() => _selectedRoomId = null);
-                            _load();
-                          },
-                        ),
-                ),
-              ),
-            ],
-          );
-        },
+      body: MasterDetail(
+        placeholderIcon: Icons.forum_outlined,
+        placeholderText: S.selectChat,
+        master: _buildListPane(c),
       ),
     );
   }
 
   Widget _buildListPane(AppColors c) {
     return Column(
+        key: _paneKey,
         children: [
           AppHeader(
             title: S.chats,
@@ -372,14 +335,15 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
       valueListenable: AiStatus.listenable,
       builder: (context, status, _) {
         final leading = <Widget>[
-          if (status.bookChat && _query.isEmpty) _buildAdvisorTile(c),
+          if (status.bookChat && _query.isEmpty) _buildAdvisorTile(context, c),
         ];
 
+        final side = context.isWide && !MasterDetail.isSplit(context) ? 24.0 : 16.0;
         if (_rooms.isEmpty) {
           return ListView(
             key: const ValueKey('empty'),
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            padding: EdgeInsets.fromLTRB(side, 16, side, 24),
             children: [
               ...leading,
               const SizedBox(height: 64),
@@ -407,7 +371,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
           key: const ValueKey('items'),
           physics: const AlwaysScrollableScrollPhysics(),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: EdgeInsets.fromLTRB(side, 16, side, 24),
           itemCount: rooms.length + header.length + (rooms.isEmpty ? 1 : 0),
           itemBuilder: (_, i) {
             if (i < header.length) return header[i];
@@ -422,7 +386,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
             return RevealOnScroll(
               key: ValueKey('reveal_${room.roomId}'),
               index: index,
-              child: _buildRoomTile(room, c),
+              child: Builder(builder: (context) => _buildRoomTile(context, room, c)),
             );
           },
         );
@@ -430,12 +394,24 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     );
   }
 
-  Widget _buildAdvisorTile(AppColors c) {
-    return AppCard(
-      key: const ValueKey('ai_book_advisor'),
+  Widget _selectedFrame(AppColors c, Widget card) {
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: c.accent, width: 1.5),
+      ),
+      child: card,
+    );
+  }
+
+  Widget _buildAdvisorTile(BuildContext context, AppColors c) {
+    final selected = MasterDetail.selectedId(context) == _advisorId;
+    final card = AppCard(
+      key: const ValueKey('ai_book_advisor'),
+      margin: selected ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiBookChatScreen())),
+      onTap: () => MasterDetail.open(_pane, const AiBookChatScreen(), id: _advisorId),
       child: Row(
         children: [
           const AiAvatar(size: 52),
@@ -453,9 +429,10 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
         ],
       ),
     );
+    return selected ? _selectedFrame(c, card) : card;
   }
 
-  Widget _buildRoomTile(ChatRoom room, AppColors c) {
+  Widget _buildRoomTile(BuildContext context, ChatRoom room, AppColors c) {
     final muted = room.muted;
 
     return SwipeActionTile(
@@ -483,7 +460,7 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
         onTrigger: () => _confirmDelete(room),
         onDismissed: () => _deleteDismissed(room),
       ),
-      child: _buildRoomCard(room, c, muted),
+      child: _buildRoomCard(context, room, c, muted),
     );
   }
 
@@ -508,8 +485,10 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     }
   }
 
-  Widget _buildRoomCard(ChatRoom room, AppColors c, bool muted) {
-    final unread = room.unreadCount > 0;
+  Widget _buildRoomCard(BuildContext context, ChatRoom room, AppColors c, bool muted) {
+    final selected = MasterDetail.selectedId(context) == room.roomId;
+    // 並排時右側正開著這個聊天室，訊息已讀，不等列表重新整理就先隱藏未讀
+    final unread = room.unreadCount > 0 && !selected;
     final mine = !room.isGroup && room.lastSenderId != 0 && room.lastSenderId == _myId;
     final sender = room.isGroup && room.lastKind != 'notice' && room.lastSenderName.isNotEmpty
         ? (room.lastSenderId == _myId ? S.you3 : room.lastSenderName)
@@ -518,11 +497,10 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
     final mentioned = unread && room.mentionUnread;
     final previewColor = unread ? c.textPrimary : c.textSecondary;
 
-    final selected = _split && room.roomId == _selectedRoomId;
     final card = AppCard(
       margin: selected ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      onTap: () => _openRoom(room),
+      onTap: () => _openChat(roomId: room.roomId, title: room.title),
       onLongPress: () => _preview(room),
       child: Row(
         children: [
@@ -675,14 +653,6 @@ class _ChatListScreenState extends State<ChatListScreen> with WidgetsBindingObse
         ],
       ),
     );
-    if (!selected) return card;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: c.accent, width: 1.5),
-      ),
-      child: card,
-    );
+    return selected ? _selectedFrame(c, card) : card;
   }
 }

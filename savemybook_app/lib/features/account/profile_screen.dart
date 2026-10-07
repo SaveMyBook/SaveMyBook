@@ -123,13 +123,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: c.scaffold,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final twoColumn = context.screenSize == ScreenSize.expanded && constraints.maxWidth >= 840;
+          final twoColumn = context.isWide && constraints.maxWidth >= 600;
           final maxWidth = twoColumn ? Breakpoints.listMaxWidth : Breakpoints.formMaxWidth;
           final padding = responsiveListPadding(
             constraints,
             maxWidth: maxWidth,
-            horizontal: 20,
-            top: 14,
+            horizontal: twoColumn ? 24 : 20,
+            top: twoColumn ? 20 : 14,
             bottom: floatingNavClearance(context, 84),
           );
 
@@ -145,29 +145,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: twoColumn
                         ? [
+                            FadeSlideIn(child: _buildQuickActions(c)),
+                            const SizedBox(height: 24),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: Column(
-                                    children: [
-                                      FadeSlideIn(child: _buildQuickActions(c)),
-                                      const SizedBox(height: 14),
-                                      FadeSlideIn(index: 1, child: _buildMenuCard(_tradeMenuItems())),
-                                    ],
+                                  child: FadeSlideIn(
+                                    index: 1,
+                                    child: _buildMenuSection(c, S.faqCatTrade, _tradeMenuItems()),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: Column(
-                                    children: [
-                                      FadeSlideIn(index: 1, child: _buildMenuCard(_accountMenuItems())),
-                                      const SizedBox(height: 14),
-                                      FadeSlideIn(index: 2, child: _buildLogoutButton(c)),
-                                    ],
+                                  child: FadeSlideIn(
+                                    index: 2,
+                                    child: _buildMenuSection(c, S.faqCatAccount, _accountMenuItems()),
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 24),
+                            Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 480),
+                                child: FadeSlideIn(index: 3, child: _buildLogoutButton(c)),
+                              ),
                             ),
                           ]
                         : [
@@ -593,6 +596,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onTap: () => _openAndRefresh(const SettingsScreen()),
       ),
     ];
+  }
+
+  Widget _buildMenuSection(AppColors c, String title, List<Widget> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
+          child: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: c.textSecondary)),
+        ),
+        _buildMenuCard(items),
+      ],
+    );
   }
 
   Widget _buildMenuCard(List<Widget> items) {

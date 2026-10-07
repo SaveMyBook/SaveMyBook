@@ -601,14 +601,14 @@ class _VoiceBarsPainter extends CustomPainter {
 
 class ChatBookCardView extends StatelessWidget {
   final ChatBookCard card;
+  final double width;
   final VoidCallback onTap;
 
-  const ChatBookCardView({super.key, required this.card, required this.onTap});
+  const ChatBookCardView({super.key, required this.card, required this.width, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final width = MediaQuery.sizeOf(context).width;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),

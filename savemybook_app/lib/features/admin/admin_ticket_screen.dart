@@ -7,6 +7,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/state_views.dart';
 import '../account/support_ticket_screen.dart';
 import '../../i18n/strings.dart';
@@ -78,7 +79,12 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
         .toList();
   }
 
-  Future<void> _open(SupportTicket ticket) async {
+  Future<void> _open(BuildContext ctx, SupportTicket ticket) async {
+    if (MasterDetail.isSplit(ctx)) {
+      await MasterDetail.open(ctx, TicketDetailScreen(ticketId: ticket.ticketId, asAdmin: true), id: ticket.ticketId);
+      if (mounted) _load(showLoading: false);
+      return;
+    }
     if (_navigating) return;
     _navigating = true;
     try {
@@ -108,142 +114,160 @@ class _AdminTicketScreenState extends State<AdminTicketScreen>
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: AdminLayout(
-        builder: (context, frame) => Column(
-          children: [
-            AppHeader(
-              title: S.supportEnquiries,
-              icon: Icons.support_agent_rounded,
-              bottom: AppTabBar(
-                controller: _tabController,
-                tabs: _tabs.map((t) => t.label).toList(),
-              ),
-            ),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
-              child: AppSearchField(
-                controller: _searchController,
-                hint: S.searchSubjectMemberMessage,
-                onChanged: (_) => setState(() {}),
-              ),
-            ),
-            Expanded(
-              child: SwipeTabs(
-                controller: _tabController,
-                child: SwitchIn(
-                  child: _isLoading
-                      ? const LoadingView.list()
-                      : RefreshIndicator(
-                          color: c.accent,
-                          onRefresh: () => _load(showLoading: false),
-                          child: SwitchIn(
-                            child: visible.isEmpty
-                                ? ListView(
-                                    key: const ValueKey('empty'),
-                                    children: [
-                                      const SizedBox(height: 60),
-                                      EmptyView(
-                                        icon: Icons.inbox_outlined,
-                                        message: S.noEnquiriesCategory,
-                                        actionLabel: _searchController.text.trim().isEmpty ? S.refresh : S.clearSearch,
-                                        onAction: () {
-                                          if (_searchController.text.trim().isEmpty) {
-                                            _load();
-                                          } else {
-                                            _searchController.clear();
-                                            setState(() {});
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  )
-                                : ListView.builder(
-                                    key: ValueKey('items_$_loadedTab'),
-                                    padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 24)),
-                                    itemCount: visible.length,
-                                    itemBuilder: (_, i) => RevealOnScroll(
-                                      index: i,
-                                      child: _buildCard(visible[i], c, wide: frame.isWide),
-                                    ),
-                                  ),
-                          ),
-                        ),
+      body: MasterDetail(
+        placeholderIcon: Icons.support_agent_rounded,
+        master: AdminLayout(
+          builder: (context, frame) => Column(
+            children: [
+              AppHeader(
+                title: S.supportEnquiries,
+                icon: Icons.support_agent_rounded,
+                bottom: AppTabBar(
+                  controller: _tabController,
+                  tabs: _tabs.map((t) => t.label).toList(),
                 ),
               ),
-            ),
-          ],
+              if (frame.isWide)
+                AdminToolbar(
+                  frame: frame,
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                  search: AppSearchField(
+                    controller: _searchController,
+                    hint: S.searchSubjectMemberMessage,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                )
+              else
+                Padding(
+                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 0)),
+                  child: AppSearchField(
+                    controller: _searchController,
+                    hint: S.searchSubjectMemberMessage,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              Expanded(
+                child: SwipeTabs(
+                  controller: _tabController,
+                  child: SwitchIn(
+                    child: _isLoading
+                        ? const LoadingView.list()
+                        : RefreshIndicator(
+                            color: c.accent,
+                            onRefresh: () => _load(showLoading: false),
+                            child: SwitchIn(
+                              child: visible.isEmpty
+                                  ? ListView(
+                                      key: const ValueKey('empty'),
+                                      children: [
+                                        const SizedBox(height: 60),
+                                        EmptyView(
+                                          icon: Icons.inbox_outlined,
+                                          message: S.noEnquiriesCategory,
+                                          actionLabel: _searchController.text.trim().isEmpty ? S.refresh : S.clearSearch,
+                                          onAction: () {
+                                            if (_searchController.text.trim().isEmpty) {
+                                              _load();
+                                            } else {
+                                              _searchController.clear();
+                                              setState(() {});
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  : AdminCardList(
+                                      key: ValueKey('items_$_loadedTab'),
+                                      frame: frame,
+                                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                                      itemCount: visible.length,
+                                      itemBuilder: (_, i) => RevealOnScroll(
+                                        index: i,
+                                        child: _buildCard(context, visible[i], c, wide: frame.isWide),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCard(SupportTicket ticket, AppColors c, {bool wide = false}) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _open(ticket),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              UserAvatar(imageUrl: ticket.userAvatar, radius: 16),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  ticket.userName.isEmpty ? S.user : ticket.userName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
+  Widget _buildCard(BuildContext ctx, SupportTicket ticket, AppColors c, {bool wide = false}) {
+    return AdminSelectable(
+      ids: [ticket.ticketId],
+      builder: (margin) => AppCard(
+        margin: margin,
+        onTap: () => _open(ctx, ticket),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                UserAvatar(imageUrl: ticket.userAvatar, radius: 16),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    ticket.userName.isEmpty ? S.user : ticket.userName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.textPrimary),
+                  ),
                 ),
-              ),
-              if (_loadedTab >= 0 && _tabs[_loadedTab].key == 'all')
-                StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            ticket.subject,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            ticket.lastMessage ?? '',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.5),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        ticket.categoryText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11, color: c.textHint),
+                if (_loadedTab >= 0 && _tabs[_loadedTab].key == 'all')
+                  StatusBadge(label: ticket.statusText, color: c.ticketStatusColor(ticket.status)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              ticket.subject,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              ticket.lastMessage ?? '',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, color: c.textSecondary, height: 1.5),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          ticket.categoryText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 11, color: c.textHint),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Icon(Icons.forum_outlined, size: 12, color: c.textHint),
-                    const SizedBox(width: 3),
-                    Text('${ticket.messageCount}', style: TextStyle(fontSize: 11, color: c.textHint)),
-                  ],
+                      const SizedBox(width: 10),
+                      Icon(Icons.forum_outlined, size: 12, color: c.textHint),
+                      const SizedBox(width: 3),
+                      Text('${ticket.messageCount}', style: TextStyle(fontSize: 11, color: c.textHint)),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                _when(ticket.updatedAt),
-                maxLines: 1,
-                style: TextStyle(fontSize: 11, color: c.textHint),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 10),
+                Text(
+                  _when(ticket.updatedAt),
+                  maxLines: 1,
+                  style: TextStyle(fontSize: 11, color: c.textHint),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

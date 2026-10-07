@@ -222,7 +222,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
               onTap: () => FocusScope.of(context).unfocus(),
               child: ListView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 32), maxWidth: 1200),
+                padding: frame.inset(EdgeInsets.fromLTRB(frame.isWide ? 24 : 16, 16, frame.isWide ? 24 : 16, 32), maxWidth: 1200),
                 children: [
                   FadeSlideIn(child: _masterCard(c, bundle, form.draft)),
                   const SizedBox(height: 22),
@@ -1221,7 +1221,7 @@ class AiSettingsTabState extends State<AiSettingsTab> with AutomaticKeepAliveCli
                 ],
               ),
               padding: frame.inset(
-                EdgeInsets.fromLTRB(16, 10, 16, MediaQuery.paddingOf(context).bottom + 10),
+                EdgeInsets.fromLTRB(frame.isWide ? 24 : 16, 10, frame.isWide ? 24 : 16, MediaQuery.paddingOf(context).bottom + 10),
                 maxWidth: 1200,
               ),
               child: Row(

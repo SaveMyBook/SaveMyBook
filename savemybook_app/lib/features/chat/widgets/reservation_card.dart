@@ -6,6 +6,7 @@ import '../../../i18n/strings.dart';
 import '../../../models/chat.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/motion.dart';
+import '../../../widgets/adaptive_sheet.dart';
 import '../../../widgets/state_views.dart';
 import 'chat_bubbles.dart';
 import 'chat_format.dart';
@@ -279,9 +280,10 @@ Future<ReservationRequest?> showReservationRequestSheet(
   String? imageUrl,
 }) {
   final c = AppColors.of(context);
-  return showModalBottomSheet<ReservationRequest>(
+  return showAppModalSheet<ReservationRequest>(
     context: context,
     isScrollControlled: true,
+    dialogMaxWidth: 480,
     backgroundColor: c.sheetBg,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     builder: (_) => _ReservationSheet(title: title, price: price, imageUrl: imageUrl),
@@ -312,26 +314,21 @@ class _ReservationSheetState extends State<_ReservationSheet> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final insets = MediaQuery.viewInsetsOf(context).bottom;
+    final dialog = isDialogSheet(context);
+    // 對話框本身已依鍵盤高度內縮，面板模式才需要自行墊高
+    final insets = dialog ? 0.0 : MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
       padding: EdgeInsets.only(bottom: insets),
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          padding: EdgeInsets.fromLTRB(20, 12, 20, dialog ? 12 : 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SheetHandle(margin: EdgeInsets.only(bottom: 16)),
               Text(
                 S.reserveBook,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),

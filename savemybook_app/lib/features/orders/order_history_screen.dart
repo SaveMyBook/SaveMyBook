@@ -7,6 +7,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../cabinet/cabinet_entry.dart';
@@ -129,16 +130,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
     if (mounted) await _refresh();
   }
 
-  Future<void> _openDetail(Order order) async {
-    await Navigator.push(
+  Future<void> _openDetail(BuildContext context, Order order) async {
+    await MasterDetail.open(
       context,
-      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order, asSeller: _role == OrderRole.seller)),
+      OrderDetailScreen(order: order, asSeller: _role == OrderRole.seller),
+      id: order.orderId,
     );
     await _afterChange();
   }
 
-  Future<void> _openDispute(Order order) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => DisputeScreen(orderNo: order.orderNo)));
+  Future<void> _openDispute(BuildContext context, Order order) async {
+    await MasterDetail.open(context, DisputeScreen(orderNo: order.orderNo), id: 'dispute_${order.orderId}');
     await _afterChange();
   }
 
@@ -200,7 +202,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
     await _afterChange();
   }
 
-  Widget _buildCard(Order order) {
+  Widget _buildCard(BuildContext context, Order order) {
     final asSeller = _role == OrderRole.seller;
     final reportPending = order.hasPendingManualReport;
     String? action;
@@ -221,7 +223,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
       onAction = () => _completeOrder(order);
       if (order.canOpenDispute()) {
         secondary = S.openDispute;
-        onSecondary = () => _openDispute(order);
+        onSecondary = () => _openDispute(context, order);
       }
     }
     if (order.isCancellable) {
@@ -232,7 +234,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
     return OrderRecordCard(
       order: order,
       asSeller: asSeller,
-      onTap: () => _openDetail(order),
+      selected: MasterDetail.selectedId(context) == order.orderId,
+      onTap: () => _openDetail(context, order),
       actionLabel: action,
       onAction: onAction,
       secondaryLabel: secondary,
@@ -243,6 +246,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    // 右側提示畫面需要 Material 祖先提供文字樣式
+    return Material(
+      color: c.scaffold,
+      child: MasterDetail(
+        masterWidth: 400,
+        placeholderIcon: Icons.receipt_long_outlined,
+        master: _buildMaster(c),
+      ),
+    );
+  }
+
+  Widget _buildMaster(AppColors c) {
     final role = _role;
     final filter = _filter;
     final key = _keyOf(role, filter);
@@ -319,7 +334,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> with SingleTick
                       ? RevealOnScroll(
                           key: ValueKey('order_${orders[row * columns + col].orderId}'),
                           index: row * columns + col,
-                          child: _buildCard(orders[row * columns + col]),
+                          child: _buildCard(context, orders[row * columns + col]),
                         )
                       : const SizedBox.shrink(),
                 ),

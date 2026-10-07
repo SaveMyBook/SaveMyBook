@@ -146,7 +146,7 @@ class _MemberLevelScreenState extends State<MemberLevelScreen> {
         onRefresh: _load,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            if (context.screenSize == ScreenSize.expanded && constraints.maxWidth >= 900) {
+            if (context.isWide && constraints.maxWidth >= 900) {
               return _buildWideContent(c, style, constraints);
             }
             final wide = context.isWide;

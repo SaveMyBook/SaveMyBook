@@ -8,6 +8,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 
 class BlockedUsersScreen extends StatefulWidget {
@@ -100,11 +101,37 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
         key: const ValueKey('list'),
         color: c.accent,
         onRefresh: _load,
-        child: ListView.builder(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-          itemCount: users.length,
-          itemBuilder: (_, i) => FadeSlideIn(index: i, child: _tile(c, users[i])),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < Breakpoints.medium) {
+              return ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+                itemCount: users.length,
+                itemBuilder: (_, i) => FadeSlideIn(index: i, child: _tile(c, users[i])),
+              );
+            }
+            final padding = responsiveListPadding(constraints, horizontal: 24, top: 20, bottom: 40);
+            final columns = Breakpoints.columnsFor(constraints.maxWidth - padding.horizontal, minTileWidth: 360, min: 1, max: 3);
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: padding,
+              itemCount: (users.length / columns).ceil(),
+              itemBuilder: (_, row) => Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var col = 0; col < columns; col++) ...[
+                    if (col > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: row * columns + col < users.length
+                          ? FadeSlideIn(index: row * columns + col, child: _tile(c, users[row * columns + col]))
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
         ),
       );
     }

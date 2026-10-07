@@ -4,6 +4,7 @@ import '../../../i18n/strings.dart';
 import '../../../utils/app_colors.dart';
 import '../../../utils/app_radius.dart';
 import '../../../utils/motion.dart';
+import '../../../widgets/adaptive_sheet.dart';
 import '../../../widgets/animations.dart';
 import '../../../widgets/app_buttons.dart';
 import 'legal_text.dart';
@@ -20,7 +21,7 @@ Future<bool?> showLegalSaveSheet(
   final c = AppColors.of(context);
   FocusManager.instance.primaryFocus?.unfocus();
 
-  return showModalBottomSheet<bool>(
+  return showAppModalSheet<bool>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -29,6 +30,7 @@ Future<bool?> showLegalSaveSheet(
     sheetAnimationStyle: const AnimationStyle(duration: Motion.enter, reverseDuration: Motion.base),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     clipBehavior: Clip.antiAlias,
+    dialogMaxWidth: 560,
     builder: (_) => _LegalSaveSheet(
       title: title,
       currentVersion: currentVersion,
@@ -103,19 +105,12 @@ class _LegalSaveSheetState extends State<_LegalSaveSheet> {
         : S.substantiveContentChangesAllUsersNotified;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(20, 10, 20, 20 + MediaQuery.paddingOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(20, isDialogSheet(context) ? 4 : 10, 20, 20 + MediaQuery.paddingOf(context).bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 14),
-              decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
+          const SheetHandle(margin: EdgeInsets.only(bottom: 14)),
           Text(
             S.saveP0(widget.title),
             maxLines: 2,

@@ -149,11 +149,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               onRefresh: _load,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final wide = context.screenSize == ScreenSize.expanded;
+                  final wide = context.isWide && constraints.maxWidth >= 900;
                   final padding = responsiveListPadding(
                     constraints,
                     maxWidth: wide ? 1120 : Breakpoints.readingMaxWidth,
-                    horizontal: wide ? 32 : 20,
+                    horizontal: wide ? 32 : (context.isWide ? 24 : 20),
                     top: 20,
                     bottom: MediaQuery.of(context).padding.bottom + 40,
                   );

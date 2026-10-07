@@ -16,10 +16,10 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/guards.dart';
-import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../home/home_screen.dart';
 import 'ai_listing_assist.dart';
+import 'listing_form_layout.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
 import '../../i18n/strings.dart';
@@ -529,106 +529,116 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                 onTap: () => FocusScope.of(context).unfocus(),
                 child: AbsorbPointer(
                   absorbing: _isSubmitting,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) => SingleChildScrollView(
-                      controller: _scrollController,
-                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: responsiveListPadding(
-                        constraints,
-                        maxWidth: Breakpoints.formMaxWidth,
-                        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-                      ),
-                      child: Column(
-                        children: [
-                          FadeSlideIn(child: _buildImageUploadSection(c)),
-                          const SizedBox(height: 12),
-                          FadeSlideIn(
-                            index: 1,
-                            child: AiFlash(
-                              trigger: _flash['condition'] ?? 0,
-                              child: FormRowCard(
-                                label: S.condition,
-                                labelWidth: 88,
-                                isRequired: true,
-                                child: AppSelect<String>(
-                                  value: _condition,
-                                  title: S.condition,
-                                  options: [
-                                    for (final option in AppLabels.conditionOptions)
-                                      AppSelectOption(
-                                        value: option.value,
-                                        label: option.label,
-                                        icon: Icons.menu_book_rounded,
-                                        iconColor: c.conditionColor(option.value),
-                                      ),
-                                  ],
-                                  onChanged: _onConditionChanged,
-                                ),
-                              ),
-                            ),
-                          ),
-                          FadeSlideIn(
-                            index: 2,
-                            child: AiFlash(
-                              trigger: _flash['price'] ?? 0,
-                              child: FormRowCard(
-                                label: S.customPrice,
-                                labelWidth: 88,
-                                isRequired: true,
-                                child: AppTextField(
-                                  controller: _priceController,
-                                  hint: S.enterPrice2,
-                                  prefixText: '\$ ',
-                                  errorText: _priceError,
-                                  keyboardType: TextInputType.number,
-                                  textInputAction: TextInputAction.done,
-                                  inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ),
-                            ),
-                          ),
-                          FadeSlideIn(
-                            index: 3,
-                            child: FormRowCard(
-                              label: S.lockerLocation,
-                              labelWidth: 88,
-                              isRequired: true,
-                              child: CabinetSelectField(
-                                value: _selectedCabinet,
-                                autoSelectNearest: !_cabinetTouched,
-                                errorText: _showErrors && _selectedCabinet == null ? S.chooseLocker : null,
-                                onChanged: (cabinet, byUser) {
-                                  setState(() {
-                                    if (byUser) _cabinetTouched = true;
-                                    _selectedCabinet = cabinet == null ? null : CabinetSelectField.idOf(cabinet);
-                                    _cabinet = cabinet;
-                                  });
-                                  if (byUser) _saveDraftNow();
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          MissingHint(missing: _missing),
-                          PrimaryButton(
-                            label: S.listBook,
-                            icon: Icons.publish_rounded,
-                            height: 50,
-                            isLoading: _isSubmitting,
-                            onPressed: _submitForm,
-                          ),
-                          const SizedBox(height: 80),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: LayoutBuilder(builder: (context, constraints) => _buildForm(c, constraints)),
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildForm(AppColors c, BoxConstraints constraints) {
+    final split = ListingFormLayout.isSplit(constraints);
+    final photos = FadeSlideIn(child: _buildImageUploadSection(c, grid: split));
+    final fields = [
+      FadeSlideIn(
+        index: 1,
+        child: AiFlash(
+          trigger: _flash['condition'] ?? 0,
+          child: FormRowCard(
+            label: S.condition,
+            labelWidth: 88,
+            isRequired: true,
+            child: AppSelect<String>(
+              value: _condition,
+              title: S.condition,
+              options: [
+                for (final option in AppLabels.conditionOptions)
+                  AppSelectOption(
+                    value: option.value,
+                    label: option.label,
+                    icon: Icons.menu_book_rounded,
+                    iconColor: c.conditionColor(option.value),
+                  ),
+              ],
+              onChanged: _onConditionChanged,
+            ),
+          ),
+        ),
+      ),
+      FadeSlideIn(
+        index: 2,
+        child: AiFlash(
+          trigger: _flash['price'] ?? 0,
+          child: FormRowCard(
+            label: S.customPrice,
+            labelWidth: 88,
+            isRequired: true,
+            child: AppTextField(
+              controller: _priceController,
+              hint: S.enterPrice2,
+              prefixText: '\$ ',
+              errorText: _priceError,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+        ),
+      ),
+      FadeSlideIn(
+        index: 3,
+        child: FormRowCard(
+          label: S.lockerLocation,
+          labelWidth: 88,
+          isRequired: true,
+          child: CabinetSelectField(
+            value: _selectedCabinet,
+            autoSelectNearest: !_cabinetTouched,
+            errorText: _showErrors && _selectedCabinet == null ? S.chooseLocker : null,
+            onChanged: (cabinet, byUser) {
+              setState(() {
+                if (byUser) _cabinetTouched = true;
+                _selectedCabinet = cabinet == null ? null : CabinetSelectField.idOf(cabinet);
+                _cabinet = cabinet;
+              });
+              if (byUser) _saveDraftNow();
+            },
+          ),
+        ),
+      ),
+    ];
+    final submit = PrimaryButton(
+      label: S.listBook,
+      icon: Icons.publish_rounded,
+      height: 50,
+      isLoading: _isSubmitting,
+      onPressed: _submitForm,
+    );
+
+    return SingleChildScrollView(
+      controller: _scrollController,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: ListingFormLayout.padding(context, constraints, bottom: MediaQuery.of(context).viewInsets.bottom + 16),
+      child: split
+          ? ListingFormLayout.columns(
+              left: [photos],
+              right: [...fields, const SizedBox(height: 8), MissingHint(missing: _missing), submit, const SizedBox(height: 24)],
+            )
+          : Column(
+              children: [
+                photos,
+                const SizedBox(height: 12),
+                ...fields,
+                const SizedBox(height: 20),
+                MissingHint(missing: _missing),
+                submit,
+                const SizedBox(height: 80),
+              ],
+            ),
     );
   }
 
@@ -681,7 +691,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     );
   }
 
-  Widget _buildImageUploadSection(AppColors c) {
+  Widget _buildImageUploadSection(AppColors c, {bool grid = false}) {
     final canAddMore = _totalImages < _maxImages;
     final missingPhotos = _showErrors && _filledRequired < _requiredLabels.length;
 
@@ -734,53 +744,43 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 140,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                for (var i = 0; i < _slots.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: SwitchIn(
-                      child: _slots[i] == null
-                          ? _buildAddImageButton(
-                              c,
-                              _requiredLabels[i],
-                              () => _pickRequired(i),
-                              key: ValueKey('add$i'),
-                              isRequired: true,
-                            )
-                          : _buildImageItem(
-                              c,
-                              _requiredLabels[i],
-                              _slots[i]!,
-                              key: ValueKey(_slots[i]!.path),
-                              isRequired: true,
-                              onTap: () => _pickRequired(i),
-                              onRemove: () => _removeRequired(i),
-                            ),
-                    ),
-                  ),
-                for (var i = 0; i < _extra.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: _buildImageItem(
-                      c,
-                      S.morePhotos,
-                      _extra[i],
-                      key: ValueKey(_extra[i].path),
-                      isRequired: false,
-                      onRemove: () => _removeExtra(i),
-                    ),
-                  ),
-                if (canAddMore)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: _buildAddImageButton(c, S.morePhotos, _addExtraImages),
-                  ),
-              ],
-            ),
+          ListingPhotoStrip(
+            grid: grid,
+            tiles: [
+              for (var i = 0; i < _slots.length; i++)
+                (width) => SwitchIn(
+                  child: _slots[i] == null
+                      ? _buildAddImageButton(
+                          c,
+                          _requiredLabels[i],
+                          () => _pickRequired(i),
+                          key: ValueKey('add$i'),
+                          isRequired: true,
+                          width: width,
+                        )
+                      : _buildImageItem(
+                          c,
+                          _requiredLabels[i],
+                          _slots[i]!,
+                          key: ValueKey(_slots[i]!.path),
+                          isRequired: true,
+                          onTap: () => _pickRequired(i),
+                          onRemove: () => _removeRequired(i),
+                          width: width,
+                        ),
+                ),
+              for (var i = 0; i < _extra.length; i++)
+                (width) => _buildImageItem(
+                  c,
+                  S.morePhotos,
+                  _extra[i],
+                  key: ValueKey(_extra[i].path),
+                  isRequired: false,
+                  onRemove: () => _removeExtra(i),
+                  width: width,
+                ),
+              if (canAddMore) (width) => _buildAddImageButton(c, S.morePhotos, _addExtraImages, width: width),
+            ],
           ),
           ValueListenableBuilder<AiStatusInfo>(
             valueListenable: AiStatus.listenable,
@@ -809,6 +809,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     required bool isRequired,
     required VoidCallback onRemove,
     VoidCallback? onTap,
+    double width = ListingPhotoStrip.tileWidth,
   }) {
     return Column(
       key: key,
@@ -816,8 +817,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         PressableScale(
           onTap: onTap,
           child: Container(
-            width: 90,
-            height: 110,
+            width: width,
+            height: ListingPhotoStrip.heightOf(width),
             decoration: BoxDecoration(
               border: Border.all(color: c.divider, width: 1.5),
               borderRadius: BorderRadius.circular(8),
@@ -830,7 +831,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
                   child: Image.file(
                     File(imageFile.path),
                     fit: BoxFit.cover,
-                    cacheWidth: 270,
+                    cacheWidth: (width * 3).round(),
                     errorBuilder: (_, _, _) => Icon(Icons.broken_image_outlined, color: c.iconInactive),
                   ),
                 ),
@@ -857,7 +858,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         ),
         const SizedBox(height: 6),
         SizedBox(
-          width: 90,
+          width: width,
           child: Text(
             label,
             maxLines: 1,
@@ -874,7 +875,14 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
     );
   }
 
-  Widget _buildAddImageButton(AppColors c, String label, VoidCallback onTap, {Key? key, bool isRequired = false}) {
+  Widget _buildAddImageButton(
+    AppColors c,
+    String label,
+    VoidCallback onTap, {
+    Key? key,
+    bool isRequired = false,
+    double width = ListingPhotoStrip.tileWidth,
+  }) {
     return Column(
       key: key,
       children: [
@@ -885,8 +893,8 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
           child: InkWell(
             onTap: onTap,
             child: Container(
-              width: 90,
-              height: 110,
+              width: width,
+              height: ListingPhotoStrip.heightOf(width),
               decoration: BoxDecoration(
                 border: Border.all(color: c.accent.withValues(alpha: 0.5), width: 1.5),
                 borderRadius: BorderRadius.circular(8),
@@ -909,7 +917,7 @@ class _SellBookDetailScreenState extends State<SellBookDetailScreen> {
         ),
         const SizedBox(height: 6),
         SizedBox(
-          width: 90,
+          width: width,
           child: Text(
             label,
             maxLines: 1,

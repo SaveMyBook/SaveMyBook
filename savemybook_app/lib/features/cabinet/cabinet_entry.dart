@@ -15,7 +15,8 @@ export 'cabinet_messages.dart' show CabinetAction, CabinetMessages, cabinetActio
 
 Future<CabinetFlowOutcome> openCabinetFlow(BuildContext context, {CabinetContext? cabinetContext, String? code}) async {
   var outcome = CabinetFlowOutcome.dismissed;
-  final result = await Navigator.of(context).push<CabinetFlowOutcome>(
+  // 平板的分頁各有自己的 Navigator；開門後必須留在書櫃作業畫面結束作業，推入最上層才不會被側邊欄切換分頁離開。
+  final result = await Navigator.of(context, rootNavigator: true).push<CabinetFlowOutcome>(
     MaterialPageRoute(
       builder: (_) => CabinetFlowScreen(code: code, cabinetContext: cabinetContext, onOutcome: (value) => outcome = value),
     ),

@@ -721,6 +721,7 @@
   "enquiryNotFound": "お問い合わせが見つかりません",
   "support": "サポート",
   "supportAgent": "サポート担当者",
+  "selectItemToView": "左側から項目を選択してください",
   "writeReply": "返信を入力…",
   "coins": "コイン",
   "transactions": "取引履歴",

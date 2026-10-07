@@ -11,6 +11,7 @@ import '../../../widgets/animations.dart';
 import '../../../widgets/app_dialogs.dart';
 import '../../../widgets/app_tiles.dart';
 import '../../../widgets/image_viewer.dart';
+import '../../../widgets/responsive.dart';
 import '../../../widgets/state_views.dart';
 import '../admin_layout.dart';
 import 'ai_labels.dart';
@@ -32,6 +33,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
   final Map<int, bool> _leaving = {};
   final Set<int> _expanded = {};
   final Set<int> _unfounded = {};
+  int? _selectedId;
 
   static const _rejectCategories = ['not_book', 'prohibited', 'adult', 'contact', 'misleading', 'price', 'source', 'other'];
   String? _error;
@@ -115,6 +117,11 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
     await Future<void>.delayed(Motion.large);
     if (!mounted) return;
     setState(() {
+      final index = _items.indexWhere((i) => i.bookId == item.bookId);
+      if (_selectedId == item.bookId) {
+        final rest = [for (final i in _items) if (i.bookId != item.bookId) i];
+        _selectedId = rest.isEmpty ? null : rest[index.clamp(0, rest.length - 1)].bookId;
+      }
       _items.removeWhere((i) => i.bookId == item.bookId);
       _leaving.remove(item.bookId);
       _expanded.remove(item.bookId);
@@ -139,38 +146,156 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
                       onRefresh: _load,
                       child: EmptyView(icon: Icons.verified_outlined, message: S.noListingsAwaitingReview),
                     )
-                  : RefreshIndicator(
+                  : AdminLayout(
                       key: const ValueKey('list'),
-                      color: c.accent,
-                      onRefresh: _load,
-                      child: AdminLayout(
-                        builder: (context, frame) {
-                          final cards = [
-                            for (final (i, item) in _items.indexed)
-                              KeyedSubtree(
-                                key: ValueKey(item.bookId),
-                                child: RevealOnScroll(index: i, child: _leavingWrap(item, _card(c, item))),
-                              ),
-                          ];
-                          return ListView(
+                      builder: (context, frame) {
+                        if (frame.width >= _splitWidth) return _buildSplit(c);
+                        return RefreshIndicator(
+                          color: c.accent,
+                          onRefresh: _load,
+                          child: ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
-                            padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 40), maxWidth: 1200),
-                            children: frame.isWide
-                                ? [
-                                    AdminColumns(gap: 14, spacing: 0, columns: [
-                                      [for (var i = 0; i < cards.length; i += 2) cards[i]],
-                                      [for (var i = 1; i < cards.length; i += 2) cards[i]],
-                                    ]),
-                                  ]
-                                : cards,
-                          );
-                        },
-                      ),
+                            padding: frame.isWide
+                                ? frame.inset(const EdgeInsets.fromLTRB(24, 20, 24, 40), maxWidth: Breakpoints.readingMaxWidth)
+                                : frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 40), maxWidth: 1200),
+                            children: [
+                              for (final (i, item) in _items.indexed)
+                                KeyedSubtree(
+                                  key: ValueKey(item.bookId),
+                                  child: RevealOnScroll(index: i, child: _leavingWrap(item, _card(c, item))),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
     );
   }
 
-  Widget _leavingWrap(AiReviewItem item, Widget child) {
+  static const double _splitWidth = 840;
+
+  Widget _buildSplit(AppColors c) {
+    final selected = _items.where((i) => i.bookId == _selectedId).firstOrNull ?? _items.first;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: 360,
+          child: RefreshIndicator(
+            color: c.accent,
+            onRefresh: _load,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+              children: [
+                for (final (i, item) in _items.indexed)
+                  KeyedSubtree(
+                    key: ValueKey(item.bookId),
+                    child: RevealOnScroll(
+                      index: i,
+                      child: _leavingWrap(item, _tile(c, item, selected: item.bookId == selected.bookId), gap: 10),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        VerticalDivider(width: 1, thickness: 1, color: c.divider),
+        Expanded(
+          child: SwitchIn(
+            child: Column(
+              key: ValueKey(selected.bookId),
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
+                        child: _card(c, selected, large: true),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + MediaQuery.paddingOf(context).bottom),
+                  decoration: BoxDecoration(border: Border(top: BorderSide(color: c.divider))),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
+                      child: _actions(c, selected),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _tile(AppColors c, AiReviewItem item, {required bool selected}) {
+    final reject = item.verdict == 'reject';
+    final radius = BorderRadius.circular(14);
+    return Material(
+      color: selected ? c.accent.withValues(alpha: 0.12) : c.card,
+      borderRadius: radius,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: () {
+          if (selected) return;
+          HapticFeedback.selectionClick();
+          setState(() => _selectedId = item.bookId);
+        },
+        child: AnimatedContainer(
+          duration: Motion.base,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(color: selected ? c.accent : Colors.transparent, width: 1.4),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: AppNetworkImage(url: item.imageUrl, width: 44, height: 60, fallbackIconSize: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13.5, height: 1.35, fontWeight: FontWeight.w600, color: c.textPrimary)),
+                    const SizedBox(height: 4),
+                    Text(
+                      [
+                        if (item.sellerName.isNotEmpty) item.sellerName,
+                        if (item.price > 0) '\$${item.price.toStringAsFixed(0)}',
+                        formatRelative(item.createdAt),
+                      ].join('・'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    ),
+                    const SizedBox(height: 6),
+                    StatusBadge(label: reject ? S.likelyViolation : S.needsReview, color: reject ? c.danger : c.warning, fontSize: 10),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _leavingWrap(AiReviewItem item, Widget child, {double gap = 14}) {
     final leaving = _leaving[item.bookId];
     return AnimatedSize(
       duration: Motion.base,
@@ -186,7 +311,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
                 opacity: v,
                 child: Transform.translate(offset: Offset((leaving == true ? 40 : -40) * (1 - v), 0), child: child),
               ),
-        child: Padding(padding: const EdgeInsets.only(bottom: 14), child: child),
+        child: Padding(padding: EdgeInsets.only(bottom: gap), child: child),
       ),
     );
   }
@@ -237,7 +362,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
         ),
       );
 
-  Widget _details(AppColors c, AiReviewItem item) {
+  Widget _details(AppColors c, AiReviewItem item, {bool large = false}) {
     final opinion = item.aiOpinion;
     final flags = [
       item.byRules ? S.sourceInstantRules : S.sourceAiAssessment,
@@ -250,7 +375,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
         if (item.imageUrls.isNotEmpty) ...[
           const SizedBox(height: 12),
           SizedBox(
-            height: 120,
+            height: large ? 180 : 120,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: item.imageUrls.length,
@@ -259,7 +384,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
                 onTap: () => ImageViewer.openGallery(context, imageUrls: item.imageUrls, initialIndex: i, title: item.title, allowSave: false),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: AppNetworkImage(url: item.imageUrls[i], width: 90, height: 120, fallbackIconSize: 22),
+                  child: AppNetworkImage(url: item.imageUrls[i], width: large ? 135 : 90, height: large ? 180 : 120, fallbackIconSize: 22),
                 ),
               ),
             ),
@@ -287,9 +412,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
     );
   }
 
-  Widget _card(AppColors c, AiReviewItem item) {
-    final busy = _busy.contains(item.bookId);
-    final leaving = _leaving[item.bookId];
+  Widget _card(AppColors c, AiReviewItem item, {bool large = false}) {
     final reject = item.verdict == 'reject';
     final expanded = _expanded.contains(item.bookId);
 
@@ -392,7 +515,7 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
             duration: Motion.base,
             curve: Motion.standard,
             alignment: Alignment.topCenter,
-            child: expanded ? _details(c, item) : const SizedBox(width: double.infinity),
+            child: expanded ? _details(c, item, large: large) : const SizedBox(width: double.infinity),
           ),
           Align(
             alignment: Alignment.centerLeft,
@@ -411,58 +534,66 @@ class _AiReviewTabState extends State<AiReviewTab> with AutomaticKeepAliveClient
               label: Text(expanded ? S.collapse : S.showPhotosFullDetails, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             ),
           ),
-          const SizedBox(height: 4),
-          AnimatedSwitcher(
-            duration: Motion.base,
-            child: leaving != null
-                ? Row(
-                    key: const ValueKey('done'),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      leaving ? DrawnCheck(size: 22, color: c.success) : Icon(Icons.block_rounded, size: 20, color: c.danger),
-                      const SizedBox(width: 6),
-                      Text(leaving ? S.approved : S.rejected,
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: leaving ? c.success : c.danger)),
-                    ],
-                  )
-                : Row(
-                    key: const ValueKey('actions'),
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: busy ? null : () => _decide(item, approve: false),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: c.danger,
-                            side: BorderSide(color: c.danger.withValues(alpha: 0.5)),
-                            padding: const EdgeInsets.symmetric(vertical: 11),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          icon: const Icon(Icons.block_rounded, size: 17),
-                          label: Text(S.reject, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: busy ? null : () => _decide(item, approve: true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: c.success,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 11),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          icon: busy
-                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.check_rounded, size: 18),
-                          label: Text(S.approve, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
+          if (!large) ...[
+            const SizedBox(height: 4),
+            _actions(c, item),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _actions(AppColors c, AiReviewItem item) {
+    final busy = _busy.contains(item.bookId);
+    final leaving = _leaving[item.bookId];
+    return AnimatedSwitcher(
+      duration: Motion.base,
+      child: leaving != null
+          ? Row(
+              key: const ValueKey('done'),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                leaving ? DrawnCheck(size: 22, color: c.success) : Icon(Icons.block_rounded, size: 20, color: c.danger),
+                const SizedBox(width: 6),
+                Text(leaving ? S.approved : S.rejected,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: leaving ? c.success : c.danger)),
+              ],
+            )
+          : Row(
+              key: const ValueKey('actions'),
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: busy ? null : () => _decide(item, approve: false),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: c.danger,
+                      side: BorderSide(color: c.danger.withValues(alpha: 0.5)),
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.block_rounded, size: 17),
+                    label: Text(S.reject, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: busy ? null : () => _decide(item, approve: true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.success,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: busy
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.check_rounded, size: 18),
+                    label: Text(S.approve, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

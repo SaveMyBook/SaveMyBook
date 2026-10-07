@@ -129,7 +129,7 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
                               children: [
                                 Expanded(
                                   child: ListView(
-                                    padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 32), maxWidth: 900),
+                                    padding: frame.pad(const EdgeInsets.fromLTRB(16, 16, 16, 32), maxWidth: 900),
                                     children: [
                                       FadeSlideIn(child: _masterCard(c, draft)),
                                       const SizedBox(height: 22),
@@ -406,7 +406,7 @@ class _AdminAuthScreenState extends State<AdminAuthScreen> {
                   BoxShadow(color: c.shadow.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, -2)),
                 ],
               ),
-              padding: frame.inset(
+              padding: frame.pad(
                 EdgeInsets.fromLTRB(16, 10, 16, MediaQuery.paddingOf(context).bottom + 10),
                 maxWidth: 900,
               ),

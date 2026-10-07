@@ -12,6 +12,7 @@ import '../../../widgets/app_dialogs.dart';
 import '../../../widgets/app_header.dart';
 import '../../../widgets/buyer/undo_snackbar.dart';
 import '../../../widgets/guards.dart';
+import '../../../widgets/responsive.dart';
 import '../../../widgets/state_views.dart';
 import 'legal_draft_store.dart';
 import 'legal_editor_banners.dart';
@@ -57,6 +58,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
   final List<LegalSection> _sections = [];
   final Set<LegalSection> _detached = {};
   final ValueNotifier<String> _stats = ValueNotifier('');
+  final ValueNotifier<int> _revision = ValueNotifier(0);
 
   _Mode _mode = _Mode.sections;
   bool _rawSource = false;
@@ -122,6 +124,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
       section.dispose();
     }
     _stats.dispose();
+    _revision.dispose();
     super.dispose();
   }
 
@@ -168,6 +171,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
 
   void _onChanged() {
     _refreshStats();
+    _revision.value++;
     final dirty = _title.text.trim() != _baseTitle || _content != _baseContent;
     final flagged = _flagged.isEmpty ? _flagged : {for (final s in _sections) if (s.missingTitle && _flagged.contains(s.id)) s.id};
     final titleError = _showTitleError && _title.text.trim().isEmpty;
@@ -574,6 +578,8 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
     navigator.pop();
   }
 
+  static const double _splitWidth = 900;
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -585,49 +591,90 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
       },
       child: Scaffold(
         backgroundColor: c.scaffold,
-        body: Column(
-          children: [
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _title,
-              builder: (_, _, _) => AppHeader(
-                title: _displayTitle,
-                bottom: LegalEditorHeaderBar(
-                  selectedMode: _mode.index,
-                  onSelectMode: (i) => _switchMode(_Mode.values[i]),
-                  dirty: _dirty,
-                  saving: _saving,
-                  onSave: _dirty && !_saving && !_busy ? _save : null,
-                ),
-              ),
-            ),
-            LegalStatusStrip(doc: _doc, dirty: _dirty, draftSaved: _draftSaved, stats: _stats),
-            Reveal(
-              visible: _pendingDraft != null,
-              child: _bannerDraft == null
-                  ? const SizedBox(width: double.infinity)
-                  : LegalDraftBanner(draft: _bannerDraft!, doc: _doc, onDiscard: _discardDraft, onRestore: _restoreDraft),
-            ),
-            Expanded(
-              child: SwitchIn(
-                child: switch (_mode) {
-                  _Mode.sections => _buildSections(),
-                  _Mode.raw => _buildRaw(),
-                  _Mode.preview => LegalPreview(
-                      key: const ValueKey('preview'),
-                      title: _displayTitle,
-                      content: _content,
-                      updatedAt: _dirty ? DateTime.now() : _doc?.updatedAt ?? DateTime.now(),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            // 並排時右側已是預覽，預覽模式改顯示對應的編輯模式（例如由直向轉為橫向）
+            final split = width >= _splitWidth;
+            final mode = split && _mode == _Mode.preview ? (_rawSource ? _Mode.raw : _Mode.sections) : _mode;
+            final side = split ? 24.0 : math.max(20.0, (width - Breakpoints.readingMaxWidth) / 2);
+            final barWidth = Breakpoints.readingMaxWidth + 40;
+
+            return Column(
+              children: [
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _title,
+                  builder: (_, _, _) => AppHeader(
+                    title: _displayTitle,
+                    bottom: ResponsiveCenter(
+                      maxWidth: barWidth,
+                      child: LegalEditorHeaderBar(
+                        selectedMode: mode.index,
+                        showPreview: !split,
+                        onSelectMode: (i) => _switchMode(_Mode.values[i]),
+                        dirty: _dirty,
+                        saving: _saving,
+                        onSave: _dirty && !_saving && !_busy ? _save : null,
+                      ),
                     ),
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+                ResponsiveCenter(
+                  maxWidth: split ? double.infinity : barWidth,
+                  child: LegalStatusStrip(doc: _doc, dirty: _dirty, draftSaved: _draftSaved, stats: _stats),
+                ),
+                Reveal(
+                  visible: _pendingDraft != null,
+                  child: _bannerDraft == null
+                      ? const SizedBox(width: double.infinity)
+                      : ResponsiveCenter(
+                          maxWidth: split ? double.infinity : barWidth,
+                          child: LegalDraftBanner(draft: _bannerDraft!, doc: _doc, onDiscard: _discardDraft, onRestore: _restoreDraft),
+                        ),
+                ),
+                Expanded(
+                  child: split
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: SwitchIn(child: _buildEditor(mode, side))),
+                            VerticalDivider(width: 1, thickness: 1, color: c.divider),
+                            Expanded(
+                              child: ValueListenableBuilder<int>(
+                                valueListenable: _revision,
+                                builder: (_, _, _) => LegalPreview(
+                                  title: _displayTitle,
+                                  content: _content,
+                                  updatedAt: _dirty ? DateTime.now() : _doc?.updatedAt ?? DateTime.now(),
+                                  horizontalPadding: 24,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : SwitchIn(
+                          child: mode == _Mode.preview
+                              ? LegalPreview(
+                                  key: const ValueKey('preview'),
+                                  title: _displayTitle,
+                                  content: _content,
+                                  updatedAt: _dirty ? DateTime.now() : _doc?.updatedAt ?? DateTime.now(),
+                                  horizontalPadding: side,
+                                )
+                              : _buildEditor(mode, side),
+                        ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildSections() {
+  Widget _buildEditor(_Mode mode, double side) => mode == _Mode.raw ? _buildRaw(side) : _buildSections(side);
+
+  Widget _buildSections(double side) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return CustomScrollView(
@@ -635,7 +682,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          padding: EdgeInsets.fromLTRB(side, 8, side, 0),
           sliver: SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -651,7 +698,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: side),
           sliver: SliverReorderableList(
             itemCount: _sections.length,
             onReorder: _reorder,
@@ -670,7 +717,7 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
           ),
         ),
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(20, 2, 20, 32 + bottomInset),
+          padding: EdgeInsets.fromLTRB(side, 2, side, 32 + bottomInset),
           sliver: SliverToBoxAdapter(
             child: LegalAddSectionButton(showEmptyHint: _sections.isEmpty, onTap: () => _addSection()),
           ),
@@ -679,12 +726,12 @@ class _LegalEditorScreenState extends State<LegalEditorScreen> with WidgetsBindi
     );
   }
 
-  Widget _buildRaw() {
+  Widget _buildRaw(double side) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return ListView(
       key: const ValueKey('raw'),
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 32 + bottomInset),
+      padding: EdgeInsets.fromLTRB(side, 8, side, 32 + bottomInset),
       children: [
         LegalTitleCard(controller: _title, showError: _showTitleError),
         const SizedBox(height: 12),

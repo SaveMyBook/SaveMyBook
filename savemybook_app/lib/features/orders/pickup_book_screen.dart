@@ -233,41 +233,31 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final reserved = _ready.isEmpty ? 0.0 : 136.0;
+                    final sidePanel = context.isWide && constraints.maxWidth >= 840 && _ready.isNotEmpty;
+                    final reserved = _ready.isEmpty || sidePanel ? 0.0 : 136.0;
                     final paste = cabinetPasteEnabled ? 48.0 : 0.0;
                     final frame = ((constraints.maxHeight - reserved - paste - navSpace - 110) * 0.8).clamp(120.0, context.isWide ? 280.0 : 220.0);
+                    if (sidePanel) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Spacer(flex: 2),
+                                _buildScanTarget(frame),
+                                const Spacer(flex: 3),
+                                SizedBox(height: navSpace),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 360, child: _buildReadyList(c, bottom: navSpace)),
+                        ],
+                      );
+                    }
                     return Column(
                       children: [
                         const Spacer(flex: 2),
-                        _unlessCameraError(
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24),
-                                child: Text(
-                                  S.pointQrCodeLockerScreen,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9)),
-                                ),
-                              ),
-                              const SizedBox(height: 28),
-                              SizedBox(
-                                width: frame,
-                                height: frame,
-                                child: CustomPaint(
-                                  painter: _CornerFramePainter(
-                                    color: Colors.white.withValues(alpha: 0.85),
-                                    cornerLength: frame * 0.23,
-                                    strokeWidth: 5,
-                                    radius: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (cabinetPasteEnabled)
-                          Padding(padding: const EdgeInsets.only(top: 8), child: CabinetPasteButton(onPressed: _paste)),
+                        _buildScanTarget(frame),
                         const Spacer(flex: 3),
                         AnimatedSize(
                           duration: Motion.enter,
@@ -287,6 +277,92 @@ class _PickupBookScreenState extends State<PickupBookScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScanTarget(double frame) {
+    return Column(
+      children: [
+        _unlessCameraError(
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  S.pointQrCodeLockerScreen,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.9)),
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: frame,
+                height: frame,
+                child: CustomPaint(
+                  painter: _CornerFramePainter(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    cornerLength: frame * 0.23,
+                    strokeWidth: 5,
+                    radius: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (cabinetPasteEnabled)
+          Padding(padding: const EdgeInsets.only(top: 8), child: CabinetPasteButton(onPressed: _paste)),
+      ],
+    );
+  }
+
+  Widget _buildReadyList(AppColors c, {required double bottom}) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: FadeSlideIn(
+        offsetY: 20,
+        child: Container(
+          margin: EdgeInsets.fromLTRB(0, 24, 24, bottom + 24),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.45),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.inventory_2_outlined, size: 16, color: Colors.white),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      S.p0ReadyPickup(_ready.length),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemCount: _ready.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, i) => GestureDetector(
+                    onTap: () => _openOrder(_ready[i]),
+                    child: PickupReadyCard(order: _ready[i]),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

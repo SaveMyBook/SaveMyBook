@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../i18n/strings.dart';
 import '../utils/app_colors.dart';
 import '../utils/motion.dart';
+import 'adaptive_sheet.dart';
 
 class AppSelectOption<T> {
   final T value;
@@ -85,7 +86,7 @@ Future<_Picked<T>?> _openPicker<T>(
   final c = AppColors.of(context);
   FocusManager.instance.primaryFocus?.unfocus();
 
-  return showModalBottomSheet<_Picked<T>>(
+  return showAppModalSheet<_Picked<T>>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -191,17 +192,20 @@ class _AppPickerSheetState<T> extends State<_AppPickerSheet<T>> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                margin: const EdgeInsets.only(top: 10, bottom: 12),
-                decoration: BoxDecoration(
-                  color: c.iconInactive.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(2),
+            if (isDialogSheet(context))
+              const SizedBox(height: 16)
+            else
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 10, bottom: 12),
+                  decoration: BoxDecoration(
+                    color: c.iconInactive.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 12, 8),
               child: Row(

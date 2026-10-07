@@ -269,7 +269,7 @@ class _AdminLevelScreenState extends State<AdminLevelScreen> {
   Widget _buildList(AppColors c, AdminFrame frame, {required bool twoPane}) {
     final padding = twoPane
         ? const EdgeInsets.fromLTRB(24, 16, 12, 24)
-        : frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 24), maxWidth: 760);
+        : frame.pad(const EdgeInsets.fromLTRB(16, 16, 16, 24), maxWidth: 760);
 
     return RefreshIndicator(
       key: const ValueKey('items'),

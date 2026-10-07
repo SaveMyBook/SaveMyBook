@@ -7,6 +7,7 @@ import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_labels.dart';
 import '../../utils/motion.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
@@ -169,52 +170,18 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
         builder: (context, frame) => Column(
           children: [
             AppHeader(title: S.myBooks, icon: Icons.menu_book_rounded),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
-              child: AppSearchField(
-                controller: _searchController,
-                hint: S.searchTitleIsbnSeller,
-                onSubmitted: (_) => _load(),
+            if (frame.isWide)
+              AdminToolbar(frame: frame, search: _buildSearch(), filters: _buildFilters(c))
+            else ...[
+              Padding(
+                padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
+                child: _buildSearch(),
               ),
-            ),
-            SizedBox(
-              height: 34,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16)),
-                itemCount: _filters.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final f = _filters[i];
-                  final selected = _filter == f.key;
-                  return GestureDetector(
-                    onTap: () {
-                      if (_filter == f.key) return;
-                      HapticFeedback.selectionClick();
-                      setState(() => _filter = f.key);
-                      _load();
-                    },
-                    child: AnimatedContainer(
-                      duration: Motion.micro,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: selected ? c.accent : c.categoryChip,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        f.label,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                          color: selected ? Colors.white : c.accent,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              SizedBox(
+                height: 34,
+                child: _buildFilters(c, padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16))),
               ),
-            ),
+            ],
             Expanded(
               child: SwitchIn(
                 child: _isLoading
@@ -234,10 +201,12 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                                   ),
                                 ],
                               )
-                            : ListView.builder(
+                            : AdminCardList(
                                 key: const ValueKey('items'),
                                 physics: const AlwaysScrollableScrollPhysics(),
-                                padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 24)),
+                                frame: frame,
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                                equalHeight: false,
                                 itemCount: _books.length,
                                 itemBuilder: (_, i) {
                                   final book = _books[i];
@@ -247,7 +216,7 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                                     onRemoved: () => _finishRemoval(book.bookId),
                                     child: RevealOnScroll(
                                       index: i,
-                                      child: _buildCard(book, c, wide: frame.isWide),
+                                      child: _buildCard(book, c, wide: frame.isWide && frame.columns() == 1),
                                     ),
                                   );
                                 },
@@ -260,6 +229,48 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
       ),
     );
   }
+
+  Widget _buildSearch() => AppSearchField(
+        controller: _searchController,
+        hint: S.searchTitleIsbnSeller,
+        onSubmitted: (_) => _load(),
+      );
+
+  Widget _buildFilters(AppColors c, {EdgeInsets padding = EdgeInsets.zero}) => ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: padding,
+        itemCount: _filters.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final f = _filters[i];
+          final selected = _filter == f.key;
+          return GestureDetector(
+            onTap: () {
+              if (_filter == f.key) return;
+              HapticFeedback.selectionClick();
+              setState(() => _filter = f.key);
+              _load();
+            },
+            child: AnimatedContainer(
+              duration: Motion.micro,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? c.accent : c.categoryChip,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                f.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                  color: selected ? Colors.white : c.accent,
+                ),
+              ),
+            ),
+          );
+        },
+      );
 
   Future<void> _editBook(AdminBook book) async {
     final categories = _categories ?? await runBusy(context, _api.fetchCategories);
@@ -283,11 +294,12 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
     String? isbnError;
 
     final c = AppColors.of(context);
-    final saved = await showModalBottomSheet<bool>(
+    final saved = await showAppModalSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: c.sheetBg,
+      dialogMaxWidth: 640,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -304,17 +316,20 @@ class _AdminBookScreenState extends State<AdminBookScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 38,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 14),
-                      decoration: BoxDecoration(
-                        color: c.iconInactive.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(2),
+                  if (isDialogSheet(ctx))
+                    const SizedBox(height: 14)
+                  else
+                    Center(
+                      child: Container(
+                        width: 38,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 14),
+                        decoration: BoxDecoration(
+                          color: c.iconInactive.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                  ),
                   Text(
                     S.editBookDetails,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: c.textPrimary),

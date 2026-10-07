@@ -171,9 +171,10 @@ class _AdminDeletionScreenState extends State<AdminDeletionScreen> {
                                     ),
                                   ],
                                 )
-                              : ListView.builder(
+                              : AdminCardList(
                                   key: const ValueKey('items'),
-                                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 20, 16, 32)),
+                                  frame: frame,
+                                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
                                   itemCount: _pending.length,
                                   itemBuilder: (_, i) => RevealOnScroll(
                                     index: i,

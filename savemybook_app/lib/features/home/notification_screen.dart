@@ -6,6 +6,7 @@ import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
 import 'package:flutter/services.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
@@ -255,15 +256,16 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
         ? (label: S.viewDetails,)
         : null;
 
-    final go = await showModalBottomSheet<bool>(
+    final go = await showAppModalSheet<bool>(
       context: context,
       backgroundColor: c.sheetBg,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      dialogMaxWidth: 480,
       builder: (ctx) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -371,8 +373,12 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
               controller: _tabs,
               children: [
                 _buildNotificationList(c),
-                AnnouncementList(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, _bottomSpace),
+                LayoutBuilder(
+                  builder: (context, constraints) => AnnouncementList(
+                    padding: context.isWide
+                        ? responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 24, bottom: _bottomSpace)
+                        : EdgeInsets.fromLTRB(16, 16, 16, _bottomSpace),
+                  ),
                 ),
               ],
             ),
@@ -398,7 +404,7 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
     final options = <NotificationCategory?>[null, ...NotificationCategory.center];
     return LayoutBuilder(
       builder: (context, constraints) {
-        final side = responsiveListPadding(constraints).left;
+        final side = _listPadding(constraints).left;
         return ValueListenableBuilder<Map<NotificationCategory, int>>(
           valueListenable: ApiService.unreadNotificationsByCategory,
           builder: (context, byCategory, _) => ValueListenableBuilder<int>(
@@ -460,35 +466,61 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                           if (notification.metrics.extentAfter < 400) _loadMore();
                           return false;
                         },
-                        child: LayoutBuilder(builder: (context, constraints) => ListView.builder(
-                          key: ValueKey('items_${category?.key}'),
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: responsiveListPadding(constraints, top: 10, bottom: bottom),
-                          itemCount: visible.length + (feed.hasMore ? 1 : 0),
-                          itemBuilder: (_, i) {
-                            if (i >= visible.length) {
-                              if (!feed.loadingMore) WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                child: Center(
-                                  child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent)),
-                                ),
+                        child: LayoutBuilder(builder: (context, constraints) {
+                          final columns = _columns(constraints);
+                          final padding = _listPadding(constraints, top: context.isWide ? 12 : 10, bottom: bottom);
+                          final rows = (visible.length / columns).ceil();
+                          return ListView.builder(
+                            key: ValueKey('items_${category?.key}'),
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: padding,
+                            itemCount: rows + (feed.hasMore ? 1 : 0),
+                            itemBuilder: (_, row) {
+                              if (row >= rows) {
+                                if (!feed.loadingMore) WidgetsBinding.instance.addPostFrameCallback((_) => _loadMore());
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: c.accent)),
+                                  ),
+                                );
+                              }
+                              Widget tile(int i) => RevealOnScroll(
+                                    key: ValueKey(visible[i].notificationId),
+                                    index: i,
+                                    child: _buildTile(visible[i], c, uniform: columns > 1),
+                                  );
+                              if (columns == 1) return tile(row);
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  for (var col = 0; col < columns; col++) ...[
+                                    if (col > 0) const SizedBox(width: 12),
+                                    Expanded(
+                                      child: row * columns + col < visible.length ? tile(row * columns + col) : const SizedBox.shrink(),
+                                    ),
+                                  ],
+                                ],
                               );
-                            }
-                            return RevealOnScroll(
-                              key: ValueKey(visible[i].notificationId),
-                              index: i,
-                              child: _buildTile(visible[i], c),
-                            );
-                          },
-                        )),
+                            },
+                          );
+                        }),
                       ),
               ),
             ),
     );
   }
 
-  Widget _buildTile(AppNotification n, AppColors c) {
+  int _columns(BoxConstraints constraints) => context.isWide && constraints.maxWidth >= 900 ? 2 : 1;
+
+  EdgeInsets _listPadding(BoxConstraints constraints, {double top = 16, double bottom = 16}) {
+    if (!context.isWide) return responsiveListPadding(constraints, top: top, bottom: bottom);
+    final maxWidth = _columns(constraints) > 1 ? Breakpoints.listMaxWidth + 160 : Breakpoints.readingMaxWidth;
+    return responsiveListPadding(constraints, maxWidth: maxWidth, horizontal: 24, top: top, bottom: bottom);
+  }
+
+  // 多欄時固定標題與內文的行數，同一列的卡片才會等高
+  Widget _buildTile(AppNotification n, AppColors c, {bool uniform = false}) {
     return SwipeActionTile(
       itemKey: ValueKey('notification_${n.notificationId}'),
       startToEnd: n.isRead
@@ -534,6 +566,8 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                       Expanded(
                         child: Text(
                           n.title,
+                          maxLines: uniform ? 1 : null,
+                          overflow: uniform ? TextOverflow.ellipsis : null,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: n.isRead ? FontWeight.w500 : FontWeight.bold,
@@ -561,12 +595,23 @@ class _NotificationScreenState extends State<NotificationScreen> with SingleTick
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    n.content,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.4),
-                  ),
+                  if (uniform)
+                    SizedBox(
+                      height: MediaQuery.textScalerOf(context).scale(13) * 1.4 * 2,
+                      child: Text(
+                        n.content,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.4),
+                      ),
+                    )
+                  else
+                    Text(
+                      n.content,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: c.textSecondary, height: 1.4),
+                    ),
                   const SizedBox(height: 8),
                   Text(
                     formatRelative(n.createdAt?.toLocal()),

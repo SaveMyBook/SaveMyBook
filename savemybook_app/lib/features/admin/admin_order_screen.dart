@@ -12,6 +12,7 @@ import '../../widgets/animations.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_tiles.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
@@ -83,7 +84,19 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
     _load();
   }
 
-  Future<void> _openDetail(AdminOrder order) async {
+  Future<void> _openDetail(BuildContext ctx, AdminOrder order) async {
+    if (MasterDetail.isSplit(ctx)) {
+      MasterDetail.open(
+        ctx,
+        AdminOrderDetailScreen(
+          orderId: order.orderId,
+          orderNo: order.orderNo,
+          onChanged: () => _load(showLoading: false),
+        ),
+        id: order.orderId,
+      );
+      return;
+    }
     if (_navigating) return;
     _navigating = true;
     try {
@@ -119,227 +132,242 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: AdminLayout(
-        builder: (context, frame) => Column(
-          children: [
-            AppHeader(title: S.orders, icon: Icons.receipt_long_outlined),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
-              child: AppSearchField(
-                controller: _searchController,
-                hint: S.searchOrderNumberBuyerSeller,
-                onChanged: _onSearchChanged,
-                onSubmitted: (_) => _load(),
-              ),
-            ),
-            SizedBox(
-              height: 34,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16)),
-                itemCount: _filters.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final f = _filters[i];
-                  final selected = _filter == f.key;
-                  return PressableScale(
-                    scale: 0.94,
-                    onTap: () => _setFilter(f.key),
-                    child: AnimatedContainer(
-                      duration: Motion.micro,
-                      curve: Motion.standard,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: selected ? c.accent : c.categoryChip,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        f.label,
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                          color: selected ? Colors.white : c.accent,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Expanded(
-              child: SwitchIn(
-                child: _isLoading
-                    ? const LoadingView.list()
-                    : RefreshIndicator(
-                        color: c.accent,
-                        onRefresh: () => _load(showLoading: false),
-                        child: SwitchIn(
-                          child: _orders.isEmpty
-                              ? ListView(
-                                  key: const ValueKey('empty'),
-                                  children: [
-                                    const SizedBox(height: 60),
-                                    EmptyView(
-                                      icon: Icons.receipt_long_outlined,
-                                      message: S.noOrdersMatch,
-                                      actionLabel: hasQuery ? S.clearFilters : S.refresh,
-                                      onAction: () {
-                                        if (hasQuery) {
-                                          _searchController.clear();
-                                          _filter = 'all';
-                                        }
-                                        _load();
-                                      },
+      body: MasterDetail(
+        placeholderIcon: Icons.receipt_long_outlined,
+        master: AdminLayout(
+          builder: (context, frame) => Column(
+            children: [
+              AppHeader(title: S.orders, icon: Icons.receipt_long_outlined),
+              if (frame.isWide)
+                AdminToolbar(frame: frame, search: _buildSearch(), filters: _buildFilters(c))
+              else ...[
+                Padding(
+                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
+                  child: _buildSearch(),
+                ),
+                SizedBox(
+                  height: 34,
+                  child: _buildFilters(c, padding: frame.inset(const EdgeInsets.symmetric(horizontal: 16))),
+                ),
+              ],
+              Expanded(
+                child: SwitchIn(
+                  child: _isLoading
+                      ? const LoadingView.list()
+                      : RefreshIndicator(
+                          color: c.accent,
+                          onRefresh: () => _load(showLoading: false),
+                          child: SwitchIn(
+                            child: _orders.isEmpty
+                                ? ListView(
+                                    key: const ValueKey('empty'),
+                                    children: [
+                                      const SizedBox(height: 60),
+                                      EmptyView(
+                                        icon: Icons.receipt_long_outlined,
+                                        message: S.noOrdersMatch,
+                                        actionLabel: hasQuery ? S.clearFilters : S.refresh,
+                                        onAction: () {
+                                          if (hasQuery) {
+                                            _searchController.clear();
+                                            _filter = 'all';
+                                          }
+                                          _load();
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                : AdminCardList(
+                                    key: ValueKey('items_$_filter'),
+                                    frame: frame,
+                                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                                    itemCount: _orders.length,
+                                    itemBuilder: (_, i) => RevealOnScroll(
+                                      index: i,
+                                      child: _buildCard(context, _orders[i], c),
                                     ),
-                                  ],
-                                )
-                              : ListView.builder(
-                                  key: ValueKey('items_$_filter'),
-                                  padding: frame.inset(const EdgeInsets.fromLTRB(16, 12, 16, 24)),
-                                  itemCount: _orders.length,
-                                  itemBuilder: (_, i) => RevealOnScroll(
-                                    index: i,
-                                    child: _buildCard(_orders[i], c),
                                   ),
-                                ),
+                          ),
                         ),
-                      ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCard(AdminOrder order, AppColors c) {
-    final first = order.items.isEmpty ? null : order.items.first;
+  Widget _buildSearch() => AppSearchField(
+        controller: _searchController,
+        hint: S.searchOrderNumberBuyerSeller,
+        onChanged: _onSearchChanged,
+        onSubmitted: (_) => _load(),
+      );
 
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _openDetail(order),
-      onLongPress: () => _copyOrderNo(order),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        order.orderNo,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: c.textPrimary,
-                        ),
-                      ),
-                    ),
-                    PressableScale(
-                      onTap: () => _copyOrderNo(order),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        child: Icon(Icons.copy_rounded, size: 14, color: c.iconInactive),
-                      ),
-                    ),
-                  ],
+  Widget _buildFilters(AppColors c, {EdgeInsets padding = EdgeInsets.zero}) => ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: padding,
+        itemCount: _filters.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final f = _filters[i];
+          final selected = _filter == f.key;
+          return PressableScale(
+            scale: 0.94,
+            onTap: () => _setFilter(f.key),
+            child: AnimatedContainer(
+              duration: Motion.micro,
+              curve: Motion.standard,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected ? c.accent : c.categoryChip,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                f.label,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                  color: selected ? Colors.white : c.accent,
                 ),
               ),
-              const SizedBox(width: 6),
-              StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              BookThumbnail(imageUrl: first?.imageUrl, width: 48, height: 62, radius: 8),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            first == null ? S.noItems : first.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: c.textPrimary,
+            ),
+          );
+        },
+      );
+
+  Widget _buildCard(BuildContext ctx, AdminOrder order, AppColors c) {
+    final first = order.items.isEmpty ? null : order.items.first;
+
+    return AdminSelectable(
+      ids: [order.orderId],
+      builder: (margin) => AppCard(
+        margin: margin,
+        onTap: () => _openDetail(ctx, order),
+        onLongPress: () => _copyOrderNo(order),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          order.orderNo,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: c.textPrimary,
+                          ),
+                        ),
+                      ),
+                      PressableScale(
+                        onTap: () => _copyOrderNo(order),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          child: Icon(Icons.copy_rounded, size: 14, color: c.iconInactive),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                StatusBadge(label: order.statusText, color: c.orderStatusColor(order.status)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BookThumbnail(imageUrl: first?.imageUrl, width: 48, height: 62, radius: 8),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              first == null ? S.noItems : first.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: c.textPrimary,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '\$${order.totalAmount.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: c.accent,
+                          const SizedBox(width: 8),
+                          Text(
+                            '\$${order.totalAmount.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: c.accent,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    if (order.items.length > 1)
-                      Text(
-                        S.p0ItemsTotal(order.items.length),
-                        style: TextStyle(fontSize: 11, color: c.textHint),
+                        ],
                       ),
-                    const SizedBox(height: 4),
-                    Text(
-                      S.buyerP0SellerP12(order.buyerName, order.sellerName),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
-                    ),
-                    if (order.cabinetName.isNotEmpty)
+                      if (order.items.length > 1)
+                        Text(
+                          S.p0ItemsTotal(order.items.length),
+                          style: TextStyle(fontSize: 11, color: c.textHint),
+                        ),
+                      const SizedBox(height: 4),
                       Text(
-                        S.lockerP0(order.cabinetName),
+                        S.buyerP0SellerP12(order.buyerName, order.sellerName),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: c.textSecondary),
                       ),
-                  ],
+                      if (order.cabinetName.isNotEmpty)
+                        Text(
+                          S.lockerP0(order.cabinetName),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, color: c.textSecondary),
+                        ),
+                    ],
+                  ),
                 ),
+              ],
+            ),
+            if (order.cancelReason != null && order.cancelReason!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                S.cancellationReasonP0(order.cancelReason!),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11, color: c.danger),
               ),
             ],
-          ),
-          if (order.cancelReason != null && order.cancelReason!.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(
-              S.cancellationReasonP0(order.cancelReason!),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11, color: c.danger),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _when(order.createdAt),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11, color: c.textHint),
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, size: 18, color: c.iconInactive),
+              ],
             ),
           ],
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _when(order.createdAt),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: c.textHint),
-                ),
-              ),
-              Icon(Icons.chevron_right_rounded, size: 18, color: c.iconInactive),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

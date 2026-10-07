@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../i18n/strings.dart';
 import '../../models/chat.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_dialogs.dart';
+import 'widgets/chat_format.dart';
 
 String chatRiskNote(ChatRiskCategory category) => switch (category) {
   ChatRiskCategory.credential => S.neverShareVerificationCodesPasswordsCard,
@@ -111,48 +113,50 @@ class ChatRiskBanner extends StatelessWidget {
     );
     return Material(
       color: c.danger.withValues(alpha: c.isDark ? 0.16 : 0.08),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 4, 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Icon(Icons.gpp_maybe_rounded, size: 20, color: c.danger),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    S.chatHighRiskMessagesDoNot,
-                    style: TextStyle(fontSize: 13, height: 1.4, fontWeight: FontWeight.w600, color: c.textPrimary),
-                  ),
-                ),
-                SizedBox(
-                  width: 36,
-                  height: 24,
-                  child: IconButton(
-                    onPressed: onDismiss,
-                    tooltip: S.actionClose,
-                    padding: EdgeInsets.zero,
-                    icon: Icon(Icons.close_rounded, size: 18, color: c.textSecondary),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: Wrap(
+      child: ChatLane(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 4, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextButton(onPressed: onTips, style: compact, child: Text(S.scamSafetyTips, style: action)),
-                  if (onReport != null)
-                    TextButton(onPressed: onReport, style: compact, child: Text(S.report, style: action)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Icon(Icons.gpp_maybe_rounded, size: 20, color: c.danger),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      S.chatHighRiskMessagesDoNot,
+                      style: TextStyle(fontSize: 13, height: 1.4, fontWeight: FontWeight.w600, color: c.textPrimary),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 36,
+                    height: 24,
+                    child: IconButton(
+                      onPressed: onDismiss,
+                      tooltip: S.actionClose,
+                      padding: EdgeInsets.zero,
+                      icon: Icon(Icons.close_rounded, size: 18, color: c.textSecondary),
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Wrap(
+                  children: [
+                    TextButton(onPressed: onTips, style: compact, child: Text(S.scamSafetyTips, style: action)),
+                    if (onReport != null)
+                      TextButton(onPressed: onReport, style: compact, child: Text(S.report, style: action)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -168,7 +172,7 @@ void showFraudTipsSheet(BuildContext context) {
     (Icons.report_gmailerrorred_rounded, S.cancelInstallmentsAccountFrozenPaymentVerification),
     (Icons.flag_outlined, S.ifSeeSuspiciousMessageReportAdministrator),
   ];
-  showModalBottomSheet<void>(
+  showAppModalSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: c.sheetBg,
@@ -181,14 +185,7 @@ void showFraudTipsSheet(BuildContext context) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const SizedBox(height: 18),
+            const SheetHandle(margin: EdgeInsets.only(bottom: 18)),
             Text(S.scamSafetyTips, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: c.textPrimary)),
             const SizedBox(height: 16),
             for (final (icon, text) in tips)

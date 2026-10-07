@@ -14,10 +14,10 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
-import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../utils/app_labels.dart';
 import 'ai_listing_assist.dart';
+import 'listing_form_layout.dart';
 import '../../i18n/strings.dart';
 
 class EditBookDetailScreen extends StatefulWidget {
@@ -351,88 +351,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
                   onTap: () => FocusScope.of(context).unfocus(),
                   child: AbsorbPointer(
                     absorbing: _isSaving,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) => SingleChildScrollView(
-                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: responsiveListPadding(
-                          constraints,
-                          maxWidth: Breakpoints.formMaxWidth,
-                          top: 20,
-                          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            FadeSlideIn(child: _buildImageSection(c)),
-                            const SizedBox(height: 12),
-                            FadeSlideIn(
-                              index: 1,
-                              child: FormRowCard(
-                                label: S.condition,
-                                labelWidth: 88,
-                                child: AppSelect<String>(
-                                  value: _condition,
-                                  title: S.condition,
-                                  options: [
-                                    for (final option in AppLabels.conditionOptions)
-                                      AppSelectOption(
-                                        value: option.value,
-                                        label: option.label,
-                                        icon: Icons.menu_book_rounded,
-                                        iconColor: c.conditionColor(option.value),
-                                      ),
-                                  ],
-                                  onChanged: (value) => setState(() => _condition = value),
-                                ),
-                              ),
-                            ),
-                            FadeSlideIn(
-                              index: 2,
-                              child: FormRowCard(
-                                label: S.customPrice,
-                                labelWidth: 88,
-                                child: AppTextField(
-                                  controller: _priceController,
-                                  hint: S.enterPrice2,
-                                  keyboardType: TextInputType.number,
-                                  textInputAction: TextInputAction.done,
-                                  prefixText: '\$ ',
-                                  errorText: _showErrors && (_price ?? 0) <= 0 ? S.enterPrice : null,
-                                  inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ),
-                            ),
-                            FadeSlideIn(
-                              index: 3,
-                              child: FormRowCard(
-                                label: S.lockerLocation,
-                                labelWidth: 88,
-                                child: CabinetSelectField(
-                                  value: _cabinetId,
-                                  enabled: !widget.book.isDeposited,
-                                  hint: widget.book.isDeposited && widget.book.cabinetName.isNotEmpty ? widget.book.cabinetName : null,
-                                  disabledReason: S.lockerCannotChangedWhileBookStored,
-                                  errorText: _showErrors && _cabinetId == null ? S.chooseLocker : null,
-                                  onChanged: (cabinet, byUser) => setState(() {
-                                    if (byUser) _cabinetTouched = true;
-                                    _cabinetId = cabinet == null ? null : CabinetSelectField.idOf(cabinet);
-                                  }),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            PrimaryButton(
-                              label: S.saveChanges,
-                              icon: Icons.check_rounded,
-                              isLoading: _isSaving,
-                              onPressed: _save,
-                            ),
-                            const SizedBox(height: 40),
-                          ],
-                        ),
-                      ),
-                    ),
+                    child: LayoutBuilder(builder: (context, constraints) => _buildForm(c, constraints)),
                   ),
                 ),
               ),
@@ -443,7 +362,90 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
     );
   }
 
-  Widget _buildImageSection(AppColors c) {
+  Widget _buildForm(AppColors c, BoxConstraints constraints) {
+    final split = ListingFormLayout.isSplit(constraints);
+    final photos = FadeSlideIn(child: _buildImageSection(c, grid: split));
+    final fields = [
+      FadeSlideIn(
+        index: 1,
+        child: FormRowCard(
+          label: S.condition,
+          labelWidth: 88,
+          child: AppSelect<String>(
+            value: _condition,
+            title: S.condition,
+            options: [
+              for (final option in AppLabels.conditionOptions)
+                AppSelectOption(
+                  value: option.value,
+                  label: option.label,
+                  icon: Icons.menu_book_rounded,
+                  iconColor: c.conditionColor(option.value),
+                ),
+            ],
+            onChanged: (value) => setState(() => _condition = value),
+          ),
+        ),
+      ),
+      FadeSlideIn(
+        index: 2,
+        child: FormRowCard(
+          label: S.customPrice,
+          labelWidth: 88,
+          child: AppTextField(
+            controller: _priceController,
+            hint: S.enterPrice2,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            prefixText: '\$ ',
+            errorText: _showErrors && (_price ?? 0) <= 0 ? S.enterPrice : null,
+            inputFormatters: const [PriceInputFormatter(max: _maxPrice)],
+            onChanged: (_) => setState(() {}),
+          ),
+        ),
+      ),
+      FadeSlideIn(
+        index: 3,
+        child: FormRowCard(
+          label: S.lockerLocation,
+          labelWidth: 88,
+          child: CabinetSelectField(
+            value: _cabinetId,
+            enabled: !widget.book.isDeposited,
+            hint: widget.book.isDeposited && widget.book.cabinetName.isNotEmpty ? widget.book.cabinetName : null,
+            disabledReason: S.lockerCannotChangedWhileBookStored,
+            errorText: _showErrors && _cabinetId == null ? S.chooseLocker : null,
+            onChanged: (cabinet, byUser) => setState(() {
+              if (byUser) _cabinetTouched = true;
+              _cabinetId = cabinet == null ? null : CabinetSelectField.idOf(cabinet);
+            }),
+          ),
+        ),
+      ),
+    ];
+    final save = PrimaryButton(
+      label: S.saveChanges,
+      icon: Icons.check_rounded,
+      isLoading: _isSaving,
+      onPressed: _save,
+    );
+
+    return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: ListingFormLayout.padding(context, constraints, top: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+      child: split
+          ? ListingFormLayout.columns(
+              left: [photos],
+              right: [...fields, const SizedBox(height: 4), save, const SizedBox(height: 24)],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [photos, const SizedBox(height: 12), ...fields, const SizedBox(height: 16), save, const SizedBox(height: 40)],
+            ),
+    );
+  }
+
+  Widget _buildImageSection(AppColors c, {bool grid = false}) {
     final canAddMore = _totalImages < _maxImages;
 
     return AppCard(
@@ -488,64 +490,49 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 140,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                for (var i = 0; i < _requiredLabels.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: _buildSlot(c, i),
+          ListingPhotoStrip(
+            grid: grid,
+            tiles: [
+              for (var i = 0; i < _requiredLabels.length; i++) (width) => _buildSlot(c, i, width: width),
+              for (final image in _extraExisting)
+                (width) => _buildImageTile(
+                  c,
+                  label: S.morePhotos,
+                  isRequired: false,
+                  onRemove: () => _removeExtraExisting(image),
+                  width: width,
+                  image: AppNetworkImage(
+                    url: image.url,
+                    fallbackIcon: Icons.broken_image_outlined,
+                    fallbackIconSize: 24,
                   ),
-                for (final image in _extraExisting)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: _buildImageTile(
-                      c,
-                      label: S.morePhotos,
-                      isRequired: false,
-                      onRemove: () => _removeExtraExisting(image),
-                      image: AppNetworkImage(
-                        url: image.url,
-                        fallbackIcon: Icons.broken_image_outlined,
-                        fallbackIconSize: 24,
-                      ),
-                    ),
-                  ),
-                for (final file in _extraNew)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: _buildImageTile(
-                      c,
-                      label: S.morePhotos,
-                      isRequired: false,
-                      onRemove: () {
-                        if (!_isSaving) setState(() => _extraNew.remove(file));
-                      },
-                      image: Image.file(File(file.path), fit: BoxFit.cover, cacheWidth: 270),
-                    ),
-                  ),
-                if (canAddMore)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: _buildAddButton(c, S.morePhotos, _addExtraImages),
-                  ),
-              ],
-            ),
+                ),
+              for (final file in _extraNew)
+                (width) => _buildImageTile(
+                  c,
+                  label: S.morePhotos,
+                  isRequired: false,
+                  onRemove: () {
+                    if (!_isSaving) setState(() => _extraNew.remove(file));
+                  },
+                  width: width,
+                  image: Image.file(File(file.path), fit: BoxFit.cover, cacheWidth: (width * 3).round()),
+                ),
+              if (canAddMore) (width) => _buildAddButton(c, S.morePhotos, _addExtraImages, width: width),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSlot(AppColors c, int slot) {
+  Widget _buildSlot(AppColors c, int slot, {double width = ListingPhotoStrip.tileWidth}) {
     final existing = _slotExisting[slot];
     final picked = _slotNew[slot];
     final label = _requiredLabels[slot];
 
     if (existing == null && picked == null) {
-      return _buildAddButton(c, label, () => _pickSlot(slot), isRequired: true);
+      return _buildAddButton(c, label, () => _pickSlot(slot), isRequired: true, width: width);
     }
 
     return _buildImageTile(
@@ -554,8 +541,9 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
       isRequired: true,
       onRemove: () => _clearSlot(slot),
       onTap: () => _pickSlot(slot),
+      width: width,
       image: picked != null
-          ? Image.file(File(picked.path), fit: BoxFit.cover, cacheWidth: 270)
+          ? Image.file(File(picked.path), fit: BoxFit.cover, cacheWidth: (width * 3).round())
           : AppNetworkImage(
               url: existing!.url,
               fallbackIcon: Icons.broken_image_outlined,
@@ -571,14 +559,15 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
     required VoidCallback onRemove,
     required Widget image,
     VoidCallback? onTap,
+    double width = ListingPhotoStrip.tileWidth,
   }) {
     return Column(
       children: [
         PressableScale(
           onTap: onTap,
           child: Container(
-            width: 90,
-            height: 110,
+            width: width,
+            height: ListingPhotoStrip.heightOf(width),
             decoration: BoxDecoration(
               border: Border.all(color: c.divider, width: 1.5),
               borderRadius: BorderRadius.circular(8),
@@ -610,7 +599,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
         ),
         const SizedBox(height: 6),
         SizedBox(
-          width: 90,
+          width: width,
           child: Text(
             label,
             maxLines: 1,
@@ -632,6 +621,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
     String label,
     VoidCallback onTap, {
     bool isRequired = false,
+    double width = ListingPhotoStrip.tileWidth,
   }) {
     return Column(
       children: [
@@ -642,8 +632,8 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
           child: InkWell(
             onTap: onTap,
             child: Container(
-              width: 90,
-              height: 110,
+              width: width,
+              height: ListingPhotoStrip.heightOf(width),
               decoration: BoxDecoration(
                 border: Border.all(color: c.accent.withValues(alpha: 0.5), width: 1.5),
                 borderRadius: BorderRadius.circular(8),
@@ -664,7 +654,7 @@ class _EditBookDetailScreenState extends State<EditBookDetailScreen> {
         ),
         const SizedBox(height: 6),
         SizedBox(
-          width: 90,
+          width: width,
           child: Text(
             label,
             maxLines: 1,

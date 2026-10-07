@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/motion.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
@@ -99,10 +100,12 @@ class _WalletScreenState extends State<WalletScreen> {
                       onRefresh: _load,
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          if (context.screenSize == ScreenSize.expanded && constraints.maxWidth >= 900) {
+                          if (context.isWide && constraints.maxWidth >= 900) {
                             return _buildSplit(c, constraints);
                           }
-                          final side = responsiveListPadding(constraints, horizontal: 20).left;
+                          final side = context.isWide
+                              ? responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 24).left
+                              : responsiveListPadding(constraints, horizontal: 20).left;
 
                           return CustomScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
@@ -134,7 +137,7 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildSplit(AppColors c, BoxConstraints constraints) {
-    final padding = responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth, horizontal: 20);
+    final padding = responsiveListPadding(constraints, maxWidth: Breakpoints.pageMaxWidth, horizontal: 24);
     final paneWidth = ((constraints.maxWidth - padding.horizontal) * 0.36).clamp(340.0, 400.0);
     final listLeft = padding.left + paneWidth + 24;
 
@@ -455,7 +458,7 @@ class _WalletScreenState extends State<WalletScreen> {
       );
     }
 
-    showModalBottomSheet<void>(
+    showAppModalSheet<void>(
       context: context,
       backgroundColor: c.sheetBg,
       isScrollControlled: true,
@@ -466,12 +469,7 @@ class _WalletScreenState extends State<WalletScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(color: c.divider, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 18),
+              const SheetHandle(margin: EdgeInsets.only(bottom: 18)),
               Container(
                 width: 52,
                 height: 52,

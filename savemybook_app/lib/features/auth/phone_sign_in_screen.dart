@@ -9,6 +9,7 @@ import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/pin_pad.dart';
+import 'auth_wide_card.dart';
 import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
@@ -132,13 +133,10 @@ class _PhoneSignInScreenState extends State<PhoneSignInScreen> {
               behavior: HitTestBehavior.opaque,
               onTap: () => FocusScope.of(context).unfocus(),
               child: LayoutBuilder(
-                builder: (context, constraints) => ListView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: responsiveListPadding(constraints,
-                      maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
-                  children: [
+                builder: (context, constraints) {
+                  final children = [
                     FadeSlideIn(
-                      child: AppCard(
+                      child: AuthSection(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,8 +207,15 @@ class _PhoneSignInScreenState extends State<PhoneSignInScreen> {
                         onPressed: _submit,
                       ),
                     ),
-                  ],
-                ),
+                  ];
+                  if (context.isWide) return AuthWideCard(children: children);
+                  return ListView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: responsiveListPadding(constraints,
+                        maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 20, bottom: 40),
+                    children: children,
+                  );
+                },
               ),
             ),
           ),
@@ -303,7 +308,7 @@ class _SmsCodeScreenState extends State<SmsCodeScreen> {
             child: LayoutBuilder(
               builder: (context, constraints) => SingleChildScrollView(
                 padding: responsiveListPadding(constraints,
-                    maxWidth: Breakpoints.formMaxWidth, horizontal: 20, top: 24, bottom: 32),
+                    maxWidth: context.isWide ? 440 : Breakpoints.formMaxWidth, horizontal: 20, top: 24, bottom: 32),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight - 56),
                   child: Column(

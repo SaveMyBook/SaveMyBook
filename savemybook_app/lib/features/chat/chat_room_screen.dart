@@ -211,7 +211,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (!mounted) return false;
     final lifecycle = WidgetsBinding.instance.lifecycleState;
     if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return false;
-    return ModalRoute.of(context)?.isCurrent ?? false;
+    return ModalRoute.of(context) != null && _routeIsCurrent;
+  }
+
+  // 平板並排時聊天室在右側自己的 Navigator 內，外層頁面被蓋住時內層 route 仍是 current，須逐層往外檢查
+  bool get _routeIsCurrent {
+    BuildContext? at = context;
+    while (at != null) {
+      final route = ModalRoute.of(at);
+      if (route == null) return true;
+      if (!route.isCurrent) return false;
+      at = route.navigator?.context;
+    }
+    return true;
   }
 
   @override
@@ -587,7 +599,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       return;
     }
     if (_loading || _loadError || !mounted) return;
-    if (!force && ModalRoute.isCurrentOf(context) == false) return;
+    if (!force && !_routeIsCurrent) return;
     _polling = true;
     _polledAt = DateTime.now();
 
@@ -1637,7 +1649,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
   }
 
   Widget _buildConversation() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final side = math.max(0.0, (constraints.maxWidth - kChatLaneMaxWidth) / 2);
+      return _buildMessages(constraints.maxWidth - side * 2, side);
+    });
+  }
+
+  Widget _buildMessages(double lane, double side) {
     final newerCount = _entries.length - _baseCount;
+    final inset = EdgeInsets.symmetric(horizontal: side);
 
     return Stack(
       children: [
@@ -1656,32 +1676,41 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (_, i) => _buildRow(_baseCount + i),
-                    childCount: newerCount,
-                    findChildIndexCallback: (key) {
-                      final index = key is ValueKey<String> ? _keyIndex[key.value] : null;
-                      if (index == null || index < _baseCount) return null;
-                      return index - _baseCount;
-                    },
+                SliverPadding(
+                  padding: inset,
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) => _buildRow(_baseCount + i, lane),
+                      childCount: newerCount,
+                      findChildIndexCallback: (key) {
+                        final index = key is ValueKey<String> ? _keyIndex[key.value] : null;
+                        if (index == null || index < _baseCount) return null;
+                        return index - _baseCount;
+                      },
+                    ),
                   ),
                 ),
-                SliverList(
+                SliverPadding(
                   key: _centerKey,
-                  delegate: SliverChildBuilderDelegate(
-                    (_, i) => i == 0 ? _buildTypingRow() : _buildRow(_baseCount - i),
-                    childCount: _baseCount + 1,
-                    findChildIndexCallback: (key) {
-                      if (key == _typingKey) return 0;
-                      final index = key is ValueKey<String> ? _keyIndex[key.value] : null;
-                      if (index == null || index >= _baseCount) return null;
-                      return _baseCount - index;
-                    },
+                  padding: inset,
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) => i == 0 ? _buildTypingRow() : _buildRow(_baseCount - i, lane),
+                      childCount: _baseCount + 1,
+                      findChildIndexCallback: (key) {
+                        if (key == _typingKey) return 0;
+                        final index = key is ValueKey<String> ? _keyIndex[key.value] : null;
+                        if (index == null || index >= _baseCount) return null;
+                        return _baseCount - index;
+                      },
+                    ),
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: _entries.isEmpty ? const SizedBox.shrink() : ChatHistoryHead(loading: _hasMore || _loadingOlder),
+                SliverPadding(
+                  padding: inset,
+                  sliver: SliverToBoxAdapter(
+                    child: _entries.isEmpty ? const SizedBox.shrink() : ChatHistoryHead(loading: _hasMore || _loadingOlder),
+                  ),
                 ),
               ],
             ),
@@ -1694,7 +1723,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
             ),
           ),
         Positioned(
-          right: 12,
+          right: 12 + side,
           bottom: 10,
           child: ChatJumpToBottomButton(showJump: _showJump, unseen: _unseen, onTap: _jumpToBottom),
         ),
@@ -1787,7 +1816,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     return chatSameDay(x, y) && y.difference(x).abs() < const Duration(minutes: 5);
   }
 
-  Widget _buildRow(int index) {
+  Widget _buildRow(int index, double lane) {
     final entry = _entries[index];
     final prev = index > 0 ? _entries[index - 1] : null;
     final next = index + 1 < _entries.length ? _entries[index + 1] : null;
@@ -1796,13 +1825,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
 
     final Widget body;
     if (entry.isCentered) {
-      body = _buildCentered(entry);
+      body = _buildCentered(entry, lane);
     } else {
       final groupStart = showDate || !_joins(prev, entry);
       final groupEnd = next == null || !_joins(entry, next);
       body = Padding(
         padding: EdgeInsets.only(top: groupStart ? 10 : 2),
-        child: _buildBubbleRow(entry, next, groupStart, groupEnd),
+        child: _buildBubbleRow(entry, next, groupStart, groupEnd, lane),
       );
     }
 
@@ -1833,7 +1862,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     );
   }
 
-  Widget _buildCentered(ChatEntry entry) {
+  Widget _buildCentered(ChatEntry entry, double lane) {
     final m = entry.message!;
     final isMine = m.senderId == _myId;
 
@@ -1848,18 +1877,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     if (m.kind == 'book') {
       final card = m.bookCard;
       if (card == null) return const SizedBox.shrink();
-      return ChatBookCardView(card: card, onTap: () => _openBook(card.bookId));
+      return ChatBookCardView(card: card, width: lane, onTap: () => _openBook(card.bookId));
     }
 
     return ChatSystemLine(text: m.text);
   }
 
-  Widget _buildBubbleRow(ChatEntry entry, ChatEntry? next, bool groupStart, bool groupEnd) {
+  Widget _buildBubbleRow(ChatEntry entry, ChatEntry? next, bool groupStart, bool groupEnd, double lane) {
     final c = AppColors.of(context);
     final isMine = entry.senderId == _myId;
-    final width = MediaQuery.sizeOf(context).width;
     final isCard = entry.kind == 'reservation' || entry.kind == 'transfer';
-    final maxBubble = isCard ? math.min(width * 0.78, 340.0) : math.min(width * 0.7, 420.0);
+    final maxBubble = isCard ? math.min(lane * 0.78, 340.0) : math.min(lane * 0.7, 420.0);
     final meta = _buildMeta(entry, next, isMine, groupEnd);
     final message = entry.message;
     final canSwipeReply =
@@ -1870,7 +1898,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onLongPress: isCard ? null : () => _showMessageMenu(entry),
-        child: _buildContent(entry, isMine, groupStart, groupEnd),
+        child: _buildContent(entry, isMine, groupStart, groupEnd, lane),
       ),
     );
 
@@ -1989,7 +2017,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
     );
   }
 
-  Widget _buildContent(ChatEntry entry, bool isMine, bool groupStart, bool groupEnd) {
+  Widget _buildContent(ChatEntry entry, bool isMine, bool groupStart, bool groupEnd, double lane) {
     final pending = entry.pending;
     final m = entry.message;
     final sending = pending?.state == ChatSendState.sending;
@@ -2032,9 +2060,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       if (transfer == null) {
         return ChatSystemLine(text: S.transferDetailsUnavailable, icon: Icons.payments_outlined);
       }
-      final width = MediaQuery.sizeOf(context).width;
       return SizedBox(
-        width: math.min(width * 0.64, 260.0),
+        width: math.min(lane * 0.64, 260.0),
         child: TransferCardView(
           transfer: transfer,
           myId: _myId,
@@ -2142,7 +2169,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
       return ChatSharedBookCard(
         token: sharedToken,
         isMine: isMine,
-        width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0), 320.0),
+        width: math.min(math.min(lane * 0.7, 420.0), 320.0),
       );
     }
     final linkText = ChatLinkText(
@@ -2163,7 +2190,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> with WidgetsBindingObse
               ChatLinkPreviewCard(
                 url: previewUrl,
                 isMine: isMine,
-                width: math.min(math.min(MediaQuery.sizeOf(context).width * 0.7, 420.0) - 26, 300.0),
+                width: math.min(math.min(lane * 0.7, 420.0) - 26, 300.0),
               ),
             ],
           );

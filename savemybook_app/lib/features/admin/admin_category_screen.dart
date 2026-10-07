@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_buttons.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/responsive.dart';
 import '../../widgets/state_views.dart';
 import '../../i18n/strings.dart';
 import 'admin_layout.dart';
@@ -98,7 +100,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
     final nameController = TextEditingController(text: category?.name ?? '');
     String? nameError;
 
-    final saved = await showModalBottomSheet<bool>(
+    final saved = await showAppModalSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: c.sheetBg,
@@ -253,7 +255,7 @@ class _AdminCategoryScreenState extends State<AdminCategoryScreen> {
                                 ],
                               )
                             : ReorderableListView.builder(key: const ValueKey('items'), 
-                                padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 24)),
+                                padding: frame.pad(const EdgeInsets.fromLTRB(16, 16, 16, 24), maxWidth: Breakpoints.readingMaxWidth),
                                 itemCount: _categories.length,
                                 onReorder: _onReorder,
                                 buildDefaultDragHandles: false,

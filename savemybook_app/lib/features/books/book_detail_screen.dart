@@ -299,12 +299,18 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     if (mounted) showAppSnackBar(context, S.copied(S.address));
   }
 
-  static const double _wideGap = 40;
+  static const double _wideGap = 32;
+  static const double _splitWidth = 680;
+  static const double _wideTop = 24;
+  static const double _wideBottom = 32;
 
-  ({double side, double gallery}) _wideGeometry(double width) {
-    final side = responsiveListPadding(BoxConstraints(maxWidth: width), maxWidth: 1160, horizontal: 32).left;
-    final content = width - side * 2;
-    return (side: side, gallery: (content * 0.46).clamp(360.0, 540.0));
+  ({double side, double gallery, double galleryHeight})? _splitGeometry(BoxConstraints constraints, double barHeight) {
+    if (constraints.maxWidth < _splitWidth) return null;
+    final side = responsiveListPadding(constraints, maxWidth: 1160, horizontal: 24).left;
+    final content = constraints.maxWidth - side * 2;
+    final maxHeight = math.max(320.0, constraints.maxHeight - barHeight - _wideTop - _wideBottom);
+    final gallery = math.min(content * 0.42, maxHeight * 3 / 4).clamp(260.0, 520.0);
+    return (side: side, gallery: gallery, galleryHeight: math.min(gallery * 4 / 3, maxHeight));
   }
 
   List<Widget> _buildDetails(AppColors c) {
@@ -319,7 +325,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       const SizedBox(height: 24),
       _buildPickupCard(c),
       if (!_isOwnBook) ...[const SizedBox(height: 20), _buildSellerInfo(c)],
-      if (context.screenSize != ScreenSize.compact) _buildSimilar(inset: false),
     ];
   }
 
@@ -348,7 +353,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final screenSize = context.screenSize;
+    final compact = context.isCompact;
 
     return Scaffold(
       backgroundColor: c.scaffold,
@@ -369,89 +374,105 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 ),
               ),
             )
-          else
+          else if (compact)
             Expanded(
               child: RefreshIndicator(
                 color: c.accent,
                 onRefresh: _loadDetail,
-                child: switch (screenSize) {
-                  ScreenSize.compact => SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildImageCarousel(c),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _buildDetails(c)),
-                        ),
-                        _buildSimilar(inset: true),
-                      ],
-                    ),
-                  ),
-                  ScreenSize.medium => LayoutBuilder(
-                    builder: (context, constraints) => SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: responsiveListPadding(
-                        constraints,
-                        maxWidth: Breakpoints.readingMaxWidth,
-                        horizontal: 24,
-                        top: 20,
-                        bottom: 28,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildImageCarousel(c),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _buildDetails(c)),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildImageCarousel(c, height: 460, radius: 20),
-                          const SizedBox(height: 20),
-                          ..._buildDetails(c),
-                        ],
-                      ),
-                    ),
+                      _buildSimilar(inset: true),
+                    ],
                   ),
-                  ScreenSize.expanded => LayoutBuilder(
-                    builder: (context, constraints) {
-                      const top = 24.0;
-                      const bottom = 32.0;
-                      final geometry = _wideGeometry(constraints.maxWidth);
-                      final galleryHeight = math.min(
-                        geometry.gallery * 1.15,
-                        math.max(240.0, constraints.maxHeight - top - bottom),
-                      );
-                      return SingleChildScrollView(
-                        controller: _scrollController,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.fromLTRB(geometry.side, top, geometry.side, bottom),
-                        child: Stack(
-                          children: [
-                            ConstrainedBox(
-                              constraints: BoxConstraints(minHeight: galleryHeight),
-                              child: Padding(
-                                padding: EdgeInsets.only(left: geometry.gallery + _wideGap),
-                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _buildDetails(c)),
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              bottom: 0,
-                              left: 0,
-                              width: geometry.gallery,
-                              child: StickyPane(
-                                controller: _scrollController,
-                                child: _buildImageCarousel(c, height: galleryHeight, radius: 20),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                },
+                ),
               ),
-            ),
+            )
+          else
+            Expanded(child: LayoutBuilder(builder: (context, constraints) => _buildWide(c, constraints))),
         ],
       ),
-      bottomNavigationBar: _gone ? null : _buildBottomActions(c),
+      bottomNavigationBar: _gone || !compact ? null : _buildBottomActionsContent(c, 16, 16),
+    );
+  }
+
+  Widget _buildWide(AppColors c, BoxConstraints constraints) {
+    final barHeight = 12 + 48 + 12 + 1 + MediaQuery.paddingOf(context).bottom;
+    final split = _splitGeometry(constraints, barHeight);
+    final double left;
+    final double right;
+    final Widget content;
+    if (split == null) {
+      final padding = responsiveListPadding(
+        constraints,
+        maxWidth: Breakpoints.readingMaxWidth,
+        horizontal: 24,
+        top: 20,
+        bottom: 28,
+      );
+      left = padding.left;
+      right = padding.right;
+      content = SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: padding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildImageCarousel(c, height: 460, radius: 20),
+            const SizedBox(height: 20),
+            ..._buildDetails(c),
+            _buildSimilar(inset: false),
+          ],
+        ),
+      );
+    } else {
+      left = split.side + split.gallery + _wideGap;
+      right = split.side;
+      content = SingleChildScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(split.side, _wideTop, split.side, _wideBottom),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: split.galleryHeight),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: split.gallery + _wideGap),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _buildDetails(c)),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  width: split.gallery,
+                  child: StickyPane(
+                    controller: _scrollController,
+                    child: _buildImageCarousel(c, height: split.galleryHeight, radius: 20),
+                  ),
+                ),
+              ],
+            ),
+            _buildSimilar(inset: false),
+          ],
+        ),
+      );
+    }
+    return Column(
+      children: [
+        Expanded(child: RefreshIndicator(color: c.accent, onRefresh: _loadDetail, child: content)),
+        _buildBottomActionsContent(c, left, right),
+      ],
     );
   }
 
@@ -596,8 +617,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   fallbackIconSize: 72,
                 );
                 return GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
+                  onTap: () => Navigator.of(context, rootNavigator: true).push(
                     MaterialPageRoute(
                       builder: (_) => FullScreenImageViewer(images: _images, initialIndex: index),
                     ),
@@ -1211,25 +1231,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
     await Navigator.push(context, MaterialPageRoute(builder: (_) => EditBookScreen(book: _book)));
     if (mounted) _loadDetail();
-  }
-
-  Widget _buildBottomActions(AppColors c) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final (left, right) = switch (context.screenSize) {
-          ScreenSize.compact => (16.0, 16.0),
-          ScreenSize.medium => () {
-            final padding = responsiveListPadding(constraints, maxWidth: Breakpoints.readingMaxWidth, horizontal: 24);
-            return (padding.left, padding.right);
-          }(),
-          ScreenSize.expanded => () {
-            final geometry = _wideGeometry(constraints.maxWidth);
-            return (geometry.side + geometry.gallery + _wideGap, geometry.side);
-          }(),
-        };
-        return _buildBottomActionsContent(c, left, right);
-      },
-    );
   }
 
   Widget _buildBottomActionsContent(AppColors c, double left, double right) {

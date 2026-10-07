@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../orders/cart_screen.dart';
 import '../chat/chat_list_screen.dart';
+import 'home_discovery.dart';
 import 'notification_screen.dart';
 import '../account/profile_screen.dart';
 import '../selling/sell_book_screen.dart';
@@ -42,14 +43,26 @@ class HomeScreen extends StatefulWidget {
   final String initialKeyword;
   const HomeScreen({super.key, this.initialKeyword = ''});
 
+  static NavigatorState? get tabNavigator => _HomeScreenState._active?._visibleTabNavigator();
+
+  static bool showNotifications() => _HomeScreenState._active?._showTab(_alertsTab) ?? false;
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+const int _alertsTab = 1;
+const int _phoneTabCount = 5;
+
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const int _pageSize = 20;
+  static _HomeScreenState? _active;
 
   int _selectedIndex = 0;
+  bool _sideNav = false;
+  final List<_TabSlot> _tabs = List.generate(7, (_) => _TabSlot());
+  final Set<int> _openedTabs = {0, 1, 2, 3, 4};
+  int _cartGeneration = 0;
   bool _isLoadingInitial = true;
   bool _isLoadingMore = false;
   bool _hasMoreData = true;
@@ -80,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _categoryScrollController = ScrollController();
   final ValueNotifier<double> _categoryScrollProgress = ValueNotifier<double>(0);
+  final ValueNotifier<bool> _categoryScrollable = ValueNotifier<bool>(false);
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   bool _isGridView = true;
 
@@ -94,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _active = this;
     WidgetsBinding.instance.addObserver(this);
     kBottomNavVisible = true;
     ToastRouteTracker.notifyNavVisibility();
@@ -115,6 +130,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    if (_active == this) _active = null;
+    for (final tab in _tabs) {
+      tab.dispose();
+    }
     kBottomNavVisible = false;
     ToastRouteTracker.notifyNavVisibility();
     _badgeTimer?.cancel();
@@ -126,6 +145,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _scrollController.dispose();
     _categoryScrollController.dispose();
     _categoryScrollProgress.dispose();
+    _categoryScrollable.dispose();
     super.dispose();
   }
 
@@ -356,11 +376,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _onNavSelected(int i) {
     if (i == _selectedIndex) {
+      final navigator = _sideNav ? _tabs[i].key.currentState : null;
+      if (navigator != null && navigator.canPop()) {
+        navigator.popUntil((route) => route.isFirst);
+        return;
+      }
       if (i == 0) _onHomeReselected();
       return;
     }
-    setState(() => _selectedIndex = i);
+    setState(() {
+      if (i == AppSideNav.cartTab && _openedTabs.contains(i) && !_tabs[i].canPop) _cartGeneration++;
+      _openedTabs.add(i);
+      _selectedIndex = i;
+    });
     _loadBadges();
+  }
+
+  NavigatorState? _visibleTabNavigator() {
+    if (!mounted || !_sideNav || ModalRoute.isCurrentOf(context) == false) return null;
+    return _tabs[_selectedIndex].key.currentState;
+  }
+
+  bool _showTab(int index) {
+    if (_visibleTabNavigator() == null) return false;
+    _onNavSelected(index);
+    final navigator = _tabs[index].key.currentState;
+    if (navigator != null && navigator.canPop()) navigator.popUntil((route) => route.isFirst);
+    return true;
+  }
+
+  void _leaveTabRoot() {
+    if (mounted && _selectedIndex != 0) _onNavSelected(0);
+  }
+
+  Future<void> _popCurrentTab() async {
+    final navigator = _tabs[_selectedIndex].key.currentState;
+    if (navigator is _TabNavigatorState && await navigator.systemBack()) return;
+    if (!mounted) return;
+    if (_selectedIndex != 0) {
+      _onNavSelected(0);
+    } else {
+      await SystemNavigator.pop();
+    }
   }
 
   void _onHomeReselected() {
@@ -382,34 +439,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     final sideNav = context.usesSideNavigation;
     _syncNavVisibility(!sideNav);
-
-    final pages = IndexedStack(
-      index: _selectedIndex,
-      children: [
-        _buildHomeContent(),
-        const NotificationScreen(embedded: true),
-        const SellBookScreen(),
-        PickupBookScreen(isActive: _selectedIndex == 3),
-        const ProfileScreen(),
-      ],
-    );
-
-    if (sideNav) {
-      return Scaffold(
-        body: Row(
-          children: [
-            AppSideNav(
-              selectedIndex: _selectedIndex,
-              onItemSelected: _onNavSelected,
-              extended: context.screenSize == ScreenSize.expanded,
-            ),
-            Expanded(
-              child: MediaQuery.removePadding(context: context, removeLeft: true, child: pages),
-            ),
-          ],
-        ),
-      );
+    if (sideNav != _sideNav) {
+      _sideNav = sideNav;
+      for (final tab in _tabs) {
+        tab.canPop = false;
+      }
     }
+    if (!sideNav && _selectedIndex >= _phoneTabCount) _selectedIndex = 0;
+
+    final children = [
+      _buildHomeContent(),
+      const NotificationScreen(embedded: true),
+      const SellBookScreen(),
+      PickupBookScreen(isActive: _selectedIndex == 3),
+      const ProfileScreen(),
+    ];
+
+    if (sideNav) return _buildSideNavShell(children);
+
+    final pages = IndexedStack(index: _selectedIndex, children: children);
 
     return Scaffold(
       body: Stack(
@@ -432,6 +480,71 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildSideNavShell(List<Widget> children) {
+    final pages = [
+      ...children,
+      const ChatListScreen(),
+      KeyedSubtree(key: ValueKey(_cartGeneration), child: const CartScreen()),
+    ];
+    return PopScope(
+      canPop: !_tabs[_selectedIndex].canPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _popCurrentTab();
+      },
+      child: Scaffold(
+        body: Row(
+          children: [
+            AppSideNav(
+              selectedIndex: _selectedIndex,
+              onItemSelected: _onNavSelected,
+              extended: context.screenSize == ScreenSize.expanded,
+            ),
+            Expanded(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeLeft: true,
+                child: _TabPages(
+                  pages: pages,
+                  child: IndexedStack(
+                    index: _selectedIndex,
+                    children: [
+                      for (var i = 0; i < pages.length; i++)
+                        _openedTabs.contains(i) ? _buildTabNavigator(i) : const SizedBox.shrink(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabNavigator(int index) {
+    final tab = _tabs[index];
+    return NotificationListener<NavigationNotification>(
+      onNotification: (notification) {
+        if (tab.canPop != notification.canHandlePop) {
+          tab.canPop = notification.canHandlePop;
+          if (index == _selectedIndex && mounted) setState(() {});
+        }
+        return true;
+      },
+      child: HeroControllerScope(
+        controller: tab.heroController,
+        child: tab.navigator ??= _TabNavigator(
+          key: tab.key,
+          routes: tab.routes,
+          onLeaveRoot: _leaveTabRoot,
+          rootBuilder: (_) => _TabRoot(index: index),
+        ),
+      ),
+    );
+  }
+
+  double get _inset => context.isWide ? 24 : 16;
+
   Widget _buildHomeContent() {
     final c = AppColors.of(context);
 
@@ -450,12 +563,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                    SliverToBoxAdapter(child: _buildCategories()),
+                    SliverToBoxAdapter(
+                      child: NotificationListener<ScrollMetricsNotification>(
+                        onNotification: (notification) {
+                          _categoryScrollable.value = notification.metrics.maxScrollExtent > 0;
+                          return false;
+                        },
+                        child: _buildCategories(),
+                      ),
+                    ),
                     SliverToBoxAdapter(child: _buildCategoryProgress(c)),
                     SliverToBoxAdapter(child: _buildDiscoverySections()),
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+                        padding: EdgeInsets.fromLTRB(_inset, 24, _inset, 12),
                         child: _buildSortAndLayoutRow(),
                       ),
                     ),
@@ -474,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
               Positioned(
-                right: 16,
+                right: _inset,
                 bottom: floatingNavClearance(context, 76),
                 child: BackToTopButton(controller: _scrollController),
               ),
@@ -488,6 +609,37 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _buildCustomHeader() {
     final c = AppColors.of(context);
     final userName = ApiService.currentUser?.nickname ?? S.guest;
+    final greeting = Text(
+      S.hi(userName),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+    );
+    final searchBar = SearchBarWidget(currentKeyword: _currentKeyword, onSearch: _onSearchChanged);
+
+    if (context.isWide) {
+      return LightStatusBar(
+        child: Container(
+          decoration: BoxDecoration(
+            color: c.headerBg,
+            borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(_inset, 12, _inset, 20),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Row(children: [
+                  Expanded(child: greeting),
+                  const SizedBox(width: 16),
+                  SizedBox(width: (constraints.maxWidth * 0.5).clamp(280.0, 460.0), child: searchBar),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return LightStatusBar(
       child: Container(
@@ -503,14 +655,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(children: [
-                  Expanded(
-                    child: Text(
-                      S.hi(userName),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
+                  Expanded(child: greeting),
                   const SizedBox(width: 8),
                   CartIconButton(
                     size: 26,
@@ -531,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: Breakpoints.readingMaxWidth),
-                  child: SearchBarWidget(currentKeyword: _currentKeyword, onSearch: _onSearchChanged),
+                  child: searchBar,
                 ),
               ),
             ]),
@@ -552,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: _inset),
             itemCount: 5,
             separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (_, i) => SkeletonBox(width: 64.0 + (i % 3) * 14, height: 36, radius: 20),
@@ -567,7 +712,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         controller: _categoryScrollController,
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: _inset),
         itemCount: _categories.length + (hasFilter ? 1 : 0),
         itemBuilder: (context, index) {
           if (hasFilter && index == 0) {
@@ -636,8 +781,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildCategoryProgress(AppColors c) {
+    if (context.isWide) {
+      return ValueListenableBuilder<bool>(
+        valueListenable: _categoryScrollable,
+        builder: (context, scrollable, _) => scrollable ? _categoryProgressBar(c) : const SizedBox(height: 10),
+      );
+    }
+    return _categoryProgressBar(c);
+  }
+
+  Widget _categoryProgressBar(AppColors c) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: EdgeInsets.fromLTRB(_inset, 8, _inset, 0),
       child: LayoutBuilder(builder: (context, constraints) {
         final tw = constraints.maxWidth;
         const iw = 60.0;
@@ -725,7 +880,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           if (tabs.isEmpty) return const SizedBox(width: double.infinity);
           return Padding(
             padding: const EdgeInsets.only(top: 20),
-            child: DiscoveryPanel(tabs: tabs),
+            child: context.isWide ? WideDiscoveryPanel(tabs: tabs, inset: _inset) : DiscoveryPanel(tabs: tabs),
           );
         },
       ),
@@ -830,7 +985,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildBookSliver(AppColors c) {
-    const padding = EdgeInsets.symmetric(horizontal: 16);
+    final padding = EdgeInsets.symmetric(horizontal: _inset);
 
     if (_isLoadingInitial) {
       return SliverPadding(
@@ -970,4 +1125,116 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+class _TabSlot {
+  final key = GlobalKey<NavigatorState>();
+  final routes = _TabRoutes();
+  final heroController = MaterialApp.createMaterialHeroController();
+  _TabNavigator? navigator;
+  bool canPop = false;
+
+  void dispose() => heroController.dispose();
+}
+
+class _TabPages extends InheritedWidget {
+  final List<Widget> pages;
+
+  const _TabPages({required this.pages, required super.child});
+
+  @override
+  bool updateShouldNotify(_TabPages oldWidget) => true;
+}
+
+class _TabRoot extends StatelessWidget {
+  final int index;
+
+  const _TabRoot({required this.index});
+
+  @override
+  Widget build(BuildContext context) => context.dependOnInheritedWidgetOfExactType<_TabPages>()!.pages[index];
+}
+
+class _TabRoutes extends NavigatorObserver {
+  final List<Route<dynamic>> routes = [];
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (previousRoute == null) routes.clear();
+    routes.add(route);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => routes.remove(route);
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) => routes.remove(route);
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    if (newRoute == null) return;
+    final index = oldRoute == null ? -1 : routes.indexOf(oldRoute);
+    if (index >= 0) {
+      routes[index] = newRoute;
+    } else {
+      routes.add(newRoute);
+    }
+  }
+}
+
+class _TabNavigator extends Navigator {
+  final _TabRoutes routes;
+  final VoidCallback onLeaveRoot;
+
+  _TabNavigator({super.key, required this.routes, required this.onLeaveRoot, required WidgetBuilder rootBuilder})
+      : super(
+          observers: [routes],
+          onGenerateRoute: (settings) => MaterialPageRoute<void>(settings: settings, builder: rootBuilder),
+        );
+
+  @override
+  NavigatorState createState() => _TabNavigatorState();
+}
+
+// 頁面以 Navigator.of(context) 清空堆疊（登出、回首頁）時改由最上層 Navigator 執行；分頁根頁面被 pop 或取代會留下空白分頁。
+class _TabNavigatorState extends NavigatorState {
+  _TabNavigator get _tab => widget as _TabNavigator;
+
+  Future<bool> systemBack() => super.maybePop();
+
+  @override
+  Future<T?> pushAndRemoveUntil<T extends Object?>(Route<T> newRoute, RoutePredicate predicate) {
+    if (_tab.routes.routes.any(predicate)) return super.pushAndRemoveUntil<T>(newRoute, predicate);
+    return Navigator.of(context, rootNavigator: true).pushAndRemoveUntil<T>(newRoute, predicate);
+  }
+
+  @override
+  Future<T?> pushReplacement<T extends Object?, TO extends Object?>(Route<T> newRoute, {TO? result}) {
+    if (!canPop()) return push<T>(newRoute);
+    return super.pushReplacement<T, TO>(newRoute, result: result);
+  }
+
+  @override
+  void pop<T extends Object?>([T? result]) {
+    if (!canPop()) {
+      _tab.onLeaveRoot();
+      return;
+    }
+    super.pop<T>(result);
+  }
+
+  @override
+  Future<bool> maybePop<T extends Object?>([T? result]) async {
+    if (canPop()) return super.maybePop<T>(result);
+    if (await super.maybePop<T>(result)) return true;
+    if (mounted) _tab.onLeaveRoot();
+    return true;
+  }
+
+  @override
+  void popUntil(RoutePredicate predicate) => super.popUntil((route) => route.isFirst || predicate(route));
+
+  @override
+  void popUntilWithResult<T extends Object?>(RoutePredicate predicate, T? result) =>
+      super.popUntilWithResult<T>((route) => route.isFirst || predicate(route), result);
 }

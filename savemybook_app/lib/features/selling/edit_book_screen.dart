@@ -12,11 +12,12 @@ import '../../widgets/app_buttons.dart';
 import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
-import '../../widgets/responsive.dart';
+import '../../widgets/app_tiles.dart';
 import '../../widgets/state_views.dart';
 import '../books/barcode_scanner_screen.dart';
 import 'ai_listing_assist.dart';
 import 'edit_book_detail_screen.dart';
+import 'listing_form_layout.dart';
 import 'sell_book_screen.dart' show parsePublishDate;
 import '../../i18n/strings.dart';
 
@@ -261,172 +262,218 @@ class _EditBookScreenState extends State<EditBookScreen> {
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () => FocusScope.of(context).unfocus(),
-                child: LayoutBuilder(
-                  builder: (context, constraints) => SingleChildScrollView(
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: responsiveListPadding(
-                      constraints,
-                      maxWidth: Breakpoints.formMaxWidth,
-                      top: 20,
-                      bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                    ),
-                    child: Column(
-                      children: [
-                        ValueListenableBuilder<AiStatusInfo>(
-                          valueListenable: AiStatus.listenable,
-                          builder: (context, status, _) => AnimatedSize(
-                            duration: const Duration(milliseconds: 260),
-                            curve: Curves.easeOutCubic,
-                            alignment: Alignment.topCenter,
-                            child: status.listingAssist
-                                ? Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: AiAssistButton(onTap: _onAiAssist),
-                                  )
-                                : const SizedBox(width: double.infinity),
-                          ),
-                        ),
-                        FadeSlideIn(
-                          child: _flashed('isbn', FormRowCard(
-                            label: 'ISBN',
-                            labelWidth: 88,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: AppTextField(
-                                    controller: _isbnController,
-                                    hint: S.k1013Digits,
-                                    maxLength: 13,
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.next,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9Xx]')),
-                                      TextInputFormatter.withFunction(
-                                        (_, value) => value.copyWith(text: value.text.toUpperCase()),
-                                      ),
-                                    ],
-                                    onChanged: (_) => setState(() {}),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                PressableScale(
-                                  haptic: true,
-                                  onTap: _scanIsbn,
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: c.accent.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(Icons.qr_code_scanner_rounded, size: 20, color: c.accent),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )),
-                        ),
-                        FadeSlideIn(
-                          index: 1,
-                          child: _flashed('title', FormRowCard(
-                            label: S.title,
-                            labelWidth: 88,
-                            isRequired: true,
-                            child: AppTextField(
-                              controller: _titleController,
-                              maxLength: 255,
-                              textInputAction: TextInputAction.next,
-                              errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle : null,
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          )),
-                        ),
-                        FadeSlideIn(
-                          index: 2,
-                          child: _flashed('author', FormRowCard(
-                            label: S.author2,
-                            labelWidth: 88,
-                            child: AppTextField(
-                              controller: _authorController,
-                              maxLength: 255,
-                              textInputAction: TextInputAction.next,
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          )),
-                        ),
-                        FadeSlideIn(
-                          index: 3,
-                          child: _flashed('publisher', FormRowCard(
-                            label: S.publisher2,
-                            labelWidth: 88,
-                            child: AppTextField(
-                              controller: _publisherController,
-                              maxLength: 255,
-                              textInputAction: TextInputAction.done,
-                              onChanged: (_) => setState(() {}),
-                            ),
-                          )),
-                        ),
-                        FadeSlideIn(
-                          index: 4,
-                          child: _flashed('publish_date', FormRowCard(
-                            label: S.publicationDate,
-                            labelWidth: 88,
-                            child: AppDateField(
-                              value: _publishDate,
-                              hint: S.tapPickPublicationDate,
-                              helpText: S.pickPublicationDate,
-                              onChanged: (value) => setState(() => _publishDate = value),
-                            ),
-                          )),
-                        ),
-                        FadeSlideIn(
-                          index: 5,
-                          child: _flashed('category', FormRowCard(
-                            label: S.category,
-                            labelWidth: 88,
-                            isRequired: true,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                AppSelect<int>(
-                                  value: _categoryId,
-                                  loading: _isLoading,
-                                  title: S.pickCategory,
-                                  leadingIcon: Icons.category_outlined,
-                                  errorText: _showErrors && _categoryId == null ? S.chooseCategory : null,
-                                  options: [
-                                    for (final cat in _categories)
-                                      AppSelectOption(value: cat.categoryId, label: cat.categoryName),
-                                  ],
-                                  onChanged: _categories.isEmpty ? null : (value) => setState(() => _categoryId = value),
-                                ),
-                                if (!_isLoading && _categories.isEmpty)
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: TextButton.icon(
-                                      onPressed: _loadCategories,
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: c.accent,
-                                        visualDensity: VisualDensity.compact,
-                                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                                      ),
-                                      icon: const Icon(Icons.refresh_rounded, size: 16),
-                                      label: Text(S.couldnTLoadCategoriesTapRetry, style: const TextStyle(fontSize: 12)),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          )),
-                        ),
-                        const SizedBox(height: 16),
-                        PrimaryButton(label: S.next, icon: Icons.arrow_forward_rounded, onPressed: _next),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
+                child: LayoutBuilder(builder: (context, constraints) => _buildForm(c, constraints)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm(AppColors c, BoxConstraints constraints) {
+    final split = ListingFormLayout.isSplit(constraints);
+    final ai = ValueListenableBuilder<AiStatusInfo>(
+      valueListenable: AiStatus.listenable,
+      builder: (context, status, _) => AnimatedSize(
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: status.listingAssist
+            ? Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: AiAssistButton(onTap: _onAiAssist),
+              )
+            : const SizedBox(width: double.infinity),
+      ),
+    );
+    final isbn = FadeSlideIn(
+      child: _flashed('isbn', FormRowCard(
+        label: 'ISBN',
+        labelWidth: 88,
+        child: Row(
+          children: [
+            Expanded(
+              child: AppTextField(
+                controller: _isbnController,
+                hint: S.k1013Digits,
+                maxLength: 13,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9Xx]')),
+                  TextInputFormatter.withFunction(
+                    (_, value) => value.copyWith(text: value.text.toUpperCase()),
                   ),
+                ],
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            const SizedBox(width: 8),
+            PressableScale(
+              haptic: true,
+              onTap: _scanIsbn,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.qr_code_scanner_rounded, size: 20, color: c.accent),
+              ),
+            ),
+          ],
+        ),
+      )),
+    );
+    final title = FadeSlideIn(
+      index: 1,
+      child: _flashed('title', FormRowCard(
+        label: S.title,
+        labelWidth: 88,
+        isRequired: true,
+        child: AppTextField(
+          controller: _titleController,
+          maxLength: 255,
+          textInputAction: TextInputAction.next,
+          errorText: _showErrors && _titleController.text.trim().isEmpty ? S.enterTitle : null,
+          onChanged: (_) => setState(() {}),
+        ),
+      )),
+    );
+    final author = FadeSlideIn(
+      index: 2,
+      child: _flashed('author', FormRowCard(
+        label: S.author2,
+        labelWidth: 88,
+        child: AppTextField(
+          controller: _authorController,
+          maxLength: 255,
+          textInputAction: TextInputAction.next,
+          onChanged: (_) => setState(() {}),
+        ),
+      )),
+    );
+    final publisher = FadeSlideIn(
+      index: 3,
+      child: _flashed('publisher', FormRowCard(
+        label: S.publisher2,
+        labelWidth: 88,
+        child: AppTextField(
+          controller: _publisherController,
+          maxLength: 255,
+          textInputAction: TextInputAction.done,
+          onChanged: (_) => setState(() {}),
+        ),
+      )),
+    );
+    final publishDate = FadeSlideIn(
+      index: 4,
+      child: _flashed('publish_date', FormRowCard(
+        label: S.publicationDate,
+        labelWidth: 88,
+        child: AppDateField(
+          value: _publishDate,
+          hint: S.tapPickPublicationDate,
+          helpText: S.pickPublicationDate,
+          onChanged: (value) => setState(() => _publishDate = value),
+        ),
+      )),
+    );
+    final category = FadeSlideIn(
+      index: 5,
+      child: _flashed('category', FormRowCard(
+        label: S.category,
+        labelWidth: 88,
+        isRequired: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppSelect<int>(
+              value: _categoryId,
+              loading: _isLoading,
+              title: S.pickCategory,
+              leadingIcon: Icons.category_outlined,
+              errorText: _showErrors && _categoryId == null ? S.chooseCategory : null,
+              options: [
+                for (final cat in _categories)
+                  AppSelectOption(value: cat.categoryId, label: cat.categoryName),
+              ],
+              onChanged: _categories.isEmpty ? null : (value) => setState(() => _categoryId = value),
+            ),
+            if (!_isLoading && _categories.isEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _loadCategories,
+                  style: TextButton.styleFrom(
+                    foregroundColor: c.accent,
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  label: Text(S.couldnTLoadCategoriesTapRetry, style: const TextStyle(fontSize: 12)),
                 ),
               ),
+          ],
+        ),
+      )),
+    );
+    final next = PrimaryButton(label: S.next, icon: Icons.arrow_forward_rounded, onPressed: _next);
+
+    return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: ListingFormLayout.padding(context, constraints, top: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+      child: split
+          ? ListingFormLayout.columns(
+              left: [_buildPreview(c), const SizedBox(height: 12), ai],
+              right: [isbn, title, author, publisher, publishDate, category, const SizedBox(height: 4), next, const SizedBox(height: 24)],
+            )
+          : Column(
+              children: [ai, isbn, title, author, publisher, publishDate, category, const SizedBox(height: 16), next, const SizedBox(height: 40)],
+            ),
+    );
+  }
+
+  Widget _buildPreview(AppColors c) {
+    final book = widget.book;
+    final title = _titleController.text.trim();
+    final author = _authorController.text.trim();
+    return FadeSlideIn(
+      child: AppCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            BookThumbnail(imageUrl: book.hasImage ? book.imageUrl : null, width: 150, height: 200, radius: 12),
+            const SizedBox(height: 16),
+            Text(
+              title.isEmpty ? book.title : title,
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 16, height: 1.35, fontWeight: FontWeight.bold, color: c.textPrimary),
+            ),
+            if (author.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                author,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, color: c.textSecondary),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              runSpacing: 6,
+              children: [
+                Text('\$${book.price.toInt()}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: c.accent)),
+                StatusBadge(label: book.conditionText, color: c.conditionColor(book.conditionLevel)),
+              ],
             ),
           ],
         ),

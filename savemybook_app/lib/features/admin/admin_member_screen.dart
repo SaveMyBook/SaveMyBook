@@ -3,6 +3,7 @@ import '../../models/admin_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/adaptive_sheet.dart';
 import '../../widgets/app_tiles.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
@@ -10,6 +11,7 @@ import '../../widgets/app_forms.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_select.dart';
 import '../../widgets/guards.dart';
+import '../../widgets/master_detail.dart';
 import '../../widgets/state_views.dart';
 import 'admin_member_detail_screen.dart';
 import '../../utils/app_labels.dart';
@@ -43,8 +45,8 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _isLoading = true);
+  Future<void> _load({bool showLoading = true}) async {
+    if (showLoading) setState(() => _isLoading = true);
     final members = await _api.fetchAdminMembers(
       keyword: _searchController.text.trim(),
       status: _statusFilter,
@@ -56,7 +58,7 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
     });
   }
 
-  Future<void> _toggle(AdminMember member, {bool? isActive, bool? isBlacklisted}) async {
+  Future<void> _toggle(BuildContext ctx, AdminMember member, {bool? isActive, bool? isBlacklisted}) async {
     final action = isBlacklisted != null
         ? (isBlacklisted ? S.addBlocklist : S.removeFromBlocklist)
         : (isActive == true ? S.reinstateAccount2 : S.suspendAccount2);
@@ -82,13 +84,29 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
 
     if (ok == true) {
       showAppSnackBar(context, S.updatedP0SStatus(member.nickname));
-      _load();
+      if (ctx.mounted && MasterDetail.isSplit(ctx)) {
+        _load(showLoading: false);
+        if (MasterDetail.selectedId(ctx) == member.userId) {
+          MasterDetail.close(ctx);
+          _openDetail(ctx, member);
+        }
+      } else {
+        _load();
+      }
     } else {
       showAppSnackBar(context, AppLabels.updateFailed, isError: true);
     }
   }
 
-  Future<void> _openDetail(AdminMember member) async {
+  Future<void> _openDetail(BuildContext ctx, AdminMember member) async {
+    if (MasterDetail.isSplit(ctx)) {
+      MasterDetail.open(
+        ctx,
+        AdminMemberDetailScreen(userId: member.userId, onChanged: () => _load(showLoading: false)),
+        id: member.userId,
+      );
+      return;
+    }
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => AdminMemberDetailScreen(userId: member.userId)),
@@ -96,19 +114,19 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
     _load();
   }
 
-  void _showActions(AdminMember member) {
+  void _showActions(BuildContext ctx, AdminMember member) {
     final c = AppColors.of(context);
-    showModalBottomSheet(
+    showAppModalSheet(
       context: context,
       backgroundColor: c.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => SafeArea(
+      builder: (sheet) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 12),
+            SizedBox(height: isDialogSheet(sheet) ? 20 : 12),
             Text(
               member.nickname,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary),
@@ -125,8 +143,8 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                 ),
                 title: Text(member.isActive ? S.suspendAccount : S.reinstateAccount2, style: TextStyle(color: c.textPrimary)),
                 onTap: () {
-                  Navigator.pop(ctx);
-                  _toggle(member, isActive: !member.isActive);
+                  Navigator.pop(sheet);
+                  _toggle(ctx, member, isActive: !member.isActive);
                 },
               ),
             ),
@@ -143,8 +161,8 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
                   style: TextStyle(color: c.textPrimary),
                 ),
                 onTap: () {
-                  Navigator.pop(ctx);
-                  _toggle(member, isBlacklisted: !member.isBlacklisted);
+                  Navigator.pop(sheet);
+                  _toggle(ctx, member, isBlacklisted: !member.isBlacklisted);
                 },
               ),
             ),
@@ -152,8 +170,8 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
               leading: Icon(Icons.manage_accounts_outlined, color: c.accent),
               title: Text(S.memberSettings, style: TextStyle(color: c.textPrimary)),
               onTap: () {
-                Navigator.pop(ctx);
-                _openDetail(member);
+                Navigator.pop(sheet);
+                _openDetail(ctx, member);
               },
             ),
             const SizedBox(height: 8),
@@ -169,149 +187,164 @@ class _AdminMemberScreenState extends State<AdminMemberScreen> {
 
     return Scaffold(
       backgroundColor: c.scaffold,
-      body: AdminLayout(
-        builder: (context, frame) => Column(
-          children: [
-            AppHeader(title: S.members3, icon: Icons.people_alt_outlined),
-            Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AppSearchField(
-                      controller: _searchController,
-                      hint: S.searchDisplayNameEmail,
-                      onSubmitted: (_) => _load(),
+      body: MasterDetail(
+        placeholderIcon: Icons.people_alt_outlined,
+        master: AdminLayout(
+          builder: (context, frame) => Column(
+            children: [
+              AppHeader(title: S.members3, icon: Icons.people_alt_outlined),
+              Padding(
+                padding: frame.pad(const EdgeInsets.fromLTRB(16, 16, 16, 8)),
+                child: _searchRow(frame, Row(
+                  children: [
+                    Expanded(
+                      child: AppSearchField(
+                        controller: _searchController,
+                        hint: S.searchDisplayNameEmail,
+                        onSubmitted: (_) => _load(),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48, maxHeight: 48),
-                    child: AppSelectChip<String?>(
-                      value: _statusFilter,
-                      title: S.accountStatus,
-                      iconOnly: _statusFilter == null,
-                      highlighted: _statusFilter != null,
-                      options: [
-                        AppSelectOption(value: null, label: S.actionAll, icon: Icons.people_alt_outlined),
-                        AppSelectOption(value: 'active', label: S.memberNormal, icon: Icons.check_circle_outline_rounded, iconColor: c.success),
-                        AppSelectOption(value: 'inactive', label: S.memberInactive, icon: Icons.pause_circle_outline_rounded, iconColor: c.warning),
-                        AppSelectOption(value: 'blacklisted', label: S.memberBlacklisted, icon: Icons.gpp_bad_outlined, iconColor: c.danger),
-                      ],
-                      onChanged: (value) {
-                        setState(() => _statusFilter = value);
-                        _load();
-                      },
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48, maxHeight: 48),
+                      child: AppSelectChip<String?>(
+                        value: _statusFilter,
+                        title: S.accountStatus,
+                        iconOnly: _statusFilter == null,
+                        highlighted: _statusFilter != null,
+                        options: [
+                          AppSelectOption(value: null, label: S.actionAll, icon: Icons.people_alt_outlined),
+                          AppSelectOption(value: 'active', label: S.memberNormal, icon: Icons.check_circle_outline_rounded, iconColor: c.success),
+                          AppSelectOption(value: 'inactive', label: S.memberInactive, icon: Icons.pause_circle_outline_rounded, iconColor: c.warning),
+                          AppSelectOption(value: 'blacklisted', label: S.memberBlacklisted, icon: Icons.gpp_bad_outlined, iconColor: c.danger),
+                        ],
+                        onChanged: (value) {
+                          setState(() => _statusFilter = value);
+                          _load();
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                )),
               ),
-            ),
-            Expanded(
-              child: SwitchIn(child: _isLoading
-                  ? const LoadingView.list()
-                  : RefreshIndicator(
-                      color: c.accent,
-                      onRefresh: _load,
-                      child: SwitchIn(child: _members.isEmpty
-                          ? ListView(key: const ValueKey('empty'), 
-                              children: [
-                                SizedBox(height: 80),
-                                EmptyView(icon: Icons.person_off_outlined, message: S.noMembersMatch),
-                              ],
-                            )
-                          : ListView.builder(key: const ValueKey('items'), 
-                              padding: frame.inset(const EdgeInsets.fromLTRB(16, 8, 16, 24)),
-                              itemCount: _members.length,
-                              itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildMemberCard(_members[i], c)),
-                            )),
-                    )),
-            ),
-          ],
+              Expanded(
+                child: SwitchIn(child: _isLoading
+                    ? const LoadingView.list()
+                    : RefreshIndicator(
+                        color: c.accent,
+                        onRefresh: _load,
+                        child: SwitchIn(child: _members.isEmpty
+                            ? ListView(key: const ValueKey('empty'), 
+                                children: [
+                                  SizedBox(height: 80),
+                                  EmptyView(icon: Icons.person_off_outlined, message: S.noMembersMatch),
+                                ],
+                              )
+                            : AdminCardList(key: const ValueKey('items'),
+                                frame: frame,
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                                itemCount: _members.length,
+                                itemBuilder: (_, i) => RevealOnScroll(index: i, child: _buildMemberCard(context, _members[i], c)),
+                              )),
+                      )),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMemberCard(AdminMember member, AppColors c) {
+  Widget _searchRow(AdminFrame frame, Widget row) {
+    if (!frame.isWide) return row;
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 560), child: row),
+    );
+  }
+
+  Widget _buildMemberCard(BuildContext ctx, AdminMember member, AppColors c) {
     final statusColor = member.isBlacklisted
         ? c.danger
         : (!member.isActive ? c.warning : c.success);
 
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      onTap: () => _openDetail(member),
-      onLongPress: () => _showActions(member),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              UserAvatar(imageUrl: member.avatarUrl, radius: 22),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            member.nickname,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+    return AdminSelectable(
+      ids: [member.userId],
+      builder: (margin) => AppCard(
+        margin: margin,
+        onTap: () => _openDetail(ctx, member),
+        onLongPress: () => _showActions(ctx, member),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                UserAvatar(imageUrl: member.avatarUrl, radius: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              member.nickname,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: c.textPrimary),
+                            ),
                           ),
-                        ),
-                        if (member.role == 'admin') ...[
-                          const SizedBox(width: 6),
-                          _tag(S.roleAdmin, c.warning, icon: Icons.shield_outlined),
+                          if (member.role == 'admin') ...[
+                            const SizedBox(width: 6),
+                            _tag(S.roleAdmin, c.warning, icon: Icons.shield_outlined),
+                          ],
+                          if (_isSelf(member)) ...[
+                            const SizedBox(width: 4),
+                            _tag(S.you, c.textHint),
+                          ],
                         ],
-                        if (_isSelf(member)) ...[
-                          const SizedBox(width: 4),
-                          _tag(S.you, c.textHint),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      member.email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        member.email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: c.textSecondary),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    member.statusText,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
+                  ),
                 ),
-                child: Text(
-                  member.statusText,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Divider(height: 1, color: c.divider),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 16,
-            runSpacing: 6,
-            children: [
-              _info(S.phone, member.phone.isEmpty ? '—' : member.phone, c),
-              _info(S.listings2, '${member.bookCount}', c),
-              _info(S.purchase, '${member.buyOrderCount}', c),
-              _info(S.sales2, '${member.sellOrderCount}', c),
-              _info(S.created, formatDate(member.createdAt), c),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            Divider(height: 1, color: c.divider),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 16,
+              runSpacing: 6,
+              children: [
+                _info(S.phone, member.phone.isEmpty ? '—' : member.phone, c),
+                _info(S.listings2, '${member.bookCount}', c),
+                _info(S.purchase, '${member.buyOrderCount}', c),
+                _info(S.sales2, '${member.sellOrderCount}', c),
+                _info(S.created, formatDate(member.createdAt), c),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

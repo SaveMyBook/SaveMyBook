@@ -56,7 +56,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
           children: [
             AppHeader(title: S.reports, icon: Icons.insights_rounded),
             Padding(
-              padding: frame.inset(const EdgeInsets.fromLTRB(20, 16, 20, 0), maxWidth: 1200),
+              padding: frame.pad(const EdgeInsets.fromLTRB(20, 16, 20, 0), maxWidth: 1200),
               child: Align(alignment: Alignment.centerLeft, child: _buildRangePicker(c)),
             ),
             Expanded(
@@ -80,7 +80,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                                 ],
                               )
                             : ListView(
-                                padding: frame.inset(const EdgeInsets.fromLTRB(20, 16, 20, 40), maxWidth: 1200),
+                                padding: frame.pad(const EdgeInsets.fromLTRB(20, 16, 20, 40), maxWidth: 1200),
                                 children: frame.isWide ? _buildWide(c) : [
                                   for (final (i, section) in [
                                     _buildSummary(c),
@@ -238,15 +238,24 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
                       ),
                     ),
                   ),
+                  if (wide)
+                    Text(
+                      S.p0Orders(_stats.completedOrderCount),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: c.textSecondary),
+                    ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              S.p0Orders(_stats.completedOrderCount),
-              maxLines: 1,
-              style: TextStyle(fontSize: 13, color: c.textSecondary),
-            ),
+            if (!wide) ...[
+              const SizedBox(width: 8),
+              Text(
+                S.p0Orders(_stats.completedOrderCount),
+                maxLines: 1,
+                style: TextStyle(fontSize: 13, color: c.textSecondary),
+              ),
+            ],
           ],
         ),
       ),

@@ -77,6 +77,7 @@ class CabinetGuideScreen extends StatefulWidget {
 
 class _CabinetGuideScreenState extends State<CabinetGuideScreen> {
   static const _departureKey = 'transit.departure_station';
+  static const double _splitWidth = 700;
 
   final _api = ApiService();
 
@@ -256,13 +257,44 @@ class _CabinetGuideScreenState extends State<CabinetGuideScreen> {
               onRefresh: _refresh,
               child: LayoutBuilder(
                 builder: (context, constraints) {
+                  final data = _nearby;
+                  final split = !_loading && data != null && constraints.maxWidth >= _splitWidth;
                   final padding = responsiveListPadding(
                     constraints,
-                    maxWidth: Breakpoints.readingMaxWidth,
-                    horizontal: 20,
+                    maxWidth: split ? 1160 : Breakpoints.readingMaxWidth,
+                    horizontal: context.isWide ? 24 : 20,
                     top: 20,
                     bottom: MediaQuery.of(context).padding.bottom + 40,
                   );
+                  if (split) {
+                    Widget column(List<Widget> items, int start) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final (i, item) in items.indexed) ...[
+                          if (i > 0) const SizedBox(height: 14),
+                          FadeSlideIn(index: start + i, child: item),
+                        ],
+                      ],
+                    );
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: padding,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: column([_buildCabinetCard(c), _buildMrtCard(c, data), _buildYoubikeCard(c, data)], 0),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(child: column([_buildBusCard(c, data), _buildParkingCard(c, data)], 3)),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        FadeSlideIn(index: 5, child: _buildFooter(c)),
+                      ],
+                    );
+                  }
                   final sections = <Widget>[
                     _buildCabinetCard(c),
                     if (_loading)
