@@ -1,4 +1,5 @@
 @startuml
+' 以 render_er.py 產生 PNG：直接用 PlantUML 輸出時，正交走線在轉角會多出殘段、線端符號會擠在轉角上
 skinparam monochrome true
 skinparam shadowing false
 skinparam dpi 220
@@ -6,7 +7,7 @@ skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 12
 skinparam linetype ortho
 skinparam nodesep 30
-skinparam ranksep 40
+skinparam ranksep 50
 hide circle
 hide empty methods
 left to right direction

@@ -35,6 +35,9 @@ def render_svg(puml, outdir):
     elif 'render_class.py' in open(puml, encoding='utf-8').read():
         import render_class
         open(svg, 'w', encoding='utf-8').write(render_class.fix(s))
+    elif 'render_er.py' in open(puml, encoding='utf-8').read():
+        import render_er
+        open(svg, 'w', encoding='utf-8').write(render_er.fix(s))
     return svg
 
 
