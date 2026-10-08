@@ -66,6 +66,19 @@ const PR = Number(params.get('pr') ?? 2);
 /** 主視覺與旋轉展示共用的角度：正面偏右（看得到左側板）、略俯視約 15°。 */
 const HERO_RY = 0.52;
 const HERO_EL = 0.26;
+/**
+ * 接近正面的鏡頭（cam=front）：書櫃轉 -8°（看得到一點右側板）、俯角 6°、視角 12°（鏡頭拉遠、透視感較低），
+ * 螢幕與 A01–A04 櫃門正對觀眾。存取書影片、正面圖、正面透視圖與正面旋轉共用，簡報可平滑轉場。
+ */
+const FRONT_CAM = params.get('cam') === 'front';
+const FRONT_VIEW = { ry: -0.14, el: 0.105, fov: 12 };
+/** 透視圖的 12V 電源線在左側板外垂下的距離；正面鏡頭看得到右側板，線要離遠一點才不會落在櫃體輪廓內。 */
+const CABLE_OUT = FRONT_CAM ? 1.3 : 0.45;
+/**
+ * 櫃門全開角度（弧度）。正面鏡頭若開到 1.65（同影片），門板幾乎正對鏡頭只剩一條線；
+ * 開小於 90° 時門內側的電磁鎖會擋到書的路徑，所以改為開過 90°（約 117°）往右側甩開，門板斜向鏡頭看得清楚。
+ */
+const DOOR_MAX = FRONT_CAM ? 2.05 : 1.65;
 /** 旋轉展示一圈的秒數。 */
 const SPIN_PERIOD = 8;
 /** 投影片內容區底色（GIF 不用透明以免邊緣鋸齒）。 */
@@ -183,6 +196,10 @@ stage.renderer.setSize(VW, VH, false);
 canvas.style.width = `${VW}px`;
 canvas.style.height = `${VH}px`;
 stage.camera.aspect = VW / VH;
+if (FRONT_CAM) {
+  stage.camera.fov = FRONT_VIEW.fov;
+  stage.scene.fog = null;
+}
 stage.camera.updateProjectionMatrix();
 if (MODE === 'gif' || MODE === 'spin') document.body.style.background = GIF_BG;
 
@@ -285,9 +302,9 @@ function fitCamera(pts: THREE.Vector3[], el: number, pad: { x: number; y: number
 }
 
 /** 書櫃地面柔影（CW*1.55 × CD*1.6，中心 (0.3, -CH/2, -0.3)）肉眼可見的範圍。 */
-function shadowExtent() {
+function shadowExtent(k = 0.72) {
   const out: THREE.Vector3[] = [];
-  for (const [x, z] of [[-1, 0], [1, 0], [0, 1], [0, -1], [-0.7, 0.7], [0.7, 0.7]]) out.push(V(0.3 + x * CW * 1.55 / 2 * 0.72, -CH / 2, -0.3 + z * CD * 1.6 / 2 * 0.72));
+  for (const [x, z] of [[-1, 0], [1, 0], [0, 1], [0, -1], [-0.7, 0.7], [0.7, 0.7]]) out.push(V(0.3 + x * CW * 1.55 / 2 * k, -CH / 2, -0.3 + z * CD * 1.6 / 2 * k));
   return out;
 }
 
@@ -296,7 +313,7 @@ function cabinetCorners(withDoor: boolean) {
   const pts: THREE.Vector3[] = [];
   for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) pts.push(new THREE.Vector3(x * CW / 2, y * CH / 2, z * (CD / 2 + (z > 0 ? A : 0))));
   if (withDoor) {
-    const hx = IN_W / 2 - 0.03, hz = CD / 2 + A / 2, dw = IN_W - 0.06, th = 1.65;
+    const hx = IN_W / 2 - 0.03, hz = CD / 2 + A / 2, dw = IN_W - 0.06, th = DOOR_MAX;
     for (const y of [cellY(0) - CELL_H / 2, cellY(0) + CELL_H / 2]) pts.push(new THREE.Vector3(hx - dw * Math.cos(th), y, hz + dw * Math.sin(th)));
   }
   return pts;
@@ -406,7 +423,7 @@ async function buildXray(cab: Cabinet) {
   const grommet = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, T + 0.03, 24), new THREE.MeshStandardMaterial({ color: 0x15191c, roughness: 0.7 }));
   grommet.position.set(j5.x, top - T / 2, j5.z);
   extra.add(plug, grommet);
-  extra.add(wire([V(j5.x, top + 0.25, j5.z), V(j5.x, top + 0.55, j5.z), V(-CW / 2 - 0.45, top + 0.55, j5.z), V(-CW / 2 - 0.45, -CH / 2 + 0.12, j5.z), V(-CW / 2 - 2.0, -CH / 2 + 0.12, j5.z + 1.0)], 0.06, cableMat));
+  extra.add(wire([V(j5.x, top + 0.25, j5.z), V(j5.x, top + 0.55, j5.z), V(-CW / 2 - CABLE_OUT, top + 0.55, j5.z), V(-CW / 2 - CABLE_OUT, -CH / 2 + 0.12, j5.z), V(-CW / 2 - CABLE_OUT - 1.55, -CH / 2 + 0.12, j5.z + 1.0)], 0.06, cableMat));
   anchors.cableEntry = V(j5.x, top, j5.z);
 
   // 主幹：左後角（主控板前方）往下穿過各層板
@@ -476,7 +493,7 @@ async function main() {
   shadow.position.set(0.3, -CH / 2 + 0.01, -0.3);
 
   if (MODE === 'gif') {
-    cab.group.rotation.set(0, Number(params.get('ry') ?? 0.22), 0);
+    cab.group.rotation.set(0, Number(params.get('ry') ?? (FRONT_CAM ? FRONT_VIEW.ry : 0.22)), 0);
     cab.group.add(shadow);
     const pts = cabinetCorners(true);
     for (let t = TL.bookIn; t <= TL.bookEnd; t += 0.05) {
@@ -490,13 +507,13 @@ async function main() {
     // 地面柔影的前緣也要留在畫面內
     pts.push(V(0, -CH / 2, CD * 0.75));
     const wpts = pts.map((p) => p.clone().applyMatrix4(cab.group.matrixWorld));
-    fitCamera(wpts, Number(params.get('el') ?? 0.24), { x: Number(params.get('padx') ?? 0.05), y: Number(params.get('pady') ?? 0.08) });
+    fitCamera(wpts, Number(params.get('el') ?? (FRONT_CAM ? FRONT_VIEW.el : 0.24)), { x: Number(params.get('padx') ?? 0.05), y: Number(params.get('pady') ?? 0.08) });
     const pp = wpts.map(toPx);
     info.content = [Math.min(...pp.map((q) => q[0])), Math.min(...pp.map((q) => q[1])), Math.max(...pp.map((q) => q[0])), Math.max(...pp.map((q) => q[1]))].map((v) => Math.round(v / PR));
     gifAt = (t: number) => {
       const tt = ((t % TL.loop) + TL.loop) % TL.loop;
       drawKiosk(cab, kioskAt(tt));
-      cab.setDoor(0, doorAt(tt));
+      cab.doors[0].pivot.rotation.y = doorAt(tt) * DOOR_MAX;
       book!.set(bookPose(tt));
       stage.render();
     };
@@ -504,17 +521,18 @@ async function main() {
     window.__collide = (t: number) => collide(t);
     gifAt(Number(params.get('t') ?? 0));
   } else if (MODE === 'hero') {
-    cab.group.rotation.set(0, Number(params.get('ry') ?? HERO_RY), 0);
+    cab.group.rotation.set(0, Number(params.get('ry') ?? (FRONT_CAM ? FRONT_VIEW.ry : HERO_RY)), 0);
     cab.group.add(shadow);
     book.set(P_REST);
     drawKiosk(cab, { state: 'qr', refresh: 0.3, seconds: 60, digits: 1, check: 0 });
     cab.group.updateMatrixWorld(true);
     // 地面柔影的可見範圍也要在畫面內，裁切時才不會切到
-    const pts = [...cabinetCorners(false), ...shadowExtent()].map((p) => p.applyMatrix4(cab.group.matrixWorld));
-    fitCamera(pts, Number(params.get('el') ?? HERO_EL), { x: 0.04, y: 0.04 });
+    // 正面鏡頭幾乎平視，柔影左右兩端整段都看得到，要整片納入
+    const pts = [...cabinetCorners(false), ...shadowExtent(FRONT_CAM ? 1.0 : 0.72)].map((p) => p.applyMatrix4(cab.group.matrixWorld));
+    fitCamera(pts, Number(params.get('el') ?? (FRONT_CAM ? FRONT_VIEW.el : HERO_EL)), { x: 0.04, y: 0.04 });
     stage.render();
   } else if (MODE === 'xray') {
-    cab.group.rotation.set(0, Number(params.get('ry') ?? 0.36), 0);
+    cab.group.rotation.set(0, Number(params.get('ry') ?? (FRONT_CAM ? FRONT_VIEW.ry : 0.36)), 0);
     book.set({ ...P_REST, op: 0 });
     drawKiosk(cab, { state: 'qr', refresh: 0.3, seconds: 60, digits: 1, check: 0 });
     const { anchors, source } = await buildXray(cab);
@@ -523,12 +541,12 @@ async function main() {
     cab.group.traverse((o) => {
       const m = (o as THREE.Mesh).material as THREE.MeshBasicMaterial | undefined;
       const geo = (o as THREE.Mesh).geometry as THREE.PlaneGeometry | undefined;
-      if (m && (o as THREE.Mesh).isMesh && o.renderOrder === 1 && geo?.parameters?.width === 3.85) m.opacity = 0.22;
+      if (m && (o as THREE.Mesh).isMesh && o.renderOrder === 1 && geo?.parameters?.width === 3.85) m.opacity = FRONT_CAM ? 0.14 : 0.22;
     });
     cab.group.updateMatrixWorld(true);
     const pts = cabinetCorners(false);
-    pts.push(V(-CW / 2 - 2.1, -CH / 2, -2.7), V(-CW / 2 - 0.5, CH / 2 + 0.7, -3.4));
-    fitCamera(pts.map((p) => p.applyMatrix4(cab.group.matrixWorld)), Number(params.get('el') ?? 0.12), { x: 0.05, y: 0.05 });
+    pts.push(V(-CW / 2 - CABLE_OUT - 1.6, -CH / 2, -2.7), V(-CW / 2 - CABLE_OUT, CH / 2 + 0.7, -3.4));
+    fitCamera(pts.map((p) => p.applyMatrix4(cab.group.matrixWorld)), Number(params.get('el') ?? (FRONT_CAM ? FRONT_VIEW.el : 0.12)), { x: 0.05, y: 0.05 });
     stage.render();
     const w = (v: THREE.Vector3) => toPx(v.clone().applyMatrix4(cab.group.matrixWorld));
     const pts2: Record<string, [number, number]> = { screen: w(V(screenX, topRowY, CD / 2)) };
@@ -543,16 +561,17 @@ async function main() {
     round.position.set(0, -CH / 2 + 0.01, 0);
     stage.scene.add(round);
     const pts: THREE.Vector3[] = [];
+    const ry0 = FRONT_CAM ? FRONT_VIEW.ry : HERO_RY;
     for (let k = 0; k < 72; k++) {
-      cab.group.rotation.set(0, HERO_RY + (k / 72) * Math.PI * 2, 0);
+      cab.group.rotation.set(0, ry0 + (k / 72) * Math.PI * 2, 0);
       cab.group.updateMatrixWorld(true);
       for (const p of cabinetCorners(false)) pts.push(p.applyMatrix4(cab.group.matrixWorld));
     }
     for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; pts.push(V(Math.cos(a) * CW * 0.72, -CH / 2, Math.sin(a) * CW * 0.72)); }
-    fitCamera(pts, Number(params.get('el') ?? HERO_EL), { x: 0.06, y: 0.06 });
+    fitCamera(pts, Number(params.get('el') ?? (FRONT_CAM ? FRONT_VIEW.el : HERO_EL)), { x: 0.06, y: 0.06 });
     gifAt = (t: number) => {
       const k = (((t % SPIN_PERIOD) + SPIN_PERIOD) % SPIN_PERIOD) / SPIN_PERIOD;
-      cab.group.rotation.set(0, HERO_RY + k * Math.PI * 2, 0);
+      cab.group.rotation.set(0, ry0 + k * Math.PI * 2, 0);
       stage.render();
     };
     window.__seek = async (t: number) => gifAt(t);
@@ -580,7 +599,7 @@ async function main() {
  * 不受光的貼圖（螢幕、標誌、門牌）改成標準材質加自發光，PowerPoint 不支援 unlit 也一樣亮；
  * 櫃門壓克力維持 alphaMode BLEND，白色面板與門框改成不透明，減少透明排序問題。
  */
-async function exportGlb() {
+async function exportGlb(solid = params.get('solid') === '1') {
   const g = cab.group;
   const drop: THREE.Object3D[] = [];
   const parts = (cab as unknown as { parts: THREE.Group }).parts;
@@ -619,6 +638,19 @@ async function exportGlb() {
       } else if ((m as THREE.MeshStandardMaterial).isMeshStandardMaterial && m.transparent) {
         out = (m as THREE.MeshStandardMaterial).clone();
         out.name = 'acrylic-door';
+        if (solid) {
+          // 備用版：櫃門改為不透明的白霧壓克力
+          out = new THREE.MeshStandardMaterial({ color: 0xeef3f6, roughness: 0.42, metalness: 0 });
+          out.name = 'acrylic-door-frosted';
+        }
+      }
+      // 備用版不留任何 BLEND：印刷貼圖改用 MASK（alphaCutoff 0.5），無貼圖的半透明條改為不透明
+      if (solid && out.transparent) {
+        const sm = out as THREE.MeshStandardMaterial;
+        sm.transparent = false;
+        sm.opacity = 1;
+        sm.depthWrite = true;
+        if (sm.map) sm.alphaTest = 0.5;
       }
       converted.set(m, out);
       return out;

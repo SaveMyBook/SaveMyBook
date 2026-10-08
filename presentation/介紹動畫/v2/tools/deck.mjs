@@ -10,6 +10,8 @@
 //   node tools/deck.mjs spin                   cabinet_spin.mp4（360° 旋轉展示，8 秒一圈，1600×1600）
 //   node tools/deck.mjs glb                    cabinet.glb（PowerPoint 3D 模型用，單位公尺、原點在底面中心）
 //   node tools/deck.mjs check deposit|pickup [--fps 60]   書與櫃門、書櫃結構穿模檢查
+//   以上加 --cam front：接近正面的鏡頭（hero → cabinet_front.png、xray → cabinet_xray_front.*、spin → cabinet_spin_front.mp4，
+//   video 仍輸出 cabinet3d_*.mp4）；glb 加 --solid 輸出櫃門不透明的 cabinet_solid.glb
 //   node tools/deck.mjs review <檔案.gif|mp4|png>  每 0.2 秒一格、半尺寸總覽（GIF／MP4）或半尺寸預覽（PNG）
 //   node tools/deck.mjs shot "<網址參數>" <輸出.png>   除錯截圖
 // GIF 時間軸參數在 src/deck.ts 的 TL。
@@ -51,7 +53,8 @@ async function open(query, w, h, pr) {
   await page.setViewport({ width: w, height: h, deviceScaleFactor: pr });
   page.on('pageerror', (e) => console.log('pageerror', e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warn') console.log('console', m.text()); });
-  await page.goto(`http://127.0.0.1:${PORT}/deck.html?${query}&w=${w}&h=${h}&pr=${pr}`, { waitUntil: 'networkidle0' });
+  const cam = flag('--cam');
+  await page.goto(`http://127.0.0.1:${PORT}/deck.html?${query}&w=${w}&h=${h}&pr=${pr}${cam && !query.includes('cam=') ? `&cam=${cam}` : ''}`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => window.__ready === true, { timeout: 120000 });
   await page.evaluate(() => document.fonts.ready);
   return { browser, page };
@@ -183,24 +186,27 @@ async function cover() {
 }
 
 async function hero() {
-  const { browser, page } = await open('mode=hero', 1300, 1250, 2);
+  const front = flag('--cam') === 'front';
+  const { browser, page } = await open('mode=hero', front ? 1450 : 1300, front ? 1400 : 1250, 2);
   await frameReady(page);
   const buf = await page.screenshot({ omitBackground: true, type: 'png' });
   await browser.close();
   const c = await cropAlpha(buf, 40);
-  const out = join(OUT, 'cabinet_hero.png');
+  const out = join(OUT, front ? 'cabinet_front.png' : 'cabinet_hero.png');
   writeFileSync(out, c.buf);
   console.log(out, c.width, c.height, JSON.stringify(c.touches));
 }
 
 async function xray() {
+  const front = flag('--cam') === 'front';
+  const base = front ? 'cabinet_xray_front' : 'cabinet_xray';
   const { browser, page } = await open('mode=xray', 1300, 1250, 2);
   await frameReady(page);
   const info = await page.evaluate(() => window.__info());
   const buf = await page.screenshot({ omitBackground: true, type: 'png' });
   await browser.close();
   const c = await cropAlpha(buf, 40);
-  const out = join(OUT, 'cabinet_xray.png');
+  const out = join(OUT, `${base}.png`);
   writeFileSync(out, c.buf);
   const names = {
     screen: '2.8 吋 TFT 螢幕（右上角，橫向 320×240）',
@@ -219,11 +225,11 @@ async function xray() {
     points[k] = { label: names[k] ?? k, x: px, y: py, nx: +(px / c.width).toFixed(4), ny: +(py / c.height).toFixed(4) };
   }
   const json = {
-    image: 'cabinet_xray.png', width: c.width, height: c.height,
+    image: `${base}.png`, width: c.width, height: c.height,
     note: '座標為圖片像素（左上角為原點）；nx、ny 為相對寬高的比例。主控板來源：' + info.boardSource,
     points,
   };
-  writeFileSync(join(OUT, 'cabinet_xray_points.json'), JSON.stringify(json, null, 2) + '\n');
+  writeFileSync(join(OUT, `${base}_points.json`), JSON.stringify(json, null, 2) + '\n');
   console.log(out, c.width, c.height, JSON.stringify(c.touches));
 }
 
@@ -342,9 +348,11 @@ async function video(flow) {
 
 async function spin() {
   const fps = 60, N = 8 * fps;
-  const dir = join(TMP, 'video_spin');
-  await renderFrames('mode=spin', 800, 800, 2, N, fps, dir);
-  await encode(dir, fps, join(VIDEO, 'cabinet_spin.mp4'), join(VIDEO, 'cabinet_spin_poster.png'));
+  const front = flag('--cam') === 'front';
+  const name = front ? 'cabinet_spin_front' : 'cabinet_spin';
+  const dir = join(TMP, `video_${name}`);
+  await renderFrames(`mode=spin${front ? '&cam=front' : ''}`, 800, 800, 2, N, fps, dir);
+  await encode(dir, fps, join(VIDEO, `${name}.mp4`), join(VIDEO, `${name}_poster.png`));
   console.log(`${N} 格，${(N / fps).toFixed(3)} 秒`);
 }
 
@@ -361,13 +369,13 @@ async function strip(file, t0, region) {
   console.log(out);
 }
 
-async function glb() {
-  const { browser, page } = await open('mode=glb', 800, 600, 1);
+async function glb(solid = rest.includes('--solid')) {
+  const { browser, page } = await open(`mode=glb${solid ? '&solid=1' : ''}`, 800, 600, 1);
   const info = await page.evaluate(() => window.__info());
   await frameReady(page);
-  await page.screenshot({ path: join(TMP, 'glb_preview.png'), omitBackground: true });
+  await page.screenshot({ path: join(TMP, solid ? 'glb_solid_preview.png' : 'glb_preview.png'), omitBackground: true });
   await browser.close();
-  const out = join(OUT, 'cabinet.glb');
+  const out = join(OUT, solid ? 'cabinet_solid.glb' : 'cabinet.glb');
   writeFileSync(out, Buffer.from(info.glb, 'base64'));
   // 以 node 直接讀 GLB 的 JSON 區塊確認
   const b = readFileSync(out);
