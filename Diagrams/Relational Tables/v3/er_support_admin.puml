@@ -110,7 +110,7 @@ entity "notifications" as notifications {
   {field} actor_id : int
 }
 support_tickets ||--o{ support_ticket_messages
-support_ticket_messages ||--o{ support_ticket_attachments
+support_ticket_messages |o--o{ support_ticket_attachments
 auth_settings -[hidden]down- admin_operation_logs
 faqs -[hidden]down- db_backups
 system_announcements -[hidden]down- notifications

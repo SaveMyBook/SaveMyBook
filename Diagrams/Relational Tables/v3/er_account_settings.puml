@@ -58,8 +58,8 @@ entity "user_blocks" as user_blocks {
   {field} created_at : datetime
 }
 users ||--o| user_security
-users ||--o{ user_settings
-users ||--o{ admin_permissions
+users ||--o| user_settings
+users ||--o| admin_permissions
 users ||--o{ user_blocks
 users ||--o{ user_blocks
 @enduml

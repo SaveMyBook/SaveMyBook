@@ -79,6 +79,6 @@ entity "cabinet_challenges" as cabinet_challenges {
   {field} created_at : datetime
 }
 smart_cabinets ||--o{ cabinet_devices
-smart_cabinets ||--o{ cabinet_pair_requests
+smart_cabinets |o--o{ cabinet_pair_requests
 cabinet_devices ||--o{ cabinet_challenges
 @enduml
