@@ -8,6 +8,9 @@
 //   node tools/deck.mjs gif deposit|pickup [--tl match:5.2,open:7.2] [--preset draft]   cabinet_deposit.gif／cabinet_pickup.gif
 //   node tools/deck.mjs video deposit|pickup [--tl ...]   60 fps MP4（素材/video/cabinet3d_deposit.mp4、cabinet3d_pickup.mp4＋poster）
 //   node tools/deck.mjs spin                   cabinet_spin.mp4（360° 旋轉展示，8 秒一圈，1600×1600）
+//   node tools/deck.mjs flat                   平放主控板透視 cabinet_xray_flat*.png／json、video/pcb_zoom.mp4、video/pcb_spin_flat.mp4；flatcheck 逐像素比對
+//   node tools/deck.mjs zoomspin [--crf 20] [--frames]   第 22 頁推進＋旋轉 video/pcb_zoom_spin.mp4（2588×1600）與 render/pcb_zoom_spin_first.png
+//   node tools/deck.mjs layers [--crf 20] [--video|--frames]   無板透視、board_layer_hr 圖層、video/pcb_spin_from_flat.mp4 與驗證
 //   node tools/deck.mjs glb                    cabinet.glb（PowerPoint 3D 模型用，單位公尺、原點在底面中心）
 //   node tools/deck.mjs check deposit|pickup [--fps 60]   書與櫃門、書櫃結構穿模檢查
 //   以上加 --cam front：接近正面的鏡頭（hero → cabinet_front.png、xray → cabinet_xray_front.*、spin → cabinet_spin_front.mp4，
@@ -287,7 +290,7 @@ async function gif(flow) {
 
 
 /** 逐格算圖到 dir/f00000.png（多個分頁平行），page.screenshot 取裝置像素（2 倍）。 */
-async function renderFrames(query, w, h, pr, N, fps, dir, workers = 4) {
+async function renderFrames(query, w, h, pr, N, fps, dir, workers = 4, tStart = 0) {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   const size = Math.ceil(N / workers);
@@ -297,7 +300,7 @@ async function renderFrames(query, w, h, pr, N, fps, dir, workers = 4) {
     if (a >= b) return;
     const { browser, page } = await open(query, w, h, pr);
     for (let i = a; i < b; i++) {
-      await page.evaluate((t) => window.__seek(t), i / fps);
+      await page.evaluate((t) => window.__seek(t), tStart + i / fps);
       await frameReady(page);
       await page.screenshot({ path: join(dir, `f${String(i).padStart(5, '0')}.png`), type: 'png' });
       if ((i - a) % 120 === 0) process.stderr.write(`[${k}] ${i}/${b} ${((Date.now() - t0) / 1000).toFixed(0)}s\n`);
@@ -307,12 +310,12 @@ async function renderFrames(query, w, h, pr, N, fps, dir, workers = 4) {
 }
 
 /** H.264 60 fps（規格見 deck_video_brief.md），輸出後量背景色與串流資訊。 */
-async function encode(dir, fps, out, poster) {
+async function encode(dir, fps, out, poster, crf = 18) {
   mkdirSync(dirname(out), { recursive: true });
   run([
     '-y', '-framerate', String(fps), '-i', join(dir, 'f%05d.png'),
     '-vf', 'scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int,format=yuv420p,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv',
-    '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'slow', '-crf', '18', '-r', String(fps),
+    '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'slow', '-crf', String(crf), '-r', String(fps),
     '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
     '-movflags', '+faststart', '-an', out,
   ], ffmpeg7);
@@ -389,6 +392,241 @@ async function glb(solid = rest.includes('--solid')) {
   console.log('three.js 讀回：', JSON.stringify(info.check));
 }
 
+/** 解出影片第 n 格（bt709 tv range、精確捨入）與參考 PNG 比較，回傳每通道平均絕對差與最大差。 */
+async function frameDiff(video, n, ref) {
+  const tmp = join(TMP, `diff_${basename(video)}_${n}.png`);
+  run(['-y', '-i', video, '-vf', `select=eq(n\\,${n}),scale=in_color_matrix=bt709:in_range=tv:flags=accurate_rnd+full_chroma_int,format=rgb24`, '-frames:v', '1', '-update', '1', tmp], ffmpeg7);
+  return pngDiff(tmp, ref);
+}
+async function pngDiff(a, b) {
+  const A = await sharp(a).flatten({ background: '#F8FAFB' }).removeAlpha().raw().toBuffer();
+  const Bf = await sharp(b).flatten({ background: '#F8FAFB' }).removeAlpha().raw().toBuffer();
+  let sum = 0, max = 0;
+  for (let i = 0; i < A.length; i++) { const d = Math.abs(A[i] - Bf[i]); sum += d; if (d > max) max = d; }
+  return { mean: +(sum / A.length).toFixed(3), max, identical: A.equals(Bf) };
+}
+
+/**
+ * 硬體組成 → 主控板的轉場（畫布 2000×2200，三個檔取景一致）：
+ * cabinet_xray_flat.png（透明）／cabinet_xray_flat_bg.png（底色，= pcb_zoom 第 0 格）、points、
+ * video/pcb_zoom.mp4（推進 2 秒，121 格，最後一格存 pcb_zoom_last.png）、video/pcb_spin_flat.mp4（原地轉一圈 8 秒）。
+ */
+async function flat() {
+  const VW = 1000, VH = 1100, fps = 60;
+  {
+    const { browser, page } = await open('mode=flat&bg=0', VW, VH, 2);
+    await frameReady(page);
+    const info = await page.evaluate(() => window.__info());
+    const buf = await page.screenshot({ omitBackground: true, type: 'png' });
+    await browser.close();
+    writeFileSync(join(OUT, 'cabinet_xray_flat.png'), buf);
+    const names = {
+      screen: '2.8 吋 TFT 螢幕（右上角，橫向 320×240）',
+      board: '主控板（DoorLock ESP32-S3 主控板 Rev A，元件面朝上平放在頂層底板左後方）',
+      powerIn: '電源輸入（主控板 J5 的 12V DC 插座，插頭由背板開孔插入）',
+      cableEntry: '電源線穿過背板處',
+      esp32: 'ESP32-S3 開發板（插在主控板 U1）',
+      relays: '四路繼電器 K1–K4（主控板上）',
+      regulator: 'L7805 穩壓（主控板上）',
+      lockA01: 'A01 電磁鎖', lockA02: 'A02 電磁鎖', lockA03: 'A03 電磁鎖', lockA04: 'A04 電磁鎖',
+      switchA01: 'A01 門磁開關', switchA02: 'A02 門磁開關', switchA03: 'A03 門磁開關', switchA04: 'A04 門磁開關',
+    };
+    const W = VW * 2, H = VH * 2;
+    const points = {};
+    for (const [k, [x, y]] of Object.entries(info.points)) points[k] = { label: names[k] ?? k, x: Math.round(x), y: Math.round(y), nx: +(x / W).toFixed(4), ny: +(y / H).toFixed(4) };
+    const json = {
+      image: 'cabinet_xray_flat.png', width: W, height: H,
+      note: '座標為圖片像素（左上角為原點）；nx、ny 為相對寬高的比例。畫布與 cabinet_xray_flat_bg.png、video/pcb_zoom.mp4、video/pcb_spin_flat.mp4 相同。boardBox 為主控板（含元件）投影外框 [x, y, w, h]，boardCorners 為板面四角（左後、右後、右前、左前）。主控板來源：src/deck/pcb.ts（DoorLock ESP32-S3 主控板 Rev A）',
+      boardBox: info.boardBox.map((v) => Math.round(v)),
+      boardCorners: info.boardCorners.map(([x, y]) => [Math.round(x), Math.round(y)]),
+      points,
+    };
+    writeFileSync(join(OUT, 'cabinet_xray_flat_points.json'), JSON.stringify(json, null, 2) + '\n');
+    console.log('xray_flat', W, H, JSON.stringify(json.boardBox), JSON.stringify(json.boardCorners));
+  }
+  const zoomN = 121, spinN = 480;
+  const zdir = join(TMP, 'video_pcb_zoom'), sdir = join(TMP, 'video_pcb_spin_flat');
+  await renderFrames('mode=flat', VW, VH, 2, zoomN, fps, zdir, 4, 0);
+  await sharp(join(zdir, 'f00000.png')).png().toFile(join(OUT, 'cabinet_xray_flat_bg.png'));
+  const last = join(zdir, `f${String(zoomN - 1).padStart(5, '0')}.png`);
+  await sharp(last).png().toFile(join(VIDEO, 'pcb_zoom_last.png'));
+  const zoom = join(VIDEO, 'pcb_zoom.mp4');
+  await encode(zdir, fps, zoom, join(VIDEO, 'pcb_zoom_poster.png'));
+  await renderFrames('mode=flat', VW, VH, 2, spinN, fps, sdir, 4, 2.0);
+  const spinMp4 = join(VIDEO, 'pcb_spin_flat.mp4');
+  await encode(sdir, fps, spinMp4, join(VIDEO, 'pcb_spin_flat_poster.png'));
+  console.log('來源格：zoom 最後一格 vs spin 第一格', JSON.stringify(await pngDiff(last, join(sdir, 'f00000.png'))));
+  console.log('來源格：xray_flat（透明，疊底色）vs bg', JSON.stringify(await pngDiff(join(OUT, 'cabinet_xray_flat.png'), join(OUT, 'cabinet_xray_flat_bg.png'))));
+  console.log('影片：zoom 第 0 格 vs xray_flat_bg', JSON.stringify(await frameDiff(zoom, 0, join(OUT, 'cabinet_xray_flat_bg.png'))));
+  console.log('影片：zoom 最後一格 vs spin 第 0 格（解碼後）', JSON.stringify(await pngDiff(join(TMP, `diff_pcb_zoom.mp4_${zoomN - 1}.png`), join(TMP, 'diff_pcb_spin_flat.mp4_0.png')).catch(() => null)));
+}
+
+/**
+ * 簡報第 22 頁主控板頁：推進＋旋轉一支影片 video/pcb_zoom_spin.mp4（2588×1600、60 fps、只播一次）。
+ * 0–2 秒由平放透視推進到主控板（主點偏移同步移到左側大框），之後原地轉 3 圈（12 秒一圈，到 38 秒）。
+ * 另存第 0 格 render/pcb_zoom_spin_first.png 與 poster。--frames 只重新編碼已算好的格。
+ */
+async function zoomspin() {
+  const VW = 1294, VH = 800, fps = 60, N = 38 * fps + 1;
+  const crf = Number(flag('--crf') || 22);
+  const dir = join(TMP, 'video_pcb_zoom_spin');
+  if (!rest.includes('--frames')) await renderFrames('mode=flat&wide=1', VW, VH, 2, N, fps, dir, 4, 0);
+  const first = join(OUT, 'pcb_zoom_spin_first.png');
+  await sharp(join(dir, 'f00000.png')).png().toFile(first);
+  const out = join(VIDEO, 'pcb_zoom_spin.mp4');
+  await encode(dir, fps, out, join(VIDEO, 'pcb_zoom_spin_poster.png'), crf);
+  console.log(`${N} 格，${(N / fps).toFixed(3)} 秒`);
+  console.log('第 0 格 vs pcb_zoom_spin_first.png', JSON.stringify(await frameDiff(out, 0, first)));
+  // 終點主控板外框：3D 外框角點投影，以及第 2.0 秒畫面上非底色像素（排除柔影）的實際範圍
+  const { browser, page } = await open('mode=flat&wide=1', VW, VH, 2);
+  const proj = await page.evaluate(() => window.__boardBox(2.0));
+  const start = await page.evaluate(() => window.__boardBox(0));
+  await browser.close();
+  const { data, info } = await sharp(join(dir, `f${String(2 * fps).padStart(5, '0')}.png`)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+  for (let y = 0; y < info.height; y++) for (let x = 0; x < info.width; x++) {
+    const i = (y * info.width + x) * 3;
+    // 板子與元件：有彩度（綠板、藍繼電器）或很暗（黑色元件）；柔影是低彩度的淺灰，不計入
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const chroma = Math.max(r, g, b) - Math.min(r, g, b), lum = 0.3 * r + 0.6 * g + 0.1 * b;
+    if (chroma > 28 || lum < 120) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  }
+  console.log('第 0 格主控板外框角點投影 [x0,y0,x1,y1]', JSON.stringify(start.map(Math.round)));
+  console.log('終點外框角點投影 [x0,y0,x1,y1]', JSON.stringify(proj.map(Math.round)));
+  console.log('終點實際像素 [x0,y0,x1,y1]', JSON.stringify([x0, y0, x1, y1]), `寬 ${x1 - x0 + 1}、高 ${y1 - y0 + 1}、中心 (${((x0 + x1) / 2).toFixed(0)}, ${((y0 + y1) / 2).toFixed(0)})`);
+  const z = (i) => join(dir, `f${String(i).padStart(5, '0')}.png`);
+  const diff = async (a, b) => { const A = await sharp(a).raw().toBuffer(), B = await sharp(b).raw().toBuffer(); let sm = 0; for (let i = 0; i < A.length; i++) sm += Math.abs(A[i] - B[i]); return sm / A.length; };
+  const zoomD = [];
+  for (let i = 0; i < 2 * fps + 6; i++) zoomD.push(await diff(z(i), z(i + 1)));
+  const spinD = [];
+  for (let i = 2 * fps; i < N - 1; i += 7) spinD.push(await diff(z(i), z(i + 1)));
+  console.log('推進段相鄰格差：最大', Math.max(...zoomD).toFixed(2), '每 10 格', zoomD.filter((_, i) => i % 10 === 0).map((v) => v.toFixed(2)).join(' '));
+  console.log('旋轉段相鄰格差（每 7 格抽 1）：最小', Math.min(...spinD).toFixed(2), '最大', Math.max(...spinD).toFixed(2));
+}
+
+/**
+ * PowerPoint 平滑轉場放大同一張主控板圖、再接旋轉影片（鏡頭同 cabinet_xray_flat 的起點）：
+ * render/cabinet_xray_flat_noboard.png、render/board_layer_hr.png＋json、video/pcb_spin_from_flat.mp4＋poster、
+ * render/pcb_spin_from_flat_first.png＋json，並做逐像素驗證。--video 只重做影片，--frames 只重新編碼影片。
+ */
+async function layers() {
+  const crf = Number(flag('--crf') || 20);
+  const hrJson = join(OUT, 'board_layer_hr.json');
+  if (!rest.includes('--video') && !rest.includes('--frames')) {
+    // 1. 無板透視圖
+    {
+      const { browser, page } = await open('mode=flat&bg=0&layer=noboard', 1000, 1100, 2);
+      await frameReady(page);
+      await page.screenshot({ path: join(OUT, 'cabinet_xray_flat_noboard.png'), omitBackground: true, type: 'png' });
+      await browser.close();
+    }
+    // 2. 主控板圖層：先量外框，再以 4 倍解析度只算外框附近（setViewOffset），裁到不透明範圍外加 2%
+    const probe = await open('mode=flat&bg=0&layer=board', 1000, 1100, 2);
+    const box = (await probe.page.evaluate(() => window.__info())).boardBox;
+    await probe.browser.close();
+    const bw = box[2] - box[0], bh = box[3] - box[1];
+    const even = (v, up) => (up ? Math.ceil(v / 2) * 2 : Math.floor(v / 2) * 2);
+    const R = { x: even(box[0] - bw * 0.06, false), y: even(box[1] - bh * 0.12, false) };
+    R.w = even(box[2] + bw * 0.06, true) - R.x;
+    R.h = even(box[3] + bh * 0.12, true) - R.y;
+    const { browser, page } = await open(`mode=flat&bg=0&layer=board&region=${R.x},${R.y},${R.w},${R.h}`, R.w / 2, R.h / 2, 8);
+    await frameReady(page);
+    const buf = await page.screenshot({ omitBackground: true, type: 'png' });
+    await browser.close();
+    const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    let x0 = info.width, y0 = info.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < info.height; y++) for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3] > 2) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    const mx = (x1 - x0 + 1) * 0.02, my = (y1 - y0 + 1) * 0.02;
+    // 裁切邊界對齊 4 的倍數，縮回 1 倍時正好落在透視畫布的整數像素上
+    const cx = Math.max(0, Math.floor((x0 - mx) / 4) * 4), cy = Math.max(0, Math.floor((y0 - my) / 4) * 4);
+    const cx1 = Math.min(info.width, Math.ceil((x1 + 1 + mx) / 4) * 4), cy1 = Math.min(info.height, Math.ceil((y1 + 1 + my) / 4) * 4);
+    const touches = x0 === 0 || y0 === 0 || x1 === info.width - 1 || y1 === info.height - 1;
+    await sharp(buf).extract({ left: cx, top: cy, width: cx1 - cx, height: cy1 - cy }).png().toFile(join(OUT, 'board_layer_hr.png'));
+    // 前景層：同一塊範圍算主控板前方的東西，只保留落在板子輪廓內的部分（輪廓外 noboard 已經有）
+    {
+      const o = await open(`mode=flat&bg=0&layer=over&region=${R.x},${R.y},${R.w},${R.h}`, R.w / 2, R.h / 2, 8);
+      await frameReady(o.page);
+      const ob = await o.page.screenshot({ omitBackground: true, type: 'png' });
+      await o.browser.close();
+      const ow = cx1 - cx, oh = cy1 - cy;
+      const over = await sharp(ob).extract({ left: cx, top: cy, width: ow, height: oh }).ensureAlpha().raw().toBuffer();
+      const mask = await sharp(join(OUT, 'board_layer_hr.png')).ensureAlpha().raw().toBuffer();
+      for (let i = 3; i < over.length; i += 4) over[i] = Math.round((over[i] * mask[i]) / 255);
+      await sharp(over, { raw: { width: ow, height: oh, channels: 4 } }).png().toFile(join(OUT, 'board_layer_over.png'));
+    }
+    const rect = [R.x + cx / 4, R.y + cy / 4, (cx1 - cx) / 4, (cy1 - cy) / 4];
+    writeFileSync(hrJson, JSON.stringify({ rect, note: 'board_layer_hr.png（4 倍解析度）在 2000×2200 透視畫布（cabinet_xray_flat*.png）中的位置 [x, y, w, h]，像素', image: [cx1 - cx, cy1 - cy] }, null, 2) + '\n');
+    console.log('board_layer_hr', cx1 - cx, cy1 - cy, 'rect', JSON.stringify(rect), touches ? '（警告：圖層碰到算圖範圍邊緣）' : '');
+    // 驗證 A：圖層縮回 rect 疊在無板透視上，與 cabinet_xray_flat.png 比對
+    const small = await sharp(join(OUT, 'board_layer_hr.png')).resize(rect[2], rect[3], { kernel: 'lanczos3' }).png().toBuffer();
+    const comp = await sharp(join(OUT, 'cabinet_xray_flat_noboard.png')).composite([{ input: small, left: rect[0], top: rect[1] }]).png().toBuffer();
+    const flatBg = (b) => sharp(b).flatten({ background: '#F8FAFB' }).removeAlpha().raw().toBuffer();
+    const A = await flatBg(comp), Bf = await flatBg(join(OUT, 'cabinet_xray_flat.png'));
+    let all = 0, reg = 0, n = 0, mxd = 0;
+    for (let i = 0; i < A.length; i++) {
+      const d = Math.abs(A[i] - Bf[i]); all += d;
+      const p = Math.floor(i / 3), x = p % 2000, y = Math.floor(p / 2000);
+      if (x >= rect[0] && x < rect[0] + rect[2] && y >= rect[1] && y < rect[1] + rect[3]) { reg += d; n++; if (d > mxd) mxd = d; }
+    }
+    console.log('驗證 A（noboard＋board_layer_hr 疊回 vs cabinet_xray_flat.png，底色 #F8FAFB）：全圖平均', (all / A.length).toFixed(3), '板子區域平均', (reg / n).toFixed(3), '最大', mxd);
+    const over1 = await sharp(join(OUT, 'board_layer_over.png')).resize(rect[2], rect[3], { kernel: 'lanczos3' }).png().toBuffer();
+    const comp2 = await sharp(comp).composite([{ input: over1, left: rect[0], top: rect[1] }]).png().toBuffer();
+    const A2 = await flatBg(comp2);
+    all = 0; reg = 0; n = 0; mxd = 0;
+    for (let i = 0; i < A2.length; i++) {
+      const d = Math.abs(A2[i] - Bf[i]); all += d;
+      const p = Math.floor(i / 3), x = p % 2000, y = Math.floor(p / 2000);
+      if (x >= rect[0] && x < rect[0] + rect[2] && y >= rect[1] && y < rect[1] + rect[3]) { reg += d; n++; if (d > mxd) mxd = d; }
+    }
+    console.log('驗證 A2（再疊 board_layer_over）：全圖平均', (all / A2.length).toFixed(3), '板子區域平均', (reg / n).toFixed(3), '最大', mxd);
+  }
+  if (rest.includes('--novideo')) return;
+  // 3. 旋轉影片
+  const rect = JSON.parse(readFileSync(hrJson, 'utf8')).rect;
+  const VW = 1104, VH = 688, fps = 60;
+  const query = `mode=flat&layer=spin&rect=${rect.join(',')}`;
+  const probe = await open(query, VW, VH, 2);
+  const pinfo = await probe.page.evaluate(() => window.__info());
+  const endBox = await probe.page.evaluate((t) => window.__boardBox(t), 2.4);
+  await probe.browser.close();
+  const N = Math.round(pinfo.tl.loop * fps) + 1;
+  const dir = join(TMP, 'video_pcb_spin_from_flat');
+  if (!rest.includes('--frames')) await renderFrames(query, VW, VH, 2, N, fps, dir, 4, 0);
+  const out = join(VIDEO, 'pcb_spin_from_flat.mp4');
+  await encode(dir, fps, out, join(VIDEO, 'pcb_spin_from_flat_poster.png'), crf);
+  const target = pinfo.target.map((v) => +v.toFixed(3));
+  writeFileSync(join(OUT, 'pcb_spin_from_flat.json'), JSON.stringify({ target, note: 'board_layer_hr.png 在 pcb_spin_from_flat.mp4 第 0 格（2208×1376）中的目標矩形 [x, y, w, h]，像素' }, null, 2) + '\n');
+  const first = join(OUT, 'pcb_spin_from_flat_first.png');
+  run(['-y', '-i', out, '-vf', 'select=eq(n\\,0),scale=in_color_matrix=bt709:in_range=tv:flags=accurate_rnd+full_chroma_int,format=rgb24', '-frames:v', '1', '-update', '1', first], ffmpeg7);
+  // 驗證 B：解碼後首格的板子區域 vs board_layer_hr 縮放到 target 疊在底色上
+  const tr = [Math.round(target[0]), Math.round(target[1]), Math.round(target[2]), Math.round(target[3])];
+  const big = await sharp(join(OUT, 'board_layer_hr.png')).resize(tr[2], tr[3], { kernel: 'lanczos3' }).png().toBuffer();
+  const ref = await sharp({ create: { width: VW * 2, height: VH * 2, channels: 3, background: '#F8FAFB' } }).composite([{ input: big, left: tr[0], top: tr[1] }]).removeAlpha().raw().toBuffer();
+  const dec = await sharp(first).removeAlpha().raw().toBuffer();
+  const src0 = await sharp(join(dir, 'f00000.png')).removeAlpha().raw().toBuffer();
+  const regionDiff = (X, Y) => {
+    let sm = 0, n = 0, mx = 0;
+    for (let y = tr[1]; y < tr[1] + tr[3]; y++) for (let x = tr[0]; x < tr[0] + tr[2]; x++) for (let c = 0; c < 3; c++) { const i = (y * VW * 2 + x) * 3 + c; const d = Math.abs(X[i] - Y[i]); sm += d; n++; if (d > mx) mx = d; }
+    return `${(sm / n).toFixed(3)}（最大 ${mx}）`;
+  };
+  console.log('驗證 B（板子區域）：解碼首格 vs 圖層縮放', regionDiff(dec, ref), '；算圖首格 vs 圖層縮放', regionDiff(src0, ref));
+  console.log('target', JSON.stringify(target), '終點外框角點投影', JSON.stringify(endBox.map(Math.round)));
+  // 終點實際像素（2.4 秒），只計板子與元件的顏色
+  const { data: e, info: ei } = await sharp(join(dir, `f${String(Math.round(2.4 * fps)).padStart(5, '0')}.png`)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  let a0 = 1e9, b0 = 1e9, a1 = -1, b1 = -1;
+  for (let y = 0; y < ei.height; y++) for (let x = 0; x < ei.width; x++) { const i = (y * ei.width + x) * 3; const r = e[i], g = e[i + 1], b = e[i + 2]; const c = Math.max(r, g, b) - Math.min(r, g, b), l = 0.3 * r + 0.6 * g + 0.1 * b; if (c > 28 || l < 120) { a0 = Math.min(a0, x); a1 = Math.max(a1, x); b0 = Math.min(b0, y); b1 = Math.max(b1, y); } }
+  console.log('終點實際像素', JSON.stringify([a0, b0, a1, b1]), `寬 ${a1 - a0 + 1}、高 ${b1 - b0 + 1}、中心 (${((a0 + a1) / 2).toFixed(0)}, ${((b0 + b1) / 2).toFixed(0)})`);
+  const z = (i) => join(dir, `f${String(i).padStart(5, '0')}.png`);
+  const diff = async (p, q) => { const P = await sharp(p).raw().toBuffer(), Q = await sharp(q).raw().toBuffer(); let sm = 0; for (let i = 0; i < P.length; i++) sm += Math.abs(P[i] - Q[i]); return sm / P.length; };
+  const tD = [];
+  for (let i = 0; i < 160; i++) tD.push(await diff(z(i), z(i + 1)));
+  const sD = [];
+  for (let i = 144; i < N - 1; i += 7) sD.push(await diff(z(i), z(i + 1)));
+  console.log(`${N} 格，${(N / fps).toFixed(3)} 秒`);
+  console.log('0–2.67 秒相鄰格差（每 10 格）', tD.filter((_, i) => i % 10 === 0).map((v) => v.toFixed(2)).join(' '), '最大', Math.max(...tD).toFixed(2));
+  console.log('旋轉段相鄰格差（每 7 格抽 1）最小', Math.min(...sD).toFixed(2), '最大', Math.max(...sD).toFixed(2));
+}
+
 async function check(flow) {
   const tl = flag('--tl');
   const { browser, page } = await open(`mode=gif&flow=${flow}${tl ? `&tl=${tl}` : ''}`, 400, 360, 1);
@@ -411,7 +649,9 @@ async function review(file) {
   mkdirSync(dir, { recursive: true });
   if (file.endsWith('.gif') || file.endsWith('.mp4')) {
     const mp4 = file.endsWith('.mp4');
-    run(['-y', '-i', file, '-vf', `fps=5,${mp4 ? 'scale=in_color_matrix=bt709:in_range=tv:w=iw/2:h=-2,format=rgb24' : 'scale=iw/2:-1:flags=lanczos'}`, join(dir, 'r%03d.png')], mp4 ? ffmpeg7 : ffmpeg);
+    const step = Number(flag('--step') || 0.2);
+    const upto = flag('--to');
+    run(['-y', ...(upto ? ['-t', upto] : []), '-i', file, '-vf', `fps=${1 / step},${mp4 ? 'scale=in_color_matrix=bt709:in_range=tv:w=iw/2:h=-2,format=rgb24' : 'scale=iw/2:-1:flags=lanczos'}`, join(dir, 'r%03d.png')], mp4 ? ffmpeg7 : ffmpeg);
     const frames = readdirSync(dir).filter((f) => f.startsWith('r')).sort();
     const per = 12, cols = 4;
     const m0 = await sharp(join(dir, frames[0])).metadata();
@@ -419,7 +659,7 @@ async function review(file) {
     for (let s = 0; s * per < frames.length; s++) {
       const group = frames.slice(s * per, s * per + per);
       const tiles = await Promise.all(group.map(async (f, i) => {
-        const t = ((s * per + i) * 0.2).toFixed(1);
+        const t = ((s * per + i) * step).toFixed(step < 0.2 ? 2 : 1);
         const svg = Buffer.from(`<svg width="64" height="22" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="22" fill="#000" opacity=".7"/><text x="5" y="16" font-size="15" fill="#ff0" font-family="Menlo">${t}s</text></svg>`);
         return { input: await sharp(join(dir, f)).composite([{ input: svg, top: 0, left: 0 }]).png().toBuffer(), left: (i % cols) * (tw + 4), top: Math.floor(i / cols) * (th + 4) };
       }));
@@ -446,6 +686,16 @@ else if (cmd === 'gif') await gif(rest[0] || 'deposit');
 else if (cmd === 'check') await check(rest[0] || 'deposit');
 else if (cmd === 'video') await video(rest[0] || 'deposit');
 else if (cmd === 'spin') await spin();
+else if (cmd === 'flat') await flat();
+else if (cmd === 'zoomspin') await zoomspin();
+else if (cmd === 'layers') await layers();
+else if (cmd === 'flatcheck') {
+  const zoom = join(VIDEO, 'pcb_zoom.mp4'), sp = join(VIDEO, 'pcb_spin_flat.mp4');
+  console.log('zoom 第 0 格 vs xray_flat_bg', JSON.stringify(await frameDiff(zoom, 0, join(OUT, 'cabinet_xray_flat_bg.png'))));
+  console.log('zoom 最後一格 vs pcb_zoom_last.png', JSON.stringify(await frameDiff(zoom, 120, join(VIDEO, 'pcb_zoom_last.png'))));
+  console.log('spin 第 0 格 vs pcb_zoom_last.png', JSON.stringify(await frameDiff(sp, 0, join(VIDEO, 'pcb_zoom_last.png'))));
+  console.log('zoom 最後一格 vs spin 第 0 格（皆解碼）', JSON.stringify(await pngDiff(join(TMP, 'diff_pcb_zoom.mp4_120.png'), join(TMP, 'diff_pcb_spin_flat.mp4_0.png'))));
+}
 else if (cmd === 'reencode') {
   // 只重新編碼已算好的格（TMP/video_<名稱>）
   const name = rest[0];
