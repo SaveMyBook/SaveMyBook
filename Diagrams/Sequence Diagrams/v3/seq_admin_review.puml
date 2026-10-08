@@ -25,8 +25,10 @@ deactivate API
 UI -> API : PATCH /api/admin/ai/reviews/:bookId
 activate API
 API -> DB : 核准則公開販售並通知收藏者；\n拒絕則下架並取消其訂單與預約
+activate DB
 API -> DB : 通知賣家並寫入操作紀錄
 API --> UI : 200 OK
+deactivate DB
 deactivate API
 
 == 檢舉處理 ==
@@ -38,12 +40,16 @@ deactivate API
 管理員 -> UI : 選擇「違規成立」或「駁回檢舉」
 UI -> API : PATCH /api/admin/reports/:id
 activate API
-API -> DB : 更新檢舉結果
+API -> DB ++ : 更新檢舉結果
+deactivate DB
 opt 成立且選擇下架
-  API -> DB : 下架被檢舉書籍，取消其待存書\n與已存書之訂單並退款、取消預約
+  API -> DB ++ : 下架被檢舉書籍，取消其待存書\n與已存書之訂單並退款、取消預約
+  deactivate DB
 end
 API -> DB : 通知檢舉人與被檢舉人，\n寫入操作紀錄
+activate DB
 API --> UI : 200 OK
+deactivate DB
 deactivate API
 
 == 聊天防詐警示 ==
@@ -59,7 +65,9 @@ end
 UI -> API : PATCH /api/admin/chat-risk-alerts/:id
 activate API
 API -> DB : 更新警示狀態與處理人
+activate DB
 API --> UI : 200 OK
+deactivate DB
 deactivate API
 deactivate UI
 deactivate 管理員

@@ -21,17 +21,23 @@ activate UI
 UI -> API : POST /api/cabinet-sessions
 activate API
 API -> DB : 驗證 QR 與定位，列出取書項目
+activate DB
 API --> UI : 201 項目清單
+deactivate DB
 deactivate API
 買家 -> UI : 確認取書訂單，點擊「開啟櫃門」
 UI -> API : POST /api/cabinet-sessions/:no/start
 activate API
 API -> DB : 查詢訂單書籍所在櫃門，產生比對碼
+activate DB
 API --> UI : 200 等待輸入比對碼
+deactivate DB
 deactivate API
 IoT -> API : GET /api/device/v1/state
+activate API
 activate IoT
 API --> IoT : 顯示兩位數比對碼
+deactivate API
 deactivate IoT
 買家 -> UI : 輸入螢幕上的兩位數字
 UI -> API : POST /api/cabinet-sessions/:no/match
@@ -51,8 +57,12 @@ alt 數字相符
   end
   deactivate IoT
   API -> DB : 記錄取書時間並移除櫃內紀錄\n（買家端顯示「待完成訂單」）
+  activate DB
   API -> 賣家 : 推播「買家已取書」
+  deactivate DB
+  activate 賣家
   API --> UI : 推送作業結果
+  deactivate 賣家
 else 數字不符或逾時
   API --> UI : 作業結束，須重新掃碼
 end
@@ -65,7 +75,10 @@ else 取書滿 24 小時未申請爭議
   API -> API : 排程自動完成訂單
 end
 API -> DB : 訂單設為「已完成」，款項撥入賣家錢包
-API -> 賣家 : 推播「訂單已完成」
+activate DB
+API -> 賣家 ++ : 推播「訂單已完成」
+deactivate DB
+deactivate 賣家
 deactivate API
 deactivate UI
 deactivate 買家

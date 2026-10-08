@@ -20,31 +20,46 @@ activate UI
 UI -> API : POST /api/auth/oauth/:provider/start
 activate API
 API -> DB : 建立一次性狀態碼（10 分鐘有效）
+activate DB
 API --> UI : 回傳授權網址
+deactivate DB
 UI -> P : 開啟內建瀏覽器\n由使用者登入並同意授權
+activate P
 P -> API : 導回 GET .../callback（附授權碼）
+deactivate P
 API -> DB : 核對並作廢狀態碼
+activate DB
 API -> P : 以授權碼換取身分資料
+deactivate DB
+activate P
 P --> API : 回傳使用者身分
+deactivate P
 API -> DB : 暫存身分判定結果（5 分鐘有效）
+activate DB
 API --> UI : 導回 App 並附一次性代碼
+deactivate DB
 UI -> API : POST /api/auth/oauth/exchange
 
 alt 身分已綁定帳號
   API -> DB : 建立工作階段
+  activate DB
   API --> UI : 200 OK（登入權杖）
+  deactivate DB
 else 尚未綁定任何帳號
   API --> UI : 404 Not Found
   UI --> 使用者 : 詢問綁定既有帳號或建立新帳號
   alt 建立新帳號
     使用者 -> UI : 選擇建立新帳號\n（無 Email 時補填 Email 與暱稱）
     UI -> API : POST /api/auth/oauth/exchange\n（同一代碼，要求建立帳號）
-    API -> DB : 建立帳號與第三方身分\n（Email 已屬他人時回傳 409）
+    API -> DB ++ : 建立帳號與第三方身分\n（Email 已屬他人時回傳 409）
+    deactivate DB
   else 綁定既有帳號
     使用者 -> UI : 輸入原帳號密碼或使用通行密鑰
     UI -> API : POST /api/auth/social/link-login
     API -> DB : 驗證原帳號並綁定第三方身分
+    activate DB
     API -> DB : 通知「已綁定登入方式」
+    deactivate DB
   end
   API --> UI : 200 OK（登入權杖）
 end

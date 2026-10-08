@@ -21,17 +21,23 @@ activate UI
 UI -> API : POST /api/cabinet-sessions
 activate API
 API -> DB : 驗證 QR 與定位，列出存書項目
+activate DB
 API --> UI : 201 項目清單
+deactivate DB
 deactivate API
 賣家 -> UI : 勾選項目，點擊「開啟櫃門」
 UI -> API : POST /api/cabinet-sessions/:no/start
 activate API
 API -> DB : 分配空櫃門，產生比對碼
+activate DB
 API --> UI : 200 等待輸入比對碼
+deactivate DB
 deactivate API
 IoT -> API : GET /api/device/v1/state
+activate API
 activate IoT
 API --> IoT : 顯示兩位數比對碼
+deactivate API
 deactivate IoT
 賣家 -> UI : 輸入螢幕上的兩位數字
 UI -> API : POST /api/cabinet-sessions/:no/match
@@ -52,9 +58,13 @@ alt 數字相符
   deactivate IoT
   alt 完成
     API -> DB : 記錄櫃內書籍，訂單設為\n「已存書」或新增存書登記
-    API -> 買家 : 依訂單存書時推播「書籍已存入書櫃」
+    activate DB
+    API -> 買家 ++ : 依訂單存書時推播「書籍已存入書櫃」
+    deactivate DB
+    deactivate 買家
   else 取消
-    API -> DB : 狀態不變，櫃門設為待確認
+    API -> DB ++ : 狀態不變，櫃門設為待確認
+    deactivate DB
   end
   API --> UI : 推送作業結果
 else 數字不符或逾時

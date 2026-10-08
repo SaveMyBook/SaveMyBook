@@ -20,13 +20,18 @@ activate 管理員
 activate UI
 UI -> API : PUT /api/admin/legal/:key
 activate API
-API -> DB : 儲存文件內容
+API -> DB ++ : 儲存文件內容
+deactivate DB
 opt 標示為重大更新且內容有變更
   API -> DB : 文件版本號加一
+  activate DB
   API -> DB : 通知全體有效會員重新同意
+  deactivate DB
 end
 API -> DB : 寫入可還原之稽核紀錄
+activate DB
 API --> UI : 200 OK
+deactivate DB
 UI --> 管理員 : 顯示已通知人數
 deactivate API
 deactivate UI
@@ -39,14 +44,18 @@ activate UI
 UI -> API : GET /api/users/me/legal-consents/pending
 activate API
 API -> DB : 查詢版本高於已同意版本之文件
+activate DB
 API --> UI : 200 OK（待同意文件清單）
+deactivate DB
 UI --> 使用者 : 全螢幕顯示文件，須捲動至文末
 loop 逐份待同意文件
   alt 同意
     使用者 -> UI : 點擊「我已閱讀並同意」
     UI -> API : POST /api/users/me/legal-consents
     API -> DB : 核對版本並記錄同意
+    activate DB
     API --> UI : 200 OK（版本已更新則回 409 並重新載入）
+    deactivate DB
   else 拒絕
     使用者 -> UI : 點擊「不同意」並確認「登出」
     UI -> API : POST /api/auth/logout

@@ -20,13 +20,18 @@ activate UI
 UI -> API : POST /api/users/me/passkeys/options
 activate API
 API -> DB : 檢查已註冊數量（上限 10 組）\n並儲存挑戰值
+activate DB
 API --> UI : 回傳註冊選項
+deactivate DB
 使用者 -> UI : 以 Face ID／指紋建立金鑰
 UI -> API : POST /api/users/me/passkeys\n（附驗證權杖）
-API -> DB : 核銷挑戰值並驗證金鑰
+API -> DB ++ : 核銷挑戰值並驗證金鑰
+deactivate DB
 alt 驗證通過
   API -> DB : 儲存公鑰並通知「已新增通行密鑰」
+  activate DB
   API --> UI : 201 Created
+  deactivate DB
   UI --> 使用者 : 顯示更新後的金鑰清單
 else 驗證失敗或金鑰已註冊
   API --> UI : 400／409 錯誤
@@ -43,18 +48,26 @@ activate UI
 UI -> API : POST /api/auth/passkeys/login/options
 activate API
 API -> DB : 儲存登入挑戰值
+activate DB
 API --> UI : 回傳挑戰值
+deactivate DB
 使用者 -> UI : 選擇金鑰並以生物辨識解鎖
 UI -> API : POST /api/auth/passkeys/login
 API -> DB : 核銷挑戰值並查詢對應金鑰
+activate DB
 API -> API : 驗證簽章與使用計數
+deactivate DB
 alt 驗證通過
   API -> DB : 更新使用紀錄並建立工作階段
+  activate DB
   API --> UI : 200 OK（登入權杖）
+  deactivate DB
   UI --> 使用者 : 進入首頁
 else 簽章無效或使用計數倒退
   API -> DB : 計數倒退時通知「通行密鑰驗證異常」
+  activate DB
   API --> UI : 400 拒絕登入
+  deactivate DB
   UI --> 使用者 : 顯示錯誤，請改用其他登入方式
 end
 deactivate API

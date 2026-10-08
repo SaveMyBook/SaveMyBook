@@ -19,14 +19,19 @@ activate 使用者
 activate UI
 UI -> API : PATCH /api/orders/:id/status\n或 POST /api/books/:id/deposit、retrieve
 activate API
-API -> DB : 查詢書櫃裝置狀態
+API -> DB ++ : 查詢書櫃裝置狀態
+deactivate DB
 alt 書櫃可掃碼使用
   API --> UI : 409 請至書櫃掃描 QR Code
 else 未配對裝置，或離線、故障逾 2 分鐘
   API -> DB : 建立待確認之手動回報
+  activate DB
   API -> DB : 取回回報期間書籍暫停販售
   API -> 管理員 : 通知「書櫃手動回報待確認」
+  deactivate DB
+  activate 管理員
   API --> UI : 202 待客服確認
+  deactivate 管理員
 end
 deactivate API
 UI --> 使用者 : 顯示回報狀態
@@ -46,12 +51,18 @@ alt 確認回報
   activate API
   API -> API : 確認處理者非回報者或交易當事人
   API -> DB : 變更訂單或存書狀態，記錄櫃門
-  API -> 使用者 : 推播「手動回報已確認」
+  activate DB
+  API -> 使用者 ++ : 推播「手動回報已確認」
+  deactivate DB
+  deactivate 使用者
 else 駁回回報
   管理員 -> UI : 填寫原因後駁回
   UI -> API : POST /api/admin/cabinet-manual-\nreports/:no/reject
   API -> DB : 狀態維持不變，恢復暫停販售之書籍
-  API -> 使用者 : 推播「手動回報未通過確認」
+  activate DB
+  API -> 使用者 ++ : 推播「手動回報未通過確認」
+  deactivate DB
+  deactivate 使用者
 end
 API --> UI : 200 OK
 deactivate API

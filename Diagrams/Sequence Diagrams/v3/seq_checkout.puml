@@ -21,7 +21,9 @@ alt 加入購物車後結帳
   UI -> API : POST /api/cart
   activate API
   API -> DB : 確認可購買且未被他人預約保留
+  activate DB
   API --> UI : 201 Created
+  deactivate DB
   deactivate API
   買家 -> UI : 勾選書籍，點擊「結帳」
   UI -> API : POST /api/orders/checkout
@@ -44,16 +46,25 @@ DB --> API : 回傳檢查結果
 deactivate DB
 
 alt 檢查通過
-  API -> DB : 書籍設為「已售出」
+  API -> DB ++ : 書籍設為「已售出」
+  deactivate DB
   alt 訂單書籍皆已存於訂單書櫃
-    API -> DB : 依賣家與書櫃拆單建立訂單（已存書）
+    API -> DB ++ : 依賣家與書櫃拆單建立訂單（已存書）
+    deactivate DB
   else 尚有書籍未存入
-    API -> DB : 依賣家與書櫃拆單建立訂單（待存書）
+    API -> DB ++ : 依賣家與書櫃拆單建立訂單（待存書）
+    deactivate DB
   end
   API -> DB : 扣除買家代幣，由平台保管至訂單完成
+  activate DB
   API -> 賣家 : 通知書已售出\n（待存書者請於 7 天內存書）
+  deactivate DB
+  activate 賣家
   API -> DB : 移除已購買的購物車項目
+  deactivate 賣家
+  activate DB
   API --> UI : 201 Created
+  deactivate DB
   UI --> 買家 : 顯示付款成功\n（已存書時可立即取書）
 else 不可購買、超過本數、餘額不足或已被搶購
   API --> UI : 400／409 錯誤訊息（不扣款）

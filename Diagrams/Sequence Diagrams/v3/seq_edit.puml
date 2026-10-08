@@ -40,7 +40,9 @@ else 書籍存放於書櫃中
 else 可編輯
   opt 書名、作者、出版社或售價有變更
     API -> DB : 重新執行規則審核（行情、來源、站外聯絡資訊）
+    activate DB
     API -> AI : 書名、作者或出版社變更時進行 AI 審核
+    deactivate DB
     activate AI
     AI --> API : 回傳審核結果
     deactivate AI
@@ -49,9 +51,15 @@ else 可編輯
     API --> UI : 422 未通過審核，不予儲存
   else 需人工審核或通過
     API -> DB : 儲存修改\n（需人工審核時暫停公開）
+    activate DB
     API -> 管理員 : 需人工審核時通知「有書籍需上架審核」
+    deactivate DB
+    activate 管理員
     API -> DB : 降價時通知收藏此書的使用者
+    deactivate 管理員
+    activate DB
     API --> UI : 200 OK（附審核狀態）
+    deactivate DB
   end
   UI --> 賣家 : 顯示儲存結果
 end

@@ -30,7 +30,9 @@ else 已售出或已完成
   UI --> 賣家 : 顯示錯誤訊息
 else 可下架
   API -> DB : 書籍設為「已下架」
+  activate DB
   API --> UI : 200 OK
+  deactivate DB
   UI --> 賣家 : 顯示「已取消上架」與「還原」
 end
 deactivate API
@@ -51,7 +53,9 @@ opt 賣家重新上架已下架的書籍
     UI --> 賣家 : 顯示「請先至書櫃取回後再重新上架」
   else 可重新上架
     API -> DB : 書籍設為「販售中」\n（審核中者仍暫不公開）
+    activate DB
     API --> UI : 200 OK
+    deactivate DB
     UI --> 賣家 : 顯示「已重新上架」
   end
   deactivate API

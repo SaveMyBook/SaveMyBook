@@ -26,26 +26,38 @@ end
 UI -> API : POST /api/support/tickets
 activate API
 API -> DB : 確認處理中工單未達 5 筆，\n建立工單並綁定附件
+activate DB
 API -> 管理員 : 通知「新的客服工單」
+deactivate DB
+activate 管理員
 API --> UI : 201 Created
+deactivate 管理員
 deactivate API
 UI --> 使用者 : 顯示「已送出，客服將盡快回覆」\n並返回「聯絡我們」列表
 
 管理員 -> UI : 開啟工單並回覆
+activate 管理員
 UI -> API : POST /api/support/tickets/:id/messages
 activate API
 API -> DB : 確認客服權限後新增回覆，\n狀態設為「客服已回覆」
+activate DB
 API -> 使用者 : 通知「客服已回覆您的問題」
+deactivate DB
 API --> UI : 201 Created
 deactivate API
+deactivate 管理員
 
 opt 使用者補充說明
   使用者 -> UI : 輸入回覆
   UI -> API : POST /api/support/tickets/:id/messages
   activate API
   API -> DB : 新增訊息，狀態設為「待處理」
+  activate DB
   API -> 管理員 : 通知「客服工單有新回覆」
+  deactivate DB
+  activate 管理員
   API --> UI : 201 Created
+  deactivate 管理員
   deactivate API
 end
 
@@ -54,17 +66,23 @@ alt 使用者結案
   UI -> API : PATCH /api/support/tickets/:id/close
   activate API
   API -> DB : 工單設為「已結案」
+  activate DB
   API --> UI : 200 OK
+  deactivate DB
   deactivate API
   UI --> 使用者 : 顯示已結案
 else 管理員調整狀態
   管理員 -> UI : 將工單改為「已結案」
+  activate 管理員
   UI -> API : PATCH /api/admin/tickets/:id/status
   activate API
   API -> DB : 工單設為「已結案」，\n寫入操作紀錄
+  activate DB
   API -> 使用者 : 通知狀態更新
+  deactivate DB
   API --> UI : 200 OK
   deactivate API
+  deactivate 管理員
 end
 deactivate UI
 deactivate 使用者

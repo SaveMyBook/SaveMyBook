@@ -21,9 +21,12 @@ activate UI
 UI -> API : POST /api/chat/rooms/:roomId/messages
 activate API
 API -> DB : 讀取同一人 10 分鐘內\n在此聊天室的前幾則訊息
+activate DB
 API -> API : 依平台規則比對風險類別\n並評分（不使用 AI）
+deactivate DB
 opt 內容命中風險類別
-  API -> DB : 加計帳號因素（新帳號、\n無完成訂單、短時間多處發言）
+  API -> DB ++ : 加計帳號因素（新帳號、\n無完成訂單、短時間多處發言）
+  deactivate DB
 end
 opt 需傳送者確認
   API --> UI : 409（含聯絡方式、付款資訊\n或平台外交易）
@@ -32,12 +35,19 @@ opt 需傳送者確認
   UI -> API : 帶確認標記重新送出
 end
 API -> DB : 儲存訊息與風險紀錄
-API -> 賣家 : 推播新訊息
+activate DB
+API -> 賣家 ++ : 推播新訊息
+deactivate DB
+deactivate 賣家
 opt 本則為高風險訊息
-  API -> DB : 統計 24 小時內高風險訊息數
+  API -> DB ++ : 統計 24 小時內高風險訊息數
+  deactivate DB
   opt 達 3 則且無未處理警示
     API -> DB : 建立防詐警示
-    API -> 管理員 : 通知「聊天防詐警示」
+    activate DB
+    API -> 管理員 ++ : 通知「聊天防詐警示」
+    deactivate DB
+    deactivate 管理員
   end
 end
 API --> UI : 201 Created
@@ -52,7 +62,9 @@ activate UI
 UI -> API : GET /api/chat/rooms/:roomId/messages
 activate API
 API -> DB : 讀取訊息與風險紀錄
+activate DB
 API --> UI : 訊息附風險提醒；近 30 天\n有高風險訊息時附橫幅
+deactivate DB
 deactivate API
 UI --> 賣家 : 訊息下方顯示提醒，\n頂部顯示高風險橫幅
 deactivate UI

@@ -20,7 +20,9 @@ activate UI
 UI -> API : GET /api/security/sessions
 activate API
 API -> DB : 查詢 30 天內有活動且未登出之裝置
+activate DB
 API --> UI : 200 OK（裝置清單）
+deactivate DB
 UI --> 使用者 : 列出裝置，標示本機
 deactivate API
 
@@ -29,11 +31,13 @@ alt 登出單一裝置
   使用者 -> UI : 選擇裝置並確認登出
   UI -> API : DELETE /api/security/sessions/:id\n（附身分驗證權杖）
   activate API
-  API -> DB : 撤銷該裝置工作階段\n清除生物辨識付款金鑰與推播裝置
+  API -> DB ++ : 撤銷該裝置工作階段\n清除生物辨識付款金鑰與推播裝置
+  deactivate DB
 else 登出所有裝置
   使用者 -> UI : 選擇「登出其他所有裝置」\n或「登出所有裝置（含本機）」
   UI -> API : POST /api/security/sessions/revoke-all\n（附身分驗證權杖）
-  API -> DB : 批次撤銷工作階段\n並使被登出裝置的權杖失效
+  API -> DB ++ : 批次撤銷工作階段\n並使被登出裝置的權杖失效
+  deactivate DB
 end
 API --> UI : 200 OK
 alt 登出對象包含本機
@@ -50,8 +54,11 @@ UI -> API : 任一請求（原登入權杖）
 activate UI
 activate API
 API -> DB : 查核工作階段狀態
+activate DB
 API --> UI : 401 此裝置已登出
-UI --> 使用者 : 清除登入狀態並返回登入頁
+deactivate DB
+UI --> 使用者 ++ : 清除登入狀態並返回登入頁
+deactivate 使用者
 deactivate API
 deactivate UI
 @enduml

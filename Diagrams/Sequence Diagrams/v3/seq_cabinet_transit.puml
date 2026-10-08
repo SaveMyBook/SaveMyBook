@@ -19,7 +19,8 @@ activate 會員
 activate UI
 UI -> API : GET /api/cabinets/:id/nearby
 activate API
-API -> DB : 查詢書櫃座標
+API -> DB ++ : 查詢書櫃座標
+deactivate DB
 loop 捷運、公車、YouBike、停車場、路邊停車、路況、計程車招呼站
   opt 快取已過期
     API -> ODP : 下載公開資料

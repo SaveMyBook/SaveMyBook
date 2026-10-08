@@ -22,7 +22,9 @@ activate UI
 UI -> API : GET /api/users/me/export
 activate API
 API -> DB : 彙整個人資料、書籍、訂單、\n錢包與客服紀錄
+activate DB
 API --> UI : 200 OK（JSON 檔案）
+deactivate DB
 UI --> 使用者 : 開啟系統分享面板儲存
 deactivate API
 
@@ -30,10 +32,13 @@ deactivate API
 使用者 -> UI : 確認警告並輸入登入密碼
 UI -> API : POST /api/users/me/deletion
 activate API
-API -> DB : 驗證密碼並檢查進行中訂單與書櫃存書
+API -> DB ++ : 驗證密碼並檢查進行中訂單與書櫃存書
+deactivate DB
 alt 可受理
   API -> DB : 記錄申請時間（30 天緩衝期）
+  activate DB
   API --> UI : 200 OK
+  deactivate DB
   UI --> 使用者 : 顯示「待刪除」、剩餘天數\n與「取消刪除帳號」
 else 密碼錯誤、未設定密碼、有進行中訂單或書櫃仍有存書
   API --> UI : 400 Bad Request
@@ -42,7 +47,8 @@ end
 opt 緩衝期內取消
   使用者 -> UI : 點擊「取消刪除帳號」
   UI -> API : DELETE /api/users/me/deletion
-  API -> DB : 清除申請時間
+  API -> DB ++ : 清除申請時間
+  deactivate DB
 end
 deactivate API
 deactivate UI
@@ -51,16 +57,22 @@ deactivate 使用者
 == 匿名化帳號 ==
 alt 排程每小時檢查
   排程 -> API : 找出申請已滿 30 天之帳號
+  activate 排程
   activate API
+  deactivate 排程
 else 管理員提前處理
   管理員 -> UI : 於「待刪除帳號」點擊「立即執行」\n並驗證身分
+  activate 管理員
   activate UI
   UI -> API : POST /api/admin/deletions/:id/purge
 end
 API -> DB : 確認無進行中訂單
+activate DB
 API -> DB : 清除個資並停用帳號\n（保留訂單與帳務紀錄）
 API -> DB : 下架書籍，刪除收藏、購物車與通知
 API -> DB : 移除第三方身分、通行密鑰\n並撤銷所有工作階段
+deactivate DB
 deactivate API
 deactivate UI
+deactivate 管理員
 @enduml

@@ -19,20 +19,29 @@ activate 使用者
 activate UI
 UI -> API : 登入後註冊裝置\nPOST /api/push/devices
 activate API
-API -> DB : 儲存推播權杖
+API -> DB ++ : 儲存推播權杖
+deactivate DB
 deactivate API
 
 == 建立通知與推播 ==
-API -> DB : 各項事件寫入通知\n（含聊天訊息）
+API -> DB ++ : 各項事件寫入通知\n（含聊天訊息）
+activate API
+deactivate DB
+deactivate API
 loop 每 3 秒
   排程 -> DB : 取出 15 分鐘內\n未推播通知並標記
+  activate DB
   activate 排程
   排程 -> DB : 讀取裝置與偏好
   排程 -> 排程 : 依偏好與聊天室\n靜音設定過濾
+  deactivate DB
   排程 -> FCM : 送出推播\n（含圖示未讀數）
+  activate FCM
   FCM -> UI : 系統通知或 App 內橫幅
+  deactivate FCM
   alt 權杖失效
-    排程 -> DB : 移除該裝置
+    排程 -> DB ++ : 移除該裝置
+    deactivate DB
   else 暫時失敗
     排程 -> 排程 : 5 至 180 秒\n分次重試
   end
@@ -44,18 +53,24 @@ end
 UI -> API : GET /api/notifications?category=…
 activate API
 API -> DB : 依交易、帳號、客服、\n優惠分類查詢\n（不含聊天訊息）
+activate DB
 API --> UI : 通知清單與未讀數
+deactivate DB
 deactivate API
 使用者 -> UI : 點擊通知
 UI -> API : PATCH /api/notifications/:id/read
+activate API
 UI --> 使用者 : 導向相關頁面
+deactivate API
 
 == 聊天訊息 ==
 使用者 -> UI : 開啟聊天室
 UI -> API : GET /api/chat/rooms/:id/messages
 activate API
 API -> DB : 訊息及其通知\n標為已讀
+activate DB
 API --> UI : 訊息清單
+deactivate DB
 deactivate API
 deactivate UI
 deactivate 使用者

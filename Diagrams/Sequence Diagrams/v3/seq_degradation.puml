@@ -31,7 +31,9 @@ else 正常服務
     UI --> 使用者 : 顯示「登入嘗試次數過多，\n請 15 分鐘後再試」
   else 未超過上限
     API -> DB : 處理請求
+    activate DB
     API --> UI : 200 OK
+    deactivate DB
     UI --> 使用者 : 顯示操作結果
   end
 end
@@ -46,9 +48,12 @@ activate UI
 UI -> API : POST /api/admin/backups/:id/restore
 activate API
 API -> DB : 先建立還原前自動備份
+activate DB
 API -> API : 進入維護模式
+deactivate DB
 API --> UI : 202 Accepted（開始還原）
-API -> DB : 匯入備份資料
+API -> DB ++ : 匯入備份資料
+deactivate DB
 loop 每 2 秒，直到還原結束
   UI -> API : GET /api/status
   API --> UI : 回傳維護與還原狀態

@@ -20,13 +20,18 @@ activate 排程
 activate API
 opt 存書滿 7 天仍無訂單
   API -> DB : 書籍設為「暫停販售」
-  API -> 賣家 : 推播「請取回書櫃中的書籍」
+  activate DB
+  API -> 賣家 ++ : 推播「請取回書櫃中的書籍」
+  deactivate DB
+  deactivate 賣家
 end
 opt 暫停販售後每滿 3 天
-  API -> 賣家 : 再次推播取回提醒
+  API -> 賣家 ++ : 再次推播取回提醒
+  deactivate 賣家
 end
 opt 存書滿 14 天仍未取回
-  API -> 管理員 : 通知具硬體維護權限之\n管理員安排處理
+  API -> 管理員 ++ : 通知具硬體維護權限之\n管理員安排處理
+  deactivate 管理員
 end
 deactivate API
 deactivate 排程
@@ -37,13 +42,17 @@ alt 賣家掃碼取回
   activate UI
   UI -> API : POST /api/cabinet-sessions\n及 /api/cabinet-sessions/:no/start
   activate API
-  API -> DB : 同櫃門書籍一併列入，暫停販售
+  API -> DB ++ : 同櫃門書籍一併列入，暫停販售
+  deactivate DB
   ref over 賣家, UI, API : 數字確認與開關櫃門（同掃碼存書流程）
   alt 取出書籍並完成
     API -> DB : 移除存書登記與櫃內紀錄，釋放櫃門
+    activate DB
     API -> DB : 因逾期或取回而暫停之書籍恢復上架
+    deactivate DB
   else 作業未完成
-    API -> DB : 取回期間暫停販售之書籍恢復上架
+    API -> DB ++ : 取回期間暫停販售之書籍恢復上架
+    deactivate DB
   end
   API --> UI : 推送作業結果
   deactivate API
@@ -58,7 +67,10 @@ else 人員代為取出
   UI -> API : POST /api/admin/cabinets/\ndeposits/:bookId/clear
   activate API
   API -> DB : 移除存書登記，書籍改為下架
-  API -> 賣家 : 推播「書櫃中的書籍已由客服取出」
+  activate DB
+  API -> 賣家 ++ : 推播「書櫃中的書籍已由客服取出」
+  deactivate DB
+  deactivate 賣家
   deactivate API
   deactivate UI
   deactivate 管理員

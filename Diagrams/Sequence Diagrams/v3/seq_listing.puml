@@ -33,32 +33,46 @@ end
 
 賣家 -> UI : 確認內容，送出上架
 UI -> API : POST /api/books（含照片）
-deactivate UI
 activate API
-API -> DB : 檢查書櫃可用，比對同書行情
+API -> DB ++ : 檢查書櫃可用，比對同書行情
+deactivate DB
 
 alt 售價異常、疑似非正規來源或含站外聯絡資訊
   API -> DB : 建立書籍（暫不公開）與待審紀錄
+  activate DB
   API -> 賣家 : 通知「已送交審核」
-  API -> 管理員 : 通知「有書籍需上架審核」
+  deactivate DB
+  API -> 管理員 ++ : 通知「有書籍需上架審核」
+  deactivate 管理員
 else 未命中規則
-  API -> DB : 建立書籍並立即上架
+  API -> DB ++ : 建立書籍並立即上架
+  deactivate DB
 end
 API --> UI : 201 Created
 deactivate API
 UI --> 賣家 : 顯示上架結果
+deactivate UI
 deactivate 賣家
 
 opt 背景 AI 審核（未命中規則時）
-  API -> AI : 審核文字與最多 4 張照片
+  API -> AI ++ : 審核文字與最多 4 張照片
+  deactivate AI
   activate API
   alt AI 判定違規
     API -> DB : 書籍下架，審核設為未通過
-    API -> 賣家 : 通知「未通過上架審核」
+    activate DB
+    API -> 賣家 ++ : 通知「未通過上架審核」
+    deactivate DB
+    deactivate 賣家
   else AI 判定需人工確認
     API -> DB : 暫停公開並建立待審紀錄
+    activate DB
     API -> 賣家 : 通知「已送交審核」
-    API -> 管理員 : 通知「有書籍需上架審核」
+    deactivate DB
+    activate 賣家
+    API -> 管理員 ++ : 通知「有書籍需上架審核」
+    deactivate 賣家
+    deactivate 管理員
   end
   deactivate API
 end
@@ -73,7 +87,8 @@ opt 背景補齊書目（簡介、作者、出版社或出版日期空白）
   end
   AI --> API : 回傳補齊內容
   deactivate AI
-  API -> DB : 僅寫入仍空白的欄位
+  API -> DB ++ : 僅寫入仍空白的欄位
+  deactivate DB
   deactivate API
 end
 @enduml

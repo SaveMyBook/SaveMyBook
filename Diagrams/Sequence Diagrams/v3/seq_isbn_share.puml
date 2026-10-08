@@ -15,6 +15,7 @@ participant API
 database DB
 
 使用者 -> UI : 掃描書籍 ISBN 條碼
+activate 使用者
 activate UI
 UI -> API : GET /api/books/isbn/:isbn
 activate API
@@ -31,26 +32,32 @@ else 外部服務暫時無法連線
 end
 deactivate API
 deactivate UI
+deactivate 使用者
 
 使用者 -> UI : 點擊書籍「分享」或個人檔案「我的 QR Code」
+activate 使用者
 activate UI
 alt 分享書籍
   UI -> API : GET /api/books/:id/share-link
   activate API
-  API -> DB : 確認書籍公開中，\n首次分享時產生隨機權杖
+  API -> DB ++ : 確認書籍公開中，\n首次分享時產生隨機權杖
+  deactivate DB
 else 分享個人檔案
   UI -> API : GET /api/users/me/qrcode
-  API -> DB : 取得或產生個人隨機權杖
+  API -> DB ++ : 取得或產生個人隨機權杖
+  deactivate DB
 end
 API --> UI : 回傳 /b/:token 或 /u/:token 連結
 deactivate API
 UI --> 使用者 : 以系統分享或 QR Code 傳送
 deactivate UI
+deactivate 使用者
 
 訪客 -> API : 開啟分享連結（瀏覽器）
 activate 訪客
 activate API
-API -> DB : 依權杖查詢書籍或個人檔案
+API -> DB ++ : 依權杖查詢書籍或個人檔案
+deactivate DB
 alt 可公開
   API --> 訪客 : 顯示公開網頁與「在 App 中開啟」
   訪客 -> UI : 點擊後由 App 開啟對應頁面

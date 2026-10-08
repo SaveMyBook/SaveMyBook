@@ -35,13 +35,16 @@ else 交易密碼或登入密碼（付款僅限交易密碼）
   UI -> API : POST /api/security/verify
 end
 
-API -> DB : 比對憑證\n（交易密碼連錯 5 次鎖定 15 分鐘）
+API -> DB ++ : 比對憑證\n（交易密碼連錯 5 次鎖定 15 分鐘）
+deactivate DB
 alt 驗證通過
   API --> UI : 回傳短效驗證權杖（3～5 分鐘）
   UI -> API : 重送原請求（附驗證權杖）
   API -> API : 核對權杖之使用者、裝置與範圍
   API -> DB : 執行原操作
+  activate DB
   API --> UI : 200 OK
+  deactivate DB
   UI --> 使用者 : 顯示操作完成
 else 驗證失敗
   API --> UI : 400／423 錯誤

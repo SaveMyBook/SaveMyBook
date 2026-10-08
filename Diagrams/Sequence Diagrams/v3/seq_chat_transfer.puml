@@ -16,62 +16,88 @@ database DB
 participant 排程
 
 買家 -> UI : 傳送議價訊息
+activate 買家
 activate UI
 UI -> API : POST /api/chat/rooms/:id/messages
-deactivate UI
 activate API
-API -> 賣家 : 儲存訊息，推播給賣家
+API -> 賣家 ++ : 儲存訊息，推播給賣家
+deactivate 賣家
 deactivate API
+deactivate UI
+deactivate 買家
 
 買家 -> UI : 申請預約保留（24／48／72 小時）
+activate 買家
 activate UI
 UI -> API : POST /api/chat/rooms/:id/reservations
-deactivate UI
 activate API
 API -> DB : 確認書籍可預約，建立申請
-API -> 賣家 : 推播「您的書籍收到預約申請」
+activate DB
+API -> 賣家 ++ : 推播「您的書籍收到預約申請」
+deactivate DB
+deactivate 賣家
 deactivate API
+deactivate UI
+deactivate 買家
 
 賣家 -> UI : 點擊「接受」
+activate 賣家
 activate UI
 UI -> API : PATCH /api/chat/reservations/:id
-deactivate UI
 activate API
 API -> DB : 預約設為已保留（期間他人無法\n購買，賣家不可編輯或下架）
-API -> 買家 : 推播「賣家已接受您的預約」
+activate DB
+API -> 買家 ++ : 推播「賣家已接受您的預約」
+deactivate DB
+deactivate 買家
 deactivate API
+deactivate UI
+deactivate 賣家
 
 alt 保留期滿
   排程 -> API : 每 5 分鐘檢查到期預約
+  activate 排程
   activate API
-  API -> DB : 預約設為「已過期」
+  deactivate 排程
+  API -> DB ++ : 預約設為「已過期」
+  deactivate DB
 else 買家或賣家取消預約
   UI -> API : PATCH /api/chat/reservations/:id
-  API -> DB : 預約設為「已取消」
+  activate UI
+  API -> DB ++ : 預約設為「已取消」
+  deactivate DB
+  deactivate UI
 end
-API -> DB : 通知收藏此書的使用者可購買
+API -> DB ++ : 通知收藏此書的使用者可購買
+deactivate DB
 deactivate API
 
 alt 買家直接轉帳
   買家 -> UI : 選擇「轉帳」並輸入金額，點擊「確認轉帳」
+  activate 買家
+  activate UI
   UI -> API : POST /api/chat/rooms/:id/transfers
   activate API
 else 賣家請款後由買家支付
   賣家 -> UI : 輸入金額，發出請款
+  activate 賣家
   UI -> API : POST /api/chat/rooms/:id/transfer-requests
+  deactivate 賣家
   API -> 買家 : 推播請款通知
   買家 -> UI : 點擊「立即付款」
   UI -> API : POST /api/chat/transfers/:id/pay
 end
 API --> UI : 403 需驗證身分
-deactivate API
 買家 -> UI : 輸入交易密碼或生物辨識
-activate UI
 UI -> API : 取得驗證權杖後重送請求
-deactivate UI
-activate API
 API -> DB : 扣除買家代幣，轉入賣家錢包，\n建立轉帳紀錄
+activate DB
 API -> 賣家 : 推播轉帳訊息通知（「[轉帳]」或「已支付請款」）
+deactivate DB
+activate 賣家
 API --> UI : 轉帳完成，顯示轉帳卡片
+deactivate 賣家
 deactivate API
+deactivate UI
+deactivate 買家
 @enduml

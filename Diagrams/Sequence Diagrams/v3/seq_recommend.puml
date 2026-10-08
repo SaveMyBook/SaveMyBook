@@ -20,18 +20,23 @@ activate UI
 UI -> API : GET /api/ai/recommendations\n（附最近瀏覽的書）
 activate API
 opt AI 可用且已同意 AI 資料處理
-  API -> DB : 讀取購買、收藏、購物車紀錄\n與推薦快取
+  API -> DB ++ : 讀取購買、收藏、購物車紀錄\n與推薦快取
+  deactivate DB
   opt 快取已超過 6 小時或紀錄有變動\n（於背景重新產生，App 稍後重新讀取）
     API -> DB : 取個人化排序、內容相似的書\n與熱門書，合併為候選
+    activate DB
     API -> AI : 使用者紀錄、常看分類與候選書
+    deactivate DB
     activate AI
     AI --> API : 挑選書籍，標出依據的\n紀錄或分類與推薦理由
     deactivate AI
-    API -> DB : 寫入推薦快取
+    API -> DB ++ : 寫入推薦快取
+    deactivate DB
   end
 end
 opt AI 不可用、未同意 AI 資料處理\n或尚無推薦快取
-  API -> DB : 改用一般推薦排序
+  API -> DB ++ : 改用一般推薦排序
+  deactivate DB
 end
 API -> API : 依推薦依據分組\n（同一依據至少 2 本，最多 3 組）
 API --> UI : 推薦書籍與分組

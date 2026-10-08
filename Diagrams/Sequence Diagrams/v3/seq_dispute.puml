@@ -26,8 +26,10 @@ DB --> API : 回傳檢查結果
 deactivate DB
 alt 可受理（訂單未完成；已取書者限 24 小時內）
   API -> DB : 建立爭議案件，訂單設為「爭議處理中」\n（暫停自動完成與撥款）
+  activate DB
   API -> DB : 通知交易對方
   API --> UI : 201 Created
+  deactivate DB
   UI --> 使用者 : 顯示「爭議申請已送出」
 else 已完成、已取消或逾申請期限
   API --> UI : 400 無法申請爭議
@@ -45,7 +47,9 @@ opt 參考 AI 分析
   UI -> API : POST /api/admin/disputes/\n:id/ai-analysis
   activate API
   API -> DB : 讀取上架資料、照片與爭議說明
+  activate DB
   API -> AI : 比對上架描述與爭議證據
+  deactivate DB
   activate AI
   AI --> API : 回傳摘要、發現與建議
   deactivate AI
@@ -57,14 +61,19 @@ end
 UI -> API : PATCH /api/admin/disputes/:id
 activate API
 alt 裁決退款
-  API -> DB : 訂單設為「已退款」，款項退回買家
+  API -> DB ++ : 訂單設為「已退款」，款項退回買家
+  deactivate DB
 else 駁回爭議或協調結案，買家已取書
-  API -> DB : 訂單設為「已完成」並撥款給賣家
+  API -> DB ++ : 訂單設為「已完成」並撥款給賣家
+  deactivate DB
 else 駁回爭議或協調結案，尚未取書
-  API -> DB : 訂單恢還原本進度
+  API -> DB ++ : 訂單恢還原本進度
+  deactivate DB
 end
 API -> DB : 通知買賣雙方，記錄稽核紀錄
+activate DB
 API --> UI : 200 OK
+deactivate DB
 deactivate API
 UI --> 管理員 : 顯示裁決完成
 deactivate UI

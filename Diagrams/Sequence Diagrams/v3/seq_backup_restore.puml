@@ -17,9 +17,12 @@ participant 排程
 == 自動備份 ==
 loop 每小時檢查
   排程 -> API : 距上次成功備份是否滿 24 小時
+  activate 排程
   activate API
+  deactivate 排程
   opt 已滿 24 小時
-    API -> DB : 匯出資料庫並壓縮存檔，\n僅保留最新 14 份
+    API -> DB ++ : 匯出資料庫並壓縮存檔，\n僅保留最新 14 份
+    deactivate DB
   end
   deactivate API
 end
@@ -38,7 +41,9 @@ deactivate UI
 管理員 -> API : GET /api/backup-downloads/:ticket
 activate API
 API -> DB : 確認票證未逾時、未使用，\n寫入操作紀錄
+activate DB
 API --> 管理員 : 下載備份檔\n（連結失效時回應 410）
+deactivate DB
 deactivate API
 
 == 還原資料庫 ==
@@ -47,14 +52,20 @@ activate UI
 UI -> API : POST /api/admin/backups/:id/restore
 activate API
 API -> DB : 驗證密碼後，\n建立還原前自動備份
+activate DB
 API -> API : 進入維護模式，暫停其他服務
+deactivate DB
 API --> UI : 202 Accepted
 API -> DB : 背景匯入備份檔
+activate DB
 API -> DB : 結束維護模式，寫入操作紀錄
+deactivate DB
 deactivate API
 loop 每 2 秒，直到完成
   UI -> API : GET /api/status
+  activate API
   API --> UI : 還原狀態
+  deactivate API
 end
 UI --> 管理員 : 顯示還原結果
 deactivate UI

@@ -20,8 +20,10 @@ activate UI
 UI -> API : POST /api/chat/groups
 activate API
 API -> DB : 確認成員可加入（一次最多 50 人），\n建立群組並設發起人為管理員
+activate DB
 API -> DB : 發送「建立了群組」系統訊息，\n通知受邀成員
 API --> UI : 201 Created
+deactivate DB
 deactivate API
 UI --> 使用者 : 進入群組聊天室
 
@@ -30,8 +32,10 @@ UI --> 使用者 : 進入群組聊天室
 UI -> API : POST /api/chat/groups/:roomId/members\nPATCH /api/chat/groups/:roomId/members/:userId
 activate API
 API -> DB : 邀請：任一成員皆可，總數不超過 100 人\n變更角色：限群組管理員
+activate DB
 API -> DB : 更新成員名單或角色並發送系統訊息\n（新成員只看得到加入後的訊息）
 API --> UI : 200 OK（不符資格時 403／400）
+deactivate DB
 deactivate API
 
 == 以 @ 提及成員 ==
@@ -39,20 +43,25 @@ deactivate API
 UI -> API : POST /api/chat/rooms/:roomId/messages\n（附提及對象）
 activate API
 API -> DB : 確認提及對象為群組成員，\n儲存訊息與提及紀錄
+activate DB
 API -> DB : 通知被提及者「提及了您」，\n通知其他成員有新訊息
 API --> UI : 201 Created
+deactivate DB
 deactivate API
 
 == 退出群組 ==
 使用者 -> UI : 點擊「退出群組」
 UI -> API : POST /api/chat/groups/:roomId/leave
 activate API
-API -> DB : 移除成員及其釘選、靜音設定，\n發送「已退出群組」系統訊息
+API -> DB ++ : 移除成員及其釘選、靜音設定，\n發送「已退出群組」系統訊息
+deactivate DB
 opt 退出者為唯一管理員
-  API -> DB : 由最早加入的成員接任管理員
+  API -> DB ++ : 由最早加入的成員接任管理員
+  deactivate DB
 end
 opt 群組已無其他成員
-  API -> DB : 刪除群組與全部訊息
+  API -> DB ++ : 刪除群組與全部訊息
+  deactivate DB
 end
 API --> UI : 200 OK
 deactivate API

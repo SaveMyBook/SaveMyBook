@@ -20,8 +20,10 @@ activate UI
 UI -> API : 呼叫對應的後台 API
 activate API
 API -> DB : 更新資料
+activate DB
 API -> DB : 寫入操作紀錄\n（摘要、欄位前後差異、還原資料）
 API --> UI : 200 OK
+deactivate DB
 deactivate API
 
 == 查詢操作紀錄 ==
@@ -29,7 +31,9 @@ deactivate API
 UI -> API : GET /api/admin/operation-logs
 activate API
 API -> DB : 依對象類型與關鍵字查詢
+activate DB
 API --> UI : 紀錄清單（最新 100 筆）
+deactivate DB
 deactivate API
 
 == 一鍵還原 ==
@@ -39,9 +43,11 @@ UI --> 管理員 : 要求重新驗證身分
 UI -> API : POST /api/admin/operation-logs/:id/undo
 activate API
 API -> DB : 讀取紀錄，檢查權限\n與資料之後是否再被修改
+activate DB
 API -> DB : 欄位還原為紀錄中的原值\n（錢包以反向調整還原）
 API -> DB : 新增「還原」紀錄，\n原紀錄標示為已還原
 API --> UI : 200 已還原（無權限、涉及金流、\n已還原或資料已被修改時回應 403／409）
+deactivate DB
 deactivate API
 UI --> 管理員 : 顯示處理結果
 deactivate UI
