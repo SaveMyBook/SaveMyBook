@@ -1,0 +1,85 @@
+{
+  "isbn_type": [
+    "s_sell_isbn_t00",
+    "s_sell_isbn_t03",
+    "s_sell_isbn_t06",
+    "s_sell_isbn_t09",
+    "s_sell_isbn_t13",
+    "s_sell_isbn_loading",
+    "s_sell_fill"
+  ],
+  "sell_ai_loading": [
+    "s_sell_ai_loading_1",
+    "s_sell_ai_loading_2",
+    "s_sell_ai_loading_3",
+    "s_sell_ai_sheet_220"
+  ],
+  "advisor_type": [
+    "b_advisor_empty",
+    "b_advisor_t03",
+    "b_advisor_t06",
+    "b_advisor_t09",
+    "b_advisor_t12",
+    "b_advisor_t15",
+    "b_advisor_t18",
+    "b_advisor_t21",
+    "b_advisor_t24",
+    "b_advisor_t27",
+    "b_advisor_t30",
+    "b_advisor_t33",
+    "b_advisor_t36",
+    "b_advisor_t39",
+    "b_advisor_t42",
+    "b_advisor_wait",
+    "b_advisor"
+  ],
+  "support_q1": [
+    "b_support_empty",
+    "b_support_q1_t03",
+    "b_support_q1_t06",
+    "b_support_q1_t09",
+    "b_support_q1_t12",
+    "b_support_q1_t15",
+    "b_support_q1_t18",
+    "b_support_q1_t21",
+    "b_support_q1_t24",
+    "b_support_wait1",
+    "b_support_a1"
+  ],
+  "support_q2": [
+    "b_support_a1",
+    "b_support_q2_t03",
+    "b_support_q2_t06",
+    "b_support_q2_t09",
+    "b_support_q2_t12",
+    "b_support_q2_t15",
+    "b_support_q2_t17",
+    "b_support_wait2",
+    "b_support"
+  ],
+  "warn": [
+    "b_chat_warn_0",
+    "b_chat_warn_1",
+    "b_chat_warn"
+  ],
+  "cab_deposit": [
+    "s_cab_scan",
+    "s_cab_select",
+    "s_cab_match_empty",
+    "s_cab_match",
+    "s_cab_open",
+    "s_cab_done"
+  ],
+  "cab_pickup": [
+    "b_pickup_scan",
+    "b_cab_select",
+    "b_cab_match_empty",
+    "b_cab_match",
+    "b_pickup_open",
+    "b_pickup_done"
+  ],
+  "dispute_ai": [
+    "a_dispute_loading",
+    "a_dispute_ai"
+  ]
+}

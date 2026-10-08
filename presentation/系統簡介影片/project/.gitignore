@@ -1,0 +1,12 @@
+node_modules/
+dist/
+out/
+.frames/
+.segments/
+成品/*.mp4
+audio/.venv/
+audio/out/
+audio/tts/
+audio/fonts/
+audio/stems/
+stems/

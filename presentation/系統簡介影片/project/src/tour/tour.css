@@ -1,0 +1,49 @@
+/* 系統簡介影片的版面元件（kit2.ts）。字級：章節標題 72、功能標題 40、說明 27、標籤 22。 */
+:root { --mono: 'IBM Plex Mono', monospace; --line: rgba(98, 125, 141, .22); }
+
+
+/* 右上角章節導覽 */
+.cnav { display: flex; gap: 30px; align-items: baseline; white-space: nowrap; transform: translate(0, 0); right: 64px; left: auto !important; top: 44px !important; }
+.cnav__item { font-size: 21px; font-weight: 500; letter-spacing: .04em; color: var(--muted); }
+.cnav__item i { font-style: normal; font-family: var(--mono); font-size: 15px; margin-right: 6px; color: var(--slate); }
+.cnav__bar { position: absolute; left: 0; top: 40px; width: 100px; height: 3px; border-radius: 2px; background: var(--slate); transform-origin: 0 0; }
+
+/* 章節標題 */
+.chead { width: 760px; }
+.chead > * { position: static !important; }
+.chead__no { font-family: var(--mono); font-weight: 500; font-size: 28px; letter-spacing: .1em; color: #fff; background: var(--slate); display: inline-block; padding: 2px 14px; border-radius: 8px; }
+.chead__title { text-align: left; margin-top: 10px; font-weight: 900; font-size: 76px; line-height: 1.15; letter-spacing: .03em; color: var(--ink); }
+.chead__en { margin-top: 6px; font-family: var(--mono); font-size: 20px; letter-spacing: .18em; color: var(--slate); }
+
+/* 功能清單 */
+.flist { display: flex; flex-direction: column; gap: 10px; }
+.flist > * { position: relative !important; }
+.fitem {
+  --open: 0;
+  display: grid; grid-template-columns: 64px 1fr 34px; column-gap: 20px; align-items: start;
+  padding: calc(10px + 12px * var(--open)) 22px calc(10px + 14px * var(--open)) 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, calc(var(--open) * 1));
+  box-shadow: 0 1px 0 rgba(98, 125, 141, calc(.14 * var(--open))), 0 22px 44px rgba(22, 34, 43, calc(.1 * var(--open)));
+  border-left: 5px solid rgba(98, 125, 141, var(--open));
+}
+.fitem__ico { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 18px; color: var(--slate); background: #fff; box-shadow: 0 1px 0 rgba(98, 125, 141, .14), 0 8px 18px rgba(22, 34, 43, .08); }
+.fitem__title { font-size: 38px; font-weight: 700; line-height: 64px; letter-spacing: .02em; color: var(--ink); white-space: nowrap; }
+.fitem__body { overflow: hidden; }
+.fitem__body p { font-size: 27px; line-height: 1.5; color: var(--muted); margin-top: 2px; }
+.fitem__chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px !important; }
+.fitem__chips span { font-size: 22px; font-weight: 500; color: var(--deep); background: #EDF2F5; border: 1.5px solid rgba(98, 125, 141, .3); border-radius: 999px; padding: 3px 16px; }
+.fitem__mark { color: var(--success); margin-top: 17px; }
+
+/* 放大鏡 */
+.lens { border-radius: 22px; overflow: hidden; background: #fff; transform-origin: 50% 50%; box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--slate), 0 30px 60px rgba(22, 34, 43, .22); }
+.lens__img { position: absolute; inset: 0; background-repeat: no-repeat; }
+.lens-ring { border: 3px solid var(--slate); border-radius: 10px; box-shadow: 0 0 0 4px rgba(98, 125, 141, .18); }
+.lens-wire line { stroke: var(--slate); stroke-width: 2; stroke-dasharray: 6 6; }
+
+/* 置中強調文字 */
+.callout { font-size: 44px; font-weight: 700; color: var(--ink); white-space: nowrap; text-align: center; }
+.callout em { font-style: normal; color: var(--slate); }
+
+/* 尚未製作段落的佔位 */
+.todo { font-size: 40px; font-weight: 700; color: var(--muted); }

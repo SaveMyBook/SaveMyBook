@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>救「舊」我的書 介紹動畫</title>
+</head>
+<body>
+  <div id="frame">
+    <div id="bg"></div>
+    <div id="fx"></div>
+    <canvas id="gl"></canvas>
+    <div id="ui"></div>
+  </div>
+  <div id="bar" hidden>
+    <button id="play" type="button">播放</button>
+    <input id="seek" type="range" min="0" max="35" step="0.01" value="0">
+    <output id="time">0.00</output>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

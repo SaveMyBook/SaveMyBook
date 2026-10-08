@@ -1,0 +1,28 @@
+/* 排版導向版面（kit3.ts）。字級：大標 92、說明 32、小標 24、數字 120。 */
+:root { --accent: #627D8D; --text: #16222B; --text2: #5B6770; }
+body.dark { --accent: #9DB8C8; --text: #F2F5F7; --text2: #A9B6BF; }
+body.dark #bg { background: radial-gradient(120% 90% at 72% 45%, #2A3A46 0%, #1A252D 45%, #0F161B 100%); }
+body.dark .corner__name { color: #F2F5F7; }
+body.dark .corner__name i { color: var(--accent); }
+
+.cmark { left: auto !important; right: 72px; top: 40px !important; width: 300px; height: 40px; }
+.cmark > * { position: absolute; top: 0; }
+.cmark__rule { left: 0; top: 19px; width: 40px; height: 2px; background: var(--accent); }
+.cmark__no { left: 58px; font-family: var(--mono, 'IBM Plex Mono'), monospace; font-weight: 500; font-size: 22px; line-height: 40px; color: var(--accent); letter-spacing: .06em; }
+.cmark__name { left: 104px; font-size: 24px; font-weight: 700; line-height: 40px; letter-spacing: .08em; color: var(--text); white-space: nowrap; }
+
+.pts { width: 760px; }
+.pts > * { position: absolute; left: 0; top: 0; }
+.pts__eyebrow { font-size: 24px; font-weight: 500; letter-spacing: .26em; color: var(--accent); white-space: nowrap; }
+.pts__eyebrow b { font-family: 'IBM Plex Mono', monospace; font-weight: 500; letter-spacing: .08em; margin-right: 18px; }
+.pts__item { top: 72px !important; width: 760px; }
+.pts__item > * { position: absolute; left: 0; top: 0; }
+.pts__title { text-align: left; font-weight: 900; font-size: 92px; line-height: 1.12; letter-spacing: .03em; color: var(--text); font-feature-settings: 'halt'; }
+.pts__title .rise__line { padding-left: 0; margin-left: -.04em; }
+.pts__title .rise__ch--accent { color: var(--accent); }
+.pts__rule { width: 72px; height: 4px; background: var(--accent); transform-origin: 0 50%; }
+.pts__body { width: 660px; font-size: 32px; line-height: 1.6; font-weight: 400; color: var(--text2); letter-spacing: .02em; }
+.pts__fact { white-space: nowrap; color: var(--text2); }
+.pts__fact b { font-size: 112px; font-weight: 700; line-height: 1; color: var(--accent); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.pts__fact small { font-size: 36px; font-weight: 700; color: var(--accent); margin: 0 22px 0 8px; }
+.pts__fact span { font-size: 26px; letter-spacing: .06em; }

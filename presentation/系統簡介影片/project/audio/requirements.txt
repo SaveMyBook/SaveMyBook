@@ -1,0 +1,6 @@
+numpy
+scipy
+edge-tts
+imageio-ffmpeg
+pillow
+fonttools

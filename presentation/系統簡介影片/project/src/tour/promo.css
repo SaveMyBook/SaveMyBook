@@ -1,0 +1,30 @@
+/* 產品宣傳片風格（kit4.ts）。品牌藍：文字 #3E6A88、光圈 #8DB3CB。 */
+:root { --blue: #4E6B7C; --blue2: #7F9AAA; --glow: 104, 158, 212; }
+
+#bg { background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 38%, #E4EEF6 64%, #B5D0E6 100%) !important; }
+
+.promo__title { white-space: nowrap; text-align: center; font-weight: 900; font-size: 80px; line-height: 1.15; letter-spacing: .04em; color: var(--blue); font-feature-settings: 'halt'; }
+.promo__title .rise__ch--accent { color: var(--blue2); }
+.promo__sub { white-space: nowrap; text-align: center; font-size: 34px; font-weight: 700; letter-spacing: .08em; color: var(--blue2); }
+
+/* 手機後方的光圈 */
+.halo2 {
+  border-radius: 50%;
+  background: radial-gradient(circle, #FFFFFF 0%, #FFFFFF 58%, rgba(255, 255, 255, .85) 66%, rgba(255, 255, 255, 0) 70.5%);
+  box-shadow: 0 0 0 2.5px rgba(var(--glow), .95), 0 0 36px 10px rgba(var(--glow), .5), inset 0 0 60px 4px rgba(var(--glow), .35);
+}
+
+/* 圓環隧道 */
+.tring { width: 1000px; height: 1000px; border-radius: 50%; background: rgba(255, 255, 255, .35); box-shadow: 0 0 0 3px rgba(var(--glow), .95), 0 0 34px 8px rgba(var(--glow), .45), inset 0 0 44px 4px rgba(var(--glow), .35); }
+.tword { white-space: nowrap; font-weight: 900; font-size: 88px; letter-spacing: .06em; color: var(--blue); }
+
+.cword { white-space: nowrap; text-align: center; font-weight: 900; font-size: 168px; line-height: 1.1; letter-spacing: .08em; color: var(--blue); opacity: .95; }
+.wdip { width: 1920px; height: 1080px; background: #fff; }
+
+/* 文字配色候選（?tc=a～e，供比較） */
+body.tc-b { --blue: #16222B; --blue2: #3F78A8; }
+body.tc-b .promo__sub { color: #5B6770; }
+body.tc-c { --blue: #5F7FDB; --blue2: #8AA2EA; }
+body.tc-d .promo__title .rise__ch, body.tc-d .cword .rise__ch { background: linear-gradient(180deg, #7FA7D9 0%, #2F5F93 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+body.tc-d .promo__sub { color: #4A78A6; }
+body.tc-e { --blue: #4E6B7C; --blue2: #7F9AAA; }

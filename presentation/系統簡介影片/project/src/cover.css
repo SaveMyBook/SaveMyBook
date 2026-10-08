@@ -1,0 +1,40 @@
+:root {
+  --ink: #16222B;
+  --slate: #627D8D;
+  --border: #E3E7EA;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; }
+body { font-family: 'Noto Sans TC', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+#frame { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; }
+/* 與動畫相同的底色，產品後方加一層柔光 */
+#bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 820px 640px at 1380px 520px, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #FFFFFF 0%, #FBFCFD 42%, #E6EDF1 74%, #CBD8E0 100%);
+}
+/* 地面陰影，讓書櫃與手機不會浮在背景上 */
+.floor { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(22, 34, 43, .2), rgba(22, 34, 43, 0)); }
+#gl { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+#ui { position: absolute; inset: 0; }
+
+.copy { position: absolute; left: 120px; top: 0; bottom: 0; width: 900px; display: flex; flex-direction: column; justify-content: center; }
+.eyebrow { display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-weight: 700; font-size: 30px; letter-spacing: .12em; color: var(--slate); margin-bottom: 34px; }
+.eyebrow::before { content: ''; width: 44px; height: 3px; border-radius: 2px; background: var(--slate); }
+.brandlogo { position: relative; width: 173px; height: 136px; margin: 0 0 18px -6px; }
+.brandlogo .logo-draw { position: absolute; left: 0; top: 0; width: 1650px; height: 1300px; }
+.brandlogo .logo-draw svg { display: block; width: 100%; height: 100%; overflow: visible; }
+h1 { font-weight: 900; font-size: 128px; line-height: 1.04; letter-spacing: -.01em; font-feature-settings: 'palt'; white-space: nowrap; }
+h1 .b { background: linear-gradient(180deg, #7C97A6 0%, #4A6372 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sub { margin-top: 24px; font-weight: 700; font-size: 46px; line-height: 1.3; color: #2B3740; letter-spacing: .01em; }
+.chips { display: flex; gap: 16px; margin-top: 46px; }
+.chip { display: flex; align-items: center; gap: 12px; background: #fff; border: 1.5px solid var(--border); border-radius: 999px; padding: 14px 26px 14px 20px; font-weight: 700; font-size: 30px; box-shadow: 0 8px 20px rgba(11, 26, 38, .06); }
+.chip svg { width: 30px; height: 30px; }
+
+/* 與動畫的書櫃標註相同樣式，放大到封面尺寸 */
+.cbadge { position: absolute; display: flex; align-items: center; gap: 12px; padding: 12px 24px 12px 16px; border-radius: 999px; background: #fff; font-size: 30px; font-weight: 700; white-space: nowrap; box-shadow: 0 1px 0 rgba(98, 125, 141, .12), 0 12px 28px rgba(22, 34, 43, .12); }
+.cbadge i { width: 36px; height: 36px; border-radius: 50%; background: #2E9E5B; position: relative; flex: none; }
+.cbadge--check i::after { content: ''; position: absolute; left: 13px; top: 7px; width: 9px; height: 16px; border: solid #fff; border-width: 0 4px 4px 0; transform: rotate(45deg); }
+#badge { left: 1560px; top: 170px; }
