@@ -44,6 +44,6 @@ entity "user_qr_codes" as user_qr_codes {
   {field} created_at : datetime
 }
 users ||--o{ user_legal_consents
-users ||--o{ legal_documents
+users |o--o{ legal_documents
 users ||--o{ user_qr_codes
 @enduml

@@ -16,10 +16,36 @@ entity "books" as books {
   --
   ...
 }
-entity "cabinet_sessions" as cabinet_sessions {
-  {field} <&key> session_id : int
+entity "book_deposits" as book_deposits {
+  {field} <&key> book_id : int
   --
-  ...
+  {field} cabinet_id : int
+  {field} deposited_at : datetime
+  {field} paused_at : datetime
+  {field} auto_paused : tinyint(1)
+  {field} reminded_at : datetime
+  {field} escalated_at : datetime
+}
+entity "cabinet_slot_items" as cabinet_slot_items {
+  {field} <&key> book_id : int
+  --
+  {field} slot_id : int
+  {field} cabinet_id : int
+  {field} session_id : int
+  {field} placed_by : enum
+  {field} placed_at : datetime
+}
+entity "reservations" as reservations {
+  {field} <&key> reservation_id : int
+  --
+  {field} book_id : int
+  {field} buyer_id : int
+  {field} seller_id : int
+  {field} status : enum
+  {field} pickup_deadline : datetime
+  {field} note : text
+  {field} created_at : datetime
+  {field} updated_at : datetime
 }
 entity "smart_cabinets" as smart_cabinets {
   {field} <&key> cabinet_id : int
@@ -34,6 +60,7 @@ entity "smart_cabinets" as smart_cabinets {
   {field} is_maintenance : tinyint(1)
   {field} open_time : time
   {field} close_time : time
+  {field} screen_brightness : tinyint
   {field} created_at : datetime
   {field} updated_at : datetime
 }
@@ -52,42 +79,18 @@ entity "cabinet_slots" as cabinet_slots {
   {field} sensor_state : varchar(10)
   {field} sensor_at : datetime
 }
-entity "cabinet_slot_items" as cabinet_slot_items {
-  {field} <&key> book_id : int
+entity "cabinet_sessions" as cabinet_sessions {
+  {field} <&key> session_id : int
   --
-  {field} slot_id : int
-  {field} cabinet_id : int
-  {field} session_id : int
-  {field} placed_by : enum
-  {field} placed_at : datetime
+  ...
 }
-entity "book_deposits" as book_deposits {
-  {field} <&key> book_id : int
-  --
-  {field} cabinet_id : int
-  {field} deposited_at : datetime
-  {field} paused_at : datetime
-  {field} auto_paused : tinyint(1)
-  {field} reminded_at : datetime
-  {field} escalated_at : datetime
-}
-entity "reservations" as reservations {
-  {field} <&key> reservation_id : int
-  --
-  {field} book_id : int
-  {field} buyer_id : int
-  {field} seller_id : int
-  {field} status : enum
-  {field} pickup_deadline : datetime
-  {field} note : text
-  {field} created_at : datetime
-  {field} updated_at : datetime
-}
-smart_cabinets ||--o{ cabinet_slots
 books ||--o| cabinet_slot_items
 cabinet_slots ||--o{ cabinet_slot_items
-cabinet_sessions ||--o{ cabinet_slot_items
-books ||--o| book_deposits
-book_deposits }o--|| smart_cabinets
+smart_cabinets ||--o{ cabinet_slots
+cabinet_sessions |o--o{ cabinet_slot_items
 books ||--o{ reservations
+books }o--o| smart_cabinets
+book_deposits }o--|| smart_cabinets
+books ||--o| book_deposits
+smart_cabinets ||--o{ cabinet_sessions
 @enduml

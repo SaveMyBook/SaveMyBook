@@ -80,10 +80,10 @@ entity "refund_records" as refund_records {
   {field} processed_at : datetime
 }
 smart_cabinets ||--o{ cabinet_slots
-smart_cabinets ||--o{ orders
-cabinet_slots ||--o{ orders
+smart_cabinets |o--o{ orders
+cabinet_slots |o--o{ orders
 orders ||--o{ order_items
 orders ||--o{ transaction_disputes
-transaction_disputes ||--o{ refund_records
+transaction_disputes |o--o{ refund_records
 orders ||--o{ refund_records
 @enduml

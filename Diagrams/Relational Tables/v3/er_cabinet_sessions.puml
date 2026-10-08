@@ -5,24 +5,35 @@ skinparam dpi 220
 skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 12
 skinparam linetype ortho
-skinparam nodesep 30
+skinparam nodesep 60
 skinparam ranksep 40
 hide circle
 hide empty methods
 left to right direction
 
-entity "smart_cabinets" as smart_cabinets {
-  {field} <&key> cabinet_id : int
-  --
-  ...
-}
 entity "cabinet_devices" as cabinet_devices {
   {field} <&key> device_id : int
   --
   ...
 }
-entity "users" as users {
-  {field} <&key> user_id : int
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  ...
+}
+entity "cabinet_session_doors" as cabinet_session_doors {
+  {field} <&key> session_id : int
+  {field} <&key> slot_id : int
+  --
+  {field} lock_channel : tinyint
+  {field} state : enum
+  {field} command_served_at : datetime
+  {field} opened_at : datetime
+  {field} closed_at : datetime
+  {field} close_reason : varchar(20)
+}
+entity "books" as books {
+  {field} <&key> book_id : int
   --
   ...
 }
@@ -31,13 +42,28 @@ entity "orders" as orders {
   --
   ...
 }
-entity "books" as books {
-  {field} <&key> book_id : int
+entity "cabinet_session_items" as cabinet_session_items {
+  {field} <&key> item_id : int
   --
-  ...
+  {field} session_id : int
+  {field} kind : enum
+  {field} order_id : int
+  {field} book_id : int
+  {field} slot_id : int
+  {field} selected : tinyint(1)
+  {field} held_on_sale : tinyint(1)
+  {field} blocked_code : varchar(40)
+  {field} note_code : varchar(40)
+  {field} result : enum
+  {field} error_code : varchar(40)
 }
 entity "cabinet_slots" as cabinet_slots {
   {field} <&key> slot_id : int
+  --
+  ...
+}
+entity "users" as users {
+  {field} <&key> user_id : int
   --
   ...
 }
@@ -77,39 +103,21 @@ entity "cabinet_sessions" as cabinet_sessions {
   {field} reviewed_at : datetime
   {field} review_note : varchar(500)
 }
-entity "cabinet_session_items" as cabinet_session_items {
-  {field} <&key> item_id : int
-  --
-  {field} session_id : int
-  {field} kind : enum
-  {field} order_id : int
-  {field} book_id : int
-  {field} slot_id : int
-  {field} selected : tinyint(1)
-  {field} held_on_sale : tinyint(1)
-  {field} blocked_code : varchar(40)
-  {field} note_code : varchar(40)
-  {field} result : enum
-  {field} error_code : varchar(40)
-}
-entity "cabinet_session_doors" as cabinet_session_doors {
-  {field} <&key> session_id : int
-  {field} <&key> slot_id : int
-  --
-  {field} lock_channel : tinyint
-  {field} state : enum
-  {field} command_served_at : datetime
-  {field} opened_at : datetime
-  {field} closed_at : datetime
-  {field} close_reason : varchar(20)
-}
-smart_cabinets ||--o{ cabinet_sessions
-cabinet_devices ||--o{ cabinet_sessions
-users ||--o{ cabinet_sessions
-cabinet_sessions ||--o{ cabinet_session_items
-orders ||--o{ cabinet_session_items
-books ||--o{ cabinet_session_items
-cabinet_session_items }o--|| cabinet_slots
-cabinet_sessions ||--o{ cabinet_session_doors
+smart_cabinets ||-o{ cabinet_devices
 cabinet_session_doors }o--|| cabinet_slots
+smart_cabinets ||--o{ cabinet_slots
+cabinet_sessions ||-o{ cabinet_session_doors
+cabinet_session_items }o-o| cabinet_slots
+users ||--o{ orders
+books }o--|| users
+cabinet_sessions ||--o{ cabinet_session_items
+cabinet_sessions }o--|| cabinet_devices
+books ||--o{ cabinet_session_items
+orders }o-o| cabinet_slots
+cabinet_sessions }o--|| smart_cabinets
+smart_cabinets |o-o{ books
+orders }o--o| smart_cabinets
+cabinet_session_items }o--o| orders
+users ||-o{ orders
+cabinet_sessions }o--|| users
 @enduml

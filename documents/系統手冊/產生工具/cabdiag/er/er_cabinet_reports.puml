@@ -5,23 +5,13 @@ skinparam dpi 220
 skinparam defaultFontName "PingFang TC"
 skinparam defaultFontSize 12
 skinparam linetype ortho
-skinparam nodesep 30
+skinparam nodesep 60
 skinparam ranksep 40
 hide circle
 hide empty methods
 
-entity "smart_cabinets" as smart_cabinets {
-  {field} <&key> cabinet_id : int
-  --
-  ...
-}
 entity "users" as users {
   {field} <&key> user_id : int
-  --
-  ...
-}
-entity "orders" as orders {
-  {field} <&key> order_id : int
   --
   ...
 }
@@ -49,6 +39,16 @@ entity "cabinet_manual_reports" as cabinet_manual_reports {
   {field} created_at : datetime
   {field} updated_at : datetime
 }
+entity "orders" as orders {
+  {field} <&key> order_id : int
+  --
+  ...
+}
+entity "smart_cabinets" as smart_cabinets {
+  {field} <&key> cabinet_id : int
+  --
+  ...
+}
 entity "cabinet_events" as cabinet_events {
   {field} <&key> event_id : int
   --
@@ -69,8 +69,13 @@ entity "cabinet_events" as cabinet_events {
   {field} claimed_at : datetime
   {field} processed_at : datetime
 }
-smart_cabinets ||--o{ cabinet_manual_reports
 users ||--o{ cabinet_manual_reports
-orders ||--o{ cabinet_manual_reports
-books ||--o{ cabinet_manual_reports
+users ||--o{ books
+users ||--o{ orders
+users ||--o{ orders
+books |o-o{ cabinet_manual_reports
+cabinet_manual_reports }o-o| orders
+books }o--o| smart_cabinets
+orders }o--o| smart_cabinets
+cabinet_manual_reports }o--|| smart_cabinets
 @enduml

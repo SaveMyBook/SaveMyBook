@@ -96,8 +96,8 @@ entity "reports" as reports {
   {field} created_at : datetime
   {field} resolved_at : datetime
 }
-book_categories ||--o{ books
-book_categories ||--o{ book_categories
+book_categories |o--o{ books
+book_categories |o--o{ book_categories
 books ||--o{ book_images
 books ||--o{ favorites
 books ||--o{ shopping_cart
