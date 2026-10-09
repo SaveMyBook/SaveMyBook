@@ -1,25 +1,21 @@
 import { type Pose } from '../lib/kf';
 import { cue, fly } from '../lib/cues';
-import { SELLER, BUYER, ADMIN, type World, type Pop } from '../world';
-import { Tap, seq, stepCues, back, type Step } from '../scenes/kit';
-import { R } from '../scenes/story';
+import { SELLER, ADMIN, type World, type Pop } from '../world';
+import { seq, stepCues, back, type Step } from '../scenes/kit';
 import { line } from './kit2';
 import { Title, ChapterWord, glide, soft } from './kit4';
+import { onBar, onBeat, TapOn, spread } from './kit5';
+
+const SEC = 'list';
+/** 移動的平滑程度（秒）：第二版放慢轉場，比第一版的 0.3 柔和。 */
+const SIGMA = 0.42;
 
 /**
- * 浮出元件的精確邊界（以 tools/bounds.py 從截圖量測，含邊線；圓角 12pt），只抬起元件本身、不帶到周圍背景。
- */
-const FIELD_CARDS = [187.3, 266.3, 345.3, 424.3].map((y) => ({ x: 16, y, w: 361, h: 70.7, r: 12 }));
-const PRICE_CARD = { x: 16, y: 497, w: 361, h: 128, r: 12 };
-const REVIEW_BOX = { x: 29, y: 291, w: 335, h: 44, r: 12 };
-const TAU = Math.PI * 2;
-
-/**
- * 第 2 章 賣家上架（旁白 05 ISBN、06 AI 書況售價、07 雙層審核）。
- * 版面規則：標題固定在上方（y < 230），手機全程在標題下方，不與任何文字重疊；進出場只走下方與左右。
- * 章名大字單獨出現 → 收起後手機由下方升起，輸入 ISBN，四張書目卡依序浮出
- * → 手機原地快轉一圈（背面時換畫面），後方第二支手機錯落 → 建議售價卡浮出
- * → 兩支手機往左甩出、管理員手機由右甩入 → 審核理由浮出 → 往下退場（段落結束前完全出畫，下一段章名才出現）。
+ * 第 2 章 賣家上架（旁白 05 掃描 ISBN、06 AI 書況與售價、07 雙層審核），分鏡見 ../分鏡v2.md。
+ * 每句只做一件事：條碼掃描 → 三個書目欄位依拍點往手機右側展開（手機往左讓位）；App 內推入照片頁 → AI 書況卡與售價卡一起往右展開；
+ * 賣家手機退到左後方、管理員手機沿同一道弧線從右側接力滑入 → 整張待審卡片浮出 → 兩支手機一起往下退場。
+ * 換場時刻對齊配樂小節線（kit5.onBar），浮出對齊拍點。
+ * 浮出規則（2026-10-09 使用者選定）：相鄰的一組元件往旁邊展開，單一元件依旁白一次浮一個並放大。
  */
 export function sList(world: World, ui: HTMLElement, fx: HTMLElement) {
   const L5 = line('05'), L6 = line('06'), L7 = line('07');
@@ -31,95 +27,95 @@ export function sList(world: World, ui: HTMLElement, fx: HTMLElement) {
   const tC = new Title(ui, '規則＋AI　[雙層把關]', '售價異常或需人工複核，送交審核');
 
   const WORD_OUT = 1.0;
-  const T0 = L5.at;
-  const TYPE = [T0 + 1.35, T0 + 1.5, T0 + 1.65, T0 + 1.83];
-  const AI1 = T0 + 2.1, SHEET1 = T0 + 2.75, POP1 = SHEET1 + 0.6;
-  const SPIN0 = L6.at - 0.5, SPIN1 = L6.at + 0.6;
-  const SWAP = (SPIN0 + SPIN1) / 2;
-  const AI2 = SPIN1 + 0.2, SHEET2 = AI2 + 1.0, POP2 = SHEET2 + 0.65;
-  const WHIP = L7.at - 0.45;
-  const POP3 = L7.at + 1.2;
+  const RISE = WORD_OUT + 0.05;
+  // 05：掃描成功 → 推入填好的表單 → 三個欄位依拍點浮出
+  const SCAN_OK = onBeat(SEC, L5.at + 1.3);
+  const FORM = onBar(SEC, SCAN_OK + 0.75);
+  const F0 = onBeat(SEC, FORM + 0.6);
+  const BEAT = onBeat(SEC, F0 + 0.5) - F0;
+  // 06：推入照片頁 → 點 AI 帶入 → 結果卡浮出
+  const TB = onBar(SEC, L6.at - 0.3);
+  const AI = onBeat(SEC, TB + 1.3);
+  // 結果要等「分析中」面板展開（0.4 秒）並停留一下才出現；不對齊小節線：前一條小節線太近，會把展開切斷成跳格
+  const RES = AI + 1.05;
+  const R0 = RES + 0.4;
+  // 07：接力換手機 → 兩個審核區塊浮出
+  const TC = onBar(SEC, L7.at - 0.35);
+  const HAND = 1.1;
+  const V0 = onBeat(SEC, TC + HAND + 0.2);
+  const EXIT0 = OUT - 0.95, EXIT1 = OUT - 0.05;
 
-  const steps: Step[] = [
-    [-9, 's_sell_isbn_t00'],
-    ...(['t03', 't06', 't09', 't13'].map((n, i) => [TYPE[i], `s_sell_isbn_${n}`, 0, 0.03] as Step)),
-    [AI1 + 0.07, 's_sell_isbn_loading', 0, 0.1],
-    [SHEET1, 's_sell_fill', 3, 0.5],
-    [SWAP, 's_sell_photos', 0, 0.01],
-    [AI2 + 0.12, 's_sell_ai_loading_1', 0, 0.12],
-    [AI2 + 0.42, 's_sell_ai_loading_2', 0, 0.12],
-    [AI2 + 0.7, 's_sell_ai_loading_3', 0, 0.12],
-    [SHEET2, 's_sell_ai_sheet_220', 3, 0.5],
+  const seller: Step[] = [
+    [-9, 'v_sell_scan'],
+    [SCAN_OK, 'v_sell_scan_ok', 0, 0.15],
+    [FORM, 'v_sell_form_filled', 1, 0.5],
+    [TB, 'v_sell_photos', 1, 0.5],
+    [AI + 0.35, 'v_sell_ai_loading', 3, 0.4],
+    [RES, 'v_sell_ai_result', 3, 0.5],
   ];
-  stepCues(steps.filter((s) => s[0] !== SWAP));
-  TYPE.forEach((t) => cue('key', t, { gain: 0.35 }));
-  FIELD_CARDS.forEach((_, i) => cue('pop', POP1 + i * 0.12, { gain: 0.6 }));
-  [POP2, POP3].forEach((t) => cue('lift', t, { gain: 0.8 }));
-  cue('swipe', SPIN0 + 0.15, { gain: 1 });
-  cue('whoosh', WHIP + 0.1, { gain: 0.9 });
-  const mid = (r: { x: number; y: number; w: number; h: number }): [number, number] => [r.x + r.w / 2, r.y + r.h / 2];
-  const taps = [new Tap(ui, SELLER, ...mid(R.isbnAi), AI1), new Tap(ui, SELLER, ...mid(R.photosAi), AI2)];
+  stepCues(seller);
+  cue('success', SCAN_OK, { gain: 0.5 });
+  [0, 1, 2].forEach((i) => cue('pop', F0 + i * BEAT, { gain: 0.55 }));
+  [0, 1].forEach((i) => cue('pop', R0 + i * BEAT / 2, { gain: 0.6 }));
+  cue('lift', V0, { gain: 0.8 });
+  cue('swipe', TC + 0.15, { gain: 0.6 });
+  const tapAi = new TapOn(ui, SELLER, 'tap_sell_ai', AI - 0.32);
 
   const P = (x: number, y: number, z: number, rx: number, ry: number, rz: number, s: number): Pose => ({ x, y, z, rx, ry, rz, s });
-  // 主手機：由下方升起 → 慢推 → 正面 → 原地快轉一圈 → 正面 → 往左甩出
+  // 賣家手機：由下方升起 → 書目欄位展開時往左讓位並微轉向右 → 換照片頁時回到中間 → 交棒時退到左後方 → 一起往下退場
   const main: [number, Pose][] = [
-    [WORD_OUT + 0.15, P(0.12, -2.0, 0, 0.55, 0.5, -0.12, 1.4)],
-    [WORD_OUT + 1.25, P(0.04, -0.34, 0, 0.1, 0.32, -0.05, 1.4)],
-    [SHEET1 + 0.2, P(0.02, -0.33, 0, 0.05, 0.16, -0.03, 1.41)],
-    [POP1 - 0.1, P(0.0, -0.32, 0, 0.02, 0.0, 0, 1.42)],
-    [SPIN0 - 0.15, P(0.0, -0.32, 0, 0.02, -0.03, 0, 1.43)],
-    [SWAP, P(0.02, -0.33, -3, 0.05, TAU / 2, 0.02, 1.4)],
-    [SPIN1 + 0.15, P(0.1, -0.33, 0, 0.03, -0.12 + TAU, 0.02, 1.4)],
-    [POP2 - 0.1, P(0.09, -0.32, 0, 0.02, TAU, 0, 1.42)],
-    [WHIP, P(0.08, -0.32, 0, 0.02, 0.03 + TAU, 0, 1.43)],
-    [WHIP + 0.55, P(-1.7, -0.36, 0, 0.04, 0.5 + TAU, 0.05, 1.4)],
+    [RISE, P(0.1, -2.0, 0, 0.5, 0.45, -0.1, 1.4)],
+    [RISE + 1.15, P(0.02, -0.33, 0, 0.06, 0.14, -0.02, 1.4)],
+    [FORM, P(0.0, -0.32, 0, 0.03, 0.04, 0, 1.41)],
+    [F0 + 0.55, P(-0.27, -0.32, 0, 0.03, 0.13, 0, 1.41)],
+    [TB - 0.5, P(-0.29, -0.32, 0, 0.02, 0.1, 0, 1.42)],
+    [TB + 0.9, P(0.07, -0.33, 0, 0.03, -0.12, 0.01, 1.41)],
+    [RES, P(0.04, -0.32, 0, 0.02, -0.05, 0, 1.42)],
+    [R0 + 0.5, P(-0.27, -0.32, 0, 0.03, 0.13, 0, 1.41)],
+    [TC, P(-0.28, -0.32, 0, 0.02, 0.1, 0, 1.43)],
+    [TC + HAND, P(-0.42, -0.35, -10, 0.05, 0.42, 0.03, 1.28)],
+    [EXIT0, P(-0.44, -0.35, -10, 0.05, 0.38, 0.03, 1.29)],
+    [EXIT1, P(-0.44, -2.2, -10, -0.3, 0.42, 0.04, 1.28)],
   ];
-  // 錯落在後方的第二支手機（上架第 1 步完成的書目）
-  const side: [number, Pose][] = [
-    [SPIN1 - 0.35, P(-1.5, -0.5, -14, 0.15, 1.0, 0.08, 1.28)],
-    [SPIN1 + 0.85, P(-0.38, -0.34, -10, 0.05, 0.44, 0.03, 1.28)],
-    [WHIP, P(-0.35, -0.34, -10, 0.05, 0.36, 0.02, 1.29)],
-    [WHIP + 0.55, P(-2.2, -0.36, -10, 0.06, 0.8, 0.05, 1.28)],
-  ];
-  // 管理員手機：由右甩入 → 正面 → 往下退場
+  // 管理員手機：沿賣家手機讓出的弧線從右側滑入 → 正面慢推 → 往下退場
   const adm: [number, Pose][] = [
-    [WHIP + 0.05, P(1.8, -0.34, 0, 0.04, -0.7, -0.05, 1.4)],
-    [WHIP + 0.75, P(0.0, -0.33, 0, 0.03, -0.1, 0, 1.4)],
-    [POP3 - 0.1, P(0.0, -0.32, 0, 0.02, 0.0, 0, 1.42)],
-    [OUT - 0.85, P(0.0, -0.32, 0, 0.02, 0.03, 0, 1.43)],
-    [OUT + 0.1, P(0.0, -2.1, 0, -0.35, 0.1, 0.04, 1.4)],
+    [TC, P(1.7, -0.37, 0, 0.04, -0.6, -0.04, 1.4)],
+    [TC + HAND, P(0.12, -0.33, 0, 0.03, -0.12, 0, 1.4)],
+    [V0, P(0.1, -0.32, 0, 0.02, -0.05, 0, 1.42)],
+    [EXIT0, P(0.09, -0.32, 0, 0.02, -0.02, 0, 1.43)],
+    [EXIT1, P(0.09, -2.1, 0, -0.3, 0.06, 0.04, 1.4)],
   ];
 
-  fly(WORD_OUT + 0.15, WORD_OUT + 1.25, 0.6, 0.1);
-  fly(SPIN1 - 0.35, SPIN1 + 0.85, 0.4, -0.5);
-  fly(OUT - 0.85, OUT + 0.1, 0.5, 0);
+  fly(RISE, RISE + 1.15, 0.6, 0.1);
+  fly(TC, TC + HAND, 0.5, 0.4);
+  fly(EXIT0, EXIT1, 0.5, 0);
 
-  const pops = (keys: { id: string; screen: string; rect: Pop['rect']; t0: number }[], t: number, t1: number) =>
-    keys.map(({ id, screen, rect, t0 }) => ({ id, screen, rect, k: back(soft(t, t0, t0 + 0.5) * (1 - soft(t, t1, t1 + 0.35))) }));
+  /** 浮出程度：t0 起 0.5 秒浮出（帶一點回彈），t1 起 0.35 秒收回。 */
+  const k = (t: number, t0: number, t1: number) => back(soft(t, t0, t0 + 0.5) * (1 - soft(t, t1, t1 + 0.35)));
+  const dim = (ps: Pop[]) => 1 - 0.4 * Math.max(0, ...ps.map((p) => Math.min(1, p.k)));
 
   return (t: number) => {
     word.at(t, 0.1, WORD_OUT);
-    tA.at(t, WORD_OUT + 0.45, SPIN0 + 0.05);
-    tB.at(t, SPIN1 - 0.15, WHIP);
-    tC.at(t, WHIP + 0.65, OUT - 0.75);
+    tA.at(t, WORD_OUT + 0.45, TB - 0.05);
+    tB.at(t, TB + 0.6, TC);
+    tC.at(t, TC + 0.65, OUT - 0.75);
 
-    if (t > WORD_OUT && t < WHIP + 0.7) {
-      // 四張相鄰的卡片：放大 12%，同時以第 2、3 張之間為中心上下拉開，放大後仍保持 8pt 間隔，深度也錯開
-      const GROW = 0.12, H = FIELD_CARDS[0].h, GAP = FIELD_CARDS[1].y - FIELD_CARDS[0].y;
-      const SPREAD = H * (1 + GROW) + 8 - GAP;
-      const p1 = pops(FIELD_CARDS.map((r, i) => ({ id: `f${i}`, screen: 's_sell_fill', rect: r, t0: POP1 + i * 0.12 })), t, SPIN0 - 0.25)
-        .map((p, i) => ({ ...p, grow: GROW, dy: (i - 1.5) * SPREAD, dz: i * 0.15 }));
-      const p2 = pops([{ id: 'price', screen: 's_sell_ai_sheet_220', rect: PRICE_CARD, t0: POP2 }], t, WHIP - 0.15);
-      const dim = Math.max(...p1.map((p) => Math.min(1, p.k)), Math.min(1, p2[0].k));
-      world.frame.phones[SELLER] = { pose: glide(t, main), scr: seq(t, steps), glow: 1 - 0.4 * dim, pops: [...p1, ...p2] };
+    if (t > WORD_OUT && t < OUT) {
+      const fields = ['title', 'author', 'publisher'];
+      const out = spread(fields.map((f) => `cut_field_${f}`), 0.3, 'col');
+      const ai = ['cut_ai_condition', 'cut_ai_price'];
+      const aiOut = spread(ai, 0.3, 'col');
+      const ps: Pop[] = [
+        ...fields.map((f, i) => ({ id: `list_f_${f}`, cut: `cut_field_${f}`, k: k(t, F0 + i * BEAT, TB - 0.45), grow: 0.3, ...out[i], dz: i * 0.1 })),
+        ...ai.map((cut, i) => ({ id: `list_${cut}`, cut, k: k(t, R0 + i * BEAT / 2, TC - 0.3), grow: 0.3, ...aiOut[i], dz: i * 0.1 })),
+      ];
+      world.frame.phones[SELLER] = { pose: glide(t, main, SIGMA), scr: seq(t, seller), glow: dim(ps), pops: ps };
     }
-    if (t > SPIN1 - 0.8 && t < WHIP + 0.7) {
-      world.frame.phones[BUYER] = { pose: glide(t, side), scr: { a: 's_sell_fill' } };
+    if (t > TC - 0.2 && t < OUT) {
+      // 整張待審卡片一起浮出（含規則原因與 AI 判定）：純文字的去背元件浮起後，原位的字還在下方，會看起來像兩層字
+      const ps: Pop[] = [{ id: 'list_review', cut: 'cut_review_card', k: k(t, V0, OUT - 1.45), grow: 0.05 }];
+      world.frame.phones[ADMIN] = { pose: glide(t, adm, SIGMA), scr: { a: 'v_admin_review' }, glow: dim(ps), pops: ps };
     }
-    if (t > WHIP - 0.3 && t < OUT + 0.1) {
-      const p3 = pops([{ id: 'review', screen: 'a_listing_review', rect: REVIEW_BOX, t0: POP3 }], t, OUT - 1.15);
-      world.frame.phones[ADMIN] = { pose: glide(t, adm), scr: { a: 'a_listing_review' }, glow: 1 - 0.4 * Math.min(1, p3[0].k), pops: p3 };
-    }
-    taps.forEach((tp) => tp.at(world, t));
+    tapAi.at(world, t);
   };
 }

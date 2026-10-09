@@ -1,0 +1,5 @@
+/* 智慧書櫃、管理後台段（s_cabinet.ts、s_admin.ts）。字色只用 promo.css 的藍。 */
+.xlabel.cab-lbl { position: absolute; left: 0; top: 0; width: auto; white-space: nowrap; font-size: 52px; font-weight: 900; letter-spacing: .04em; line-height: 1.2; color: var(--blue); }
+.cab-digit { position: absolute; left: 0; top: 0; font-family: 'Noto Sans TC', sans-serif; font-weight: 500; line-height: 1; white-space: nowrap; }
+/* 浮出螢幕的檢查用外框：不可見，只給 tools/overlap.mjs 量位置 */
+.xlabel.cab-popbox { position: absolute; left: 0; top: 0; background: transparent; pointer-events: none; }

@@ -21,7 +21,9 @@ P = lambda *a: os.path.join(HERE, *a)
 # ── 樣式（1920×1080 座標）──
 PLAY_W, PLAY_H = 1920, 1080
 FONT_NAME = "Microsoft JhengHei"          # 與字型檔內 family name 相同（fc-scan 驗證）
-FONT_FILE, FONT_INDEX = P("fonts", "msjhbd.ttc"), 0
+# Bold 可能是 Windows 的 msjhbd.ttc 或單獨的 msjhbd.ttf；只有 Regular 時粗體由 libass 合成（度量值與 Bold 相同）
+FONT_FILE = next(f for f in (P("fonts", n) for n in ("msjhbd.ttc", "msjhbd.ttf", "msjh.ttf")) if os.path.exists(f))
+FONT_INDEX = 0
 WIN_SUM, UPEM = 2203 + 521, 2048          # usWinAscent + usWinDescent；libass 依此換算字級
 EM_PX = 50                                # 實際字身（中文字高）px
 FONT_SIZE = round(EM_PX * WIN_SUM / UPEM) # ASS 字級（≈ 66.5 → 67）
@@ -158,10 +160,18 @@ def main():
            "Alignment, MarginL, MarginR, MarginV, Encoding",
            STYLE, "", "[Events]",
            "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
+    # 畫面上已有和旁白一模一樣的文字時，該句（或該句的第 n 段，寫成 "08.2"）不燒入字幕；SRT 字幕檔仍保留全部
+    hide_path = P("subs_hide.json")
+    hide = set(json.load(open(hide_path, encoding="utf-8"))["hide"]) if os.path.exists(hide_path) else set()
+    part_no = {}
     srt = []
     for i, (a, b, text, lid) in enumerate(events, 1):
-        ass.append(f"Dialogue: 0,{ts_ass(a)},{ts_ass(b)},Default,{lid},0,0,0,,{text}")
+        part_no[lid] = part_no.get(lid, 0) + 1
         srt += [str(i), f"{ts_srt(a)} --> {ts_srt(b)}", text, ""]
+        if lid in hide or f"{lid}.{part_no[lid]}" in hide:
+            print(f"{lid:4s} {a:7.2f}-{b:7.2f}  （畫面已有相同文字，不燒入）{text}")
+            continue
+        ass.append(f"Dialogue: 0,{ts_ass(a)},{ts_ass(b)},Default,{lid},0,0,0,,{text}")
         print(f"{lid:4s} {a:7.2f}-{b:7.2f}  {width(text) / EM_PX:4.1f}字寬  {text}")
     open(os.path.join(args.out, "subs.ass"), "w", encoding="utf-8").write("\n".join(ass) + "\n")
     open(os.path.join(args.out, "subs.srt"), "w", encoding="utf-8").write("\n".join(srt))

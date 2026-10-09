@@ -7,7 +7,7 @@ import '@fontsource/ibm-plex-mono/500.css';
 import './style.css';
 import { Stage, W, H } from './stage';
 import * as THREE from 'three';
-import { World } from './world';
+import { World, CUTS } from './world';
 import { Cabinet } from './three/cabinet';
 import TL from './timeline.json';
 import { CUES, cueBase } from './lib/cues';
@@ -175,12 +175,35 @@ window.__seek = async (t: number) => {
     return [...p.body.matrixWorld.elements];
   });
 };
+/** 檢查用：這一格每支手機的畫面狀態（換畫面時的 a、b、k、mode），找出淡化交疊的時刻。 */
+(window as unknown as { __screens: (t: number) => unknown }).__screens = (t: number) => {
+  update(t);
+  return world.frame.phones.map((p, i) => (p ? { i, ...p.scr } : null)).filter(Boolean);
+};
+/** 穿模檢查用：這一格所有 3D 物件的方向盒（世界矩陣＋本體半尺寸），含手機、書櫃本體、浮出的書櫃螢幕。 */
+(window as unknown as { __solids: (t: number) => unknown }).__solids = async (t: number) => {
+  await window.__seek(t);
+  const out: { name: string; m: number[]; half: number[] }[] = [];
+  world.phones.forEach((p, i) => {
+    if (!p.group.visible) return;
+    p.body.updateMatrixWorld(true);
+    out.push({ name: `手機${i}`, m: [...p.body.matrixWorld.elements], half: [7.15 / 2, 14.96 / 2, 0.83 / 2 + 0.25] });
+  });
+  if (world.cabinet.group.visible) {
+    const g = world.cabinet.group;
+    g.updateMatrixWorld(true);
+    out.push({ name: '書櫃', m: [...g.matrixWorld.elements], half: [Cabinet.WIDTH / 2, Cabinet.HEIGHT / 2, Cabinet.DEPTH / 2] });
+    if (world.cabinet.popShown) out.push({ name: '浮出螢幕', m: world.cabinet.popMatrix(), half: [Cabinet.SCREEN.bezelW / 2, Cabinet.SCREEN.bezelH / 2, 0.06] });
+  }
+  return out;
+};
 
 // 輸出 4K 時視窗為 3840×2160，整個畫面放大 2 倍（文字會以實際解析度重新繪製）
 if (RENDER && params.get('scale')) frame.style.transform = `scale(${params.get('scale')})`;
 
 // 檢查用：回傳目前畫面上互相重疊的文字區塊，以及蓋在手機上的文字區塊（tools/overlap.mjs 使用）
-const TEXT_SEL = '.cnav, .chead, .fitem, .lens, .callout, .rise, .sub, .cap, .chip, .gate, .hud, .ptag, .lcard, .stepbar, .xlabel, .arch-node, .arch-server, .stat2, .fee-row, .fee-cap, .meta, .tile, .ffwd, .h-display, .dcard, .dmethods, .dcmp, .cbadge, .corner__name';
+const TEXT_SEL = '.cnav, .chead, .fitem, .lens, .callout, .rise, .sub, .cap, .chip, .gate, .hud, .ptag, .lcard, .stepbar, .xlabel, .arch-node, .arch-server, .stat2, .fee-row, .fee-cap, .meta, .tile, .ffwd, .h-display, .dcard, .dmethods, .dcmp, .cbadge, .corner__name, .promo__title, .promo__sub, .tech__stat, .tech__unit, .cab-digit, .open-num, .open-sub, .end__brand, .cword';
+const INK = document.createElement('canvas').getContext('2d')!;
 (window as unknown as { __overlaps: (t: number) => unknown }).__overlaps = (t: number) => {
   draw(t);
   const scale = frame.getBoundingClientRect().width / W;
@@ -194,7 +217,21 @@ const TEXT_SEL = '.cnav, .chead, .fitem, .lens, .callout, .rise, .sub, .cap, .ch
     }
     return true;
   }).filter((e) => !e.parentElement?.closest(TEXT_SEL));
-  const box = (e: HTMLElement) => { const r = e.getBoundingClientRect(); return { x: r.left / scale, y: r.top / scale, w: r.width / scale, h: r.height / scale, name: e.className.split(' ')[0] + ':' + (e.textContent || '').trim().slice(0, 12) }; };
+  // 文字外框不含字形的上伸、下伸部分（例如 150px 數字的逗號會往下伸出約 0.25em）：
+  // 以 canvas 量出這段文字實際的墨跡高度，超出字框的部分加進外框，才抓得到逗號壓到下一行這類問題
+  const ink = (e: HTMLElement) => {
+    const cs = getComputedStyle(e);
+    const size = parseFloat(cs.fontSize) || 16;
+    INK.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const m = INK.measureText((e.textContent || '').trim() || 'x');
+    // 行高 1 時字框約為基線上 0.88em、下 0.12em（Noto Sans TC）
+    return { up: Math.max(0, m.actualBoundingBoxAscent - 0.88 * size), down: Math.max(0, m.actualBoundingBoxDescent - 0.12 * size) };
+  };
+  const box = (e: HTMLElement) => {
+    const r = e.getBoundingClientRect();
+    const k = ink(e);
+    return { x: r.left / scale, y: r.top / scale - k.up, w: r.width / scale, h: r.height / scale + k.up + k.down, name: e.className.split(' ')[0] + ':' + (e.textContent || '').trim().slice(0, 12) };
+  };
   const boxes = els.map(box).filter((b) => b.w > 2 && b.h > 2);
   const hit = (a: typeof boxes[0], b: typeof boxes[0], pad = 4) => a.x < b.x + b.w - pad && b.x < a.x + a.w - pad && a.y < b.y + b.h - pad && b.y < a.y + a.h - pad;
   const pairs: string[] = [];
@@ -224,9 +261,22 @@ const TEXT_SEL = '.cnav, .chead, .fitem, .lens, .callout, .rise, .sub, .cap, .ch
   for (let i = 0; i < cards.length; i++) for (let j = i + 1; j < cards.length; j++) if (hit(cards[i], cards[j], 2)) popHits.push(`${cards[i].name} × ${cards[j].name}`);
   // 浮出元件與文字重疊
   for (const c of cards) for (const b of boxes) if (hit(b, c, 4)) popHits.push(`${b.name} 壓在 ${c.name}`);
+  // 浮出的去背元件必須和手機目前的畫面一致：畫面已換掉（推入、換狀態）但元件還浮在上面，會蓋在不相干的內容上
+  // 同一畫面的逐字、捲動、逐格、倒數秒數版本（_t03、_s05、_f2、_29）視為同一張
+  const family = (n: string) => n.replace(/_(t|s|f)?\d+$/, '');
+  const stale: string[] = [];
+  world.frame.phones.forEach((st, i) => {
+    if (!st) return;
+    const shown = [st.scr.a, st.scr.b].filter(Boolean).map((n) => family(n as string));
+    for (const pp of st.pops ?? []) {
+      if (!pp.cut || pp.k <= 0.02) continue;
+      const src = CUTS[pp.cut]?.screen;
+      if (src && !shown.includes(family(src))) stale.push(`浮出元件與畫面不符 手機${i}:${pp.cut}（畫面 ${shown.join('/')}）`);
+    }
+  });
   // 字幕區（y > 930）只留給字幕：文字與浮出元件不得進入
   const subZone = [...boxes, ...cards].filter((b) => b.y + b.h > 930 && b.y < 1080).map((b) => `進入字幕區 ${b.name}`);
-  return [...pairs, ...offscreen, ...phones, ...popHits, ...subZone];
+  return [...pairs, ...offscreen, ...phones, ...popHits, ...subZone, ...stale];
 };
 
 world.load().then(async () => {

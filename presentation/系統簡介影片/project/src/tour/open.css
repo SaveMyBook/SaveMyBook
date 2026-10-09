@@ -1,0 +1,13 @@
+/* 開場段（s_open.ts）。容器本身不動，子元素不設 will-change：放大縮小時文字與 logo 依實際大小重新繪製，不會糊。 */
+.open-root { width: 1920px; height: 1080px; }
+.open-root > * { position: absolute; left: 0; top: 0; }
+
+/* 品牌組（logo＋名稱）：內部排版與左上角固定標誌（brand.ts 的 Corner）完全相同，整組只做平移與等比縮放 */
+.open-lock { width: 1920px; height: 1080px; transform-origin: 0 0; }
+.open-lock > * { position: absolute; left: 0; top: 0; }
+
+.open-root .open-num { white-space: nowrap; font-size: 300px; font-weight: 900; line-height: 1; letter-spacing: -.01em; color: var(--blue); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+.open-root .open-num small { font-size: .42em; font-weight: 900; margin-left: .04em; letter-spacing: 0; }
+.open-root .open-sub b { font-weight: 900; color: var(--blue); }
+/* 第二版：57.4% 放在上方當大標（書櫃同時在下方升起），字級縮小到標題區（y < 230）內 */
+.open-root .open-num.open-num--top { font-size: 150px; }

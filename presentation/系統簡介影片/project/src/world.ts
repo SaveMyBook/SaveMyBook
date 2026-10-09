@@ -3,14 +3,27 @@ import { Stage, CAM_Z } from './stage';
 import { Phone } from './three/phone';
 import { Cabinet } from './three/cabinet';
 import { parcel } from './three/props';
-import { screenTexture, screenSpan, releaseScreen, type KioskParams } from './three/textures';
+import { screenTexture, screenSpan, releaseScreen, cutTexture, releaseCut, type KioskParams } from './three/textures';
 import type { Pose } from './lib/kf';
 
 /** 手機螢幕：a 為目前畫面，b 為轉場中的下一個畫面；mode 見 phone.ts 的轉場說明；off 為長截圖的捲動量（以螢幕高為 1）。 */
 export interface Scr { a: string | null; b?: string | null; k?: number; mode?: number; offA?: number; offB?: number }
 
 /** 浮出元件：把螢幕上 rect 區塊（取自 screen 畫面）抬離螢幕，k 為 0～1。 */
-export interface Pop { id: string; screen: string; rect: { x: number; y: number; w: number; h: number; r?: number }; k: number; grow?: number; dy?: number; dz?: number }
+/**
+ * 浮出元件：把螢幕上 rect 區塊（取自 screen 畫面）抬離螢幕，k 為 0～1。
+ * 第二版改用 cut：截圖工具單獨輸出的去背元件（public/v2/cuts），位置與圓角取自 cuts.json，不需要 screen 與 rect。
+ */
+export interface Pop { id: string; screen?: string; cut?: string; rect?: { x: number; y: number; w: number; h: number; r?: number }; k: number; grow?: number; dx?: number; dy?: number; dz?: number }
+
+type CutRect = { screen: string; x: number; y: number; w: number; h: number; r?: number };
+/** 去背元件在所屬畫面上的位置（App 邏輯座標），由截圖工具輸出。 */
+export const CUTS: Record<string, CutRect> = {};
+/** 要點擊的按鈕在所屬畫面上的位置（App 邏輯座標），由截圖工具輸出。 */
+export const TAPS: Record<string, CutRect> = {};
+/** 逐字輸入等連續畫面的名稱清單（截圖工具輸出），場景在播放時才讀。 */
+export const SEQS: Record<string, string[]> = {};
+const CUT = 'cut:';
 
 export interface PhoneState {
   pose: Pose;
@@ -43,7 +56,7 @@ const HEAD: Record<string, number> = { b_guide_long: 112 };
 
 export class World {
   readonly phones = Array.from({ length: PHONES }, () => new Phone());
-  readonly cabinet = new Cabinet('圖書館總館一樓');
+  readonly cabinet = new Cabinet('新北高工');
   readonly box = parcel();
   private textures = new Map<string, THREE.Texture>();
   /** 各畫面最後一次被用到的時間（秒），用來釋放久未使用的材質。 */
@@ -59,6 +72,14 @@ export class World {
 
   async load() {
     await document.fonts.ready;
+    for (const [file, into] of [['/v2/cuts.json', CUTS], ['/v2/taps.json', TAPS], ['/v2/sequences.json', SEQS]] as const) {
+      try {
+        const r = await fetch(file);
+        if (r.ok) Object.assign(into, await r.json());
+      } catch {
+        // 尚未產生第二版截圖
+      }
+    }
   }
 
   /**
@@ -74,7 +95,8 @@ export class World {
       if (Math.abs(t - last) > KEEP && this.textures.has(n)) {
         this.textures.delete(n);
         this.lastUse.delete(n);
-        releaseScreen(n, false);
+        if (n.startsWith(CUT)) releaseCut(n.slice(CUT.length));
+        else releaseScreen(n, false);
       }
     }
   }
@@ -84,11 +106,11 @@ export class World {
     if (!this.loading.has(n)) {
       this.loading.set(n, (async () => {
         try {
-          const tex = await screenTexture(n, false);
+          const tex = n.startsWith(CUT) ? await cutTexture(n.slice(CUT.length)) : await screenTexture(n, false);
           this.stage.renderer.initTexture(tex);
           this.textures.set(n, tex);
         } catch {
-          console.error(`缺少 App 畫面：${n}`);
+          console.error(n.startsWith(CUT) ? `缺少去背元件：${n.slice(CUT.length)}` : `缺少 App 畫面：${n}`);
         } finally {
           this.loading.delete(n);
         }
@@ -177,10 +199,15 @@ export class World {
       });
       phone.setGlow(st.glow ?? 1);
       const live = new Set<string>();
+      // 鏡頭在手機本體座標中的位置：浮出元件沿視線抬起，畫面上才會留在原位（第二版去背元件使用）
+      phone.body.updateMatrixWorld(true);
+      const eye = phone.body.worldToLocal(cam.position.clone());
       for (const pp of st.pops ?? []) {
-        const card = phone.pops.get(pp.id) ?? phone.addPop(pp.id, pp.rect);
-        card.setTexture(this.tex(pp.screen));
-        card.set(pp.k, pp.grow, pp.dy, pp.dz);
+        const rect = pp.cut ? CUTS[pp.cut] : pp.rect;
+        if (!rect) { console.error(`去背元件沒有座標：${pp.cut}`); continue; }
+        const card = phone.pops.get(pp.id) ?? phone.addPop(pp.id, rect, !!pp.cut);
+        card.setTexture(pp.cut ? this.tex(CUT + pp.cut) : this.tex(pp.screen));
+        card.set(pp.k, pp.grow, pp.dy, pp.dz, pp.cut ? eye : undefined, pp.dx);
         live.add(pp.id);
       }
       for (const [id, card] of phone.pops) if (!live.has(id)) card.set(0);

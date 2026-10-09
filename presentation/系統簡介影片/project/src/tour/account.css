@@ -1,0 +1,4 @@
+/* 帳號會員段（s_account.ts）。字色只用 promo.css 的藍。 */
+.acc__langs { letter-spacing: .04em; }
+.acc__lang { transition: none; }
+.acc__lang + .acc__lang { margin-left: 1.1em; }

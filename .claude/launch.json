@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "intro-video",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "presentation/系統簡介影片/project", "run", "dev"],
+      "port": 5291
+    }
+  ]
+}

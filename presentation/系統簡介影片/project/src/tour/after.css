@@ -1,0 +1,4 @@
+/* 驗收售後：七項 AI 服務在手機外側的階段與名稱（加上 .meta 以納入 tools/overlap.mjs 檢查）；名稱不小於副標（34px）。 */
+.meta.after_ai { display: flex; flex-direction: column; align-items: center; gap: 4px; white-space: nowrap; text-align: center; color: var(--blue); }
+.after_ai b { font-size: 30px; font-weight: 700; letter-spacing: .1em; line-height: 1.2; color: var(--blue2); }
+.after_ai span { font-size: 44px; font-weight: 900; letter-spacing: .04em; line-height: 1.2; }

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { Kiosk, doorPlate, loadImage } from './textures';
+import { Kiosk, doorPlate, loadImage, type KioskPop } from './textures';
 
 /**
  * 比照實機：9 公釐合板櫃體（寬 31 × 深 31 × 高 38 公分），正面為雷射切割之壓克力。
@@ -31,6 +31,29 @@ const lockX = -IN_W / 2 + 0.03 + LOCK.inset + LOCK.w / 2;
 const lockZ = D / 2 - LOCK.d / 2;
 
 interface Door { pivot: THREE.Group }
+
+const FOCUS_BASE = new THREE.Color(0xe9eef1);
+const FOCUS_ON = new THREE.Color(0x8db3cb);
+const FOCUS_EDGE = new THREE.Color(0x3b505c);
+const FOCUS_EDGE_ON = new THREE.Color(0x2f5f86);
+
+/** 浮出螢幕下方的柔和陰影。 */
+function popShadowTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 192;
+  const g = c.getContext('2d')!;
+  g.filter = 'blur(18px)';
+  g.fillStyle = 'rgba(21,30,39,0.55)';
+  g.beginPath();
+  g.roundRect(40, 40, 176, 112, 18);
+  g.fill();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+const IDENTITY = new THREE.Quaternion();
 
 /** 壓克力櫃門的反光：斜向的亮帶，讓透明門板看得出來。 */
 function sheenTexture(): THREE.CanvasTexture {
@@ -123,6 +146,8 @@ export class Cabinet {
   static readonly WIDTH = W;
   static readonly HEIGHT = H;
   static readonly DEPTH = D;
+  /** 螢幕中心（書櫃本體座標）與可視區寬高，供場景換算螢幕浮出的位置。 */
+  static readonly SCREEN = { x: screenX, y: topRowY, z: D / 2 - 0.005, w: SCR_W, h: SCR_H, bezelW: BEZEL_W, bezelH: BEZEL_H };
   readonly group = new THREE.Group();
   readonly kiosk: Kiosk;
   readonly doors: Door[] = [];
@@ -135,7 +160,13 @@ export class Cabinet {
   private parts = new THREE.Group();
   private deposit: THREE.Group;
   private screenMesh: THREE.Mesh;
+  /** 螢幕浮出的複本（同一張螢幕材質），由 KioskParams.pop 控制。 */
+  private pop = new THREE.Group();
+  private popScreen: THREE.Mesh;
+  private popShadow: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   private xrayOn = false;
+  /** 透視時可個別強調的元件材質（board：控制板，locks：四個電磁鎖）。 */
+  private focusMats: Record<string, { face: THREE.MeshStandardMaterial; edge: THREE.LineBasicMaterial }> = {};
 
   /** name：書櫃螢幕頂列顯示的書櫃名稱，與 App 畫面一致。 */
   constructor(name: string) {
@@ -191,11 +222,27 @@ export class Cabinet {
     this.group.add(faceEdge);
 
     // 螢幕（裝在壓克力後方，由螢幕窗露出）
-    const bezel = new THREE.Mesh(new RoundedBoxGeometry(BEZEL_W, BEZEL_H, 0.08, 2, 0.04), new THREE.MeshPhysicalMaterial({ color: 0x1d2126, roughness: 0.35, clearcoat: 0.8 }));
+    const bezelMat = new THREE.MeshPhysicalMaterial({ color: 0x1d2126, roughness: 0.35, clearcoat: 0.8 });
+    const screenMat = new THREE.MeshBasicMaterial({ map: this.kiosk.texture, toneMapped: false });
+    const bezel = new THREE.Mesh(new RoundedBoxGeometry(BEZEL_W, BEZEL_H, 0.08, 2, 0.04), bezelMat);
     bezel.position.set(screenX, topRowY, D / 2 - 0.05);
-    this.screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(SCR_W, SCR_H), new THREE.MeshBasicMaterial({ map: this.kiosk.texture, toneMapped: false }));
+    this.screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(SCR_W, SCR_H), screenMat);
     this.screenMesh.position.set(screenX, topRowY, D / 2 - 0.005);
     this.group.add(bezel, this.screenMesh);
+
+    // 螢幕浮出：螢幕連同外框的複本，放大後移到書櫃旁並轉成正對鏡頭；內容與書櫃上的螢幕同步
+    const popBezel = new THREE.Mesh(new RoundedBoxGeometry(BEZEL_W, BEZEL_H, 0.08, 2, 0.04), bezelMat);
+    popBezel.position.z = -0.045;
+    this.popScreen = new THREE.Mesh(new THREE.PlaneGeometry(SCR_W, SCR_H), screenMat);
+    this.popShadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(BEZEL_W * 1.45, BEZEL_H * 1.6),
+      new THREE.MeshBasicMaterial({ map: popShadowTexture(), transparent: true, depthWrite: false, toneMapped: false, opacity: 0 }),
+    );
+    this.popShadow.position.set(0, -0.14, -0.3);
+    this.pop.add(this.popShadow, popBezel, this.popScreen);
+    this.pop.visible = false;
+    this.group.add(this.pop);
+    this.kiosk.onPop = (p) => this.setScreenPop(p);
     this.anchors.screen = new THREE.Object3D();
     this.anchors.screen.position.set(screenX + BEZEL_W / 2, topRowY, FRONT);
     this.anchors.digits = new THREE.Object3D();
@@ -281,10 +328,17 @@ export class Cabinet {
     // 透視時才出現的元件（頂列內的控制電路、各格左側的電磁鎖）
     const partMat = new THREE.MeshStandardMaterial({ color: 0xe9eef1, roughness: 0.6, transparent: true, opacity: 0 });
     const partEdge = new THREE.LineBasicMaterial({ color: 0x3b505c, transparent: true, opacity: 0 });
-    const part = (key: string | null, w: number, h: number, d: number, x: number, y: number, z: number) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), partMat);
+    const part = (key: string | null, w: number, h: number, d: number, x: number, y: number, z: number, group?: string) => {
+      // 可個別強調的元件（setFocus）使用各自的材質；透視時 setXray 仍會統一設定透明度
+      let mat = partMat, edge = partEdge;
+      if (group) {
+        if (!this.focusMats[group]) this.focusMats[group] = { face: partMat.clone(), edge: partEdge.clone() };
+        mat = this.focusMats[group].face;
+        edge = this.focusMats[group].edge;
+      }
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
       m.position.set(x, y, z);
-      const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), partEdge);
+      const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), edge);
       e.position.copy(m.position);
       this.parts.add(m, e);
       if (key) {
@@ -297,10 +351,10 @@ export class Cabinet {
     const floor = H / 2 - T - TOP;
     part('power', 2.4, 0.85, 1.8, -2.15, floor + 0.43, 0.6);
     part('relay', 1.4, 0.3, 1.9, -0.25, floor + 0.15, 1.6);
-    part('board', 1.72, 0.25, 0.66, 1.2, topRowY + 0.15, 1.8);
+    part('board', 1.72, 0.25, 0.66, 1.2, topRowY + 0.15, 1.8, 'board');
     part(null, 0.6, 0.2, 0.9, -0.95, floor + 0.1, 0.4);
     // 外框比電磁鎖本體略大，兩者表面重疊時會閃爍
-    for (let i = 0; i < 4; i++) part(i === 1 ? 'locks' : null, LOCK.w + 0.06, LOCK.h + 0.06, LOCK.d + 0.06, lockX, cellY(i), lockZ);
+    for (let i = 0; i < 4; i++) part(i === 1 ? 'locks' : null, LOCK.w + 0.06, LOCK.h + 0.06, LOCK.d + 0.06, lockX, cellY(i), lockZ, 'locks');
     const wireZ = 1.6, railX = -W / 2 + T + 0.12;
     const pts: number[] = [];
     const seg = (x1: number, y1: number, z1: number, x2: number, y2: number, z2: number) => pts.push(x1, y1, z1, x2, y2, z2);
@@ -325,8 +379,52 @@ export class Cabinet {
     this.deposit.rotation.set(-out * 0.18, out * 0.2, 0);
   }
 
+  /** 螢幕浮出（由 Kiosk.draw 每格呼叫）：k 可超過 1（回彈），轉向正對鏡頭的程度則限制在 1。 */
+  private setScreenPop(p: KioskPop | null) {
+    const k = p ? Math.max(0, p.k) : 0;
+    this.pop.visible = !!p && k > 0.001;
+    if (!p || !this.pop.visible) return;
+    const base = this.screenMesh.position;
+    // 先往前抬離櫃面，再橫移、放大、轉正：三者同時進行時，螢幕一邊轉一邊往旁邊滑，會切過櫃子正面的壓克力
+    const ss = (a: number, b: number) => { const x = Math.min(1, Math.max(0, (k - a) / (b - a))); return x * x * (3 - 2 * x); };
+    const kL = ss(0, 0.35), kM = ss(0.2, 1);
+    const lift = 0.3 + (BEZEL_W / 2) * p.s * Math.abs(Math.sin(this.group.rotation.y));
+    this.pop.position.set(base.x + p.dx * kM, base.y + p.dy * kM, base.z + 0.06 + p.dz * kM + lift * kL * (1 - kM));
+    this.pop.scale.setScalar(1 + (p.s - 1) * kM);
+    this.pop.quaternion.copy(IDENTITY).slerp(this.group.quaternion.clone().invert(), kM);
+    this.popShadow.material.opacity = 0.5 * Math.min(1, k);
+  }
+
+  /** 螢幕（popped 為浮出的複本）上的點的世界座標：u、v 為 0～1，同螢幕畫面的左上原點。 */
+  screenPoint(u: number, v: number, popped = false) {
+    this.group.updateMatrixWorld(true);
+    const local = new THREE.Vector3(SCR_W * (u - 0.5), SCR_H * (0.5 - v), 0.002);
+    return (popped ? this.popScreen : this.screenMesh).localToWorld(local);
+  }
+
+  /** 浮出螢幕（含外框）四角的世界座標，供版面檢查。 */
+  popCorners() {
+    this.group.updateMatrixWorld(true);
+    return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => this.popScreen.localToWorld(new THREE.Vector3(x * BEZEL_W / 2, y * BEZEL_H / 2, 0)));
+  }
+
+  get popShown() { return this.pop.visible; }
+  /** 檢查用：浮出螢幕（含外框）的世界矩陣，tools/collide.mjs 以此判斷是否嵌進櫃體。 */
+  popMatrix() { this.pop.updateMatrixWorld(true); return [...this.pop.matrixWorld.elements]; }
+
   setDoor(i: number, open: number) {
     this.doors[i].pivot.rotation.y = open * 1.65;
+  }
+
+  /**
+   * 透視時強調某一組元件：k 為 0～1，元件由淺灰轉為品牌藍。只改顏色，透明度仍由 setXray 決定；
+   * World.apply 不會重設，使用的場景要自行在每格寫入（不用時寫 0）。
+   */
+  setFocus(group: 'board' | 'locks', k: number) {
+    const f = this.focusMats[group];
+    if (!f) return;
+    f.face.color.copy(FOCUS_BASE).lerp(FOCUS_ON, k);
+    f.edge.color.copy(FOCUS_EDGE).lerp(FOCUS_EDGE_ON, k);
   }
 
   setXray(t: number) {

@@ -15,7 +15,8 @@ await page.waitForFunction(() => window.__ready === true, { timeout: 60000 });
 const end = Math.min(Number(b), await page.evaluate(() => window.__duration));
 const seen = new Map();
 for (let t = Number(a); t <= end + 1e-9; t += Number(st)) {
-  const list = await page.evaluate((x) => window.__overlaps(x), t);
+  // 先載入這一格用到的材質：浮出元件的材質未載入時不會顯示，會被當成不存在而漏檢
+  const list = await page.evaluate(async (x) => { await window.__seek(x); return window.__overlaps(x); }, t);
   for (const k of list) {
     if (!seen.has(k)) seen.set(k, [t, t]);
     else seen.get(k)[1] = t;

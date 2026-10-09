@@ -317,4 +317,9 @@ out = hp(out, 30)
 out = out - .72 * lp(out, 190, 2)          # 低頻擱架衰減，避免 808 過重
 np.save("stems/music.npy", out.astype(np.float32))
 for row in SECTION_LOG: print("%-12s %7.3f-%7.3f  %2d bars  %5.1f BPM" % row)
+# 節拍格線：各曲風段落的小節線與拍點（絕對秒數），場景把換場與浮出對齊到這裡
+json.dump({"sections": [{"name": n, "t0": t0, "t1": t1, "bars": b, "bpm": bpm,
+                         "bar_times": [round(t0 + i * (t1 - t0) / b, 4) for i in range(b + 1)],
+                         "beat": round((t1 - t0) / b / 4, 5)} for n, t0, t1, b, bpm in SECTION_LOG]},
+          open("../src/beats.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print("peak", np.abs(out).max())

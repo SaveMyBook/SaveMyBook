@@ -1,0 +1,107 @@
+{
+  "tap_adm_pair": {
+    "screen": "v_adm_pair_t08",
+    "x": 244.1,
+    "y": 348.5,
+    "w": 56.4,
+    "h": 20.0
+  },
+  "tap_adm_pair_open": {
+    "screen": "v_adm_device",
+    "x": 174.0,
+    "y": 336.0,
+    "w": 45.0,
+    "h": 16.0
+  },
+  "tap_advisor_send": {
+    "screen": "v_advisor_t15",
+    "x": 333.0,
+    "y": 764.0,
+    "w": 44.0,
+    "h": 44.0
+  },
+  "tap_after_admin_analyze": {
+    "screen": "v_after_admin_sheet",
+    "x": 295.6,
+    "y": 338.5,
+    "w": 52.4,
+    "h": 19.0
+  },
+  "tap_after_admin_handle": {
+    "screen": "v_after_admin_list",
+    "x": 326.5,
+    "y": 462.0,
+    "w": 22.5,
+    "h": 16.0
+  },
+  "tap_after_pick_confirm": {
+    "screen": "v_after_pick_match",
+    "x": 180.4,
+    "y": 714.5,
+    "w": 32.2,
+    "h": 23.0
+  },
+  "tap_after_sup_handoff": {
+    "screen": "v_after_sup_answer",
+    "x": 250.94,
+    "y": 431.0,
+    "w": 84.6,
+    "h": 20.0
+  },
+  "tap_after_sup_send": {
+    "screen": "v_after_sup_t12",
+    "x": 333.0,
+    "y": 764.0,
+    "w": 44.0,
+    "h": 44.0
+  },
+  "tap_cab_banner": {
+    "screen": "v_cab_banner",
+    "x": 77.0,
+    "y": 80.0,
+    "w": 99.75,
+    "h": 20.0
+  },
+  "tap_cab_confirm": {
+    "screen": "v_cab_match_25",
+    "x": 180.4,
+    "y": 714.5,
+    "w": 32.2,
+    "h": 23.0
+  },
+  "tap_cab_digit_1": {
+    "screen": "v_cab_match_25",
+    "x": 134.5,
+    "y": 365.0,
+    "w": 56.0,
+    "h": 64.0
+  },
+  "tap_cab_digit_2": {
+    "screen": "v_cab_match_25",
+    "x": 202.5,
+    "y": 365.0,
+    "w": 56.0,
+    "h": 64.0
+  },
+  "tap_cab_open": {
+    "screen": "v_cab_confirm",
+    "x": 177.3,
+    "y": 714.5,
+    "w": 64.4,
+    "h": 23.0
+  },
+  "tap_cab_rescan": {
+    "screen": "v_cab_far",
+    "x": 164.3,
+    "y": 714.5,
+    "w": 64.4,
+    "h": 23.0
+  },
+  "tap_sell_ai": {
+    "screen": "v_sell_photos",
+    "x": 33.2,
+    "y": 341.2,
+    "w": 326.6,
+    "h": 46.0
+  }
+}

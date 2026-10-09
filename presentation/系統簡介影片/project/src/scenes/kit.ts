@@ -59,20 +59,27 @@ export function frame(rect: Rect, cx: number, cy: number, w: number, tilt = 0): 
   return { x: (px - 960) / 960, y: (540 - py) / 540, z: 0, rx: 0.02, ry: tilt, rz: 0, s };
 }
 
-/** 依時間切換畫面：每步 [開始秒, 畫面, 轉場方式, 轉場秒數]。轉場方式：0 淡化、1 推入、2 返回、3 底部展開。 */
+/** 依時間切換畫面：每步 [開始秒, 畫面, 轉場方式, 轉場秒數]。轉場方式：0 直接切換、1 推入、2 返回、3 底部展開。 */
 export type Step = [number, string, number?, number?];
 export function seq(t: number, steps: Step[], scroll?: (name: string, t: number) => number): Scr {
   let i = 0;
   while (i + 1 < steps.length && t >= steps[i + 1][0]) i++;
   const off = (n: string) => (scroll ? scroll(n, t) : 0);
   if (i === 0 || t >= steps[i][0] + (steps[i][3] ?? 0.45)) return { a: steps[i][1], offA: off(steps[i][1]) };
-  const [t0, name, mode = 0, d = 0.45] = steps[i];
+  const [t0, name, mode = 0, d0 = 0.45] = steps[i];
+  // 換狀態（mode 0）的淡化最多 0.12 秒：兩張截圖的內容只要位置不完全相同（清單往上捲、跳出對話框、換語言），
+  // 淡化較久時中間幾格會停在兩層字疊在一起；完全不淡化則像跳格，0.12 秒和 App 對話框出現的速度相近
+  const d = mode === 0 ? Math.min(d0, 0.12) : d0;
+  if (t >= t0 + d) return { a: name, offA: off(name) };
   const prev = steps[i - 1][1];
   return { a: prev, b: name, k: span(t, t0, t0 + d), mode, offA: off(prev), offB: off(name) };
 }
 
-/** 逐字輸入或逐步出現的一串 App 畫面：依序平均分配在 [t0, t1]，每格以極短淡化切換。 */
-export function frameSteps(frames: string[], t0: number, t1: number, d = 0.03): Step[] {
+/**
+ * 逐字輸入、捲動、逐格動畫的一串 App 畫面：依序平均分配在 [t0, t1]，逐格直接替換。
+ * 不可淡化：捲動的相鄰兩格位移不同，淡化（即使 0.03 秒）會在每一格疊出兩層字。
+ */
+export function frameSteps(frames: string[], t0: number, t1: number, d = 0.001): Step[] {
   const n = frames.length;
   return frames.map((f, i) => [n === 1 ? t0 : lerp(t0, t1, i / (n - 1)), f, 0, d] as Step);
 }
@@ -133,7 +140,7 @@ export class Mark {
 export class Tap {
   private dot: HTMLElement;
   private ring: HTMLElement;
-  constructor(parent: HTMLElement, readonly phone: number, readonly x: number, readonly y: number, readonly t0: number) {
+  constructor(parent: HTMLElement, readonly phone: number, public x: number, public y: number, readonly t0: number) {
     this.dot = el('i', 'tap', parent);
     this.ring = el('i', 'tap-ring', parent);
     cue('tap', t0 + 0.32);

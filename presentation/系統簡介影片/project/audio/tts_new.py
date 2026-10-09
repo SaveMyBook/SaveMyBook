@@ -58,6 +58,47 @@ def trim(x):
     return y
 
 
+# 句中停頓依標點統一長度：edge-tts 的頓號常和逗號停得一樣久（列舉聽起來一頓一頓），少數停頓超過 0.5 秒
+PAUSE = {"，": 0.30, ",": 0.30, "、": 0.16, "；": 0.38, "：": 0.30}
+PAUSE_MAX = 0.36      # 對不上標點時，只把過長的停頓縮到這個長度
+GAP_MIN = 0.20        # 視為句中停頓的最短靜音
+
+
+def reshape_pauses(y, text):
+    hop = int(0.010 * SR)
+    n = len(y) // hop
+    db = 20 * np.log10(np.sqrt(np.mean(y[:n * hop].reshape(n, hop) ** 2, axis=1)) + 1e-9)
+    quiet = db < -40
+    gaps, i = [], 0
+    while i < n:
+        if quiet[i]:
+            j = i
+            while j < n and quiet[j]:
+                j += 1
+            if i > 0 and j < n and (j - i) * 0.010 >= GAP_MIN:
+                gaps.append((i * hop, j * hop))
+            i = j
+        else:
+            i += 1
+    marks = [c for c in text.rstrip("，。；：？！, ") if c in PAUSE]
+    match = len(marks) == len(gaps)
+    out, last = [], 0
+    for k, (a, b) in enumerate(gaps):
+        cur = (b - a) / SR
+        want = PAUSE[marks[k]] if match else min(cur, PAUSE_MAX)
+        keep = int(want * SR)
+        mid = (a + b) // 2
+        out.append(y[last:a])
+        if keep <= b - a:      # 從靜音中段裁掉多餘的長度
+            out.append(y[mid - keep // 2: mid - keep // 2 + keep])
+        else:                  # 靜音不夠長：在中段補靜音
+            out.append(y[a:b])
+            out.append(np.zeros(keep - (b - a), np.float32))
+        last = b
+    out.append(y[last:])
+    return np.concatenate(out), match
+
+
 def write_wav(path, y):
     subprocess.run([FF, "-v", "error", "-y", "-f", "f32le", "-ac", "1", "-ar", str(SR), "-i", "-",
                     "-c:a", "pcm_s16le", path], input=y.astype(np.float32).tobytes(), check=True)
@@ -101,10 +142,10 @@ async def main():
             src = "新產生"
         else:
             src = "沿用"
-        y = trim(decode(mp3))
+        y, matched = reshape_pauses(trim(decode(mp3)), text)
         write_wav(wav, y)
         durs[lid] = round(len(y) / SR, 3)
-        print(f"{lid:4s} {durs[lid]:6.2f}s  {src}  {text}", flush=True)
+        print(f"{lid:4s} {durs[lid]:6.2f}s  {src}  {'' if matched else '（停頓對不上標點，只縮短過長停頓）'}{text}", flush=True)
     json.dump(durs, open(os.path.join(TTS_DIR, "durations.json"), "w", encoding="utf-8"), indent=1)
     print(f"共 {len(durs)} 句，旁白合計 {sum(durs.values()):.2f}s")
 

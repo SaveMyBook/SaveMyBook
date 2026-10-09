@@ -12,8 +12,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 N = json.load(open(os.path.join(HERE, "narration.json"), encoding="utf-8"))
 D = json.load(open(os.path.join(HERE, "tts/durations.json"), encoding="utf-8"))
 
-GAP_IN = 0.32     # 同段相鄰兩句
-LEAD = 0.95       # 每段開頭到第一句（轉場時間）
+GAP_IN = 0.50     # 同段相鄰兩句（2026-10-09 句中停頓統一後省下的時間挪給句間呼吸）
+LEAD = 1.20       # 每段開頭到第一句（轉場時間）
 FIRST = 0.8       # 片頭第一句前
 HOLD = {}         # 段落 id → 額外開頭時間
 EXTRA = {}        # 句子 id → 該句之前額外停頓

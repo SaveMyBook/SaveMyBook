@@ -1,0 +1,6 @@
+/* 片尾（s_end.ts）。品牌名稱比照左上角：「舊」與括號石板藍，其餘深墨色，字重 700；標語用 promo.css 的藍。 */
+/* logo 由 0.038 倍放大到約 0.22 倍：不建立合成圖層，每格以實際大小重新繪製，避免放大後模糊 */
+.layer > .logo-draw.end__logo { will-change: auto; }
+.end__brand { font-size: 96px; font-weight: 700; line-height: 1.15; letter-spacing: .04em; color: var(--ink); font-feature-settings: 'halt'; }
+.end__brand .rise__ch--accent { color: var(--slate); }
+.end__tag { white-space: nowrap; text-align: center; font-size: 42px; font-weight: 700; letter-spacing: .12em; color: var(--blue); }

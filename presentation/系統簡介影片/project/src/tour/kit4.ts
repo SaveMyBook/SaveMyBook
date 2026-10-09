@@ -15,7 +15,7 @@ import type { Pose } from '../lib/kf';
 export class Title {
   private h: Rise[];
   private s: HTMLElement | null;
-  constructor(parent: HTMLElement, title: string | string[], sub = '', readonly y = 128) {
+  constructor(parent: HTMLElement, title: string | string[], sub = '', readonly y = 122) {
     const lines = Array.isArray(title) ? title : [title];
     this.h = lines.map((l) => {
       let on = false;
@@ -33,7 +33,8 @@ export class Title {
     });
     if (this.s) {
       fade(this.s, t, t0 + 0.3, t1, 16, 0);
-      place(this.s, 960, this.y + (this.h.length - 1) * 92 + 76);
+      // 副標與大標的間距要留給英文字母的下伸部分（Q、p、j 的尾巴約 0.2em），否則會碰到副標
+      place(this.s, 960, this.y + (this.h.length - 1) * 92 + 88);
     }
   }
 }
@@ -137,7 +138,15 @@ function smoothRamp(x: number, sigma: number) {
  * 位置、速度、加速度全部連續，不會在關鍵影格或取樣點出現頓挫；加減速自然形成緩入緩出。
  * 關鍵影格是「路徑經過的方向」，停留越久越接近該姿態。
  */
+const CHECKED = new WeakSet<object>();
 export function glide(t: number, keys: [number, Pose][], sigma = 0.3): Pose {
+  // 關鍵影格時間沒有嚴格遞增時，路徑會發散、物件直接飛出畫面：第一次用到就報錯，檢查工具會抓到
+  if (!CHECKED.has(keys)) {
+    CHECKED.add(keys);
+    for (let i = 1; i < keys.length; i++) {
+      if (!(keys[i][0] > keys[i - 1][0])) console.error(`glide 關鍵影格時間未遞增：第 ${i} 格 ${keys[i][0].toFixed(3)} ≤ ${keys[i - 1][0].toFixed(3)}`);
+    }
+  }
   const out: Pose = {};
   for (const key of POSE_KEYS) {
     let v = keys[0][1][key] ?? 0;

@@ -107,10 +107,11 @@ const screenFrag = /* glsl */`
       else c = pick(mapA, hasA, spanA, offA, headA, vec2(st.x - t, st.y));
     } else {
       float edge = 1.0 - t;
-      float k = smoothstep(edge - 0.015, edge + 0.015, st.y);
+      float k = smoothstep(edge - 0.004, edge + 0.004, st.y);
       vec4 a = pick(mapA, hasA, spanA, offA, headA, st);
       vec4 b = pick(mapB, hasB, spanB, offB, headB, st);
-      c = mix(mix(a, b, t * 0.85), b, k);
+      // 底部面板升起：邊緣以上只顯示原畫面並逐漸變暗（像遮罩），以下是新畫面；不把兩張混在一起，避免兩層字
+      c = mix(a * vec4(vec3(1.0 - 0.3 * t), 1.0), b, k);
     }
     c.rgb *= glow;
     c.rgb += glassLight() * sheen * (1.0 - c.rgb * 0.55);
@@ -124,15 +125,22 @@ const popFrag = /* glsl */`
   uniform vec4 rect;
   uniform vec2 size;
   uniform float radius;
+  uniform float cut;
   varying vec2 vUv;
   float sdBox(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
   void main() {
-    vec2 p = (vUv - 0.5) * size;
-    float d = sdBox(p, size * 0.5, radius);
-    float a = 1.0 - smoothstep(-0.6, 0.6, d);
-    vec2 uv = vec2(mix(rect.x, rect.z, vUv.x), mix(rect.y, rect.w, vUv.y));
-    vec4 c = texture2D(map, uv, -0.6);
-    gl_FragColor = vec4(c.rgb, a);
+    if (cut > 0.5) {
+      // 去背元件：材質以預乘 alpha 上傳，濾波時透明像素不會把黑色混進邊緣；輸出前還原成一般 alpha
+      vec4 c = texture2D(map, vUv, -0.6);
+      gl_FragColor = vec4(c.rgb / max(c.a, 1e-4), c.a);
+    } else {
+      vec2 p = (vUv - 0.5) * size;
+      float d = sdBox(p, size * 0.5, radius);
+      float a = 1.0 - smoothstep(-0.6, 0.6, d);
+      vec2 uv = vec2(mix(rect.x, rect.z, vUv.x), mix(rect.y, rect.w, vUv.y));
+      vec4 c = texture2D(map, uv, -0.6);
+      gl_FragColor = vec4(c.rgb, a);
+    }
     #include <colorspace_fragment>
   }
 `;
@@ -159,7 +167,8 @@ export class PopCard {
   private card: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private shadow: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private base: THREE.Vector3;
-  constructor(readonly rect: PopRect, z: number) {
+  /** cut：材質是單獨輸出的去背元件（整張就是元件本身），不再從整張畫面依 rect 裁切。 */
+  constructor(readonly rect: PopRect, z: number, cut = false) {
     const w = rect.w * PT, h = rect.h * PT, r = rect.r ?? 16;
     this.base = new THREE.Vector3((rect.x + rect.w / 2) * PT - PHONE.SW / 2, PHONE.SH / 2 - (rect.y + rect.h / 2) * PT, z);
     this.group.position.copy(this.base);
@@ -174,6 +183,7 @@ export class PopCard {
           rect: { value: new THREE.Vector4(rect.x / 393, 1 - (rect.y + rect.h) / 852, (rect.x + rect.w) / 393, 1 - rect.y / 852) },
           size: { value: new THREE.Vector2(rect.w, rect.h) },
           radius: { value: r },
+          cut: { value: cut ? 1 : 0 },
         },
       }),
     );
@@ -214,11 +224,19 @@ export class PopCard {
    * dy：完全浮出時往下位移的量（App 邏輯 pt，負值往上），多張相鄰卡片同時浮出時用來拉開間距，避免放大後互相重疊；
    * dz：額外的浮起高度，讓相鄰卡片不在同一深度。
    */
-  set(t: number, grow = 0.25, dy = 0, dz = 0) {
+  set(t: number, grow = 0.25, dy = 0, dz = 0, eye?: THREE.Vector3, dx = 0) {
     this.group.visible = t > 0.001 && this.card.material.uniforms.map.value !== null;
     const lift = t * (2.6 + dz);
-    this.group.position.set(this.base.x, this.base.y - dy * PT * t, this.base.z);
-    this.card.position.set(0, 0, lift);
+    this.group.position.set(this.base.x + dx * PT * t, this.base.y - dy * PT * t, this.base.z);
+    if (eye) {
+      // 沿「鏡頭 → 元件原位」的視線抬起：畫面上元件留在原位、只因透視略為放大；
+      // 只沿螢幕法線抬起時，離畫面中心越遠的元件會被透視推向外側，蓋到相鄰內容
+      const d = eye.clone().sub(this.group.position);
+      d.multiplyScalar(lift / Math.max(1e-3, d.z));
+      this.card.position.copy(d);
+    } else {
+      this.card.position.set(0, 0, lift);
+    }
     this.card.scale.setScalar(1 + t * grow);
     // 陰影跟著卡片大小，只往下偏移一點、淡而短，避免在手機外的白底上留下灰色暈影
     this.shadow.position.set(0, -t * 0.35, 0.004);
@@ -353,8 +371,8 @@ export class Phone {
   /** 元件浮出時螢幕其餘部分變暗：1 為原亮度。 */
   setGlow(v: number) { this.screen.material.uniforms.glow.value = v; }
 
-  addPop(id: string, rect: PopRect) {
-    const card = new PopCard(rect, this.screenZ + 0.02);
+  addPop(id: string, rect: PopRect, cut = false) {
+    const card = new PopCard(rect, this.screenZ + 0.02, cut);
     this.pops.set(id, card);
     this.body.add(card.group);
     return card;
