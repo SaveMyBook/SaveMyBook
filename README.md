@@ -142,7 +142,7 @@ SaveMyBook/
 
 <div align="center">
 
-![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-565-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-895,657-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-321,369-critical?style=for-the-badge)
+![Contributors](https://img.shields.io/badge/Contributors-4-blue?style=for-the-badge&logo=github) ![Commits](https://img.shields.io/badge/Commits-566-green?style=for-the-badge&logo=git) ![Additions](https://img.shields.io/badge/Additions-905,962-success?style=for-the-badge) ![Deletions](https://img.shields.io/badge/Deletions-321,678-critical?style=for-the-badge)
 
 </div>
 
@@ -161,9 +161,9 @@ SaveMyBook/
     <tr>
       <td align="center" valign="middle"><h3>🥇</h3></td>
       <td align="left" valign="middle"><a href="https://github.com/XuKaiJun914"><b>XuKaiJun914</b></a></td>
-      <td align="center" valign="middle"><b>302</b></td>
-      <td align="center" valign="middle"><code>+592,989</code></td>
-      <td align="center" valign="middle"><code>-155,645</code></td>
+      <td align="center" valign="middle"><b>303</b></td>
+      <td align="center" valign="middle"><code>+603,294</code></td>
+      <td align="center" valign="middle"><code>-155,954</code></td>
       <td align="center" valign="middle"><img src="https://progress-bar.xyz/54/?width=120" alt="53.5%"></td>
     </tr>
     <tr>
@@ -195,7 +195,7 @@ SaveMyBook/
 
 <div align="center">
 
-<sub>📅 最後更新：2026-10-09 04:57:39 (UTC+8)</sub>
+<sub>📅 最後更新：2026-10-10 04:26:20 (UTC+8)</sub>
 
 </div>
 
