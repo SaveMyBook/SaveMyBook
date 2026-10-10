@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>115414－海報2</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="poster.css">
+  <style>
+    /* 海報 2（v2）：95 × 65 cm，內容範圍 91 × 61 cm。掛在電腦螢幕正下方，觀看距離 1–2 m。
+       規格：../改版規格.md。兩欄網格（左 370mm｜欄距 60mm｜右 480mm），所有區塊共用左右兩條左緣。
+         左欄：01 專題動機與目的 → 03 標題 → 3D 主圖
+         右欄：02 問題描述 → 先驗收、後撥款／六步／七項 AI 服務（頂端與 3D 主圖對齊）
+       字級只用 4 級（pt）：
+         L1 區段標題 120 / 900（英文 44 / 500 muted）
+         L2 大數字 170 / 700 slate（% 用 100）；大標句 100 / 900 ink
+         L3 重點 40 / 700 ink
+         L4 說明 28 / 500 muted；註記與「3D 示意」22
+       元素只用：白色膠囊、slate 細線、圖片。不用卡片框、分隔線、虛線、灰底。 */
+    :root {
+      --trim-w: 950mm; --trim-h: 650mm;
+      --p2-l1: 120pt; --p2-l1-en: 44pt;
+      --p2-stat: 170pt; --p2-line: 100pt;
+      --p2-l3: 40pt; --p2-l4: 28pt; --p2-note: 22pt;
+      --p2-col-a: 370mm; --p2-gutter: 60mm;
+    }
+
+    .p2 {
+      display: grid;
+      grid-template-columns: var(--p2-col-a) 1fr;
+      grid-template-rows: auto auto 1fr;
+      column-gap: var(--p2-gutter);
+    }
+
+    /* ---------- 區段標題（兩行式：編號＋中文／英文，下接 slate 短線） ---------- */
+    .p2__head { display: flex; flex-direction: column; align-items: flex-start; }
+    .p2__h { font-size: var(--p2-l1); font-weight: 900; line-height: 1.1; letter-spacing: .02em; color: var(--ink); white-space: nowrap; }
+    .p2__h span { display: inline-block; line-height: 1.1; margin-right: .32em; color: var(--slate); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+    .p2__en-row { display: flex; align-items: center; gap: 8mm; margin-top: 2mm; }
+    .p2__en { font-size: var(--p2-l1-en); font-weight: 500; line-height: 1.2; letter-spacing: .01em; color: var(--muted); white-space: nowrap; }
+    .p2__headchip { font-size: var(--p2-l4); font-weight: 500; color: var(--deep); letter-spacing: .04em; }
+    .p2__headchip b { font-weight: 700; color: var(--slate); font-variant-numeric: tabular-nums; }
+    .p2__rule { display: block; width: 50mm; height: .8mm; margin-top: 7mm; border-radius: .4mm; background: var(--slate); }
+
+    /* ---------- 01 專題動機與目的 ---------- */
+    .p2__s01 { grid-column: 1; grid-row: 1; }
+    .p2__motive { margin-top: 16mm; font-size: var(--p2-l4); font-weight: 500; line-height: 1.6; color: var(--muted); }
+    .p2__goals { display: flex; flex-wrap: wrap; gap: 10mm 10mm; margin-top: 20mm; }
+    .p2__goals .chip { font-size: var(--p2-l3); font-weight: 700; color: var(--ink); padding: .3em .8em; }
+
+    /* ---------- 02 問題描述 ---------- */
+    .p2__s02 { grid-column: 2; grid-row: 1 / span 2; }
+    .p2__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20mm 40mm; margin-top: 18mm; }
+    .p2__num { font-size: var(--p2-stat); font-weight: 700; line-height: 1; letter-spacing: -.02em; color: var(--slate); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .p2__num small { font-size: var(--p2-line); letter-spacing: 0; margin-left: .04em; }
+    .p2__num sup { font-size: var(--p2-l3); font-weight: 700; vertical-align: top; position: relative; top: 1.75em; margin-left: .08em; }
+    .p2__key { margin-top: 3mm; font-size: var(--p2-l3); font-weight: 700; line-height: 1.25; color: var(--ink); }
+    .p2__note { margin-top: 1.5mm; font-size: var(--p2-l4); font-weight: 500; line-height: 1.35; color: var(--muted); white-space: nowrap; }
+    .p2__src { margin-top: 14mm; font-size: var(--p2-note); font-weight: 500; line-height: 1.4; color: var(--muted); white-space: nowrap; }
+
+    /* ---------- 03 專題方法與程序 ---------- */
+    .p2__h03 { grid-column: 1; grid-row: 2; margin-top: 45mm; }
+    .p2__hero { grid-column: 1; grid-row: 3; position: relative; min-height: 0; margin-top: 12mm; }
+    .p2__hero img { height: 100%; width: auto; max-width: none; }
+    .p2__hero .tag-3d { position: absolute; left: 0; bottom: 4%; font-size: var(--p2-note); }
+
+    .p2__right { grid-column: 2; grid-row: 3; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; margin-top: 22mm; } /* 使用者要求整組靠上，下方留白 */
+    .p2__big { font-size: 64pt; font-weight: 900; line-height: 1.1; letter-spacing: .02em; color: var(--ink); white-space: nowrap; margin-top: -2mm; font-feature-settings: 'palt'; }
+
+    /* 六步：L4 文字＋slate 細線箭頭 */
+    .p2__flow { display: flex; align-items: flex-start; margin-top: 16mm; }
+    .p2__flow li { flex: none; width: 40mm; display: flex; flex-direction: column; align-items: center; }
+    .p2__flow b { margin-top: 6mm; font-size: var(--p2-l4); font-weight: 500; line-height: 1.3; color: var(--muted); white-space: nowrap; }
+    .p2__flow li:first-child { width: auto; } /* 「線上看書況」比 40mm 寬：改用文字寬，讓名稱左緣貼齊欄緣 */
+    .p2__arrow { position: relative; flex: 1; height: .6mm; min-width: 8mm; margin: 16.7mm 6mm 0; background: var(--slate); } /* 置於圓形圖示中線 */
+    .p2__arrow::after { content: ''; position: absolute; right: 0; top: 50%; width: 2.6mm; height: 2.6mm; border: solid var(--slate); border-width: .6mm .6mm 0 0; transform: translate(-.1mm, -50%) rotate(45deg); }
+
+    /* 七項 AI 服務：白色圓形膠囊＋slate 線條 icon＋名稱，一排 */
+    .p2__ai-title { font-size: 64pt; font-weight: 900; line-height: 1.1; letter-spacing: .02em; color: var(--ink); font-feature-settings: 'palt'; } /* 與「先驗收、後撥款」同級 */
+    .p2__ai { display: flex; justify-content: space-between; margin-top: 12mm; }
+    .p2__ai-wrap { margin-top: 40mm; } /* 先驗收／六步 與 七項 AI 的間距 */
+    /* 每項固定 40mm（＝四字名稱寬），首末項名稱貼齊欄緣，圓心等距；較長名稱向兩側對稱延伸 */
+    .p2__ai li { flex: none; width: 40mm; display: flex; flex-direction: column; align-items: center; }
+    .p2__ico { display: grid; place-items: center; width: 34mm; height: 34mm; border-radius: 50%; background: #FFFFFF; color: var(--slate); box-shadow: var(--shadow-chip); }
+    .p2__ico svg { width: 17mm; height: 17mm; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .p2__ai b { margin-top: 6mm; font-size: var(--p2-l4); font-weight: 500; line-height: 1.3; color: var(--muted); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="bg"></div>
+    <main class="safe p2">
+
+      <!-- 01 專題動機與目的 -->
+      <section class="p2__s01">
+        <header class="p2__head">
+          <h2 class="p2__h"><span>01</span>專題動機與目的</h2>
+          <div class="p2__en-row"><p class="p2__en">Project Purpose</p></div>
+
+        </header>
+        <p class="p2__motive">學生之間的二手書交易常遇到幾個問題：<br>面交時間難以配合、書況描述與實物有落差、預付款後可能遭遇詐騙。</p>
+        <ul class="p2__goals">
+          <li class="chip">簡化交易流程</li>
+          <li class="chip">打破時空限制</li>
+          <li class="chip">提升使用體驗</li>
+          <li class="chip">促進資源循環</li>
+          <li class="chip">強化交易安全</li>
+        </ul>
+      </section>
+
+      <!-- 02 問題描述 -->
+      <section class="p2__s02">
+        <header class="p2__head">
+          <h2 class="p2__h"><span>02</span>問題描述</h2>
+          <div class="p2__en-row"><p class="p2__en">Problem Statement</p><span class="chip p2__headchip"><b>498</b> 份有效問卷</span></div>
+
+        </header>
+        <div class="p2__stats">
+          <div><p class="p2__num">43.2<small>%</small><sup>＊</sup></p><p class="p2__key">面交</p><p class="p2__note">擔心遇到放鳥或詐騙</p></div>
+          <div><p class="p2__num">57.9<small>%</small><sup>＊</sup></p><p class="p2__key">寄送</p><p class="p2__note">需自行包裝、跑超商寄貨</p></div>
+          <div><p class="p2__num">51.4<small>%</small><sup>＊</sup></p><p class="p2__key">交易方式</p><p class="p2__note">傾向使用「實體儲物櫃」方案</p></div>
+          <div><p class="p2__num">57.4<small>%</small></p><p class="p2__key">書櫃功能</p><p class="p2__note">認為「24 小時自助」最具吸引力</p></div>
+        </div>
+        <p class="p2__src">＊複選題，比例以勾選次數計　資料來源：本專題「二手書籍交易行為與市場需求調查」</p>
+      </section>
+
+      <!-- 03 專題方法與程序 -->
+      <header class="p2__head p2__h03">
+        <h2 class="p2__h"><span>03</span>專題方法與程序</h2>
+        <div class="p2__en-row"><p class="p2__en">Approaches</p><span class="chip p2__headchip">系統概觀</span></div>
+
+      </header>
+
+      <figure class="p2__hero">
+        <img src="assets/3d/cover_crop.png" alt="智慧書櫃與 App 3D 示意">
+      </figure>
+
+      <div class="p2__right">
+        <div>
+          <p class="p2__big">先驗收、後撥款</p>
+          <ol class="p2__flow">
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg></span><b>線上看書況</b></li><i class="p2__arrow"></i>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M7 15h3.5"/></svg></span><b>下單付款</b></li><i class="p2__arrow"></i>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M12 8v7.5M9 12.5l3 3 3-3"/></svg></span><b>掃碼存書</b></li><i class="p2__arrow"></i>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16"/><path d="M12 16V8.5M9 11.5l3-3 3 3"/></svg></span><b>掃碼取書</b></li><i class="p2__arrow"></i>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M8.8 13l2.3 2.3 4.2-4.3"/></svg></span><b>驗收確認</b></li><i class="p2__arrow"></i>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M4.5 8V7a2 2 0 0 1 2-2H17v3"/><rect x="4" y="8" width="16" height="12" rx="2.5"/><circle cx="16" cy="14" r="1.2"/></svg></span><b>撥款</b></li>
+          </ol>
+        </div>
+        <div class="p2__ai-wrap">
+          <p class="p2__ai-title">七項 AI 服務</p>
+          <ul class="p2__ai">
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7l1.6-2.5h3.8L15.5 7"/><circle cx="12" cy="13.5" r="3.4"/></svg></span><b>上架輔助</b></li>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M6 3h8.5L19 7.5V21H6z"/><path d="M14 3v5h5"/><path d="M9 12.5h7M9 16h5"/></svg></span><b>資料補齊</b></li>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.6-3.2 8.2-7.5 9.4-4.3-1.2-7.5-4.8-7.5-9.4V6z"/><path d="M8.6 12.2l2.4 2.4 4.5-4.6"/></svg></span><b>上架審核</b></li>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M7 3.5h10a1 1 0 0 1 1 1V21l-6-3.8L6 21V4.5a1 1 0 0 1 1-1z"/><path d="M12 7.2l1.1 2.2 2.4.3-1.8 1.7.5 2.4-2.2-1.2-2.2 1.2.5-2.4-1.8-1.7 2.4-.3z"/></svg></span><b>個人化推薦</b></li>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"/><path d="M12 6.5v6M9 9.5h6"/></svg></span><b>AI 書籍顧問</b></li>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.4-1.6 2.2-4 2.2h-2"/></svg></span><b>AI 客服</b></li>
+            <li><span class="p2__ico"><svg viewBox="0 0 24 24"><path d="M12 4v16M7 20h10"/><path d="M5 7h14"/><path d="M5 7l-2.5 6a2.8 2.8 0 0 0 5 0z"/><path d="M19 7l-2.5 6a2.8 2.8 0 0 0 5 0z"/></svg></span><b>爭議分析</b></li>
+          </ul>
+        </div>
+      </div>
+
+    </main>
+  </div>
+  <script src="poster.js"></script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+/* ==========================================================================
+   救「舊」我的書 · 展版海報共用設計系統（第 115414 組）
+   視覺沿用 介紹動畫/v2（src/style.css、src/cover.css、src/lib/ui.ts）。
+
+   ── 版面與尺寸 ───────────────────────────────────────────────────────────
+   每張海報在自己的 <style> 設定完成尺寸：
+       :root { --trim-w: 950mm; --trim-h: 300mm; }
+   含出血檔每邊多 3mm（--bleed）；?bleed=0 時 --bleed 變 0，輸出完成尺寸。
+   .sheet  整張紙（完成尺寸＋出血），背景漸層延伸到出血邊
+   .safe   內容範圍：距完成尺寸邊緣 20mm（距含出血檔邊緣 23mm）
+           文字、圖片、卡片一律放在 .safe 內。
+   @page 尺寸由 src/poster.js 依上述變數自動寫入（CSS 的 @page 不能讀 var()）。
+
+   ── 字級（觀看距離 1–3 m）────────────────────────────────────────────────
+   1pt = 0.3528mm。原則：3 m 外內文仍可讀（字高約 ≥ 8mm），說明文字下限 18pt。
+       token          pt      mm     用途
+       --fs-display   260pt   91.7   海報主標（海報 1 品牌名另行指定）
+       --fs-h1        110pt   38.8   區段標題中文（01 專題動機與目的）
+       --fs-h1-en      54pt   19.1   區段標題英文（Project Purpose）
+       --fs-stat      190pt   67.0   大數字（43.2%、301 …）
+       --fs-h2         64pt   22.6   卡片標題、重點句
+       --fs-h3         44pt   15.5   小標、引線標註標題、步驟名稱
+       --fs-lead       36pt   12.7   導言、強調內文
+       --fs-body       28pt    9.9   內文（海報 2、3 內文不低於此）
+       --fs-note       22pt    7.8   說明、引線標註副文
+       --fs-meta       18pt    6.4   出處、註腳（最小字級，不得再小）
+   行高：標題 1.15–1.25，內文 1.6。中文段落不超過約 28 字一行。
+
+   ── 視覺單位 ─────────────────────────────────────────────────────────────
+   --px = 0.5mm ≈ 動畫 1920px 畫面放到 95cm 寬時的 1px，
+   用來等比換算動畫裡的圓角與陰影（例：卡片圓角 24px → 12mm）。
+   多數元件的內距用 em，元件會跟著自身字級等比縮放。
+   ========================================================================== */
+
+@font-face { font-family: 'Noto Sans TC'; font-weight: 400; font-style: normal; src: url('../fonts/NotoSansTC-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Noto Sans TC'; font-weight: 500; font-style: normal; src: url('../fonts/NotoSansTC-Medium.ttf') format('truetype'); }
+@font-face { font-family: 'Noto Sans TC'; font-weight: 700; font-style: normal; src: url('../fonts/NotoSansTC-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'Noto Sans TC'; font-weight: 900; font-style: normal; src: url('../fonts/NotoSansTC-Black.ttf') format('truetype'); }
+/* 只用於櫃門號 A01–A04 */
+@font-face { font-family: 'IBM Plex Mono'; font-weight: 500; font-style: normal; src: url('../fonts/IBMPlexMono-500-latin.woff2') format('woff2'); }
+
+:root {
+  /* 色票（規劃.md） */
+  --ink: #16222B;
+  --deep: #2F4552;
+  --slate: #627D8D;
+  --muted: #5B6770;
+  --success: #2E9E5B;
+  --soft: #EEF2F5;
+  --line: #D3DADF;
+  --card: #FFFFFF;
+  --success-soft: #E3F4EA;
+  --idle: #B9C3CA;          /* 未完成步驟的空心圓（動畫 hud/esc-step） */
+  --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #FBFCFD 42%, #E6EDF1 74%, #CBD8E0 100%);
+
+  /* 尺寸：各海報覆寫 --trim-w / --trim-h */
+  --trim-w: 950mm;
+  --trim-h: 300mm;
+  --bleed-max: 3mm;
+  --bleed: var(--bleed-max);
+  --margin: 20mm;
+  --sheet-w: calc(var(--trim-w) + 2 * var(--bleed));
+  --sheet-h: calc(var(--trim-h) + 2 * var(--bleed));
+  --safe-w: calc(var(--trim-w) - 2 * var(--margin));
+  --safe-h: calc(var(--trim-h) - 2 * var(--margin));
+
+  /* 字級 */
+  --fs-display: 260pt;
+  --fs-h1: 110pt;
+  --fs-h1-en: 54pt;
+  --fs-stat: 190pt;
+  --fs-h2: 64pt;
+  --fs-h3: 44pt;
+  --fs-lead: 36pt;
+  --fs-body: 28pt;
+  --fs-note: 22pt;
+  --fs-meta: 18pt;
+
+  /* 動畫像素換算、圓角、陰影 */
+  --px: 0.5mm;
+  --r-card: calc(24 * var(--px));
+  --r-tile: calc(28 * var(--px));
+  /* 陰影：動畫的「0 1px 0 + 0 Ypx Bpx」雙層陰影，模糊層改以 10 層無模糊、遞增擴散的半透明外框疊出。
+     原因：Chrome 輸出 PDF 時會把有模糊的 box-shadow 轉成 JPEG 灰階遮罩，不同 PDF 閱讀器／RIP 呈現差異大；
+     疊層做法在 PDF 中是純向量＋透明度，PNG 與 PDF 看起來一致（與 logo 的疊層陰影同一手法）。
+     由 tools/shadows.mjs 產生，要改參數請重跑該腳本再貼回。 */
+  --shadow-card:
+    0 calc(1 * var(--px)) 0 rgba(98, 125, 141, .12),
+    0 calc(16 * var(--px)) 0 calc(-16.20 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(-12.60 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(-9.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(-5.40 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(-1.80 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(1.80 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(5.40 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(9.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(12.60 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(16 * var(--px)) 0 calc(16.20 * var(--px)) rgba(22, 34, 43, 0.0083);
+  --shadow-chip:
+    0 calc(1 * var(--px)) 0 rgba(98, 125, 141, .12),
+    0 calc(8 * var(--px)) 0 calc(-9.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(-7.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(-5.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(-3.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(-1.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(1.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(3.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(5.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(7.00 * var(--px)) rgba(22, 34, 43, 0.0083),
+    0 calc(8 * var(--px)) 0 calc(9.00 * var(--px)) rgba(22, 34, 43, 0.0083);
+  --shadow-badge:
+    0 calc(1 * var(--px)) 0 rgba(98, 125, 141, .12),
+    0 calc(10 * var(--px)) 0 calc(-10.80 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(-8.40 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(-6.00 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(-3.60 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(-1.20 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(1.20 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(3.60 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(6.00 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(8.40 * var(--px)) rgba(22, 34, 43, 0.0127),
+    0 calc(10 * var(--px)) 0 calc(10.80 * var(--px)) rgba(22, 34, 43, 0.0127);
+  --shadow-tile:
+    0 calc(1 * var(--px)) 0 rgba(98, 125, 141, .12),
+    0 calc(18 * var(--px)) 0 calc(-16.20 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(-12.60 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(-9.00 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(-5.40 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(-1.80 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(1.80 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(5.40 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(9.00 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(12.60 * var(--px)) rgba(22, 34, 43, 0.0105),
+    0 calc(18 * var(--px)) 0 calc(16.20 * var(--px)) rgba(22, 34, 43, 0.0105);
+
+  --sans: 'Noto Sans TC', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+html.no-bleed { --bleed: 0mm; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #FFFFFF; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  width: var(--sheet-w); height: var(--sheet-h); overflow: hidden;
+  font-family: var(--sans); font-size: var(--fs-body); line-height: 1.6; color: var(--ink);
+  -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  font-kerning: normal;
+}
+img, svg { display: block; }
+ul, ol { list-style: none; }
+
+/* ---------- 紙張 ---------- */
+.sheet { position: relative; width: var(--sheet-w); height: var(--sheet-h); overflow: hidden; }
+/* 背景固定以「完成尺寸＋3mm」計算漸層，不含出血版即為含出血版的正中裁切 */
+.bg {
+  position: absolute;
+  left: calc(var(--bleed) - var(--bleed-max)); top: calc(var(--bleed) - var(--bleed-max));
+  width: calc(var(--trim-w) + 2 * var(--bleed-max)); height: calc(var(--trim-h) + 2 * var(--bleed-max));
+  background: var(--bg-gradient);
+}
+.safe {
+  position: absolute;
+  left: calc(var(--bleed) + var(--margin)); top: calc(var(--bleed) + var(--margin));
+  width: var(--safe-w); height: var(--safe-h);
+}
+
+/* ---------- 審稿輔助線（?guides=1，僅供檢視，不會出現在輸出檔） ---------- */
+.guide { position: absolute; pointer-events: none; z-index: 9999; }
+.guide--trim { left: var(--bleed); top: var(--bleed); width: var(--trim-w); height: var(--trim-h); outline: .6mm dashed #E0218A; }
+.guide--safe { left: calc(var(--bleed) + var(--margin)); top: calc(var(--bleed) + var(--margin)); width: var(--safe-w); height: var(--safe-h); outline: .6mm solid #00A3E0; }
+.guide--cx { left: calc(var(--sheet-w) / 2); top: 0; width: 0; height: var(--sheet-h); border-left: .4mm dotted #00A3E0; }
+.guide--cy { top: calc(var(--sheet-h) / 2); left: 0; height: 0; width: var(--sheet-w); border-top: .4mm dotted #00A3E0; }
+
+/* ---------- 文字 ---------- */
+/* 品牌名：<span class="brand">救<i>「舊」</i>我的書</span>，括號與「舊」用 slate */
+.brand { font-weight: 700; letter-spacing: .02em; color: var(--ink); white-space: nowrap; font-feature-settings: 'palt'; }
+.brand i { font-style: normal; color: var(--slate); }
+.brand--display { font-weight: 900; line-height: 1.04; letter-spacing: 0; }
+
+/* 小眉標：前方一段 slate 短線（動畫封面 .eyebrow） */
+.eyebrow { display: inline-flex; align-items: center; gap: .4em; font-weight: 700; letter-spacing: .12em; color: var(--slate); line-height: 1.2; white-space: nowrap; }
+.eyebrow::before { content: ''; flex: none; width: 1.47em; height: .1em; border-radius: .05em; background: currentColor; }
+
+/* 區段標題：<h2 class="section-head"><span class="section-head__no">01</span><span class="section-head__zh">專題動機與目的</span><span class="section-head__en">Project Purpose</span></h2> */
+.section-head { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: .32em; font-size: var(--fs-h1); line-height: 1.15; font-weight: 900; color: var(--ink); }
+.section-head__no { color: var(--slate); font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.section-head__zh { letter-spacing: .02em; }
+.section-head__en { margin-left: .15em; font-size: var(--fs-h1-en); font-weight: 500; color: var(--muted); letter-spacing: .01em; }
+.section-head::after { content: ''; flex-basis: 100%; height: 0; } /* 讓後續 .section-rule 換行 */
+.section-rule { width: 100%; height: 1mm; margin-top: 6mm; border-radius: .5mm; background: linear-gradient(90deg, var(--slate) 0 60mm, var(--line) 60mm 100%); }
+
+.lead { font-size: var(--fs-lead); line-height: 1.5; font-weight: 500; color: var(--deep); }
+.body { font-size: var(--fs-body); line-height: 1.6; color: var(--ink); }
+.note { font-size: var(--fs-note); line-height: 1.5; color: var(--muted); }
+.meta { font-size: var(--fs-meta); line-height: 1.5; color: var(--muted); }
+.accent { color: var(--slate); }
+.mono, .door-no { font-family: var(--mono); font-weight: 500; letter-spacing: .02em; }
+
+/* 註腳／出處 */
+.footnote { font-size: var(--fs-meta); line-height: 1.5; color: var(--muted); }
+.footnote::before { content: '註　'; font-weight: 700; color: var(--slate); }
+.footnote--src::before { content: '資料來源　'; }
+.footnote--plain::before { content: none; }
+
+/* ---------- 卡片、膠囊、徽章 ---------- */
+.card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow-card); padding: 12mm 14mm; }
+.card--soft { background: rgba(255, 255, 255, .72); box-shadow: inset 0 0 0 calc(2 * var(--px)) var(--line); }
+.card__eyebrow { font-size: var(--fs-note); font-weight: 700; letter-spacing: .06em; color: var(--slate); margin-bottom: .5em; }
+.card__title { font-size: var(--fs-h2); line-height: 1.25; font-weight: 700; color: var(--ink); }
+.card__body { margin-top: .5em; font-size: var(--fs-body); line-height: 1.6; color: var(--muted); }
+
+.chip { display: inline-flex; width: max-content; align-items: center; gap: .4em; padding: .3em .8em; border-radius: 999px; background: #FFFFFF; color: var(--deep); font-weight: 500; line-height: 1.3; white-space: nowrap; box-shadow: var(--shadow-chip); }
+.chip svg { width: 1.1em; height: 1.1em; flex: none; color: var(--slate); }
+.chip--soft { background: var(--soft); box-shadow: none; }
+.chip--ok { background: var(--success-soft); color: #2E7D4F; font-weight: 700; box-shadow: none; }
+.chips { display: flex; flex-wrap: wrap; gap: .5em; }
+
+/* 綠勾徽章：<span class="cbadge"><i></i>存書完成</span> */
+.cbadge { display: inline-flex; width: max-content; align-items: center; gap: .42em; padding: .42em .75em .42em .5em; border-radius: 999px; background: #FFFFFF; color: var(--ink); font-weight: 700; line-height: 1.2; white-space: nowrap; box-shadow: var(--shadow-badge); }
+.cbadge i { position: relative; flex: none; width: 1.17em; height: 1.17em; border-radius: 50%; background: var(--success); }
+.cbadge i::after { content: ''; position: absolute; left: .41em; top: .2em; width: .26em; height: .5em; border: solid #FFFFFF; border-width: 0 .12em .12em 0; transform: rotate(45deg); }
+.cbadge--slate i { background: var(--slate); }
+
+/* 「3D 示意」標籤：3D 書櫃、手機一律加註。<span class="tag-3d">3D 示意</span> */
+.tag-3d { display: inline-flex; width: max-content; align-items: center; gap: .35em; padding: .18em .65em; border-radius: 999px; font-size: var(--fs-meta); font-weight: 500; line-height: 1.3; color: var(--muted); background: rgba(255, 255, 255, .78); box-shadow: inset 0 0 0 calc(2 * var(--px)) var(--line); white-space: nowrap; }
+.tag-3d::before { content: ''; width: .55em; height: .55em; border-radius: 50%; background: var(--slate); opacity: .7; }
+
+/* ---------- 線條 icon 方塊（動畫 .tile） ---------- */
+/* <div class="icon-tile"><div class="icon-tile__ico"><svg viewBox="0 0 24 24" …/></div><b>上架輔助</b><span>說明</span></div> */
+.icon-tile { --tile: 40mm; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.icon-tile__ico { display: grid; place-items: center; width: var(--tile); height: var(--tile); margin-bottom: calc(var(--tile) * .14); border-radius: calc(var(--tile) * .25); background: #FFFFFF; color: var(--slate); box-shadow: var(--shadow-tile); }
+.icon-tile__ico svg { width: 46%; height: 46%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.icon-tile b { display: block; font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.icon-tile span { display: block; margin-top: .3em; font-size: var(--fs-note); line-height: 1.45; color: var(--muted); }
+/* 獨立使用的線條 icon */
+.icon { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; color: var(--slate); }
+
+/* ---------- 大數字（動畫 .stat） ---------- */
+/* <div class="stat"><div class="stat__num">43.2<small>%</small></div><div class="stat__key">擔心對方失約或遭遇詐騙</div><div class="stat__note">面交</div></div> */
+.stat { text-align: center; }
+.stat--left { text-align: left; }
+.stat__num { font-size: var(--fs-stat); font-weight: 700; line-height: 1; letter-spacing: -.02em; color: var(--slate); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat__num small { font-size: .34em; margin-left: .06em; letter-spacing: 0; }
+.stat__key { margin-top: .4em; font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; color: var(--ink); }
+.stat__note { margin-top: .25em; font-size: var(--fs-note); line-height: 1.45; color: var(--muted); }
+
+/* ---------- 步驟 ---------- */
+/* 橫向步驟列（動畫 .stepbar）：<ol class="stepbar"><li class="is-done"><i>01</i>掃碼</li><li class="is-on"><i>02</i>比對</li>…</ol> */
+.stepbar { display: inline-flex; width: max-content; gap: .5em; padding: .35em .5em; border-radius: 999px; background: rgba(255, 255, 255, .9); box-shadow: var(--shadow-chip); }
+.stepbar li { display: flex; align-items: center; gap: .38em; padding: .3em .8em .3em .38em; border-radius: 999px; font-weight: 500; line-height: 1.2; color: var(--muted); white-space: nowrap; }
+.stepbar li i { display: grid; place-items: center; width: 1.46em; height: 1.46em; border-radius: 50%; font-style: normal; font-size: .77em; font-weight: 700; background: #EEF1F3; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stepbar li.is-on { background: var(--slate); color: #FFFFFF; }
+.stepbar li.is-on i { background: #FFFFFF; color: var(--slate); }
+.stepbar li.is-done { color: var(--ink); }
+.stepbar li.is-done i { background: var(--success); color: #FFFFFF; }
+
+/* 直向步驟清單：<ol class="steps"><li class="is-done"><i>1</i><div><b>線上看書況</b><span>說明</span></div></li>…</ol>
+   編號圓圈以 slate 細線串連；.is-done 為綠色。 */
+.steps { --dot: 1.5em; display: flex; flex-direction: column; gap: .9em; }
+.steps li { position: relative; display: grid; grid-template-columns: var(--dot) 1fr; column-gap: .6em; align-items: start; }
+.steps li > i { position: relative; z-index: 1; display: grid; place-items: center; width: var(--dot); height: var(--dot); border-radius: 50%; font-style: normal; font-weight: 700; font-size: 1em; line-height: 1; background: #FFFFFF; color: var(--slate); box-shadow: inset 0 0 0 .1em var(--slate); font-variant-numeric: tabular-nums; }
+.steps li.is-done > i { background: var(--success); color: #FFFFFF; box-shadow: none; }
+.steps li:not(:last-child)::before { content: ''; position: absolute; left: calc(var(--dot) / 2 - .05em); top: var(--dot); bottom: -.9em; width: .1em; background: rgba(98, 125, 141, .45); }
+.steps b { display: block; font-weight: 700; line-height: var(--dot); color: var(--ink); }
+.steps span { display: block; font-size: .78em; line-height: 1.5; color: var(--muted); }
+/* 橫向排列的步驟（閉環六步）：圓圈之間以箭頭線相連 */
+.steps--row { flex-direction: row; gap: 0; }
+.steps--row li { flex: 1; grid-template-columns: 1fr; justify-items: center; text-align: center; row-gap: .4em; }
+.steps--row li:not(:last-child)::before { left: calc(50% + var(--dot) / 2 + .2em); right: calc(-50% + var(--dot) / 2 + .2em); top: calc(var(--dot) / 2 - .05em); bottom: auto; width: auto; height: .1em; }
+.steps--row b { line-height: 1.3; }
+
+/* ---------- 引線標註（動畫書櫃 X 光標註） ---------- */
+/* HTML 版（水平引線）：<div class="leader" style="--len:40mm"><div class="leader__text"><b>ESP32-S3 控制板</b><span>Wi-Fi 連線</span></div><i class="leader__line"></i><i class="leader__dot"></i></div>
+   .leader--rev：圓點在左、文字在右。斜線請用 inline SVG 搭配 .xline / .xdot。 */
+.leader { display: inline-flex; align-items: center; gap: 0; }
+.leader__text { text-align: right; padding-right: .5em; }
+.leader__text b { display: block; font-size: var(--fs-h3); line-height: 1.3; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.leader__text span { display: block; margin-top: .15em; font-size: var(--fs-note); line-height: 1.45; color: var(--muted); }
+.leader__line { flex: none; width: var(--len, 30mm); height: .5mm; background: var(--slate); }
+.leader__dot { flex: none; width: 4mm; height: 4mm; margin-left: -.25mm; border-radius: 50%; background: #FFFFFF; box-shadow: inset 0 0 0 .75mm var(--slate); }
+.leader--rev { flex-direction: row-reverse; }
+.leader--rev .leader__text { text-align: left; padding: 0 0 0 .5em; }
+.leader--rev .leader__dot { margin: 0 -.25mm 0 0; }
+svg .xline { fill: none; stroke: var(--slate); stroke-width: .5mm; }
+svg .xdot { fill: #FFFFFF; stroke: var(--slate); stroke-width: .75mm; }
+
+/* ---------- 其他 ---------- */
+.divider { width: 100%; height: .5mm; background: var(--line); }
+.divider--v { width: .5mm; height: auto; align-self: stretch; }
+.qr { background: #FFFFFF; border-radius: calc(16 * var(--px)); padding: 3mm; box-shadow: var(--shadow-card); }
+.qr img { width: 100%; height: auto; }
+.qr .inline-svg { aspect-ratio: 1; }
+/* 由 poster.js 內嵌的 SVG（data-src） */
+.inline-svg svg { width: 100%; height: 100%; overflow: visible; }

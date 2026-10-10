@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>115414－海報1</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="poster.css">
+  <style>
+    /* 海報 1：95 × 30 cm，內容範圍 91 × 26 cm。展版最上方、電腦螢幕上方的標題橫幅。 */
+    :root { --trim-w: 950mm; --trim-h: 300mm; }
+
+    .p1 { display: flex; align-items: center; justify-content: center; }
+
+    /* 兩欄：左 logo（高度＝右欄文字區高度），右欄眉標／品牌名／成員列全部靠左對齊 */
+    .p1__lockup { display: flex; align-items: stretch; gap: 32mm; }
+    .p1__logo { width: 226mm; flex: none; }
+    .p1__logo svg { width: 100%; height: 100%; }
+    .p1__titles { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+    .p1__group { font-size: 62pt; margin: 0 0 5mm 1mm; }
+    .p1__brand { font-size: 280pt; margin-left: -3mm; }
+
+    /* 組員與指導老師：小標比照動畫身分標籤（slate 700、與姓名同級字），靠左對齊品牌名 */
+    .p1__people { display: flex; align-items: center; gap: 5mm; margin-top: 24mm; font-size: 32.6pt; }
+    .p1__label { font-weight: 700; letter-spacing: .08em; color: var(--slate); white-space: nowrap; margin-right: 2mm; }
+    .p1__members { display: flex; gap: 5mm; }
+    .p1__person { gap: .45em; padding: .32em .8em; color: var(--ink); }
+    .p1__person b { font-weight: 700; letter-spacing: .06em; }
+    .p1__person span { font-size: .74em; font-weight: 500; letter-spacing: .04em; color: var(--slate); font-variant-numeric: tabular-nums; }
+    .p1__sep { width: .5mm; height: 14mm; margin: 0 6mm; background: rgba(98, 125, 141, .45); }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="bg"></div>
+    <main class="safe p1">
+      <div class="p1__lockup">
+        <div class="p1__logo inline-svg" data-src="assets/logo.svg" role="img" aria-label="救「舊」我的書 logo"></div>
+        <div class="p1__titles">
+          <p class="eyebrow p1__group">第 115414 組</p>
+          <h1 class="brand brand--display p1__brand">救<i data-grad="#7C97A6,#4A6372">「舊」</i>我的書</h1>
+          <div class="p1__people">
+            <span class="p1__label">組員</span>
+            <ul class="p1__members">
+              <li class="chip p1__person"><b>許凱俊</b><span>11246063</span></li>
+              <li class="chip p1__person"><b>陳秉鴻</b><span>11246065</span></li>
+              <li class="chip p1__person"><b>連卉媗</b><span>11246072</span></li>
+              <li class="chip p1__person"><b>江芸萱</b><span>11246074</span></li>
+            </ul>
+            <i class="p1__sep"></i>
+            <span class="p1__label">指導老師</span>
+            <span class="chip p1__person"><b>林俊杰</b></span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="poster.js"></script>
+</body>
+</html>
