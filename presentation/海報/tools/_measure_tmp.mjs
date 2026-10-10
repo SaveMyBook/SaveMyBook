@@ -1,0 +1,15 @@
+import puppeteer from 'puppeteer-core';
+import { createServer } from 'node:http';
+import { createReadStream } from 'node:fs';
+import { join, extname } from 'node:path';
+const root = process.cwd();
+const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.png': 'image/png', '.json': 'application/json' };
+const srv = createServer((q, r) => { const p = join(root, decodeURIComponent(q.url.split('?')[0])); r.setHeader('content-type', types[extname(p)] || 'application/octet-stream'); createReadStream(p).on('error', () => { r.statusCode = 404; r.end(); }).pipe(r); });
+await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+const p = await b.newPage();
+await p.goto(`http://127.0.0.1:${srv.address().port}/src/${process.argv[2]}.html?bleed=0`);
+await p.waitForFunction('window.__ready');
+const sels = process.argv.slice(3);
+console.log(await p.evaluate((sels) => { const k = 25.4 / 96; const o = {}; for (const s of sels) { const e = document.querySelector(s); if (!e) { o[s] = null; continue; } const r = e.getBoundingClientRect(); o[s] = { top: +(r.top * k).toFixed(1), bottom: +(r.bottom * k).toFixed(1), left: +(r.left * k).toFixed(1), h: +(r.height * k).toFixed(1) }; } return o; }, sels));
+await b.close(); srv.close();
