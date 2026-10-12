@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 救「舊」我的書 Logo（向量）。路徑取自 presentation/介紹動畫/v2/src/lib/logo.ts，
+     呈現動畫描繪完成後的最終畫面：疊層陰影 → 書頁（底色＋邊線）→ 封面漸層＋柔光 → 書背 → 書籤。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="190 358 1660 1366" width="1660" height="1366">
+  <defs>
+    <linearGradient id="smb-cover" x1="0.2" y1="0.25" x2="0.95" y2="1">
+      <stop offset="0" stop-color="#627D8D"/>
+      <stop offset="0.45" stop-color="#627D8D"/>
+      <stop offset="1" stop-color="#98ABB7"/>
+    </linearGradient>
+    <radialGradient id="smb-glow" cx="1560" cy="1420" r="760" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="smb-spine" x1="0" y1="856" x2="0" y2="1612" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C9D3D9"/>
+      <stop offset="1" stop-color="#B3C0C8"/>
+    </linearGradient>
+  </defs>
+  <g id="shadow">
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 8)"/>
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 16)"/>
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 24)"/>
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 32)"/>
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 40)"/>
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 48)"/>
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 56)"/>
+    <path d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="#46606F" fill-opacity="0.034" transform="translate(0 64)"/>
+  </g>
+  <g id="pages">
+    <path d="M400 482L440 420C560 395 760 430 900 525C975 578 1015 640 1032 705L1032 1000L400 1000Z" fill="#E9EEF1"/>
+    <path d="M1032 705C1015 640 975 578 900 525C760 430 560 395 440 420L400 482" fill="none" stroke="#627D8D" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M338 565L370 487C520 455 730 490 880 580C960 628 1010 700 1032 765L1032 1000L338 1000Z" fill="#E9EEF1"/>
+    <path d="M1032 765C1010 700 960 628 880 580C730 490 520 455 370 487L338 565" fill="none" stroke="#627D8D" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M283 634L302 582C470 520 700 545 860 628C950 675 1005 735 1030 792L1030 1000L283 1000Z" fill="#E9EEF1"/>
+    <path d="M1030 792C1005 735 950 675 860 628C700 545 470 520 302 582L283 634" fill="none" stroke="#627D8D" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M1625 460L1592 392C1460 370 1250 420 1120 520C1065 565 1040 630 1033 700L1033 1000L1625 1000Z" fill="#E9EEF1"/>
+    <path d="M1033 700C1040 630 1065 565 1120 520C1250 420 1460 370 1592 392L1625 460" fill="none" stroke="#627D8D" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M1690 542L1660 460C1500 445 1300 500 1170 596C1100 648 1055 710 1034 765L1034 1000L1690 1000Z" fill="#E9EEF1"/>
+    <path d="M1034 765C1055 710 1100 648 1170 596C1300 500 1500 445 1660 460L1690 542" fill="none" stroke="#627D8D" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M1738 608L1724 558C1560 515 1350 540 1210 610C1120 655 1065 725 1036 792L1036 1000L1738 1000Z" fill="#E9EEF1"/>
+    <path d="M1036 792C1065 725 1120 655 1210 610C1350 540 1560 515 1724 558L1738 608" fill="none" stroke="#627D8D" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+  <path id="cover" d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="url(#smb-cover)"/>
+  <path id="cover-glow" d="M210 675C300 610 520 590 700 638C850 680 960 740 1030 800C1110 730 1250 640 1420 598C1580 570 1740 585 1830 655L1828 1448C1650 1425 1300 1440 1036 1636Q1030 1642 1024 1636C760 1440 420 1425 240 1458Z" fill="url(#smb-glow)"/>
+  <path id="spine" d="M1037 1612L1037 856" fill="none" stroke="url(#smb-spine)" stroke-width="34" stroke-linecap="round"/>
+  <path id="bookmark" d="M1573 1258L1648 1245L1698 1428L1610 1432Z" fill="#FFFFFF" fill-opacity="0.14" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="5" stroke-linejoin="round"/>
+</svg>

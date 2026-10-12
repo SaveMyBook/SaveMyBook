@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>115414－海報1</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="system.css">
+  <link rel="stylesheet" href="brand.css">
+  <style>
+    :root { --trim-w: 950mm; --trim-h: 300mm; }
+    .p { position: absolute; inset: 0; display: flex; align-items: center; gap: 40mm; color: var(--ink); }
+    .logo { width: 196mm; height: 162mm; flex: none; }
+    .id { flex: 1; }
+    .grp { font-family: var(--cjk); font-weight: 900; font-size: 56pt; letter-spacing: .1em; color: var(--accent); }
+    .grp .n { font-family: 'Inter'; font-weight: 800; letter-spacing: .01em; }
+    .p .hl { margin-top: 2mm; margin-left: -3mm; font-size: 262pt; line-height: 1; }
+    .team { margin-top: 15mm; padding-top: 7mm; display: flex; align-items: baseline; gap: 0; }
+    .team .lab { margin-right: 6mm; }
+    .names { display: flex; gap: 10mm; font-family: var(--cjk); font-weight: 700; font-size: 42pt; letter-spacing: .08em; color: var(--ink); }
+    .sep { width: 22mm; }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="bg">
+      <svg viewBox="0 0 956 306" preserveAspectRatio="none">
+        <defs><radialGradient id="glow" cx="14%" cy="50%" r="34%"><stop offset="0" stop-color="#627D8D" stop-opacity=".2"/><stop offset="1" stop-color="#627D8D" stop-opacity="0"/></radialGradient></defs>
+        <rect width="956" height="306" fill="url(#glow)"/>
+      </svg>
+    </div>
+    <main class="safe">
+      <div class="p">
+        <div class="logo" data-src="assets/brand/logo.svg"></div>
+        <div class="id">
+          <p class="grp">第 <span class="n">115414</span> 組</p>
+          <h1 class="hl">救<em>「舊」</em>我的書</h1>
+          <div class="team ruled">
+            <span class="lab">Team<b>組員</b></span>
+            <span class="names"><span>許凱俊</span><span>陳秉鴻</span><span>連卉媗</span><span>江芸萱</span></span>
+            <span class="sep"></span>
+            <span class="lab">Advisor<b>指導老師</b></span>
+            <span class="names"><span>林俊杰</span></span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="base.js"></script>
+</body>
+</html>

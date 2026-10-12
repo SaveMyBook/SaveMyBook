@@ -1,0 +1,16 @@
+{
+  "name": "savemybook-posters",
+  "private": true,
+  "type": "module",
+  "description": "第 115414 組 救「舊」我的書 展版海報（HTML/CSS 排版，Chrome 輸出 PDF/PNG）",
+  "scripts": {
+    "render": "node tools/render.mjs poster1 --both --pdf --png --preview --guides && node tools/render.mjs poster2 --both --pdf --png --preview --guides && node tools/render.mjs poster3 --both --pdf --png --preview --guides",
+    "assets": "node tools/export-assets.mjs"
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "puppeteer-core": "^25.12.0",
+    "sharp": "^0.35.5",
+    "three": "^0.170.0"
+  }
+}

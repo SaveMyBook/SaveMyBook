@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>115414－海報2</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="system.css">
+  <link rel="stylesheet" href="brand.css">
+  <style>
+    :root { --trim-w: 950mm; --trim-h: 650mm; --top: 354mm; --heroH: 300mm; }
+    .p { position: absolute; inset: 0; color: var(--ink); }
+
+    /* 上半：左＝大標＋動機，右＝書櫃 */
+    .p__left { position: absolute; left: 0; top: 0; height: calc(var(--heroH) - 6mm); width: 560mm; display: flex; flex-direction: column; justify-content: space-between; }
+    .p .hl { font-size: 218pt; }
+    .why { margin-top: 5mm; width: 600mm; font-size: 42pt; line-height: 1.5; }
+    .hero { position: absolute; right: 6mm; top: 0; height: var(--heroH); }
+
+    /* 下半：四欄 問題 → 技術解法 */
+    .cols { position: absolute; left: 0; right: 0; top: var(--top); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 16mm; }
+    .cols__lab { position: absolute; left: 0; right: 0; bottom: calc(100% + 6mm); display: flex; justify-content: space-between; align-items: baseline; }
+    .src { font-family: var(--cjk); font-weight: 500; font-size: 22pt; color: var(--dim); letter-spacing: .02em; }
+    .col { display: flex; flex-direction: column; padding-top: 7mm; }
+    .data { margin-top: 8mm; display: flex; align-items: flex-end; gap: 5mm; }
+    .waffle { width: 86mm; height: 86mm; flex: none; }
+    .p .num { font-size: 124pt; }
+    .prob { margin-top: 10mm; min-height: 2.8em; font-size: 36pt; line-height: 1.4; }
+    .col .to { margin-top: 12mm; }
+    .col .sol { margin-top: 5mm; font-size: 60pt; }
+    .col .tech { margin-top: 5mm; }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="bg">
+      <svg viewBox="0 0 956 656" preserveAspectRatio="none">
+        <defs>
+          <radialGradient id="glow" cx="76%" cy="24%" r="40%"><stop offset="0" stop-color="#627D8D" stop-opacity=".22"/><stop offset=".6" stop-color="#627D8D" stop-opacity=".07"/><stop offset="1" stop-color="#627D8D" stop-opacity="0"/></radialGradient>
+          <radialGradient id="shd" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#22323C" stop-opacity=".24"/><stop offset="1" stop-color="#22323C" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="956" height="656" fill="url(#glow)"/>
+        <ellipse cx="756" cy="320" rx="195" ry="14" fill="url(#shd)"/>
+      </svg>
+    </div>
+    <main class="safe">
+      <div class="p">
+        <div class="p__left">
+          <h2 class="hl">二手書交易，<br><em>難在哪裡？</em></h2>
+          <div>
+            <p class="lab">Project Purpose<b>專題動機與目的</b></p>
+            <p class="why txt">教科書和一般書籍的<b>高昂價格</b>，以及閱讀完畢後的<b>閒置浪費</b>，<br>一直是許多人面臨的痛點。</p>
+          </div>
+        </div>
+        <img class="hero" src="assets/3d/cabinet.png" alt="">
+
+        <div class="cols">
+          <div class="cols__lab"><p class="lab">Problem Statement<b>問題描述</b></p><p class="src">資料來源：本團隊二手書交易需求調查，有效問卷 498 份</p></div>
+          <div class="col ruled">
+            <p class="k"><b>01</b>寄送不便</p>
+            <div class="data"><svg class="waffle" data-pct="57.9"></svg><p class="num">57.9<small>%</small></p></div>
+            <p class="prob txt">需自行包裝、跑超商寄貨</p>
+            <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+            <p class="sol">智慧書櫃免寄送</p>
+            <p class="tech"><span>ESP32-S3</span><span>12V 電磁鎖 ×4</span></p>
+          </div>
+          <div class="col ruled">
+            <p class="k"><b>02</b>交易安全</p>
+            <div class="data"><svg class="waffle" data-pct="43.2"></svg><p class="num">43.2<small>%</small></p></div>
+            <p class="prob txt">擔心遇到放鳥或詐騙</p>
+            <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+            <p class="sol">先驗收、後撥款</p>
+            <p class="tech"><span>平台暫管</span><span>24 小時驗收</span><span>四道開櫃驗證</span></p>
+          </div>
+          <div class="col ruled">
+            <p class="k"><b>03</b>書況不符</p>
+            <div class="data"><svg class="waffle" data-pct="95"></svg><p class="num"><span class="pre">逾</span>95<small>%</small></p></div>
+            <p class="prob txt">線上查看實體書況照片<br>有助提升購買意願</p>
+            <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+            <p class="sol">AI 判斷書況與售價</p>
+            <p class="tech"><span>實拍照片</span><span>建議售價區間</span><span>爭議分析</span></p>
+          </div>
+          <div class="col ruled">
+            <p class="k"><b>04</b>處理門檻</p>
+            <div class="data"><svg class="waffle" data-pct="35"></svg><p class="num">35<small>%</small></p></div>
+            <p class="prob txt">有閒置書想清空<br>卻懶得處理</p>
+            <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+            <p class="sol">AI 降低上架負擔</p>
+            <p class="tech"><span>掃描 ISBN</span><span>Google Books</span><span>上架審核</span></p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="brand.js"></script>
+  <script src="base.js"></script>
+</body>
+</html>

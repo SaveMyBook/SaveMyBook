@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>115414－海報3</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="system.css">
+  <link rel="stylesheet" href="brand.css">
+  <style>
+    :root { --trim-w: 460mm; --trim-h: 1960mm; }
+    .p { position: absolute; inset: 0; display: flex; flex-direction: column; color: var(--ink); }
+    .gap { flex: 1; min-height: 16mm; }
+
+    .p .hl { margin-top: 4mm; font-size: 150pt; }
+
+    /* 每段：對應的問題 → 解法 */
+    .blk { padding-top: 8mm; }
+    .qhead { display: flex; align-items: flex-end; gap: 4mm; }
+    .qhead .kn { margin-left: auto; font-family: 'Inter'; font-weight: 800; font-size: 58pt; line-height: .9; letter-spacing: -.02em; color: var(--accent); }
+    .qhead .kn small { font-size: .55em; }
+    .qhead .kn .pre { font-family: var(--cjk); font-weight: 900; font-size: .55em; margin-right: 1mm; }
+    .blk .to { margin-top: 6mm; }
+    .blk .sol { margin-top: 3mm; font-size: 78pt; }
+    .lead { margin-top: 5mm; font-size: 32pt; }
+
+    /* ① 智慧書櫃 */
+    .pcb { margin-top: 10mm; width: 100%; }
+    .cap { margin-top: 1mm; text-align: right; font-family: var(--cjk); font-weight: 500; font-size: 20pt; color: var(--dim); }
+    .specs { margin-top: 8mm; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12mm; row-gap: 7mm; }
+    .hw b { display: block; font-family: var(--cjk); font-weight: 900; font-size: 34pt; line-height: 1.25; color: var(--ink); }
+    .hw span { display: block; margin-top: 1.5mm; font-family: var(--cjk); font-weight: 500; font-size: 25pt; line-height: 1.35; color: var(--dim); }
+    .sub { margin-top: 14mm; font-family: var(--cjk); font-weight: 900; font-size: 34pt; letter-spacing: .1em; color: var(--ink2); }
+    .steps { margin-top: 6mm; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 8mm; row-gap: 9mm; }
+    .st { padding-top: 4mm; border-top: .5mm solid #C9D5DC; }
+    .st i { display: block; font-style: normal; font-family: 'Inter'; font-weight: 800; font-size: 50pt; line-height: 1; color: var(--accent); }
+    .st b { display: block; margin-top: 3mm; font-family: var(--cjk); font-weight: 700; font-size: 29pt; line-height: 1.3; color: var(--ink); }
+    .ver { display: block; margin-top: 3mm; font-family: var(--cjk); font-weight: 700; font-size: 25pt; line-height: 1.35; color: var(--ok); }
+    .ver::before { content: '✓ '; }
+
+    /* ② 先驗收、後撥款 */
+    .tl { margin-top: 12mm; display: grid; grid-template-columns: repeat(4, 1fr); }
+    .tl__s i { display: block; font-style: normal; font-family: 'Inter'; font-weight: 800; font-size: 50pt; line-height: 1; color: var(--accent); }
+    .tl__s b { display: block; margin-top: 4mm; font-family: var(--cjk); font-weight: 700; font-size: 30pt; line-height: 1.3; color: var(--ink); }
+    .tl__s:last-child i { color: var(--ok); }
+    .hold { margin-top: 7mm; display: grid; grid-template-columns: 3fr 1fr; height: 15mm; }
+    .hold span { display: flex; align-items: center; padding-left: 4mm; font-family: var(--cjk); font-weight: 900; font-size: 25pt; letter-spacing: .1em; color: #fff; }
+    .hold span:first-child { background: var(--accent); }
+    .hold span:last-child { background: var(--ok); }
+    .rule { margin-top: 8mm; font-size: 30pt; }
+
+    /* ③ ④：圖＋要點 */
+    .duo { margin-top: 10mm; display: grid; grid-template-columns: 205mm 1fr; column-gap: 12mm; align-items: start; }
+    .shot { border-radius: 4mm; overflow: hidden; background: #fff; border: .5mm solid #DCE4E9; }
+    .shot img { width: 100%; height: auto; }
+    .pts li { list-style: none; padding: 6mm 0; border-top: .5mm solid #C9D5DC; }
+    .pts li:last-child { border-bottom: .5mm solid #C9D5DC; }
+    .pts b { display: block; font-family: var(--cjk); font-weight: 900; font-size: 34pt; line-height: 1.25; color: var(--ink); }
+    .pts span { display: block; margin-top: 1mm; font-family: var(--cjk); font-weight: 500; font-size: 24pt; line-height: 1.35; color: var(--dim); }
+    .pts i { font-style: normal; font-family: 'Inter'; font-weight: 800; color: var(--accent); margin-right: 3mm; }
+
+
+    /* App 元件（依 App 實際畫面以向量重繪，字級放大到海報尺度） */
+    .ui { background: #fff; border-radius: 6mm; padding: 8mm 8mm 9mm; border: .5mm solid #DCE4E9; box-shadow: 0 1.2mm 0 rgba(98,125,141,.10); }
+    .ui__h { display: flex; align-items: center; gap: 3mm; font-family: var(--cjk); font-weight: 900; font-size: 32pt; color: var(--ink); }
+    .ui__h svg { width: 11mm; height: 11mm; }
+    .ui__lab { margin-top: 7mm; font-family: var(--cjk); font-weight: 700; font-size: 22pt; color: var(--dim); }
+    .ui__box { margin-top: 3mm; display: flex; gap: 4mm; padding: 5mm; border-radius: 4mm; border: .5mm solid #B9C6CF; background: #F4F6F8; }
+    .ui__ck { flex: none; width: 9mm; height: 9mm; margin-top: 1mm; }
+    .ui__v { font-family: var(--cjk); font-weight: 900; font-size: 32pt; line-height: 1.2; }
+    .ui__v.ok { color: #E8931A; }
+    .ui__v.price { font-family: 'Inter'; font-weight: 800; color: var(--ink); }
+    .ui__d { margin-top: 1.5mm; font-family: var(--cjk); font-weight: 500; font-size: 21pt; line-height: 1.4; color: var(--ink2); }
+    .ui__d li { list-style: none; position: relative; padding-left: 4mm; }
+    .ui__d li::before { content: ''; position: absolute; left: 0; top: .6em; width: 1.6mm; height: 1.6mm; border-radius: 50%; background: #B9C6CF; }
+    .ui__src { margin-top: 3mm; font-family: 'Inter', 'Noto Sans TC'; font-weight: 500; font-size: 22pt; line-height: 1.6; color: var(--ink); }
+    .ui__src span { color: #A0ADB5; margin-left: 2mm; }
+    .ui--form { background: #F3F5F7; }
+    .ui__ai { display: flex; align-items: center; gap: 3mm; padding: 5mm 6mm; border-radius: 5mm; border: .5mm solid #C7CCE0; background: linear-gradient(90deg, #EEF1F6, #ECE9F7); font-family: var(--cjk); font-weight: 900; font-size: 28pt; color: #627D8D; }
+    .ui__ai svg { width: 10mm; height: 10mm; }
+    .ui__ai .chev { margin-left: auto; width: 6mm; height: 6mm; }
+    .ui__row { margin-top: 5mm; display: flex; align-items: center; gap: 4mm; padding: 5mm; border-radius: 5mm; background: #fff; box-shadow: 0 .8mm 0 rgba(98,125,141,.12); }
+    .ui__row b { font-family: 'Inter'; font-weight: 700; font-size: 24pt; color: var(--ink); width: 22mm; }
+    .ui__in { flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 4mm 4mm 4mm 5mm; border-radius: 3.5mm; background: #F1F3F5; font-family: 'Inter'; font-weight: 500; font-size: 22pt; color: var(--ink); }
+    .ui__in svg, .ui__sq svg { width: 7mm; height: 7mm; }
+    .ui__sq { flex: none; display: grid; place-items: center; width: 15mm; height: 15mm; border-radius: 3.5mm; background: #EEF1F4; }
+
+    /* 04 成效 */
+    .stats { margin-top: 8mm; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12mm; row-gap: 10mm; }
+    .stats > div { padding-top: 6mm; border-top: var(--rule) solid var(--ink); }
+    .stats .num { font-size: 132pt; }
+    .stats b { display: block; margin-top: 6mm; font-family: var(--cjk); font-weight: 900; font-size: 34pt; color: var(--ink); }
+    .stats span { display: block; margin-top: 1mm; font-family: var(--cjk); font-weight: 500; font-size: 25pt; color: var(--dim); }
+    .done { margin-top: 12mm; display: flex; flex-direction: column; gap: 7mm; }
+    .done p { display: flex; gap: 5mm; align-items: flex-start; }
+    .done .ck { flex: none; width: 13mm; height: 13mm; margin-top: 1.5mm; }
+    .done b { display: block; font-family: var(--cjk); font-weight: 900; font-size: 34pt; color: var(--ink); }
+    .done span { display: block; margin-top: 1mm; font-family: var(--cjk); font-weight: 500; font-size: 26pt; line-height: 1.4; color: var(--ink2); }
+
+    /* 頁尾 */
+    .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10mm; padding-top: 10mm; }
+    .foot__brand { display: flex; align-items: center; gap: 4mm; }
+    .foot__logo { width: 34mm; height: 28mm; }
+    .foot__brand .t { font-family: var(--cjk); font-weight: 900; font-size: 40pt; }
+    .foot__brand .t em { font-style: normal; color: var(--accent); }
+    .slogan { margin-top: 6mm; padding-bottom: 3mm; font-family: var(--cjk); font-weight: 900; font-size: 62pt; line-height: 1.22; color: var(--ink); }
+    .slogan em { font-style: normal; color: var(--accent); }
+    .qr { display: flex; flex-direction: column; align-items: center; gap: 3mm; }
+    .qr .q { width: 66mm; height: 66mm; background: #fff; padding: 1.6mm; }
+    .qr span { font-family: 'Inter'; font-weight: 600; font-size: 22pt; color: var(--slate); }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="bg">
+      <svg viewBox="0 0 466 1966" preserveAspectRatio="none">
+        <defs>
+          <radialGradient id="g1" cx="60%" cy="20%" r="45%"><stop offset="0" stop-color="#627D8D" stop-opacity=".16"/><stop offset="1" stop-color="#627D8D" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="466" height="1966" fill="url(#g1)"/>
+      </svg>
+    </div>
+    <main class="safe">
+      <div class="p">
+        <!-- 03 標題 -->
+        <p class="lab">Approaches<b>專題方法與程序</b></p>
+        <h2 class="hl">我們<em>怎麼解決？</em></h2>
+
+        <div class="gap" style="flex:.7"></div>
+
+        <!-- ① -->
+        <section class="blk ruled">
+          <div class="qhead"><p class="k"><b>01</b>寄送不便</p><p class="kn">57.9<small>%</small></p></div>
+          <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+          <h3 class="sol">智慧書櫃免寄送</h3>
+          <p class="lead txt">最長24小時無人化運作，<br>買賣雙方無須約定面交時間</p>
+          <img class="pcb" src="assets/3d/pcb.png" alt="">
+          <div class="specs">
+            <div class="hw"><b>ESP32-S3 控制板</b><span>Wi-Fi 連線・HTTPS 同步</span></div>
+            <div class="hw"><b>四路繼電器</b><span>驅動電磁鎖</span></div>
+            <div class="hw"><b>12V 電磁鎖 ×4</b><span>裝於櫃門左側，斷電上鎖</span></div>
+            <div class="hw"><b>2.8 吋 TFT 螢幕</b><span>顯示 QR Code 與數字</span></div>
+          </div>
+          <p class="sub">賣家存書六步・四道驗證</p>
+          <div class="steps">
+            <div class="st"><i>1</i><b>掃描書櫃<br>QR Code</b><span class="ver">動態 QR Code</span><span class="ver">定位必要</span></div>
+            <div class="st"><i>2</i><b>確認存書<br>項目</b></div>
+            <div class="st"><i>3</i><b>輸入螢幕<br>比對碼</b><span class="ver">兩位數比對</span></div>
+            <div class="st"><i>4</i><b>比對成功，<br>A01 開鎖</b></div>
+            <div class="st"><i>5</i><b>放入書籍<br>並關門</b><span class="ver">裝置憑證・關門回報</span></div>
+            <div class="st"><i>6</i><b>存書完成，<br>通知買家</b></div>
+          </div>
+        </section>
+
+        <div class="gap"></div>
+
+        <!-- ② -->
+        <section class="blk ruled">
+          <div class="qhead"><p class="k"><b>02</b>交易安全</p><p class="kn">43.2<small>%</small></p></div>
+          <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+          <h3 class="sol">先驗收、後撥款</h3>
+          <div class="tl">
+            <div class="tl__s"><i>01</i><b>付款暫管</b></div>
+            <div class="tl__s"><i>02</i><b>取書關門</b></div>
+            <div class="tl__s"><i>03</i><b>24 小時<br>驗收</b></div>
+            <div class="tl__s"><i>04</i><b>撥款至<br>賣家錢包</b></div>
+          </div>
+          <div class="hold"><span>款項由平台暫管</span><span>撥款</span></div>
+          <p class="rule txt">買家<b>確認書況</b>或取書<b>24小時爭議期屆滿</b>後才撥款。</p>
+        </section>
+
+        <div class="gap"></div>
+
+        <!-- ③ -->
+        <section class="blk ruled">
+          <div class="qhead"><p class="k"><b>03</b>書況不符</p><p class="kn"><span class="pre">逾</span>95<small>%</small></p></div>
+          <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+          <h3 class="sol">AI 判斷書況與售價</h3>
+          <div class="duo">
+            <div class="ui">
+              <p class="ui__h"><svg viewBox="0 0 24 24" fill="#627D8D"><path d="M9 3l1.6 4.4L15 9l-4.4 1.6L9 15l-1.6-4.4L3 9l4.4-1.6z"/><path d="M17.5 2l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8zM17.5 14l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>AI 建議</p>
+              <p class="ui__lab">書況</p>
+              <div class="ui__box"><svg class="ui__ck" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#627D8D"/><path d="M6.5 12.5l3.6 3.6 7.4-7.6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><p class="ui__v ok">良好</p><ul class="ui__d"><li>書背上緣有明顯摺痕，封面四角輕微磨損</li><li>內頁有螢光筆劃線，無缺頁或水漬</li></ul></div></div>
+              <p class="ui__lab">建議售價</p>
+              <div class="ui__box"><svg class="ui__ck" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#627D8D"/><path d="M6.5 12.5l3.6 3.6 7.4-7.6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><p class="ui__v price">$222</p><p class="ui__d">建議區間 $140–$240・定價 $680</p></div></div>
+              <p class="ui__lab">資料來源</p>
+              <p class="ui__src">Google Books<span>books.google.com</span><br>五南官網<span>www.wunan.com.tw</span></p>
+            </div>
+            <ul class="pts">
+              <li><b><i>1</i>判斷依據</b></li>
+              <li><b><i>2</i>建議售價區間</b></li>
+              <li><b><i>3</i>資料來源</b></li>
+            </ul>
+          </div>
+        </section>
+
+        <div class="gap"></div>
+
+        <!-- ④ -->
+        <section class="blk ruled">
+          <div class="qhead"><p class="k"><b>04</b>處理門檻</p><p class="kn">35<small>%</small></p></div>
+          <div class="to"><svg class="flow"></svg><span>技術解法</span></div>
+          <h3 class="sol">AI 降低上架負擔</h3>
+          <div class="duo">
+            <div class="ui ui--form">
+              <div class="ui__ai"><svg viewBox="0 0 24 24" fill="#627D8D"><path d="M9 3l1.6 4.4L15 9l-4.4 1.6L9 15l-1.6-4.4L3 9l4.4-1.6z"/><path d="M17.5 2l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8zM17.5 14l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>AI 帶入<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="#627D8D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></div>
+              <div class="ui__row"><b>ISBN</b><span class="ui__in">9789571143491<svg viewBox="0 0 24 24" fill="none" stroke="#627D8D" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></span><span class="ui__sq"><svg viewBox="0 0 24 24" fill="none" stroke="#627D8D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 8h3v3H8zM13 13h3v3h-3zM13 8h3M8 13v3"/></svg></span></div>
+            </div>
+            <ul class="pts">
+              <li><b><i>1</i>掃描 ISBN</b></li>
+              <li><b><i>2</i>書目自動帶入</b></li>
+              <li><b><i>3</i>書況與建議售價</b></li>
+              <li><b><i>4</i>上架審核</b></li>
+            </ul>
+          </div>
+        </section>
+
+        <div class="gap" style="flex:1.3"></div>
+
+        <!-- 04 成效 -->
+        <p class="lab">End Result<b>專題成效</b></p>
+        <div class="stats">
+          <div><p class="num">301</p><b>API 端點</b><span>RESTful API</span></div>
+          <div><p class="num">1,563</p><b>後端測試</b><span>11 組全數通過</span></div>
+          <div><p class="num">2,815</p><b>App 測試</b><span>全數通過</span></div>
+          <div><p class="num">7</p><b>項 AI 服務</b><span>上架到售後</span></div>
+        </div>
+        <div class="done">
+          <p><svg class="ck" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2E9E5B"/><path d="M6.5 12.5l3.6 3.6 7.4-7.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>書櫃實機</b>螢幕、繼電器與四顆電磁鎖測通；正式韌體已連網並完成配對</span></p>
+          <p><svg class="ck" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#2E9E5B"/><path d="M6.5 12.5l3.6 3.6 7.4-7.6" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>完整交易流程</b>上架、付款暫管、存書、取書、撥款與爭議處理皆可實際操作</span></p>
+        </div>
+
+        <div class="gap" style="flex:.8"></div>
+
+        <!-- 頁尾 -->
+        <footer class="foot ruled">
+          <div>
+            <div class="foot__brand"><div class="foot__logo" data-src="assets/brand/logo.svg"></div><span class="t">救<em>「舊」</em>我的書</span></div>
+            <p class="slogan">讓閒置的書，<br><em>重新流動。</em></p>
+          </div>
+          <div class="qr"><div class="q" data-src="assets/brand/qr-site-ink.svg"></div><span>savemybook.today</span></div>
+        </footer>
+      </div>
+    </main>
+  </div>
+  <script src="brand.js"></script>
+  <script src="base.js"></script>
+</body>
+</html>

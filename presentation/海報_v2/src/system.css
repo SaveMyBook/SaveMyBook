@@ -1,0 +1,64 @@
+/* =====================================================================
+   紙張與字型（所有海報共用的底層；視覺元件與色票見 brand.css）
+   ---------------------------------------------------------------------
+   紙張：每張海報在 :root 設定 --trim-w / --trim-h（完成尺寸，必須用 mm）。
+   含出血檔每邊多 3mm；網址加 ?bleed=0 時輸出完成尺寸。
+     .sheet  整張紙（完成尺寸＋出血）
+     .bg     背景，延伸到出血邊
+     .safe   內容範圍：距完成邊 20mm。文字、圖片一律放在 .safe 內（render.mjs 會檢查）
+   字型：Noto Sans TC（中文）＋ Inter（英數、大數字），皆為 OFL 授權，檔案在 ../fonts/
+   ===================================================================== */
+
+@font-face { font-family: 'Noto Sans TC'; font-weight: 400; src: url('../fonts/NotoSansTC-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Noto Sans TC'; font-weight: 500; src: url('../fonts/NotoSansTC-Medium.ttf') format('truetype'); }
+@font-face { font-family: 'Noto Sans TC'; font-weight: 700; src: url('../fonts/NotoSansTC-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'Noto Sans TC'; font-weight: 900; src: url('../fonts/NotoSansTC-Black.ttf') format('truetype'); }
+@font-face { font-family: 'Inter'; font-weight: 400; src: url('../fonts/Inter-400-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; src: url('../fonts/Inter-500-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 600; src: url('../fonts/Inter-600-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 700; src: url('../fonts/Inter-700-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 800; src: url('../fonts/Inter-800-latin.woff2') format('woff2'); }
+
+:root {
+  --sans: 'Inter', 'Noto Sans TC', sans-serif;
+  --cjk: 'Noto Sans TC', sans-serif;
+
+  --bleed-max: 3mm;
+  --bleed: var(--bleed-max);
+  --margin: 20mm;
+  --sheet-w: calc(var(--trim-w) + 2 * var(--bleed));
+  --sheet-h: calc(var(--trim-h) + 2 * var(--bleed));
+  --safe-w: calc(var(--trim-w) - 2 * var(--margin));
+  --safe-h: calc(var(--trim-h) - 2 * var(--margin));
+}
+html.no-bleed { --bleed: 0mm; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #fff; }
+body {
+  font-family: var(--sans);
+  font-feature-settings: 'tnum' 0, 'palt' 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+img { display: block; }
+
+.sheet { position: relative; width: var(--sheet-w); height: var(--sheet-h); overflow: hidden; }
+.bg {
+  position: absolute;
+  left: calc(var(--bleed) - var(--bleed-max)); top: calc(var(--bleed) - var(--bleed-max));
+  width: calc(var(--trim-w) + 2 * var(--bleed-max)); height: calc(var(--trim-h) + 2 * var(--bleed-max));
+  overflow: hidden;
+}
+.safe {
+  position: absolute;
+  left: calc(var(--bleed) + var(--margin)); top: calc(var(--bleed) + var(--margin));
+  width: var(--safe-w); height: var(--safe-h);
+}
+
+/* 審稿輔助線（?guides=1，只供檢視，輸出檔不會帶） */
+.guide { position: absolute; pointer-events: none; z-index: 9999; }
+.guide--trim { left: var(--bleed); top: var(--bleed); width: var(--trim-w); height: var(--trim-h); outline: .6mm dashed #E0218A; }
+.guide--safe { left: calc(var(--bleed) + var(--margin)); top: calc(var(--bleed) + var(--margin)); width: var(--safe-w); height: var(--safe-h); outline: .6mm solid #00A3E0; }
+.guide--cx { left: calc(var(--sheet-w) / 2); top: 0; width: 0; height: var(--sheet-h); border-left: .4mm dotted #00A3E0; }
+.guide--cy { top: calc(var(--sheet-h) / 2); left: 0; height: 0; width: var(--sheet-w); border-top: .4mm dotted #00A3E0; }

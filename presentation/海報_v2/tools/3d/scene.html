@@ -1,0 +1,50 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+// 書櫃 3D 算圖頁：參數由網址 ?cfg=<base64 JSON> 帶入，完成後設 window.__done
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const cfg = JSON.parse(atob(new URLSearchParams(location.search).get('cfg')));
+const W = cfg.w, H = cfg.h;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = cfg.exposure ?? 1.0;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x000000, 0);
+document.body.append(renderer.domElement);
+const scene = new THREE.Scene();
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const gltf = await new GLTFLoader().loadAsync(cfg.model);
+const root = gltf.scene;
+root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+scene.add(root);
+// 置中、底部貼地
+const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+root.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
+const S = Math.max(size.x, size.y, size.z);
+// 地面陰影
+if (cfg.shadow !== false) {
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(S * 6, S * 6), new THREE.ShadowMaterial({ opacity: cfg.shadowOpacity ?? 0.16 }));
+  g.rotation.x = -Math.PI / 2; g.receiveShadow = true; scene.add(g);
+}
+const key = new THREE.DirectionalLight(0xffffff, cfg.key ?? 1.6);
+key.position.set(...(cfg.light || [S * 1.2, S * 2.4, S * 1.6]));
+key.castShadow = true; key.shadow.mapSize.set(4096, 4096); key.shadow.radius = 8;
+const sc = key.shadow.camera; sc.left = -S * 2; sc.right = S * 2; sc.top = S * 2; sc.bottom = -S * 2; sc.near = 0.01; sc.far = S * 10;
+scene.add(key); scene.add(new THREE.AmbientLight(0xffffff, cfg.ambient ?? 0.35));
+// 背光（勾輪廓，深色底用）
+if (cfg.rim) { const rim = new THREE.DirectionalLight(new THREE.Color(cfg.rimColor || '#9FC4FF'), cfg.rim); rim.position.set(...(cfg.rimPos || [-S * 1.5, S * 1.2, -S * 2])); scene.add(rim); }
+const cam = cfg.ortho
+  ? new THREE.OrthographicCamera(-1, 1, 1, -1, 0.001, S * 100)
+  : new THREE.PerspectiveCamera(cfg.fov ?? 24, W / H, S * 0.01, S * 100);
+const [px, py, pz] = cfg.cam.map((v) => v * S), tgt = (cfg.target || [0, 0.5, 0]).map((v, i) => v * (i === 1 ? size.y : S));
+cam.position.set(px, py, pz); cam.lookAt(...tgt);
+if (cfg.ortho) { const k = cfg.zoom * S; cam.left = -k * W / H; cam.right = k * W / H; cam.top = k; cam.bottom = -k; cam.updateProjectionMatrix(); }
+renderer.render(scene, cam);
+window.__info = { size: size.toArray(), S };
+window.__done = true;
+</script></body></html>
