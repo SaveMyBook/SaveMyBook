@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>115414－海報3</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="poster.css">
+  <style>
+    /* 海報 3（v3）：46 × 196 cm 直式長條，內容範圍 42 × 192 cm。立在展版旁，上方約 110 cm 為視線高度。
+       依 ../改版規格_v3.md（問題 → 解法），文字一律取自 ../文案_v3.md。v2 定稿備份：_v1/poster3_v2final.html。
+       由上而下：03 標題 → ① 智慧書櫃免寄送（大標句、書櫃透視圖＋5 條引線、四道開櫃驗證、賣家存書六步）
+                → ② 先驗收、後撥款（四點時間軸＋撥款規則）→ ③④（兩句主標＋七項 AI 一排）
+                → 04 專題成效（四個大數字＋兩行結果）→ logo、標語、官網 QR。
+       本張專用樣式一律以 .p3__ 命名。
+
+       字級（全張只用這些）：
+         L1 區段標題   中文 120pt / 900（編號 slate）；英文 44pt / 500 muted，另起一行
+         L2 主角       大數字 170pt / 700 slate；大標句 96pt / 900 ink（大標句與標語同級）
+         L3 重點       40pt / 700 ink（組號段標、小標、項目／步驟標題、引線標題、編號）
+         L4 說明       28pt / 500 muted（引線說明、撥款規則、AI 名稱、結果內文、網址）
+       組號徽章（與海報 2 共用）：直徑 16mm slate 實心圓＋白色數字 30pt / 700，置中；徽章與主標間距 5mm。
+       網格：全部左緣 x=0、右緣 x=420mm。區塊間距（space-between）≥ 45mm；① 段內各組間距較小，維持分組。 */
+    :root { --trim-w: 460mm; --trim-h: 1960mm; }
+
+    /* 長條背景：共用漸層在 196 cm 上會讓下方 1/4 偏深，把深色段往下收（只影響本張，與 v1 相同） */
+    .bg { background: linear-gradient(180deg, #FFFFFF 0%, #FBFCFD 30%, #EEF3F6 62%, #E1E9EE 84%, #CBD8E0 100%); }
+
+    .p3 {
+      --l1: 120pt; --l1-en: 44pt; --l2-num: 170pt; --l2: 96pt; --l3: 40pt; --l4: 28pt;
+      --col: 210mm;
+      --in: 26mm;              /* ① 段內各組（透視圖、四道驗證、存書六步）間距 */
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .p3 > * { flex: none; }
+
+    /* ---------- 區段標題（兩行式；與海報 2 共用規格） ---------- */
+    .p3__h1 { font-size: var(--l1); line-height: 1.05; font-weight: 900; letter-spacing: .02em; color: var(--ink); white-space: nowrap; }
+    .p3__h1 em { display: inline-block; font-style: normal; color: var(--slate); font-variant-numeric: tabular-nums; letter-spacing: -.01em; margin-right: .3em; }
+    .p3__h1-en { margin-top: 3mm; font-size: var(--l1-en); line-height: 1.2; font-weight: 500; color: var(--muted); letter-spacing: .01em; white-space: nowrap; }
+
+    /* ---------- 組號徽章＋解法主標（段標） ---------- */
+    .p3__badge { display: inline-grid; place-items: center; flex: none; width: 16mm; height: 16mm; border-radius: 50%; background: var(--slate);
+      color: #FFFFFF; font-size: 30pt; line-height: 1; font-weight: 700; font-style: normal; font-variant-numeric: tabular-nums;
+      padding-bottom: 1.05mm; }   /* 視覺置中：數字字面在行框中偏下約 0.5mm，往上補正 */
+    .p3__sub { display: flex; align-items: center; gap: 5mm; }
+    .p3__sub + .p3__sub { margin-top: 6mm; }
+    /* 解法主標（①–④）是這一段的主角：64pt／900，與海報 2「二手書交易，難在哪裡？」同級 */
+    .p3__sub > .p3__t { font-size: 64pt; font-weight: 900; line-height: 1.1; letter-spacing: .02em; color: var(--ink); white-space: nowrap; font-feature-settings: 'palt'; }
+
+    /* 小標（四道開櫃驗證、賣家存書六步）：L3，前置 slate 短線 */
+    .p3__h3 { display: flex; align-items: center; gap: 6mm; font-size: var(--l3); line-height: 1.25; font-weight: 700; letter-spacing: .1em; color: var(--ink); white-space: nowrap; }
+    .p3__h3::before { content: ''; flex: none; width: 16mm; height: 1.2mm; border-radius: .6mm; background: var(--slate); }
+
+    /* L3 項目標題、L4 說明（共用） */
+    .p3__t { font-size: var(--l3); line-height: 1.25; font-weight: 700; color: var(--ink); white-space: nowrap; }
+    .p3__no { font-size: var(--l3); line-height: 1.25; font-weight: 700; color: var(--slate); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+    .p3__d { font-size: var(--l4); line-height: 1.42; font-weight: 500; color: var(--muted); white-space: nowrap; }
+    .door-no { font-size: inherit; color: inherit; }
+
+    /* 白色圓形線條 icon（與海報 2 七項 AI 同樣式） */
+    .p3__ico { display: grid; place-items: center; width: 34mm; height: 34mm; border-radius: 50%; background: #FFFFFF; color: var(--slate); box-shadow: var(--shadow-chip); }
+    .p3__ico svg { width: 17mm; height: 17mm; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ---------- 03 標題 → ① ---------- */
+    .p3__s1 > .p3__sub { margin-top: 20mm; }
+    .p3__lead { margin-top: 8mm; font-size: var(--l3); line-height: 1.25; font-weight: 700; color: var(--ink); white-space: nowrap; font-feature-settings: 'palt'; letter-spacing: .01em; }
+    .p3__xray { position: relative; width: 100%; margin-top: 16mm; }
+    .p3__ximg { position: absolute; display: block; }
+    .p3__xsvg { position: absolute; left: 0; top: 0; overflow: visible; }
+    .p3__xsvg .ln { fill: none; stroke: var(--slate); stroke-width: .6; stroke-linecap: round; stroke-linejoin: round; }
+    .p3__xsvg .dt { fill: #FFFFFF; stroke: var(--slate); stroke-width: .8; }
+    .p3__xl { position: absolute; }
+    .p3__xl .p3__d { margin-top: .8mm; font-feature-settings: 'palt'; }   /* 行首「（」、行尾「，」不留半格空白，文字貼齊引線 */
+    .p3__xl--l { text-align: right; }
+
+    /* ---------- ① 四道開櫃驗證：一排四個（icon＋編號＋標題），首末項貼齊左右緣，項目間距相等 ---------- */
+    .p3__gates-wrap { margin-top: var(--in); }
+    .p3__gates { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 14mm; }
+    .p3__gate { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .p3__gate .p3__no { margin-top: 6mm; }
+
+    /* ---------- ① 賣家存書六步：手機＋編號＋標題 ---------- */
+    .p3__flow-wrap { margin-top: var(--in); }
+    .p3__flow { display: flex; justify-content: space-between; margin-top: 14mm; }
+    .p3__step { --sw: 54.6mm; width: calc(var(--sw) + 7.4mm); }   /* 手機寬 62mm：六支等距、首末貼齊左右緣，間距 9.6mm */
+    .p3__step .p3__t { font-feature-settings: 'palt'; }   /* 行尾「，」改半形寬，第 6 步不超出右緣 */
+    /* 手機框（鈦色外框＋黑色邊框＋App 實際畫面，沿用 v1） */
+    .p3__phone { position: relative; width: calc(var(--sw) + 7.4mm); padding: 1.3mm; border-radius: 11mm;
+      background: linear-gradient(135deg, #B7C4CC 0%, #7D919D 22%, #A3B3BD 48%, #6C808C 74%, #A9B8C1 100%); box-shadow: var(--shadow-card); }
+    .p3__phone-in { position: relative; padding: 2.4mm; border-radius: 9.7mm; background: #11171C; }
+    .p3__phone img { display: block; width: var(--sw); height: calc(var(--sw) * 2556 / 1179); border-radius: 7.3mm; background: #FFFFFF; }
+    .p3__phone-in::after { content: ''; position: absolute; left: 50%; top: 4mm; width: 16mm; height: 4.6mm; margin-left: -8mm; border-radius: 2.3mm; background: #0B0F12; }
+    .p3__step .p3__no { display: block; margin-top: 7mm; }
+
+    /* ---------- ② 四點時間軸＋撥款規則（沿用 v2 置中樣式） ---------- */
+    /* 四欄等寬，數字、文字、圓點各自水平置中；線從左右兩端開始，穿過圓點 */
+    .p3__line { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 16mm; padding-top: 16mm; }
+    .p3__line::before { content: ''; position: absolute; left: 0; right: 0; top: 3.7mm; height: .6mm; background: var(--slate); }
+    .p3__pt { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .p3__pt::before { content: ''; position: absolute; left: 50%; top: -16mm; width: 8mm; height: 8mm; margin-left: -4mm; border-radius: 50%; background: #FFFFFF; box-shadow: inset 0 0 0 .8mm var(--slate); }
+    .p3__pt .p3__t { margin-top: 1mm; }
+    .p3__rule { margin-top: 14mm; }
+
+    /* ---------- ③④ 七項 AI：白色圓形 icon＋名稱一排（沿用海報 2 v2） ---------- */
+    /* 每項固定 40mm（＝四字名稱寬），首末項名稱貼齊左右緣，圓心等距；較長名稱向兩側對稱延伸 */
+    .p3__ai { display: flex; justify-content: space-between; margin-top: 16mm; }
+    .p3__ai li { flex: none; width: 40mm; display: flex; flex-direction: column; align-items: center; }
+    .p3__ai b { margin-top: 6mm; font-size: var(--l4); font-weight: 500; line-height: 1.3; color: var(--muted); white-space: nowrap; }
+
+    /* ---------- 04 專題成效：2 × 2 大數字＋結果 ---------- */
+    .p3__stats { display: grid; grid-template-columns: var(--col) var(--col); row-gap: 18mm; margin-top: 20mm; }
+    .p3__num { font-size: var(--l2-num); line-height: .9; font-weight: 700; letter-spacing: -.02em; color: var(--slate); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .p3__stat .p3__t { margin-top: 12mm; }   /* 千分位逗號下伸約 9mm，標籤要讓開 */
+    .p3__oks { margin-top: 20mm; display: flex; flex-direction: column; gap: 12mm; }
+    .p3__ok { display: flex; align-items: flex-start; gap: 6mm; }
+    .p3__ok > div { display: flex; flex-direction: column; gap: 2mm; }
+    .p3__okt { display: flex; align-items: center; height: 17.64mm; }   /* 一行 L3 的行高：綠勾、徽章、標題同一中線 */
+    .p3__okt .p3__badge + .p3__badge { margin-left: 3mm; }
+    .p3__okt .p3__t { margin-left: 5mm; }
+    .p3__ok i:not(.p3__badge) { position: relative; flex: none; margin-top: .82mm; width: 16mm; height: 16mm; border-radius: 50%; background: var(--success); }   /* 與組號徽章同為 16mm */
+    .p3__ok i:not(.p3__badge)::after { content: ''; position: absolute; left: 5.75mm; top: 3.1mm; width: 3.85mm; height: 7.45mm; border: solid #FFFFFF; border-width: 0 1.8mm 1.8mm 0; transform: rotate(45deg); }
+
+    /* ---------- 底部：logo、標語、官網 QR ---------- */
+    .p3__end { display: flex; align-items: center; justify-content: space-between; }
+    .p3__end-brand { display: flex; align-items: center; gap: 12mm; }
+    .p3__logo { width: 92mm; height: calc(92mm * 1366 / 1660); flex: none; }
+    .p3__slogan { font-size: var(--l2); line-height: 1.1; font-weight: 900; color: var(--ink); white-space: nowrap; font-feature-settings: 'palt'; letter-spacing: .02em; }
+    .p3__qr { display: flex; flex-direction: column; align-items: flex-end; gap: 3mm; }
+    .p3__qr .qr { width: 60mm; }
+    .p3__qr .qr .inline-svg { width: 100%; }
+    .p3__qr .p3__d { line-height: 1.2; }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="bg"></div>
+    <main class="safe p3">
+
+      <!-- ===== 03 專題方法與程序 → ① 智慧書櫃免寄送 ===== -->
+      <section class="p3__s1">
+        <header>
+          <h2 class="p3__h1"><em>03</em>專題方法與程序</h2>
+          <p class="p3__h1-en">Approaches</p>
+        </header>
+
+        <h3 class="p3__sub"><i class="p3__badge">1</i><span class="p3__t">智慧書櫃免寄送</span></h3>
+        <p class="p3__lead">一片 ESP32，控制四扇櫃門</p>
+
+        <!-- 透視圖：引線位置由下方 script 依 assets/3d/cabinet_xray_points.json 的像素座標計算（圖片為貼紙淡化版 cabinet_xray_v1_stickerfix.png，座標相同）；與 v2 完全相同 -->
+        <div class="p3__xray" id="xray">
+          <img class="p3__ximg" id="ximg" src="assets/3d/cabinet_xray_v1_stickerfix.png" alt="智慧書櫃透視圖">
+          <svg class="p3__xsvg" id="xsvg" aria-hidden="true"></svg>
+          <div class="p3__xl p3__xl--l" data-part="board"><p class="p3__t">ESP32-S3 控制板</p><p class="p3__d">Wi-Fi 連線・HTTPS 同步</p></div>
+          <div class="p3__xl" data-part="relays"><p class="p3__t">四路繼電器</p><p class="p3__d">驅動電磁鎖</p></div>
+          <div class="p3__xl p3__xl--l" data-part="screen"><p class="p3__t">2.8 吋 TFT 螢幕</p><p class="p3__d">橫向 320 × 240，<br>顯示 QR Code 與數字</p></div>
+          <div class="p3__xl p3__xl--l" data-part="locks"><p class="p3__t">12V 電磁鎖 ×4</p><p class="p3__d"><span class="door-no">A01–A04</span>，裝於櫃門左側，<br>斷電上鎖</p></div>
+          <div class="p3__xl" data-part="switches"><p class="p3__t">微動開關 ×4</p><p class="p3__d">偵測櫃門開關<br>（門關上時壓下）</p></div>
+        </div>
+
+        <!-- 四道開櫃驗證 -->
+        <div class="p3__gates-wrap">
+          <h4 class="p3__h3">四道開櫃驗證</h4>
+          <ol class="p3__gates">
+            <li class="p3__gate"><span class="p3__ico"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 20.5h1.5M20.5 14v1.5"/></svg></span><span class="p3__no">01</span><p class="p3__t">動態 QR Code</p></li>
+            <li class="p3__gate"><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="p3__no">02</span><p class="p3__t">定位必要</p></li>
+            <li class="p3__gate"><span class="p3__ico"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="8.5" height="12" rx="2"/><rect x="13" y="6" width="8.5" height="12" rx="2"/><path d="M5.6 10l1.6-1.2V15M15.6 9.6c.6-.8 2.9-1 3 .6.1 1.6-3 2.8-3 4.8h3.2"/></svg></span><span class="p3__no">03</span><p class="p3__t">兩位數比對</p></li>
+            <li class="p3__gate"><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.6-3.2 8.2-7.5 9.4-4.3-1.2-7.5-4.8-7.5-9.4V6z"/><path d="M8.6 12.2l2.4 2.4 4.5-4.6"/></svg></span><span class="p3__no">04</span><p class="p3__t">裝置憑證・關門回報</p></li>
+          </ol>
+        </div>
+
+        <!-- 賣家存書六步（配法 A：六張畫面依 App 實際順序） -->
+        <div class="p3__flow-wrap">
+          <h4 class="p3__h3">賣家存書六步</h4>
+          <ol class="p3__flow">
+            <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_scan.png" alt="App 畫面：掃描書櫃 QR Code"></div></figure><span class="p3__no">01</span><p class="p3__t">掃描書櫃<br>QR Code</p></li>
+            <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_select.png" alt="App 畫面：確認存書項目"></div></figure><span class="p3__no">02</span><p class="p3__t">確認存書<br>項目</p></li>
+            <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_match_empty.png" alt="App 畫面：輸入螢幕比對碼"></div></figure><span class="p3__no">03</span><p class="p3__t">輸入螢幕<br>比對碼</p></li>
+            <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_match.png" alt="App 畫面：比對成功，A01 開鎖"></div></figure><span class="p3__no">04</span><p class="p3__t">比對成功，<br><span class="door-no">A01</span> 開鎖</p></li>
+            <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_open.png" alt="App 畫面：放入書籍並關門"></div></figure><span class="p3__no">05</span><p class="p3__t">放入書籍<br>並關門</p></li>
+            <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_done.png" alt="App 畫面：存書完成，通知買家取書"></div></figure><span class="p3__no">06</span><p class="p3__t">存書完成，<br>通知買家<br>取書</p></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ===== ② 先驗收、後撥款 ===== -->
+      <section class="p3__s2">
+        <h3 class="p3__sub"><i class="p3__badge">2</i><span class="p3__t">先驗收、後撥款</span></h3>
+        <ol class="p3__line">
+          <li class="p3__pt"><span class="p3__no">01</span><p class="p3__t">付款暫管</p></li>
+          <li class="p3__pt"><span class="p3__no">02</span><p class="p3__t">取書關門</p></li>
+          <li class="p3__pt"><span class="p3__no">03</span><p class="p3__t">24 小時驗收</p></li>
+          <li class="p3__pt"><span class="p3__no">04</span><p class="p3__t">撥款至賣家錢包</p></li>
+        </ol>
+        <p class="p3__d p3__rule">買家確認書況，或取書滿 24 小時未申請爭議，即撥款至賣家錢包；<br>爭議時暫停撥款，由管理員裁決</p>
+      </section>
+
+      <!-- ===== ③ 拍張照片，AI 判斷書況與售價　④ AI 降低上架負擔 ===== -->
+      <section class="p3__s34">
+        <h3 class="p3__sub"><i class="p3__badge">3</i><span class="p3__t">拍張照片，AI 判斷書況與售價</span></h3>
+        <h3 class="p3__sub"><i class="p3__badge">4</i><span class="p3__t">AI 降低上架負擔</span></h3>
+        <ul class="p3__ai">
+          <li><span class="p3__ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7l1.6-2.5h3.8L15.5 7"/><circle cx="12" cy="13.5" r="3.4"/></svg></span><b>上架輔助</b></li>
+          <li><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M6 3h8.5L19 7.5V21H6z"/><path d="M14 3v5h5"/><path d="M9 12.5h7M9 16h5"/></svg></span><b>資料補齊</b></li>
+          <li><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.6-3.2 8.2-7.5 9.4-4.3-1.2-7.5-4.8-7.5-9.4V6z"/><path d="M8.6 12.2l2.4 2.4 4.5-4.6"/></svg></span><b>上架審核</b></li>
+          <li><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M7 3.5h10a1 1 0 0 1 1 1V21l-6-3.8L6 21V4.5a1 1 0 0 1 1-1z"/><path d="M12 7.2l1.1 2.2 2.4.3-1.8 1.7.5 2.4-2.2-1.2-2.2 1.2.5-2.4-1.8-1.7 2.4-.3z"/></svg></span><b>個人化推薦</b></li>
+          <li><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5z"/><path d="M12 6.5v6M9 9.5h6"/></svg></span><b>AI 書籍顧問</b></li>
+          <li><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/><path d="M19 19c0 1.4-1.6 2.2-4 2.2h-2"/></svg></span><b>AI 客服</b></li>
+          <li><span class="p3__ico"><svg viewBox="0 0 24 24"><path d="M12 4v16M7 20h10"/><path d="M5 7h14"/><path d="M5 7l-2.5 6a2.8 2.8 0 0 0 5 0z"/><path d="M19 7l-2.5 6a2.8 2.8 0 0 0 5 0z"/></svg></span><b>爭議分析</b></li>
+        </ul>
+      </section>
+
+      <!-- ===== 04 專題成效 ===== -->
+      <section class="p3__s4">
+        <header>
+          <h2 class="p3__h1"><em>04</em>專題成效</h2>
+          <p class="p3__h1-en">End Result</p>
+        </header>
+        <div class="p3__stats">
+          <div class="p3__stat"><p class="p3__num">301</p><p class="p3__t">API 端點</p></div>
+          <div class="p3__stat"><p class="p3__num">1,563</p><p class="p3__t">後端測試</p></div>
+          <div class="p3__stat"><p class="p3__num">2,815</p><p class="p3__t">App 測試</p></div>
+          <div class="p3__stat"><p class="p3__num">7</p><p class="p3__t">項 AI 服務</p></div>
+        </div>
+        <ul class="p3__oks">
+          <li class="p3__ok"><i></i><div><p class="p3__okt"><i class="p3__badge">1</i><b class="p3__t">書櫃實機</b></p><span class="p3__d">螢幕、繼電器與四顆電磁鎖測試通過</span></div></li>
+          <li class="p3__ok"><i></i><div><p class="p3__okt"><i class="p3__badge">1</i><i class="p3__badge">2</i><i class="p3__badge">3</i><i class="p3__badge">4</i><b class="p3__t">完整交易流程</b></p><span class="p3__d">上架、付款暫管、存書、取書、撥款與爭議處理皆可實際操作</span></div></li>
+        </ul>
+      </section>
+
+      <!-- ===== 底部：logo、標語、官網 QR ===== -->
+      <footer class="p3__end">
+        <div class="p3__end-brand">
+          <div class="p3__logo inline-svg" data-src="assets/logo.svg" role="img" aria-label="救「舊」我的書 logo"></div>
+          <p class="p3__slogan">讓閒置的書，<br>重新流動。</p>
+        </div>
+        <div class="p3__qr">
+          <div class="qr"><div class="inline-svg" data-src="assets/qr-site.svg" role="img" aria-label="官網 QR Code：https://savemybook.today/"></div></div>
+          <p class="p3__d">savemybook.today</p>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // 書櫃透視圖引線（旗標式：每條引線是一根垂直細線，一端接零件圓點，另一端沿著標註文字的側邊）。
+    // 零件像素座標取自 assets/3d/cabinet_xray_points.json（5608 × 5496）；電磁鎖、微動開關各 4 點以同一根線串起。
+    (() => {
+      const PX = { w: 5608, h: 5496 };
+      const P = {
+        screen: [4790, 866], board: [1696, 941], relays: [2081, 921],
+        lockA01: [2270, 1965], lockA02: [2275, 2929], lockA03: [2279, 3874], lockA04: [2284, 4803],
+        switchA01: [2914, 1639], switchA02: [2913, 2581], switchA03: [2912, 3506], switchA04: [2911, 4414],
+      };
+      const W = 420;                         // .safe 寬（mm）
+      const GAP = 5;                         // 文字與引線的距離（mm）
+      const root = document.getElementById('xray');
+      const lab = (k) => root.querySelector(`[data-part="${k}"]`);
+      const hOf = (el) => el.offsetHeight * 25.4 / 96;
+
+      const bandTop = Math.max(...['board', 'relays', 'screen'].map((k) => hOf(lab(k))));
+      const bandBot = Math.max(...['locks', 'switches'].map((k) => hOf(lab(k))));
+      const img = { w: W, x: 0 };
+      img.h = img.w * PX.h / PX.w;
+      img.y = bandTop - 4;                    // 圖片上緣約 10mm、下緣約 8mm 本身是空白，標註列可略為疊入
+      const H = img.y + img.h - 4 + bandBot;
+      const s = img.w / PX.w;
+      const p = (k) => ({ x: +(img.x + P[k][0] * s).toFixed(2), y: +(img.y + P[k][1] * s).toFixed(2) });
+
+      root.style.height = `${H}mm`;
+      Object.assign(document.getElementById('ximg').style, { left: `${img.x}mm`, top: `${img.y}mm`, width: `${img.w}mm`, height: `${img.h}mm` });
+      const svg = document.getElementById('xsvg');
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      Object.assign(svg.style, { width: `${W}mm`, height: `${H}mm` });
+
+      const lines = [], dots = [];
+      const path = (pts) => lines.push(pts.map((q, i) => `${i ? 'L' : 'M'}${q.x.toFixed(2)} ${q.y.toFixed(2)}`).join(''));
+      const CAP = 3.2;                       // 文字行框頂端到字面頂端的距離（mm），引線端點對齊字面
+      // 上方標註：文字在引線左側（side 'l'）或右側（'r'），頂端對齊 y=0
+      const top = (k, pts, side) => {
+        const e = lab(k), q = pts[0];
+        e.style.top = '0mm';
+        if (side === 'l') e.style.right = `${W - (q.x - GAP)}mm`; else e.style.left = `${q.x + GAP}mm`;
+        path([{ x: q.x, y: CAP }, ...pts]); dots.push(...pts);
+      };
+      // 下方標註：底端對齊區塊下緣，引線從最上面的零件串到文字下緣
+      const bot = (k, pts, side) => {
+        const e = lab(k), q = pts[pts.length - 1];
+        e.style.top = `${H - hOf(e)}mm`;
+        if (side === 'l') e.style.right = `${W - (q.x - GAP)}mm`; else e.style.left = `${q.x + GAP}mm`;
+        path([...pts, { x: q.x, y: H - CAP }]); dots.push(...pts);
+      };
+      top('board', [p('board')], 'l');
+      top('relays', [p('relays')], 'r');
+      top('screen', [p('screen')], 'l');
+      bot('locks', ['lockA01', 'lockA02', 'lockA03', 'lockA04'].map(p), 'l');
+      bot('switches', ['switchA01', 'switchA02', 'switchA03', 'switchA04'].map(p), 'r');
+
+      svg.innerHTML = lines.map((d) => `<path class="ln" d="${d}"/>`).join('')
+        + dots.map((q) => `<circle class="dt" cx="${q.x}" cy="${q.y}" r="2.2"/>`).join('');
+    })();
+  </script>
+  <script src="poster.js"></script>
+</body>
+</html>

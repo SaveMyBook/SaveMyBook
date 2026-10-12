@@ -47,7 +47,12 @@
 
     /* ---------- 03 開場：大標句＋透視圖 ---------- */
     .p3__lead { font-size: var(--l2); line-height: 1.05; font-weight: 900; color: var(--ink); white-space: nowrap; font-feature-settings: 'palt'; letter-spacing: .01em; }
-    .p3__open .p3__lead { margin-top: 27mm; }
+    /* 亮點標題（老師建議的五大亮點）：64pt／900；下接一句原文說明（L4） */
+    .p3__hl { font-size: 64pt; line-height: 1.1; font-weight: 900; color: var(--ink); white-space: nowrap; font-feature-settings: 'palt'; letter-spacing: .02em; }
+    .p3__open .p3__hl { margin-top: 27mm; }
+    .p3__hd { margin-top: 5mm; font-size: var(--l4); line-height: 1.5; font-weight: 500; color: var(--muted); white-space: nowrap; font-feature-settings: 'palt'; }
+    .p3__sub { margin-top: 18mm; }
+    .p3__sub2 { margin-top: 26mm; }
     .p3__xray { position: relative; width: 100%; margin-top: 22mm; }
     .p3__ximg { position: absolute; display: block; }
     .p3__xsvg { position: absolute; left: 0; top: 0; overflow: visible; }
@@ -86,6 +91,26 @@
     .p3__rule { margin-top: 18mm; }
 
     /* ---------- 04 專題成效：2 × 2 大數字＋結果 ---------- */
+    /* 亮點標語：每個亮點一句（原文短句），L3 40pt slate */
+    .p3__motto { margin-top: 6mm; font-size: var(--l3); line-height: 1.25; font-weight: 700; color: var(--slate); letter-spacing: .04em; white-space: nowrap; font-feature-settings: 'palt'; }
+    /* 04：我們開發的成果（L3＋L4）→ 解決膠囊（解決標籤＋海報 2 的問卷數字＋題目＋選項） */
+    .p3__results { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 22mm; }   /* 2 × 2 四格 */
+    .p3__cell { padding: 12mm 12mm 13mm; border-radius: 8mm; }
+    .p3__cell { display: flex; flex-direction: column; align-items: flex-start; gap: 7mm; }
+    .p3__cell-top { display: flex; align-items: center; gap: 7mm; }   /* 圖示與兩行標題垂直置中；問題標籤在下方，左緣與圖示對齊 */
+    .p3__cell-ico { flex: none; display: grid; place-items: center; width: 26mm; height: 26mm; border-radius: 50%; background: var(--soft); color: var(--slate); }
+    .p3__cell-ico svg { width: 13mm; height: 13mm; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .p3__cell-p { display: flex; align-items: center; gap: 4mm; font-size: var(--l4); line-height: 1.35; font-weight: 500; color: var(--muted); white-space: nowrap; }
+    .p3__cell-tag { flex: none; padding: 1.2mm 4.5mm 1.6mm; border-radius: 999px; background: var(--soft); color: var(--deep); font-weight: 700; letter-spacing: .08em; }
+    .p3__cell-s { font-size: 44pt; line-height: 1.2; font-weight: 900; color: var(--ink); white-space: nowrap; font-feature-settings: "palt"; letter-spacing: .02em; }
+    .p3__res .p3__d { margin-top: 2mm; }
+    .p3__cap { display: inline-flex; align-items: center; gap: 7mm; margin-top: 6mm; padding: 4mm 12mm 4mm 4mm; border-radius: 999px; background: #FFFFFF; }
+    .p3__cap-tag { display: grid; place-items: center; height: 22mm; padding: 0 7mm; border-radius: 999px; background: var(--slate); color: #FFFFFF; font-size: var(--l4); font-weight: 700; letter-spacing: .08em; }
+    .p3__cap-num { font-size: 64pt; line-height: 1; font-weight: 700; color: var(--slate); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+    .p3__cap-txt { display: flex; flex-direction: column; gap: 1mm; font-size: var(--l4); line-height: 1.35; white-space: nowrap; }
+    .p3__cap-txt b { font-weight: 700; color: var(--ink); }
+    .p3__cap-txt span { font-weight: 500; color: var(--muted); }
+    .p3__facts { margin-top: 18mm; }
     .p3__stats { display: grid; grid-template-columns: var(--col) var(--col); row-gap: 22mm; margin-top: 28mm; }
     .p3__num { font-size: var(--l2-num); line-height: .9; font-weight: 700; letter-spacing: -.02em; color: var(--slate); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .p3__stat .p3__t { margin-top: 12mm; }   /* 千分位逗號下伸約 9mm，標籤要讓開 */
@@ -116,9 +141,10 @@
       <section class="p3__open">
         <header>
           <h2 class="p3__h1"><em>03</em>專題方法與程序</h2>
-          <p class="p3__h1-en">Approaches<span class="chip p3__chip">智慧書櫃</span></p>
+          <p class="p3__h1-en">Approaches</p>
         </header>
-        <h3 class="p3__lead">一片 ESP32，控制四扇櫃門</h3>
+        <h3 class="p3__hl">軟硬結合</h3>
+        <p class="p3__motto">手機掃碼、一板控四門</p>
 
         <!-- 透視圖：引線位置由下方 script 依 assets/3d/cabinet_xray_points.json 的像素座標計算（圖片為貼紙淡化版 cabinet_xray_v1_stickerfix.png，座標相同） -->
         <div class="p3__xray" id="xray">
@@ -132,20 +158,11 @@
         </div>
       </section>
 
-      <!-- ===== 四道開櫃驗證 ===== -->
+      <!-- ===== 亮點：即時取書 ===== -->
       <section>
-        <h3 class="p3__h3">四道開櫃驗證</h3>
-        <div class="p3__gates">
-          <div class="p3__gate"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 20.5h1.5M20.5 14v1.5"/></svg><p class="p3__t"><span class="p3__no">01</span>動態 QR Code</p></div>
-          <div class="p3__gate"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><p class="p3__t"><span class="p3__no">02</span>定位必要</p></div>
-          <div class="p3__gate"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="8.5" height="12" rx="2"/><rect x="13" y="6" width="8.5" height="12" rx="2"/><path d="M5.6 10l1.6-1.2V15M15.6 9.6c.6-.8 2.9-1 3 .6.1 1.6-3 2.8-3 4.8h3.2"/></svg><p class="p3__t"><span class="p3__no">03</span>兩位數比對</p></div>
-          <div class="p3__gate"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.6-3.2 8.2-7.5 9.4-4.3-1.2-7.5-4.8-7.5-9.4V6z"/><path d="M8.6 12.2l2.4 2.4 4.5-4.6"/></svg><p class="p3__t"><span class="p3__no">04</span>裝置憑證・關門回報</p></div>
-        </div>
-      </section>
-
-      <!-- ===== 賣家存書五步 ===== -->
-      <section>
-        <h3 class="p3__h3">賣家存書五步</h3>
+        <h3 class="p3__hl">即時取書</h3>
+        <p class="p3__motto">免寄送、就近存取</p>
+        <h3 class="p3__h3 p3__sub">賣家存書五步</h3>
         <ol class="p3__flow">
           <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_scan.png" alt="App 畫面：掃描書櫃 QR Code"></div></figure><span class="p3__no">01</span><p class="p3__t">掃描書櫃<br>QR Code</p></li>
           <li class="p3__step"><figure class="p3__phone"><div class="p3__phone-in"><img src="assets/screens/s_cab_select.png" alt="App 畫面：選擇要存放的書"></div></figure><span class="p3__no">02</span><p class="p3__t">選擇要<br>存放的書</p></li>
@@ -155,9 +172,18 @@
         </ol>
       </section>
 
-      <!-- ===== 買家取書與撥款 ===== -->
+      <!-- ===== 亮點：嚴謹的交易監督 ===== -->
       <section>
-        <h3 class="p3__h3">買家取書與撥款</h3>
+        <h3 class="p3__hl">嚴謹的交易監督</h3>
+        <p class="p3__motto">降低詐騙與糾紛風險</p>
+        <h3 class="p3__h3 p3__sub">四道開櫃驗證</h3>
+        <div class="p3__gates">
+          <div class="p3__gate"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 20.5h1.5M20.5 14v1.5"/></svg><p class="p3__t">動態 QR Code</p></div>
+          <div class="p3__gate"><svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><p class="p3__t">定位必要</p></div>
+          <div class="p3__gate"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="8.5" height="12" rx="2"/><rect x="13" y="6" width="8.5" height="12" rx="2"/><path d="M5.6 10l1.6-1.2V15M15.6 9.6c.6-.8 2.9-1 3 .6.1 1.6-3 2.8-3 4.8h3.2"/></svg><p class="p3__t">兩位數比對</p></div>
+          <div class="p3__gate"><svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.6c0 4.6-3.2 8.2-7.5 9.4-4.3-1.2-7.5-4.8-7.5-9.4V6z"/><path d="M8.6 12.2l2.4 2.4 4.5-4.6"/></svg><p class="p3__t">裝置憑證・關門回報</p></div>
+        </div>
+        <h3 class="p3__h3 p3__sub p3__sub2">先驗收、後撥款</h3>
         <ol class="p3__line">
           <li class="p3__pt"><span class="p3__no">01</span><p class="p3__t">付款暫管</p></li>
           <li class="p3__pt"><span class="p3__no">02</span><p class="p3__t">取書關門</p></li>
@@ -173,16 +199,40 @@
           <h2 class="p3__h1"><em>04</em>專題成效</h2>
           <p class="p3__h1-en">End Result</p>
         </header>
-        <div class="p3__stats">
-          <div class="p3__stat"><p class="p3__num">301</p><p class="p3__t">API 端點</p></div>
-          <div class="p3__stat"><p class="p3__num">1,563</p><p class="p3__t">後端測試</p></div>
-          <div class="p3__stat"><p class="p3__num">2,815</p><p class="p3__t">App 測試</p></div>
-          <div class="p3__stat"><p class="p3__num">7</p><p class="p3__t">項 AI 服務</p></div>
-        </div>
-        <ul class="p3__oks">
-          <li class="p3__ok"><i></i><div><b class="p3__t">書櫃實機</b><span class="p3__d">螢幕、繼電器與四顆電磁鎖測試通過</span></div></li>
-          <li class="p3__ok"><i></i><div><b class="p3__t">完整交易流程</b><span class="p3__d">上架、付款暫管、存書、取書、撥款與爭議處理皆可實際操作</span></div></li>
-        </ul>
+        <!-- 我們開發的成果 → 解決的問題（對應海報 2 的問卷數據） -->
+        <!-- 問題（文字，不放數據）→ 我們開發的解法 -->
+        <!-- 我們開發的解法（大字）＋對應的問題（小字），左側為線條圖示 -->
+        <ol class="p3__results">
+          <li class="card p3__cell">
+            <div class="p3__cell-top">
+              <span class="p3__ico p3__cell-ico"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M5 7.5h14M5 12h14M5 16.5h14"/><path d="M15.5 9.3v.9M15.5 13.8v.9"/></svg></span>
+              <p class="p3__cell-s">軟硬體結合<br>智慧書櫃免寄送</p>
+            </div>
+            <p class="p3__cell-p"><span class="p3__cell-tag">問題</span>需自行包裝、跑超商寄貨</p>
+          </li>
+          <li class="card p3__cell">
+            <div class="p3__cell-top">
+              <span class="p3__ico p3__cell-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>
+              <p class="p3__cell-s">自助存取與<br>非同步取貨</p>
+            </div>
+            <p class="p3__cell-p"><span class="p3__cell-tag">問題</span>面交時間難以配合</p>
+          </li>
+          <li class="card p3__cell">
+            <div class="p3__cell-top">
+              <span class="p3__ico p3__cell-ico"><svg viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M8.8 13l2.3 2.3 4.2-4.3"/></svg></span>
+              <p class="p3__cell-s">先驗收、後撥款<br>嚴謹交易流程</p>
+            </div>
+            <p class="p3__cell-p"><span class="p3__cell-tag">問題</span>擔心遇到放鳥或詐騙</p>
+          </li>
+          <li class="card p3__cell">
+            <div class="p3__cell-top">
+              <span class="p3__ico p3__cell-ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7l1.6-2.5h3.8L15.5 7"/><circle cx="12" cy="13.5" r="3.4"/></svg></span>
+              <p class="p3__cell-s">拍張照片<br>AI 判斷書況與售價</p>
+            </div>
+            <p class="p3__cell-p"><span class="p3__cell-tag">問題</span>書況描述與實物有落差</p>
+          </li>
+        </ol>
+        <p class="p3__d p3__facts">301 API 端點・1,563 後端測試・2,815 App 測試・7 項 AI 服務</p>
       </section>
 
       <!-- ===== 底部：logo、標語、官網 QR ===== -->
@@ -219,7 +269,7 @@
 
       const bandTop = Math.max(...['board', 'relays', 'screen'].map((k) => hOf(lab(k))));
       const bandBot = Math.max(...['locks', 'switches'].map((k) => hOf(lab(k))));
-      const img = { w: W, x: 0 };
+      const img = { w: 400, x: (W - 400) / 2 };   // 圖寬 40cm 置中（為亮點標語與 04 騰出高度）
       img.h = img.w * PX.h / PX.w;
       img.y = bandTop - 4;                    // 圖片上緣約 10mm、下緣約 8mm 本身是空白，標註列可略為疊入
       const H = img.y + img.h - 4 + bandBot;

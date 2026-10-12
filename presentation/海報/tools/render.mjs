@@ -223,7 +223,7 @@ async function renderPdf(variant, page, pg) {
   }
   doc.setTitle(outBase);
   doc.setProducer('Chrome (Skia/PDF) + pdf-lib');
-  writeFileSync(file, await doc.save());
+  await writeAtomic(file, await doc.save());
   console.log(`  → ${file}`);
   return { file, ...(await verifyPdf(file, pg)) };
 }
