@@ -53,6 +53,8 @@ struct View {
   Icon icon = Icon::None;
   std::string notice;
   std::vector<std::string> doorLabels;
+  // 動畫時間（毫秒，只取相對值），轉圈等動畫依此計算。
+  uint32_t tick = 0;
 };
 
 }  // namespace smb

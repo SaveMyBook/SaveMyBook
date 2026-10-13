@@ -21,7 +21,8 @@ namespace smb {
 
 static const char *TAG = "display";
 
-constexpr int BAND_H = 40;
+// 每段 24 列：兩個傳送緩衝輪流使用（畫下一段時上一段仍在 DMA 傳送），轉場時另需一個畫舊畫面的緩衝，共約 45 KB。
+constexpr int BAND_H = 24;
 constexpr int BANDS = SCREEN_H / BAND_H;
 
 static esp_lcd_panel_io_handle_t s_io;
@@ -29,7 +30,34 @@ static esp_lcd_panel_handle_t s_panel;
 static int64_t s_lastSetup;
 static std::atomic<bool> s_recover{false};
 static SemaphoreHandle_t s_done;
-static uint16_t *s_band;
+static uint16_t *s_bands[2];
+static uint16_t *s_under;
+
+// 轉場時的混合分一半給核心 0：混合只讀寫傳入的緩衝，兩顆核心各算各的列不會互相影響
+struct BlendJob {
+  uint16_t *dst;
+  const uint16_t *under;
+  int count, alpha;
+};
+static BlendJob s_job;
+static TaskHandle_t s_helper;
+static SemaphoreHandle_t s_helperDone;
+
+[[noreturn]] static void blendHelper(void *) {
+  for (;;) {
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    blend_band(s_job.dst, s_job.under, s_job.count, s_job.alpha);
+    xSemaphoreGive(s_helperDone);
+  }
+}
+
+static void blendParallel(uint16_t *dst, const uint16_t *under, int count, int alpha) {
+  const int half = count / 2 & ~1;  // 偶數像素：混合一次處理兩個像素（4 位元組對齊）
+  s_job = {dst + half, under + half, count - half, alpha};
+  xTaskNotifyGive(s_helper);
+  blend_band(dst, under, half, alpha);
+  xSemaphoreTake(s_helperDone, portMAX_DELAY);
+}
 static uint32_t s_hash[BANDS];
 static bool s_first = true;
 
@@ -118,9 +146,11 @@ void display_init() {
   bus.quadwp_io_num = -1;
   bus.quadhd_io_num = -1;
   bus.max_transfer_sz = SCREEN_W * BAND_H * 2;
+  // 傳輸完成中斷放在畫面工作所在的核心 1：核心 0 做 HTTPS 金鑰運算時會長時間關中斷，畫面曾因此卡住 0.5 秒
+  bus.isr_cpu_id = ESP_INTR_CPU_AFFINITY_1;
   ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &bus, SPI_DMA_CH_AUTO));
 
-  s_done = xSemaphoreCreateBinary();
+  s_done = xSemaphoreCreateCounting(8, 0);  // 每完成一筆像素傳輸加一；串流時可能連續完成好幾筆
   esp_lcd_panel_io_spi_config_t io_cfg = {};
   io_cfg.cs_gpio_num = PIN_TFT_CS;
   io_cfg.dc_gpio_num = PIN_TFT_DC;
@@ -142,8 +172,15 @@ void display_init() {
   ESP_ERROR_CHECK(esp_lcd_panel_reset(s_panel));
   panelSetup();
 
-  s_band = static_cast<uint16_t *>(heap_caps_malloc(SCREEN_W * BAND_H * 2, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL));
-  assert(s_band);
+  for (uint16_t *&b : s_bands) {
+    b = static_cast<uint16_t *>(heap_caps_malloc(SCREEN_W * BAND_H * 2, MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL));
+    assert(b);
+  }
+  s_under = static_cast<uint16_t *>(heap_caps_malloc(SCREEN_W * BAND_H * 2, MALLOC_CAP_INTERNAL));
+  assert(s_under);
+  s_helperDone = xSemaphoreCreateBinary();
+  // 優先權高於網路工作（5）：HTTPS 金鑰運算期間也能立刻幫忙，每次只做幾毫秒
+  xTaskCreatePinnedToCore(blendHelper, "blend", 2048, nullptr, 6, &s_helper, 0);
   display_frame([](Canvas &c) { c.fill(color::BG); });
   ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(s_panel, true));
   ESP_LOGI(TAG, "panel ready, rotation %d, spi %d MHz", CONFIG_SMB_SCREEN_ROTATION, CONFIG_SMB_TFT_SPI_MHZ);
@@ -151,28 +188,69 @@ void display_init() {
 
 void display_recover() { s_recover = true; }
 
+uint16_t *display_alloc_frame() {
+  return static_cast<uint16_t *>(heap_caps_malloc(SCREEN_W * SCREEN_H * 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+}
+
 static uint32_t fnv(const uint16_t *p, size_t n) {
   uint32_t h = 2166136261u;
   for (size_t i = 0; i < n; i++) h = (h ^ p[i]) * 16777619u;
   return h;
 }
 
-void display_frame(const std::function<void(Canvas &)> &draw) {
+// 設定寫入範圍：整列寬，y0 到畫面底部（之後的資料依序往下寫，下一個指令前都有效）。
+static void setWindow(int y0) {
+  const uint8_t caset[] = {0, 0, static_cast<uint8_t>((SCREEN_W - 1) >> 8), static_cast<uint8_t>((SCREEN_W - 1) & 0xFF)};
+  const uint8_t raset[] = {static_cast<uint8_t>(y0 >> 8), static_cast<uint8_t>(y0 & 0xFF), static_cast<uint8_t>((SCREEN_H - 1) >> 8),
+                           static_cast<uint8_t>((SCREEN_H - 1) & 0xFF)};
+  ESP_ERROR_CHECK(esp_lcd_panel_io_tx_param(s_io, 0x2A, caset, sizeof(caset)));
+  ESP_ERROR_CHECK(esp_lcd_panel_io_tx_param(s_io, 0x2B, raset, sizeof(raset)));
+}
+
+void display_frame(const std::function<void(Canvas &)> &draw, const std::function<void(Canvas &)> &under, int underAlpha,
+                   int fromY, int toY, bool compare) {
   // 螢幕無法回讀狀態：電磁鎖動作後與每 10 秒重送設定並整面重畫，鬆脫或重置後自動恢復
   if (!s_first && (s_recover.exchange(false) || esp_timer_get_time() - s_lastSetup > 10 * 1000000LL)) {
     panelSetup();
     ESP_ERROR_CHECK(esp_lcd_panel_disp_on_off(s_panel, true));
     s_first = true;
   }
-  for (int b = 0; b < BANDS; b++) {
-    Canvas canvas(s_band, b * BAND_H, BAND_H);
-    draw(canvas);
-    const uint32_t h = fnv(s_band, SCREEN_W * BAND_H);
-    if (!s_first && h == s_hash[b]) continue;
-    s_hash[b] = h;
-    ESP_ERROR_CHECK(esp_lcd_panel_draw_bitmap(s_panel, 0, b * BAND_H, SCREEN_W, (b + 1) * BAND_H, s_band));
+  // 連續變動的段落一次設定寫入範圍後串流送出（不帶指令的資料傳輸會直接排入 DMA 佇列），
+  // 送出這段時同時畫下一段；兩個緩衝輪流使用，畫之前確認該緩衝已傳完。
+  int cur = 0, inflight = 0, last = -2;
+  auto waitOne = [&] {
     xSemaphoreTake(s_done, portMAX_DELAY);
+    inflight--;
+  };
+  for (int b = 0; b < BANDS; b++) {
+    if (!s_first && ((b + 1) * BAND_H <= fromY || b * BAND_H >= toY)) continue;
+    if (inflight >= 2) waitOne();  // 最舊的一筆就是這個緩衝
+    uint16_t *buf = s_bands[cur];
+    Canvas canvas(buf, b * BAND_H, BAND_H);
+    draw(canvas);
+    if (under && underAlpha > 0) {
+      Canvas old(s_under, b * BAND_H, BAND_H);
+      under(old);
+      blendParallel(buf, s_under, SCREEN_W * BAND_H, underAlpha);
+    }
+    if (compare) {
+      const uint32_t h = fnv(buf, SCREEN_W * BAND_H);
+      if (!s_first && h == s_hash[b]) continue;
+      s_hash[b] = h;
+    } else {
+      s_hash[b] = 0;  // 未記錄內容：下一次比對一定視為改變而重送
+    }
+    if (last == b - 1) {
+      ESP_ERROR_CHECK(esp_lcd_panel_io_tx_color(s_io, -1, buf, SCREEN_W * BAND_H * 2));
+    } else {
+      setWindow(b * BAND_H);  // 送指令前驅動程式會先等佇列清空
+      ESP_ERROR_CHECK(esp_lcd_panel_io_tx_color(s_io, 0x2C, buf, SCREEN_W * BAND_H * 2));
+    }
+    inflight++;
+    last = b;
+    cur ^= 1;
   }
+  while (inflight > 0) waitOne();
   s_first = false;
 }
 

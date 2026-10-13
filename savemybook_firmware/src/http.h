@@ -17,5 +17,7 @@ struct HttpResult {
 // token 為空字串時不帶 Authorization。
 HttpResult http_request(const char *method, const char *path, const std::string &body, const std::string &token,
                         const std::string &bootId);
+// Wi-Fi 斷線時呼叫（任何工作皆可）：下一次請求改開新連線。
+void http_invalidate();
 
 }  // namespace smb

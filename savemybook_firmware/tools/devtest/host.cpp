@@ -143,6 +143,8 @@ void relay_pulse(int channel, int ms, const std::function<bool()> &stop) {
 }
 
 void display_set_brightness(int percent) { host::brightness = percent; }
+void ui_wake() {}
+void ui_prepare_qr(const std::string &) {}
 void door_init() {}
 bool door_open(int channel) { return host::doorOpen[channel].load(); }
 int door_raw(int) { return -1; }

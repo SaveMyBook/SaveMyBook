@@ -33,6 +33,7 @@ FONTS = [
     ("FONT_SMALL", REGULAR, 13, None),
     ("FONT_BODY", REGULAR, 15, None),
     ("FONT_TITLE", MEDIUM, 16, None),
+    ("FONT_HEAD", MEDIUM, 20, None),
     ("FONT_CODE", MEDIUM, 38, DIGITS + "-"),
     ("FONT_LABEL", MEDIUM, 44, "A" + DIGITS),
     ("FONT_LABEL_SM", MEDIUM, 28, "A" + DIGITS),

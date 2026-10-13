@@ -30,6 +30,8 @@ class Device {
   void begin(const std::string &resetReason);
   [[noreturn]] void runNetwork();
   [[noreturn]] void runLocks();
+  // Wi-Fi 重新連上時呼叫（任何工作皆可）。
+  void wake();
   View view();
 
  private:

@@ -1,5 +1,6 @@
 #include "http.h"
 
+#include <atomic>
 #include <cstring>
 #include <strings.h>
 
@@ -8,6 +9,7 @@
 #include "esp_http_client.h"
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "lwip/sockets.h"
 #include "sdkconfig.h"
 
 namespace smb {
@@ -23,10 +25,16 @@ struct Context {
 
 static Context s_ctx;
 static esp_http_client_handle_t s_client;
+static std::atomic<bool> s_stale{false};
 
 static esp_err_t onEvent(esp_http_client_event_t *evt) {
   auto *ctx = static_cast<Context *>(evt->user_data);
-  if (evt->event_id == HTTP_EVENT_ON_HEADER && evt->header_key && strcasecmp(evt->header_key, "Retry-After") == 0) {
+  if (evt->event_id == HTTP_EVENT_ON_CONNECTED) {
+    // 標頭與內容分兩次寫出：開著 Nagle 時內容要等伺服器回 ACK（延遲 ACK 約 40 毫秒）才送出
+    const int fd = esp_http_client_get_socket(evt->client);
+    const int one = 1;
+    if (fd >= 0) setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+  } else if (evt->event_id == HTTP_EVENT_ON_HEADER && evt->header_key && strcasecmp(evt->header_key, "Retry-After") == 0) {
     ctx->retryAfterSec = atoi(evt->header_value);
   } else if (evt->event_id == HTTP_EVENT_ON_HEADER && evt->header_key && strcasecmp(evt->header_key, "Date") == 0) {
     ctx->date = evt->header_value;
@@ -39,6 +47,11 @@ static esp_err_t onEvent(esp_http_client_event_t *evt) {
 HttpResult http_request(const char *method, const char *path, const std::string &body, const std::string &token,
                         const std::string &bootId) {
   const std::string url = std::string(CONFIG_SMB_API_BASE) + path;
+  // Wi-Fi 斷過線：舊連線可能已被伺服器關閉，直接重連，免得恢復後第一次請求白白失敗再等退避
+  if (s_stale.exchange(false) && s_client) {
+    esp_http_client_cleanup(s_client);
+    s_client = nullptr;
+  }
   if (!s_client) {
     esp_http_client_config_t cfg = {};
     cfg.url = url.c_str();
@@ -98,5 +111,7 @@ HttpResult http_request(const char *method, const char *path, const std::string 
   ESP_LOGI(TAG, "%s %s -> %d (%lld ms)", method, path, res.status, res.rttMs);
   return res;
 }
+
+void http_invalidate() { s_stale = true; }
 
 }  // namespace smb

@@ -13,6 +13,7 @@ typedef struct { uint8_t size, ascent, descent; uint16_t count; const smb_glyph_
 extern const smb_font_t FONT_SMALL;
 extern const smb_font_t FONT_BODY;
 extern const smb_font_t FONT_TITLE;
+extern const smb_font_t FONT_HEAD;
 extern const smb_font_t FONT_CODE;
 extern const smb_font_t FONT_LABEL;
 extern const smb_font_t FONT_LABEL_SM;

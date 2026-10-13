@@ -10,7 +10,7 @@
 
 | 元件 | 規格 | 數量 |
 |---|---|---|
-| 開發板 | GOOUUU ESP32-S3（與 YD-ESP32-S3、ESP32-S3-DevKitC-1 同腳位，Flash 4 MB 以上） | 1 |
+| 開發板 | GOOUUU ESP32-S3（與 YD-ESP32-S3、ESP32-S3-DevKitC-1 同腳位，Flash 4 MB 以上；建議內建 8 MB PSRAM 的 N16R8，用來放畫面快取，沒有時自動改為每段整個重畫、動畫較不順） | 1 |
 | 螢幕 | 2.8 吋 SPI TFT 240×320，ST7789（排線印 TPM408-2.8，TN 面板）；附觸控與 SD 卡座，兩者都不接 | 1 |
 | 電磁鎖 | 12V 0.6A，通電開鎖、斷電上鎖 | 4 |
 | 四路繼電器模組 | 5V 線圈、光耦隔離，低電平觸發 | 1 |
@@ -84,11 +84,11 @@ pio run -e esp32s3
 |---|---|---|
 | Device API base URL | `https://api.savemybook.today/api/device/v1` | 後端位址 |
 | Relay module is low-level triggered | 開 | 繼電器若為高電平觸發，關閉此項 |
-| Screen rotation | 3 | 橫向為 1 或 3，依螢幕排針朝哪一側裝設；畫面上下顛倒時改另一個 |
+| Screen rotation | 1 | 橫向為 1 或 3，依螢幕排針朝哪一側裝設；畫面上下顛倒時改另一個（自製主控板 Rev A 為 1） |
 | Panel controller is ILI9341 | 關 | 目前的螢幕是 ST7789；換成 ILI9341 的螢幕時開啟。晶片設錯時畫面不會轉成橫向，下方四分之一是雜訊 |
 | Invert panel colors | 關 | 顏色反相（黑底變白底）時切換；IPS 面板通常要開 |
 | Mirror the screen horizontally | 開 | 字左右相反時切換 |
-| Screen SPI clock (MHz) | 10 | 杜邦線接到 40 MHz 會整面亂碼；改用短排線或焊接後可調高 |
+| Screen SPI clock (MHz) | 80 | 自製主控板 Rev A（螢幕接 J6）用 80；用杜邦線接時 40 MHz 以上會整面亂碼，改回 10 |
 | Door switches installed | 開 | 沒有裝微動開關時關閉，否則空腳位會被當成門開著 |
 | Door switch output level when the door is closed | 0 | 門關上時 OUT 的電位；門磁測試版顯示相反時改成 1 |
 
@@ -113,11 +113,18 @@ pio run -e esp32s3
      ```bash
      PLATFORMIO_BUILD_FLAGS="-DSMB_HW_TEST_DOORS=1" pio run -e hwtest -t upload
      ```
+   - 自製主控板 Rev A 整板測試：
+     ```bash
+     PLATFORMIO_BUILD_FLAGS="-DSMB_HW_TEST_BOARD=1" pio run -e hwtest -t upload
+     ```
+     - 螢幕上方是色條，由左到右應為紅、綠、藍、白、黑、灰；下方四格是 A01–A04 的門磁，壓下（門關）為綠底「關」，放開為黃底「開」。
+     - 繼電器 A01 到 A04 輪流通電 1 秒，通電那格加白框，板上 D9–D12 同時亮。按開發板的 BOOT 鍵可暫停或恢復輪流。
+     - 開發板的 USB 孔可下指令，每行一個：`1`–`4` 通電 1 秒、`h1`–`h4` 通電 3 秒、`all` 四顆依序、`s` 停止輪流、`a` 恢復輪流、`b50` 背光 50%、`d` 印出狀態。紀錄也從 USB 孔輸出，每 5 秒印一次狀態；打開序列埠時板子會重新開機。
 3. **燒錄正式版並設定 Wi-Fi**：
    - 螢幕會顯示 Wi-Fi 設定用的 QR Code。
    - 用手機安裝 Espressif 官方的「ESP BLE Provisioning」App，掃描後選擇網路並輸入密碼。
    - 設定密碼每次開機隨機產生，只出現在螢幕上，必須在書櫃前才能設定。
-   - 已設定的網路連不上超過 2 分鐘，螢幕會自動顯示 Wi-Fi 設定的 QR Code（櫃體封起來後不必按按鈕），同時每分鐘再試一次原本的網路，連回去就自動結束設定。
+   - 已設定的網路連不上超過 20 秒，螢幕會自動顯示 Wi-Fi 設定的 QR Code（櫃體封起來後不必按按鈕），同時每 15 秒再試一次原本的網路，連回去就自動結束設定。
    - 也可以按住板上的 BOOT 鍵 5 秒，清除 Wi-Fi 設定並重新開機，裝置憑證保留。
 4. **配對**：
    - 連上網路後，螢幕顯示 8 位數配對碼。

@@ -1,12 +1,16 @@
+#include <algorithm>
 #include <atomic>
 
+#include "boardtest.h"
 #include "clock.h"
 #include "demo.h"
 #include "device.h"
 #include "display.h"
 #include "door.h"
+#include "esp_log.h"
 #include "esp_system.h"
 #include "esp_task_wdt.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "pins.h"
@@ -20,6 +24,11 @@ using namespace smb;
 
 static Device s_device;
 static std::atomic<bool> s_deviceStarted{false};
+static std::atomic<TaskHandle_t> s_uiTask{nullptr};
+
+void smb::ui_wake() {
+  if (TaskHandle_t t = s_uiTask) xTaskNotifyGive(t);
+}
 
 #ifndef SMB_HW_TEST
 static const char *resetReason() {
@@ -56,6 +65,7 @@ static View wifiView() {
 }
 
 [[noreturn]] static void uiTask(void *) {
+  s_uiTask = xTaskGetCurrentTaskHandle();
   esp_task_wdt_add(nullptr);
   for (;;) {
     esp_task_wdt_reset();
@@ -66,9 +76,19 @@ static View wifiView() {
         v.screen != Screen::Admin && v.screen != Screen::Opening)
       v = wifiView();
     v.clock = clock_hhmm();
-    ui_draw(v);
-    vTaskDelay(pdMS_TO_TICKS(250));
+    v.tick = static_cast<uint32_t>(esp_timer_get_time() / 1000);
+    const int64_t started = esp_timer_get_time();
+    const bool animating = ui_draw(v);
+    // 有動畫（轉場、轉圈、倒數）時以約 60 fps 更新；靜態畫面每 250 毫秒檢查一次即可
+    const int spentMs = static_cast<int>((esp_timer_get_time() - started) / 1000);
+    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(animating ? std::max(1, 16 - spentMs) : 250));
   }
+}
+
+// 與螢幕初始化同時進行：Wi-Fi 連線在背景完成，開機到連上網路少等約 0.3 秒。
+static void wifiStartTask(void *) {
+  wifi_start();
+  vTaskDelete(nullptr);
 }
 
 // 按住板上的 BOOT 鍵 5 秒：清除 Wi-Fi 設定後重新開機，回到藍牙設定畫面。裝置憑證保留。
@@ -98,6 +118,10 @@ static View wifiView() {
 #endif
 #ifndef SMB_HW_TEST_DOORS
 #define SMB_HW_TEST_DOORS 0
+#endif
+// -DSMB_HW_TEST_BOARD=1 時改跑自製主控板的整板測試（boardtest.cpp）。
+#ifndef SMB_HW_TEST_BOARD
+#define SMB_HW_TEST_BOARD 0
 #endif
 
 [[noreturn]] static void doorTest(const View &base) {
@@ -152,21 +176,31 @@ static View wifiView() {
 
 extern "C" void app_main(void) {
   relay_init();  // 第一件事：所有電磁鎖維持上鎖
+  esp_log_level_set("*", ESP_LOG_INFO);  // 開機階段只印警告（sdkconfig.defaults），之後恢復
   door_init();
   store::init();
+#ifndef SMB_HW_TEST
+  wifi_on_connected([] {
+    if (s_deviceStarted) s_device.wake();
+    ui_wake();
+  });
+  // 運算量大的工作（Wi-Fi 設定密碼的 SRP、HTTPS 金鑰交換）固定在核心 0，核心 1 留給畫面，動畫不會被擠掉
+  xTaskCreatePinnedToCore(wifiStartTask, "wifistart", 8192, nullptr, 5, nullptr, 0);
+#endif
   display_init();
   display_set_brightness(savedBrightness());
 #ifdef SMB_HW_TEST
+  if (SMB_HW_TEST_BOARD) board_test();
   hwTest();
 #else
-  xTaskCreate(uiTask, "ui", 8192, nullptr, 4, nullptr);
-  wifi_start();
+  // 畫面放在第二顆核心：動畫重畫不與 Wi-Fi、網路工作搶 CPU
+  xTaskCreatePinnedToCore(uiTask, "ui", 8192, nullptr, 4, nullptr, 1);
   xTaskCreate(keyTask, "key", 3072, nullptr, 2, nullptr);
-  while (!wifi_ever_connected()) vTaskDelay(pdMS_TO_TICKS(200));
+  while (!wifi_ever_connected()) vTaskDelay(pdMS_TO_TICKS(50));
 
   s_device.begin(resetReason());
   xTaskCreate([](void *) { s_device.runLocks(); }, "locks", 4096, nullptr, 6, nullptr);
-  xTaskCreate([](void *) { s_device.runNetwork(); }, "net", 12288, nullptr, 5, nullptr);
+  xTaskCreatePinnedToCore([](void *) { s_device.runNetwork(); }, "net", 12288, nullptr, 5, nullptr, 0);
   s_deviceStarted = true;
 #endif
 }

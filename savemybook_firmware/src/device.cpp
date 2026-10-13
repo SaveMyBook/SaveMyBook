@@ -19,6 +19,7 @@
 #include "sdkconfig.h"
 #include "store.h"
 #include "messages.h"
+#include "ui.h"
 
 namespace smb {
 
@@ -300,6 +301,16 @@ std::string Device::batchBody_(std::vector<std::string> &ids) {
   return toJson(root);
 }
 
+// 回應中的書櫃 QR Code 內容（GET /state 在 data.qr，POST /events 在 data.state.qr）。
+static std::string qrPayloadOf(const std::string &body) {
+  cJSON *root = cJSON_Parse(body.c_str());
+  const cJSON *data = cJSON_GetObjectItemCaseSensitive(root, "data");
+  const cJSON *state = cJSON_GetObjectItemCaseSensitive(data, "state");
+  std::string payload = str(cJSON_GetObjectItemCaseSensitive(cJSON_IsObject(state) ? state : data, "qr"), "payload");
+  cJSON_Delete(root);
+  return payload;
+}
+
 void Device::cycle() {
   std::string body, token, boot;
   std::vector<std::string> ids;
@@ -318,14 +329,29 @@ void Device::cycle() {
   }
   const HttpResult res = events ? http_request("POST", "/events", body, token, boot)
                                 : http_request("GET", "/state", "", token, boot);
+  // 套用狀態前先產生 QR Code：畫面工作看到新狀態時已經有現成的，換畫面不會頓一下
+  ui_prepare_qr(qrPayloadOf(res.body));
   std::lock_guard<std::mutex> g(mu_);
   inflight_ = false;
   if (gen != gen_) return;
+  ui_wake();
   int64_t next = events ? afterEvents_(res, ids) : afterState_(res);
   if (next < 0) return;
   if (flushRequested_ && failures_ == 0) next = 0;
   nextPollAt_ = nowMs() + next;
   pollScheduled_ = true;
+}
+
+// Wi-Fi 重新連上：網路錯誤的退避（最長 15 秒）不必等完，立即再試。其他原因的等待（限流、維護等）照舊。
+void Device::wake() {
+  {
+    std::lock_guard<std::mutex> g(mu_);
+    if (failures_ == 0) return;
+    const int64_t now = nowMs();
+    if (!token_.empty() && pollScheduled_) nextPollAt_ = std::min(nextPollAt_, now);
+    else if (token_.empty() && pairing_.active) pairing_.nextAt = std::min(pairing_.nextAt, now);
+  }
+  if (netTask_) xTaskNotifyGive(netTask_);
 }
 
 Device::Kind Device::classify(const HttpResult &res, const cJSON *root) const {
@@ -585,11 +611,13 @@ void Device::handleUnlock_(const cJSON *commands, int64_t rtt) {
       {
         std::lock_guard<std::mutex> g(mu_);
         hw_[cmd.channel].unlocking = true;
+        ui_wake();
       }
       const int channel = cmd.channel;
       relay_pulse(channel, cmd.releaseMs, DOOR_SENSOR ? std::function<bool()>([channel] { return door_open(channel); })
                                                       : std::function<bool()>());
       std::lock_guard<std::mutex> g(mu_);
+      ui_wake();
       lastPowerOff_ = nowMs();
       hw_[channel].unlocking = false;
       hw_[channel].graceUntil = lastPowerOff_ + SENSOR_OPEN_WAIT_MS;
@@ -708,6 +736,7 @@ bool Device::sessionDoorOpen_() const {
 void Device::onDoor(int channel, bool open) {
   if (channel < 1 || channel > DOOR_COUNT) return;
   std::lock_guard<std::mutex> g(mu_);
+  ui_wake();  // 畫面工作取得 mu_ 時已是更新後的狀態
   Hw &hw = hw_[channel];
   if (open) {
     if (hw.open) return;
@@ -784,6 +813,7 @@ void Device::pairCycle() {
   }
 
   std::lock_guard<std::mutex> g(mu_);
+  ui_wake();
   if (gen != gen_ || !token_.empty() || !pairing_.active) return;
   const int64_t next = pollToken.empty() ? afterPairRequest_(res) : afterPairPoll_(res);
   if (next < 0) return;
