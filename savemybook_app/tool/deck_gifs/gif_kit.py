@@ -52,7 +52,9 @@ ISLAND = (125.0, 36.5, 11.0)  # 寬、高、距螢幕頂端
 # 側邊按鍵：(左 -1／右 1, 距機身頂端, 長度)
 BUTTONS = [(-1, 180.0, 36.0), (-1, 247.0, 67.0), (-1, 324.0, 67.0), (1, 210.0, 103.0), (1, 466.0, 52.0)]
 
-STATUS_SRC = '/Users/xukaijun/Desktop/SaveMyBook/documents/使用手冊截圖/6. 加入購物車與結帳/表12-6-1 購物車.PNG'
+# 狀態列取自 repo 內的實機截圖（以本檔位置推算 repo 根目錄，Mac 與 Windows 皆可用）
+REPO_ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
+STATUS_SRC = os.path.join(REPO_ROOT, 'documents', '使用手冊截圖', '6. 加入購物車與結帳', '表12-6-1 購物車.PNG')
 STATUS_BAND = 60      # 狀態列高度（pt）
 STATUS_MOON = (85, 107)  # 勿擾模式月亮圖示的橫向範圍（pt），移除
 STATUS_BG_LUMA = 50
@@ -350,6 +352,16 @@ def build(frames_dir, out_gif, height=900, fps=25, loop_fade=0.4, statusbar=None
     return total, out_size, size
 
 
+def label_font(size=16):
+    """總覽圖秒數標籤的字型：macOS 的 Helvetica、Windows 的 Arial，都沒有時用 Pillow 內建字型。"""
+    for path in ('/System/Library/Fonts/Helvetica.ttc', 'C:/Windows/Fonts/arial.ttf'):
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            pass
+    return ImageFont.load_default()
+
+
 def sheet(gif, out_png, step=0.2, cols=10):
     im = Image.open(gif)
     frames, times = [], []
@@ -373,10 +385,7 @@ def sheet(gif, out_png, step=0.2, cols=10):
     rows = (len(picks) + cols - 1) // cols
     label_h = 22
     out = Image.new('RGB', (cols * (fw + 6), rows * (fh + label_h + 6)), 'white')
-    try:
-        font = ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc', 16)
-    except OSError:
-        font = ImageFont.load_default()
+    font = label_font()
     d = ImageDraw.Draw(out)
     for n, (s, f) in enumerate(picks):
         x, y = (n % cols) * (fw + 6), (n // cols) * (fh + label_h + 6)
@@ -517,10 +526,7 @@ def video_sheet(mp4, out_png, step=0.2, cols=10):
     rows = (len(picks) + cols - 1) // cols
     label_h = 22
     out = Image.new('RGB', (cols * (fw + 6), rows * (fh + label_h + 6)), 'white')
-    try:
-        font = ImageFont.truetype('/System/Library/Fonts/Helvetica.ttc', 16)
-    except OSError:
-        font = ImageFont.load_default()
+    font = label_font()
     d = ImageDraw.Draw(out)
     for n, f in enumerate(picks):
         x, y = (n % cols) * (fw + 6), (n // cols) * (fh + label_h + 6)

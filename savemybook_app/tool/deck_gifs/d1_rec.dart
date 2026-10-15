@@ -12,8 +12,10 @@ import 'package:marquee/marquee.dart';
 
 import '../manual_shots/manual_host.dart';
 
-const d1Root =
-    '/private/tmp/claude-501/-Users-xukaijun-Desktop-SaveMyBook-savemybook-app/f52b6347-17b0-4b79-95e7-263531604b33/scratchpad/deck_gif/d1';
+/// 畫格輸出根目錄；環境變數 DECK_GIF_ROOT（例如 Windows 上由 deck_videos.py 指定）優先，底下的 d1/ 為本子任務。
+final d1Root = Platform.environment['DECK_GIF_ROOT'] != null
+    ? '${Platform.environment['DECK_GIF_ROOT']}/d1'
+    : '/private/tmp/claude-501/-Users-xukaijun-Desktop-SaveMyBook-savemybook-app/f52b6347-17b0-4b79-95e7-263531604b33/scratchpad/deck_gif/d1';
 
 /// 截圖解析度（每 pt 幾 px）。
 const _outRatio = 2.0;
@@ -25,6 +27,9 @@ class Rec {
   final String dir;
   final frames = <Map<String, Object>>[];
   final taps = <Map<String, Object>>[];
+
+  /// 簡報字卡各步驟開始的畫格（下一張要截的畫格），合成時換算成影片時間寫入 cues.json。
+  final steps = <int>[];
 
   /// 每格的長度（微秒）。
   final int frameUs = (1000000 / recFps).round();
@@ -62,6 +67,9 @@ class Rec {
   /// 畫面靜止時只截一格並停留 [ms]。
   Future<void> hold(WidgetTester tester, int ms) => grab(tester, ms: ms.toDouble());
 
+  /// 標記下一個步驟從下一格開始。
+  void step() => steps.add(frames.length);
+
   void mark(Offset p) => taps.add({'frame': frames.length, 'x': p.dx, 'y': p.dy});
 
   /// 按下 [pressMs] 後放開，期間逐格截圖（按鈕的按壓縮放與點擊標記都會被錄到）。
@@ -75,7 +83,7 @@ class Rec {
 
   void save({bool statusbar = true}) {
     File('${Directory(dir).path}/frames.json').writeAsStringSync(
-      const JsonEncoder.withIndent(' ').convert({'frames': frames, 'taps': taps, 'statusbar': statusbar}),
+      const JsonEncoder.withIndent(' ').convert({'frames': frames, 'taps': taps, 'steps': steps, 'statusbar': statusbar}),
     );
   }
 }

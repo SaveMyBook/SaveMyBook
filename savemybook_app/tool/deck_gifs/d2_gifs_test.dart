@@ -1,5 +1,6 @@
 // 複評簡報 GIF（子任務 D2）：AI 推薦、AI 書籍顧問、AI 客服、AI 爭議分析四段操作，主線為雪喵上架的《HTML & CSS》（book 150）。
-// 執行：tool/deck_gifs/d2_run.sh（設定時區讓畫面時間與狀態列的 11:22 一致，再以 d2_build.py 合成 GIF）。
+// 執行：tool/deck_gifs/d2_run.sh（設定時區讓畫面時間與狀態列的 11:22 一致，再以 d2_build.py 合成 GIF）；
+// Windows 或要輸出簡報字卡時間（cues.json）時改用 tool/deck_gifs/deck_videos.py。
 
 import 'dart:async';
 import 'dart:io';
@@ -113,30 +114,35 @@ void main() {
       act: (tester, snap) async {
         await _ready(tester);
         final rec = GifRecorder(tester, 'ai_recommend');
-        await rec.play(const Duration(milliseconds: 1400));
+        // 簡報字卡步驟：01 依收藏與瀏覽紀錄找書 → 02 附上推薦理由 → 03 點選查看商品 → 04 相似書籍（每步至少約 3 秒，全片約 20 秒）
+        rec.step();
+        await rec.play(const Duration(milliseconds: 3800));
 
         final strip = find.descendant(of: find.byType(BookStrip).first, matching: find.byType(Scrollable)).first;
         final stripRect = tester.getRect(strip);
+        rec.step();
         await rec.scroll(tester.state<ScrollableState>(strip).position, 150,
-            finger: Offset(300, stripRect.top + 70), duration: const Duration(milliseconds: 800));
-        await rec.play(const Duration(milliseconds: 500));
+            finger: Offset(300, stripRect.top + 70), duration: const Duration(milliseconds: 1000));
+        await rec.play(const Duration(milliseconds: 2800));
 
         final tile = find.descendant(of: find.byType(BookStrip).first, matching: find.text(_title));
+        rec.step();
         await rec.tap(tile, shift: const Offset(0, -80));
         await rec.play(const Duration(milliseconds: 900));
         await waitForImages(tester);
-        await rec.play(const Duration(milliseconds: 800));
+        await rec.play(const Duration(milliseconds: 1800));
 
         final pages = find.descendant(of: find.byType(PageView).first, matching: find.byType(Scrollable)).first;
         await rec.scroll(tester.state<ScrollableState>(pages).position, logicalSize.width,
-            finger: const Offset(320, 300), duration: const Duration(milliseconds: 480));
-        await rec.play(const Duration(milliseconds: 800));
+            finger: const Offset(320, 300), duration: const Duration(milliseconds: 520));
+        await rec.play(const Duration(milliseconds: 2000));
 
         final main = tester.state<ScrollableState>(find.ancestor(of: find.byType(PageView).first, matching: find.byType(Scrollable)).first);
         final card = tester.getRect(find.text(cabinetJson(_cabinetId)['cabinet_name'] as String).first);
         final delta = (card.top - 330).clamp(0.0, main.position.maxScrollExtent - main.position.pixels);
-        await rec.scroll(main.position, delta, finger: const Offset(210, 720), duration: const Duration(milliseconds: 880));
-        await rec.play(const Duration(milliseconds: 1800));
+        rec.step();
+        await rec.scroll(main.position, delta, finger: const Offset(210, 720), duration: const Duration(milliseconds: 1000));
+        await rec.play(const Duration(milliseconds: 4500));
         rec.save();
       },
     );
@@ -206,17 +212,21 @@ void main() {
           unawaited(AiStatus.refresh(force: true));
           await _ready(tester);
           final rec = GifRecorder(tester, 'ai_advisor');
-          await rec.play(const Duration(milliseconds: 1000));
+          // 簡報字卡步驟：01 開啟 AI 書籍顧問 → 02 輸入用途與預算 → 03 AI 拆解需求後推薦 → 04 點選書卡查看商品（每步至少約 3 秒，全片約 20 秒）
+          rec.step();
+          await rec.play(const Duration(milliseconds: 1800));
 
           await rec.tap(find.text(S.aiBookAdvisor).first);
-          await rec.play(const Duration(milliseconds: 1100));
+          await rec.play(const Duration(milliseconds: 2000));
 
           final field = find.descendant(of: find.byType(AiBookChatScreen), matching: find.byType(TextField));
+          rec.step();
           await rec.tap(field);
           await rec.keyboard(true, candidates: ['我', '你', '想', '請問', '有', '推薦', '好']);
           await rec.type(
             field,
             ['想學', '網頁', '設計', '，', '預算', ' ', '3', '0', '0', ' ', '以內'],
+            step: const Duration(milliseconds: 240),
             candidates: [
               ['網頁', '程式', '英文', '做菜', '的', '畫畫'],
               ['設計', '製作', '前端', '版面', '的'],
@@ -231,18 +241,20 @@ void main() {
               ['。', '，', '的', '書', '謝謝'],
             ],
           );
-          await rec.play(const Duration(milliseconds: 400));
+          await rec.play(const Duration(milliseconds: 900));
 
+          rec.step();
           await rec.tap(find.byIcon(Icons.arrow_upward_rounded).last);
           FocusManager.instance.primaryFocus?.unfocus();
           await rec.keyboard(false);
           await rec.until(() => find.byType(AiBookChatCard).evaluate().isNotEmpty);
-          await rec.play(const Duration(milliseconds: 2000));
+          await rec.play(const Duration(milliseconds: 4500));
 
+          rec.step();
           await rec.tap(find.byType(AiBookChatCard).first);
           await rec.play(const Duration(milliseconds: 900));
           await waitForImages(tester);
-          await rec.play(const Duration(milliseconds: 1300));
+          await rec.play(const Duration(milliseconds: 3200));
           rec.save();
         });
       },
@@ -285,7 +297,9 @@ void main() {
           unawaited(AiStatus.refresh(force: true));
           await _ready(tester);
           final rec = GifRecorder(tester, 'ai_support');
-          await rec.play(const Duration(milliseconds: 1000));
+          // 簡報字卡步驟：01 提出問題 → 02 依規則與本人訂單回答 → 03 轉接客服人員（每步至少約 3 秒，全片約 20 秒）
+          rec.step();
+          await rec.play(const Duration(milliseconds: 2000));
 
           final field = find.byType(TextField);
           await rec.tap(field);
@@ -293,7 +307,7 @@ void main() {
           await rec.type(
             field,
             ['取書', '後', '發現', '有', '缺頁', '可以', '退款', '嗎', '？'],
-            step: const Duration(milliseconds: 200),
+            step: const Duration(milliseconds: 280),
             candidates: [
               ['後', '時', '的', '了', '流程'],
               ['發現', '才', '要', '可以', '的'],
@@ -306,21 +320,23 @@ void main() {
               ['謝謝', '請問', '我', '麻煩'],
             ],
           );
-          await rec.play(const Duration(milliseconds: 400));
+          await rec.play(const Duration(milliseconds: 700));
 
+          rec.step();
           await rec.tap(find.byIcon(Icons.arrow_upward_rounded).last);
           FocusManager.instance.primaryFocus?.unfocus();
           await rec.keyboard(false);
           await rec.until(() => find.text(S.ourSupportTeamCanHelpWith).evaluate().isNotEmpty);
-          await rec.play(const Duration(milliseconds: 900));
+          await rec.play(const Duration(milliseconds: 1500));
           // 轉接卡片展開後才多出高度，清單停在卡片下緣被建議問題遮住的位置，往上滑到底
           final list = tester.state<ScrollableState>(find.ancestor(of: find.text(S.ourSupportTeamCanHelpWith), matching: find.byType(Scrollable)).first);
           final rest = list.position.maxScrollExtent - list.position.pixels;
-          if (rest > 1) await rec.scroll(list.position, rest, finger: const Offset(310, 600), duration: const Duration(milliseconds: 480));
-          await rec.play(const Duration(milliseconds: 1500));
+          if (rest > 1) await rec.scroll(list.position, rest, finger: const Offset(310, 600), duration: const Duration(milliseconds: 600));
+          await rec.play(const Duration(milliseconds: 4500));
 
+          rec.step();
           await rec.tap(find.text(S.talkPerson).last);
-          await rec.play(const Duration(milliseconds: 1600));
+          await rec.play(const Duration(milliseconds: 4400));
           rec.save();
         });
       },
@@ -418,7 +434,7 @@ void main() {
             ),
           ),
         ));
-        await _withDelays({'POST /admin/disputes/$_disputeId/ai-analysis': const Duration(milliseconds: 1700)}, () async {
+        await _withDelays({'POST /admin/disputes/$_disputeId/ai-analysis': const Duration(milliseconds: 2800)}, () async {
           await _ready(tester);
           // 先開關一次裁決面板，讓面板內較大尺寸的佐證照片先解碼，錄製時滑入過程不會出現空白縮圖
           await tester.tap(find.text(S.handle).first);
@@ -427,25 +443,30 @@ void main() {
           Navigator.of(tester.element(find.text(S.analyze))).pop();
           await settleReal(tester, const Duration(milliseconds: 1500));
           final rec = GifRecorder(tester, 'ai_dispute');
-          await rec.play(const Duration(milliseconds: 1200));
+          // 簡報字卡步驟：01 買家申請爭議 → 02 AI 比對照片與說明 → 03 整理爭點與建議 → 04 管理員裁決（每步至少約 3 秒，全片約 20 秒）
+          rec.step();
+          await rec.play(const Duration(milliseconds: 2600));
 
           await rec.tap(find.text(S.handle).first);
           await rec.play(const Duration(milliseconds: 700));
           await waitForImages(tester);
-          await rec.play(const Duration(milliseconds: 700));
+          await rec.play(const Duration(milliseconds: 1500));
 
+          rec.step();
           await rec.tap(find.text(S.analyze));
-          await rec.until(() => find.textContaining('AI 參考').evaluate().isNotEmpty);
-          await rec.play(const Duration(milliseconds: 1600));
+          await rec.until(() => find.textContaining('AI 參考').evaluate().isNotEmpty, max: const Duration(seconds: 4));
+          rec.step();
+          await rec.play(const Duration(milliseconds: 3000));
 
           final sheet = tester.state<ScrollableState>(find.ancestor(of: find.text(S.aiAnalysis), matching: find.byType(Scrollable)).first);
           final radio = tester.getRect(find.text(S.disputeMediated));
           final delta = (radio.bottom - 640).clamp(0.0, sheet.position.maxScrollExtent - sheet.position.pixels);
-          await rec.scroll(sheet.position, delta, finger: const Offset(200, 700), duration: const Duration(milliseconds: 900));
-          await rec.play(const Duration(milliseconds: 900));
+          await rec.scroll(sheet.position, delta, finger: const Offset(200, 700), duration: const Duration(milliseconds: 1300));
+          await rec.play(const Duration(milliseconds: 2200));
 
+          rec.step();
           await rec.tap(find.text(S.disputeMediated));
-          await rec.play(const Duration(milliseconds: 1600));
+          await rec.play(const Duration(milliseconds: 4200));
           rec.save();
         });
       },

@@ -133,37 +133,41 @@ void main() {
           await waitForImages(tester);
 
           final input = find.byType(TextField);
-          await rec.hold(tester, 640);
+          // 簡報字卡步驟：01 買家詢問交易方式 → 02 即時標示高風險訊息 → 03 防詐須知與檢舉（每步至少約 3 秒，全片約 20 秒）
+          rec.step();
+          await rec.hold(tester, 1200);
           await rec.tap(tester, input);
           await slideKeyboard(tester, rec, keyboard: const IosKeyboard(candidates: ['我', '你好', '請問', '可以', '謝謝', '好的']), height: keyboardHeight, show: true);
-          await rec.play(tester, 120);
+          await rec.play(tester, 300);
 
           var text = '';
           for (final (word, next) in _words) {
             text += word;
             setKeyboard(tester, keyboard: IosKeyboard(candidates: next), height: keyboardHeight, visible: 1);
             await tester.enterText(input, text);
-            await rec.play(tester, 200);
+            await rec.play(tester, 300);
           }
-          await rec.play(tester, 160);
+          await rec.play(tester, 400);
 
           await rec.tap(tester, find.byIcon(Icons.send_rounded));
-          await rec.play(tester, 640);
+          await rec.play(tester, 900);
 
           _typing = true;
           await _pollNow(tester);
-          await rec.play(tester, 1100);
+          await rec.play(tester, 1600);
 
+          rec.step();
           _typing = false;
           _count = 5;
           await _pollNow(tester);
           await rec.play(tester, 900);
-          await rec.hold(tester, 900);
+          await rec.hold(tester, 5000);
 
+          rec.step();
           await rec.tap(tester, find.text(S.scamSafetyTips).first);
           await slideKeyboard(tester, rec, keyboard: const IosKeyboard(candidates: ['好', '謝謝', '請問', '我', '可以']), height: keyboardHeight, show: false);
           await rec.play(tester, 400);
-          await rec.hold(tester, 1900);
+          await rec.hold(tester, 5400);
           rec.save();
         } catch (e, st) {
           _failures.add('$e');

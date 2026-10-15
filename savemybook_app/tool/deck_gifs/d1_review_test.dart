@@ -128,30 +128,35 @@ void main() {
           await tester.tap(find.text(S.collapse).first);
           await settleReal(tester, const Duration(seconds: 1));
 
-          await rec.hold(tester, 900);
+          // 簡報字卡步驟：01 AI 標記疑慮 → 02 檢視照片與判定理由 → 03 放大確認照片 → 04 選擇原因並拒絕上架（每步至少約 3 秒，全片約 20 秒）
+          rec.step();
+          await rec.hold(tester, 3400);
+          rec.step();
           await rec.tap(tester, find.text(S.showPhotosFullDetails).first);
           await rec.play(tester, 400);
           final list = tester.state<ScrollableState>(find.ancestor(of: find.text(S.reject).first, matching: find.byType(Scrollable)).first).position;
-          unawaited(list.animateTo(150, duration: const Duration(milliseconds: 520), curve: Curves.easeInOutCubic));
-          await rec.play(tester, 600);
-          await rec.hold(tester, 500);
+          unawaited(list.animateTo(150, duration: const Duration(milliseconds: 700), curve: Curves.easeInOutCubic));
+          await rec.play(tester, 780);
+          await rec.hold(tester, 2600);
 
+          rec.step();
           await rec.tap(tester, _photo(2));
           await rec.play(tester, 400);
-          await rec.hold(tester, 1100);
+          await rec.hold(tester, 2800);
           await rec.tap(tester, find.byIcon(Icons.close_rounded).last);
           await rec.play(tester, 400);
-          await rec.hold(tester, 300);
+          await rec.hold(tester, 500);
 
+          rec.step();
           await rec.tap(tester, find.text(S.reject).first);
           await rec.play(tester, 440);
-          await rec.hold(tester, 500);
+          await rec.hold(tester, 1200);
           await rec.tap(tester, find.text('館藏或非正規來源').last);
           await rec.play(tester, 400);
-          await rec.hold(tester, 600);
+          await rec.hold(tester, 1200);
           await rec.tap(tester, find.text(S.reject).last);
           await rec.play(tester, 1400);
-          await rec.hold(tester, 700);
+          await rec.hold(tester, 1500);
           rec.save();
         } catch (e, st) {
           _failures.add('$e');

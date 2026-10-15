@@ -164,7 +164,7 @@ Future<void> _scrollTo(WidgetTester tester, Rec rec, ScrollPosition position, do
   await rec.play(tester, ms + 80);
 }
 
-/// AI 分析中：進度面板的每一步約 2.4 秒，GIF 中以 [speed] 倍速呈現；最後一步出現後放行回應。
+/// AI 分析中：進度面板的每一步約 2.4 秒，GIF／影片中以 [speed] 倍速呈現；最後一步出現後放行回應。
 Future<void> _runProgress(WidgetTester tester, Rec rec, _HeldAssist held, {required int steps, double speed = 2}) async {
   final fake = 2400 * (steps - 1) + 500;
   await rec.play(tester, fake, speed: speed);
@@ -197,7 +197,9 @@ void main() {
         final sell = find.byType(SellBookScreen);
         final isbnField = find.descendant(of: sell, matching: find.byType(TextField)).first;
 
-        await rec.hold(tester, 480);
+        // 簡報字卡步驟：01 輸入 ISBN → 02 查詢書目來源 → 03 逐項勾選 AI 建議 → 04 套用至上架表單（每步至少約 3 秒，全片約 20 秒）
+        rec.step();
+        await rec.hold(tester, 1200);
         await rec.tap(tester, isbnField, at: tester.getCenter(isbnField) + const Offset(-40, 0));
         await rec.play(tester, 40);
         await slideKeyboard(tester, rec, keyboard: const IosNumberPad(), height: numberPadHeight, show: true);
@@ -207,33 +209,38 @@ void main() {
           await tester.enterText(isbnField, _isbn.substring(0, i));
           await rec.play(tester, 40);
           setKeyboard(tester, keyboard: const IosNumberPad(), height: numberPadHeight, visible: 1);
-          await rec.play(tester, 80);
+          await rec.play(tester, 110);
         }
-        await rec.play(tester, 200);
+        await rec.play(tester, 600);
 
         final held = _HeldAssist();
         await http.runWithClient(() async {
           final ai = find.descendant(of: sell, matching: find.byType(AiAssistButton));
+          rec.step();
           await rec.tap(tester, ai);
           await slideKeyboard(tester, rec, keyboard: const IosNumberPad(), height: numberPadHeight, show: false);
-          await _runProgress(tester, rec, held, steps: 3, speed: 2.6);
+          await _runProgress(tester, rec, held, steps: 3, speed: 1.6);
         }, held.client);
         await rec.play(tester, 480);
-        await rec.hold(tester, 520);
+        await rec.hold(tester, 1300);
 
         final sheet = find.byType(AiListingResultSheet);
         final list = tester.state<ScrollableState>(find.descendant(of: sheet, matching: find.byType(Scrollable)).first).position;
-        await _scrollTo(tester, rec, list, list.maxScrollExtent);
-        await rec.hold(tester, 680);
+        rec.step();
+        await _scrollTo(tester, rec, list, list.maxScrollExtent / 2, ms: 620);
+        await rec.hold(tester, 1100);
+        await _scrollTo(tester, rec, list, list.maxScrollExtent, ms: 620);
+        await rec.hold(tester, 1500);
 
+        rec.step();
         await rec.tap(tester, find.descendant(of: sheet, matching: find.byType(ElevatedButton)));
         await rec.play(tester, 560);
         final form = tester.state<ScrollableState>(find.descendant(of: sell, matching: find.byType(Scrollable)).first).position;
         await _scrollTo(tester, rec, form, math.min(form.maxScrollExtent, 190.0), ms: 600);
         await rec.play(tester, 400);
-        await rec.hold(tester, 900);
+        await rec.hold(tester, 2200);
         await _scrollTo(tester, rec, form, 0, ms: 560);
-        await rec.hold(tester, 160);
+        await rec.hold(tester, 800);
         rec.save();
       }),
     );
@@ -283,31 +290,37 @@ void main() {
         await settleReal(tester, const Duration(seconds: 1));
 
         final detail = find.byType(SellBookDetailScreen);
-        await rec.hold(tester, 600);
+        // 簡報字卡步驟：01 上傳實拍照片 → 02 AI 分析照片與定價 → 03 書況與建議售價 → 04 套用並確認上架（每步至少約 3 秒，全片約 20 秒）
+        rec.step();
+        await rec.hold(tester, 3000);
 
         final held = _HeldAssist();
         await http.runWithClient(() async {
+          rec.step();
           await rec.tap(tester, find.descendant(of: detail, matching: find.byType(AiAssistButton)));
           await rec.play(tester, 160);
-          await _runProgress(tester, rec, held, steps: 3, speed: 2.6);
+          await _runProgress(tester, rec, held, steps: 3, speed: 1.4);
         }, held.client);
+        rec.step();
         await rec.play(tester, 480);
-        await rec.hold(tester, 1400);
+        await rec.hold(tester, 3600);
 
         final sheet = find.byType(AiListingResultSheet);
+        rec.step();
         await rec.tap(tester, find.descendant(of: sheet, matching: find.byType(ElevatedButton)));
         // 套用後欄位閃爍提示約 1.6 秒，之後只剩提示卡倒數，快轉到提示卡收起
         await rec.play(tester, 1600);
         await tester.pump(const Duration(milliseconds: 1100));
         await rec.play(tester, 400);
 
+        await rec.hold(tester, 800);
         await rec.tap(tester, find.descendant(of: detail, matching: find.text(S.listBook)));
         await rec.play(tester, 400);
-        await rec.hold(tester, 1000);
+        await rec.hold(tester, 1800);
 
         await rec.tap(tester, find.text(S.listBook).last);
         await rec.play(tester, 1400);
-        await rec.hold(tester, 500);
+        await rec.hold(tester, 1500);
         rec.save();
       }),
     );

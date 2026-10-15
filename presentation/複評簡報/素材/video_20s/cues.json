@@ -1,0 +1,72 @@
+{
+  "ai_listing_isbn": {
+    "duration_ms": 19967,
+    "steps": [
+      0,
+      4200,
+      10167,
+      14167
+    ]
+  },
+  "ai_listing_condition": {
+    "duration_ms": 20283,
+    "steps": [
+      0,
+      3000,
+      7550,
+      11633
+    ]
+  },
+  "ai_review": {
+    "duration_ms": 18533,
+    "steps": [
+      0,
+      3400,
+      7300,
+      11633
+    ]
+  },
+  "chat_risk": {
+    "duration_ms": 19233,
+    "steps": [
+      0,
+      6717,
+      12617
+    ]
+  },
+  "ai_recommend": {
+    "duration_ms": 18883,
+    "steps": [
+      0,
+      3800,
+      7617,
+      12967
+    ]
+  },
+  "ai_advisor": {
+    "duration_ms": 18550,
+    "steps": [
+      0,
+      3917,
+      7817,
+      13933
+    ]
+  },
+  "ai_support": {
+    "duration_ms": 18833,
+    "steps": [
+      0,
+      5683,
+      13917
+    ]
+  },
+  "ai_dispute": {
+    "duration_ms": 10067,
+    "steps": [
+      0,
+      2720,
+      4600,
+      7950
+    ]
+  }
+}

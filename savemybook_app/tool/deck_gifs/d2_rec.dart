@@ -15,8 +15,10 @@ import 'package:marquee/marquee.dart';
 
 import '../manual_shots/manual_host.dart';
 
-const gifRoot =
-    '/private/tmp/claude-501/-Users-xukaijun-Desktop-SaveMyBook-savemybook-app/f52b6347-17b0-4b79-95e7-263531604b33/scratchpad/deck_gif/d2';
+/// 畫格輸出根目錄；環境變數 DECK_GIF_ROOT（例如 Windows 上由 deck_videos.py 指定）優先，底下的 d2/ 為本子任務。
+final gifRoot = Platform.environment['DECK_GIF_ROOT'] != null
+    ? '${Platform.environment['DECK_GIF_ROOT']}/d2'
+    : '/private/tmp/claude-501/-Users-xukaijun-Desktop-SaveMyBook-savemybook-app/f52b6347-17b0-4b79-95e7-263531604b33/scratchpad/deck_gif/d2';
 
 final int recordFps = int.tryParse(Platform.environment['D2_FPS'] ?? '') ?? 25;
 final Duration frameStep = Duration(microseconds: (1000000 / recordFps).round());
@@ -32,6 +34,9 @@ class GifRecorder {
   final List<Map<String, Object>> _taps = [];
   final List<Map<String, Object>> _drags = [];
 
+  /// 簡報字卡各步驟開始的畫格（下一張要截的畫格），合成時換算成影片時間寫入 cues.json。
+  final List<int> _steps = [];
+
   final ValueNotifier<double> _keyboard = ValueNotifier(0);
   final ValueNotifier<List<String>> _candidates = ValueNotifier(const []);
   bool _keyboardMounted = false;
@@ -42,6 +47,9 @@ class GifRecorder {
   }
 
   int get count => _frames.length;
+
+  /// 標記下一個步驟從下一格開始。
+  void step() => _steps.add(count);
 
   Future<void> frame() async {
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 3)));
@@ -165,6 +173,7 @@ class GifRecorder {
       'frames': [for (final f in _frames) {'file': f, 'ms': 1000 / recordFps}],
       'taps': _taps,
       'drags': _drags,
+      'steps': _steps,
       'statusbar': statusbar,
       'home': home,
     };
