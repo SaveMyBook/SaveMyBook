@@ -4673,5 +4673,18 @@
   "gridView": "格狀檢視",
   "listView": "列表檢視",
   "addFavorite": "加入收藏",
-  "removeFavorite": "取消收藏"
+  "removeFavorite": "取消收藏",
+  "demoMode": "展示模式",
+  "demoModeOnUntilP0": "開啟中，{p0} 自動關閉",
+  "@demoModeOnUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "demoModeOffHint": "開啟後不檢查開櫃距離，遠端開門免驗證",
+  "demoModeDuration": "選擇展示時間",
+  "demoModeDurationHint": "期間掃碼開櫃不檢查與書櫃的距離，管理員遠端開門免身分驗證與數字確認；到期後自動關閉。",
+  "demoModeEnabled": "已開啟展示模式",
+  "demoModeDisabled": "已關閉展示模式",
+  "demoModeOpenNotice": "展示模式開啟中，送出後直接開門，不需輸入數字。"
 }

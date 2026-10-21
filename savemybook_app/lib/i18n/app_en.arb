@@ -4673,5 +4673,18 @@
   "gridView": "Grid view",
   "listView": "List view",
   "addFavorite": "Save",
-  "removeFavorite": "Remove from saved"
+  "removeFavorite": "Remove from saved",
+  "demoMode": "Demo mode",
+  "demoModeOnUntilP0": "On, turns off at {p0}",
+  "@demoModeOnUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "demoModeOffHint": "Skips the distance check and remote-open verification",
+  "demoModeDuration": "Demo duration",
+  "demoModeDurationHint": "While on, scanning a locker does not check distance, and admins can open doors remotely without verification or number confirmation. It turns off automatically when the time ends.",
+  "demoModeEnabled": "Demo mode turned on",
+  "demoModeDisabled": "Demo mode turned off",
+  "demoModeOpenNotice": "Demo mode is on. The door opens right away without number confirmation."
 }

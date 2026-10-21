@@ -25,6 +25,7 @@ Future<AdminCabinetOpenResult> showAdminCabinetOpenSheet(
   required String label,
   String? cabinetName,
   bool allowForce = false,
+  bool demoMode = false,
   String? initialReason,
   AdminCabinetRemoteOpen? resume,
 }) async {
@@ -43,6 +44,7 @@ Future<AdminCabinetOpenResult> showAdminCabinetOpenSheet(
       label: label,
       cabinetName: cabinetName,
       allowForce: allowForce,
+      demoMode: demoMode,
       initialReason: initialReason,
       resume: resume,
       onCreated: () => created = true,
@@ -79,6 +81,7 @@ class AdminCabinetOpenSheet extends StatefulWidget {
   final String label;
   final String? cabinetName;
   final bool allowForce;
+  final bool demoMode;
   final String? initialReason;
   final AdminCabinetRemoteOpen? resume;
   final VoidCallback? onCreated;
@@ -90,6 +93,7 @@ class AdminCabinetOpenSheet extends StatefulWidget {
     required this.label,
     this.cabinetName,
     this.allowForce = false,
+    this.demoMode = false,
     this.initialReason,
     this.resume,
     this.onCreated,
@@ -327,7 +331,7 @@ class _AdminCabinetOpenSheetState extends State<AdminCabinetOpenSheet> {
     );
   }
 
-  Widget _warning(AppColors c, String title, {String? detail}) {
+  Widget _warning(AppColors c, String title, {String? detail, IconData icon = Icons.warning_amber_rounded}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -335,7 +339,7 @@ class _AdminCabinetOpenSheetState extends State<AdminCabinetOpenSheet> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: const EdgeInsets.only(top: 1), child: Icon(Icons.warning_amber_rounded, size: 16, color: c.warning)),
+          Padding(padding: const EdgeInsets.only(top: 1), child: Icon(icon, size: 16, color: c.warning)),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -370,7 +374,10 @@ class _AdminCabinetOpenSheetState extends State<AdminCabinetOpenSheet> {
         textInputAction: TextInputAction.done,
         onChanged: (_) => setState(() {}),
       ),
-      if (widget.allowForce) ...[
+      if (widget.demoMode) ...[
+        const SizedBox(height: 8),
+        _warning(c, S.demoModeOpenNotice, icon: Icons.co_present_outlined),
+      ] else if (widget.allowForce) ...[
         const SizedBox(height: 4),
         SwitchListTile.adaptive(
           contentPadding: EdgeInsets.zero,

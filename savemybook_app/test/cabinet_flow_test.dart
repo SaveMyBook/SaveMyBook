@@ -223,12 +223,20 @@ class _Api {
 
   List<String> get writes => [for (final c in calls) if (!c.startsWith('GET ')) c];
 
+  // 定位不符時會先確認展示模式；這個查詢不是書櫃作業的請求。
+  static const demoCheck = 'GET /api/cabinet-sessions/demo-mode';
+
+  List<String> get sessionCalls => [for (final c in calls) if (c != demoCheck) c];
+
+  bool demo = false;
+
   MockClient get client => MockClient((request) async {
     final path = request.url.path;
     final key = '${request.method} $path';
     calls.add(key);
     if (request.body.isNotEmpty) bodies[key] = jsonDecode(request.body);
     if (key == 'POST /api/cabinet-sessions') return onCreate!(request);
+    if (key == demoCheck) return _ok({'enabled': demo, 'until': demo ? '2099-01-01T00:00:00.000Z' : null});
     if (key == 'GET /api/cabinet-sessions/active') return _ok(active);
     if (path.endsWith('/start')) return onStart!(request);
     if (path.endsWith('/cancel')) return onCancel!(request);
@@ -649,7 +657,7 @@ void main() {
         await tester.tap(find.text(S.retry));
         await _settle(tester);
         expect(find.byType(CabinetScannerView), findsOneWidget);
-        expect(api.calls, isEmpty, reason: '掃描前不送出任何請求');
+        expect(api.sessionCalls, isEmpty, reason: '掃描前不送出任何請求');
 
         scans.add(_code);
         await _settle(tester);
@@ -665,13 +673,32 @@ void main() {
         location.permission = LocationPermission.denied;
         await _pump(tester, const CabinetFlowScreen(code: _code));
         expect(find.text(S.locationAccessRequiredUseLockerTurn), findsOneWidget);
-        expect(api.calls, isEmpty);
+        expect(api.sessionCalls, isEmpty);
 
         location.permission = LocationPermission.whileInUse;
         await tester.tap(find.text(S.retry));
         await _settle(tester);
         expect(find.byType(CabinetScannerView), findsOneWidget);
-        expect(api.calls, isEmpty, reason: '不重送可能已逾時的 QR Code');
+        expect(api.sessionCalls, isEmpty, reason: '不重送可能已逾時的 QR Code');
+        await _finish(tester);
+      }, () => api.client);
+    });
+
+    testWidgets('展示模式：定位被拒絕時仍開啟相機，建立作業時送出未取得定位，由伺服器決定是否受理', (tester) async {
+      final api = _Api()
+        ..demo = true
+        ..onCreate = ((_) => _ok(_session(locationStatus: 'denied'), 201));
+      await http.runWithClient(() async {
+        location.permission = LocationPermission.deniedForever;
+        await _pump(tester, const CabinetFlowScreen());
+        expect(find.byType(CabinetScannerView), findsOneWidget);
+        expect(find.text(S.locationAccessRequiredUseLockerTurn), findsNothing);
+        expect(api.calls, [_Api.demoCheck]);
+
+        scans.add(_code);
+        await _settle(tester);
+        expect(api.bodies['POST /api/cabinet-sessions'], {'code': _code, 'location_status': 'denied'});
+        expect(find.text(S.openDoor), findsOneWidget);
         await _finish(tester);
       }, () => api.client);
     });

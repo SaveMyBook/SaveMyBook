@@ -5,6 +5,7 @@ const { HttpError, notFound } = require('../lib/errors');
 const audit = require('./audit');
 const cabinets = require('./cabinets');
 const access = require('./cabinet-access');
+const demo = require('./cabinet-demo');
 const doors = require('./cabinet-doors');
 const devices = require('./cabinet-devices');
 const { recordEvent, parseDetail } = require('./cabinet-events');
@@ -182,6 +183,7 @@ const summary = async (cabinetId, { req = null, now = new Date() } = {}) => {
     },
     access: { mode: state.mode, reason: state.reason, online: state.online, open_now: state.open_now },
     simulator_enabled: access.isSimulatorEnabled(),
+    demo_mode: demo.status(now),
     kiosk_url: kioskUrl(req),
     device: active
       ? {

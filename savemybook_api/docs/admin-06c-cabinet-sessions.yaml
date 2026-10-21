@@ -19,6 +19,9 @@ paths:
         作業期間此門為保留狀態（`reserved`），不分配給其他存書。
         作業結束時，曾開啟或已送出指令而未確認的櫃門一律設為待確認（`ADMIN_OPEN`），請確認內容後解除。
         進度以 `GET /api/admin/cabinet-sessions/{sessionNo}` 查詢。
+
+        展示模式開啟期間（`GET /api/admin/cabinet-demo-mode`）不要求 `X-Verify-Token`，一律直接送出開門指令、不做比對，
+        也不限空櫃門；`status` 為 `opening`，操作紀錄註明「展示模式，未經數字確認」。
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/CabinetIdPath'
@@ -43,12 +46,12 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, description: '`force` 時為「已送出開門指令」。', example: 請輸入書櫃螢幕上顯示的數字 }
+                  message: { type: string, description: '`force` 或展示模式時為「已送出開門指令」。', example: 請輸入書櫃螢幕上顯示的數字 }
                   data:
                     type: object
                     properties:
                       session_no: { type: string, example: CS8MZQ41K }
-                      status: { type: string, enum: [matching, opening], description: '`force` 時為 `opening`。', example: matching }
+                      status: { type: string, enum: [matching, opening], description: '`force` 或展示模式時為 `opening`。', example: matching }
                       remaining_ms: { type: integer, nullable: true, example: 60000 }
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -78,6 +81,63 @@ paths:
                   value: { success: false, code: CABINET_COOLDOWN, message: 數字確認多次未完成，請於 8 分鐘後再試, retry_after_s: 452 }
                 請求過於頻繁:
                   value: { success: false, code: RATE_LIMITED, message: 操作過於頻繁，請稍後再試 }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /api/admin/cabinet-demo-mode:
+    get:
+      summary: 取得書櫃展示模式狀態
+      operationId: adminGetCabinetDemoMode
+      tags: [admin-cabinets]
+      description: 需要書櫃管理權限。展示模式只存在伺服器記憶體中，到期或伺服器重新啟動後自動關閉。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetDemoMode' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      summary: 開啟或關閉書櫃展示模式
+      operationId: adminSetCabinetDemoMode
+      tags: [admin-cabinets]
+      description: |
+        供口試與展示使用。開啟期間：使用者掃碼建立作業不檢查定位與距離；管理員遠端開櫃免身分驗證與數字比對，也不限空櫃門。
+        其餘檢查（營業時間、書櫃連線、使用者的兩位數比對）不變。開啟須帶 `X-Verify-Token`（`admin` 範圍），關閉不需要；
+        開啟與關閉都寫入操作紀錄。再次開啟會以當下時間重新計算到期時間。
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/VerifyToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean, example: true }
+                hours: { type: integer, enum: [1, 4, 12], description: 開啟時必填，到期自動關閉。, example: 4 }
+      responses:
+        '200':
+          description: 已更新。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string, example: 已開啟展示模式 }
+                  data: { $ref: '#/components/schemas/CabinetDemoMode' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/AdminVerificationRequired' }
         '500': { $ref: '#/components/responses/ServerError' }
 
   /api/admin/cabinets/{id}/doors/{slotId}/clear:

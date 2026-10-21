@@ -414,6 +414,7 @@ class _AdminCabinetDeviceScreenState extends State<AdminCabinetDeviceScreen> {
       label: label,
       cabinetName: _cabinetName,
       allowForce: allowForce,
+      demoMode: _summary?.demoMode.isOn ?? false,
       initialReason: reason,
       resume: resume,
     );

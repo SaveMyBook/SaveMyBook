@@ -2591,6 +2591,14 @@ abstract class AppLocalizations {
   String get listView;
   String get addFavorite;
   String get removeFavorite;
+  String get demoMode;
+  String demoModeOnUntilP0(Object p0);
+  String get demoModeOffHint;
+  String get demoModeDuration;
+  String get demoModeDurationHint;
+  String get demoModeEnabled;
+  String get demoModeDisabled;
+  String get demoModeOpenNotice;
 }
 
 class _LEn extends AppLocalizations {
@@ -10299,6 +10307,30 @@ class _LEn extends AppLocalizations {
 
   @override
   String get removeFavorite => 'Remove from saved';
+
+  @override
+  String get demoMode => 'Demo mode';
+
+  @override
+  String demoModeOnUntilP0(Object p0) => 'On, turns off at ${p0}';
+
+  @override
+  String get demoModeOffHint => 'Skips the distance check and remote-open verification';
+
+  @override
+  String get demoModeDuration => 'Demo duration';
+
+  @override
+  String get demoModeDurationHint => 'While on, scanning a locker does not check distance, and admins can open doors remotely without verification or number confirmation. It turns off automatically when the time ends.';
+
+  @override
+  String get demoModeEnabled => 'Demo mode turned on';
+
+  @override
+  String get demoModeDisabled => 'Demo mode turned off';
+
+  @override
+  String get demoModeOpenNotice => 'Demo mode is on. The door opens right away without number confirmation.';
 
 }
 
@@ -18009,6 +18041,30 @@ class _LJa extends AppLocalizations {
   @override
   String get removeFavorite => 'お気に入りから削除';
 
+  @override
+  String get demoMode => 'デモモード';
+
+  @override
+  String demoModeOnUntilP0(Object p0) => 'オン、${p0} に自動でオフ';
+
+  @override
+  String get demoModeOffHint => '距離の確認と遠隔解錠の認証を省略します';
+
+  @override
+  String get demoModeDuration => 'デモ時間を選択';
+
+  @override
+  String get demoModeDurationHint => 'オンの間は、ロッカーのスキャン時に距離を確認せず、管理者は本人確認と数字の確認なしで遠隔解錠できます。時間になると自動でオフになります。';
+
+  @override
+  String get demoModeEnabled => 'デモモードをオンにしました';
+
+  @override
+  String get demoModeDisabled => 'デモモードをオフにしました';
+
+  @override
+  String get demoModeOpenNotice => 'デモモード中のため、数字の確認なしですぐに扉を開けます。';
+
 }
 
 class _LKo extends AppLocalizations {
@@ -25717,6 +25773,30 @@ class _LKo extends AppLocalizations {
 
   @override
   String get removeFavorite => '찜 해제';
+
+  @override
+  String get demoMode => '데모 모드';
+
+  @override
+  String demoModeOnUntilP0(Object p0) => '켜짐, ${p0}에 자동 해제';
+
+  @override
+  String get demoModeOffHint => '거리 확인과 원격 열기 인증을 생략합니다';
+
+  @override
+  String get demoModeDuration => '데모 시간 선택';
+
+  @override
+  String get demoModeDurationHint => '켜져 있는 동안 보관함 스캔 시 거리를 확인하지 않으며, 관리자는 본인 인증과 숫자 확인 없이 원격으로 문을 열 수 있습니다. 시간이 지나면 자동으로 꺼집니다.';
+
+  @override
+  String get demoModeEnabled => '데모 모드를 켰습니다';
+
+  @override
+  String get demoModeDisabled => '데모 모드를 껐습니다';
+
+  @override
+  String get demoModeOpenNotice => '데모 모드가 켜져 있어 숫자 확인 없이 바로 문을 엽니다.';
 
 }
 
@@ -33427,6 +33507,30 @@ class _LZh extends AppLocalizations {
   @override
   String get removeFavorite => '取消收藏';
 
+  @override
+  String get demoMode => '展示模式';
+
+  @override
+  String demoModeOnUntilP0(Object p0) => '開啟中，${p0} 自動關閉';
+
+  @override
+  String get demoModeOffHint => '開啟後不檢查開櫃距離，遠端開門免驗證';
+
+  @override
+  String get demoModeDuration => '選擇展示時間';
+
+  @override
+  String get demoModeDurationHint => '期間掃碼開櫃不檢查與書櫃的距離，管理員遠端開門免身分驗證與數字確認；到期後自動關閉。';
+
+  @override
+  String get demoModeEnabled => '已開啟展示模式';
+
+  @override
+  String get demoModeDisabled => '已關閉展示模式';
+
+  @override
+  String get demoModeOpenNotice => '展示模式開啟中，送出後直接開門，不需輸入數字。';
+
 }
 
 class _LZhHans extends AppLocalizations {
@@ -41136,6 +41240,30 @@ class _LZhHans extends AppLocalizations {
   @override
   String get removeFavorite => '取消收藏';
 
+  @override
+  String get demoMode => '演示模式';
+
+  @override
+  String demoModeOnUntilP0(Object p0) => '已开启，${p0} 自动关闭';
+
+  @override
+  String get demoModeOffHint => '开启后不检查开柜距离，远程开门免验证';
+
+  @override
+  String get demoModeDuration => '选择演示时长';
+
+  @override
+  String get demoModeDurationHint => '期间扫码开柜不检查与书柜的距离，管理员远程开门免身份验证与数字确认；到期后自动关闭。';
+
+  @override
+  String get demoModeEnabled => '已开启演示模式';
+
+  @override
+  String get demoModeDisabled => '已关闭演示模式';
+
+  @override
+  String get demoModeOpenNotice => '演示模式开启中，提交后直接开门，无需输入数字。';
+
 }
 
 class _LZhHant extends AppLocalizations {
@@ -48844,6 +48972,30 @@ class _LZhHant extends AppLocalizations {
 
   @override
   String get removeFavorite => '取消收藏';
+
+  @override
+  String get demoMode => '展示模式';
+
+  @override
+  String demoModeOnUntilP0(Object p0) => '開啟中，${p0} 自動關閉';
+
+  @override
+  String get demoModeOffHint => '開啟後不檢查開櫃距離，遠端開門免驗證';
+
+  @override
+  String get demoModeDuration => '選擇展示時間';
+
+  @override
+  String get demoModeDurationHint => '期間掃碼開櫃不檢查與書櫃的距離，管理員遠端開門免身分驗證與數字確認；到期後自動關閉。';
+
+  @override
+  String get demoModeEnabled => '已開啟展示模式';
+
+  @override
+  String get demoModeDisabled => '已關閉展示模式';
+
+  @override
+  String get demoModeOpenNotice => '展示模式開啟中，送出後直接開門，不需輸入數字。';
 
 }
 

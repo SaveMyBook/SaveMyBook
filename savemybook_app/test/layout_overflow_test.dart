@@ -841,6 +841,7 @@ Object? fakeData(String method, String path) {
     'GET /admin/operation-logs': () => many((i) => {'log_id': i, 'action': 'Changed member status', 'target_type': 'user', 'target_id': i, 'summary': 'Changed account status and blocklist for $longName (alexandria.montgomery@example.com)', 'changes': [{'label': 'Account status', 'from': 'Active', 'to': 'Suspended'}, {'label': 'Price', 'from': '123456789 coins', 'to': '987654321 coins'}], 'can_undo': i.isOdd, 'reverted': i == 4 ? {'at': now, 'by': 9} : null, 'created_at': now, 'admin': user(9)}),
     'GET /announcements/all': () => many((i) => {'announcement_id': i, 'title': 'Scheduled maintenance for the smart locker network this weekend', 'content': 'Content ' * 20, 'type': ['general', 'maintenance', 'promotion', 'policy'][i % 4], 'is_published': i.isOdd, 'published_at': now, 'created_at': now, 'users': user(9)}),
     'GET /admin/cabinets/3/device': adminCabinetDeviceData,
+    'GET /admin/cabinet-demo-mode': () => {'enabled': true, 'until': DateTime.now().add(const Duration(days: 2)).toUtc().toIso8601String()},
     'GET /admin/cabinets/3/manual-reports': () => many(adminCabinetManualReport, 2),
     'GET /admin/cabinets/3/sessions': () => many((i) => adminCabinetSessionRow(i, i == 1 ? 'needs_review' : 'partial')),
     'GET /admin/cabinets/3/events': () => many(adminCabinetEvent, 7),
@@ -1123,6 +1124,9 @@ Map<String, Widget Function()> get screens => {
       'AdminCabinetOpenSheet': () => DialogPreview(
           show: (context) => showAdminCabinetOpenSheet(context,
               cabinetId: 3, slotId: 44, label: 'A04', cabinetName: longCabinet, allowForce: true, initialReason: longTitle)),
+      'AdminCabinetOpenDemo': () => DialogPreview(
+          show: (context) => showAdminCabinetOpenSheet(context,
+              cabinetId: 3, slotId: 44, label: 'A04', cabinetName: longCabinet, demoMode: true, initialReason: longTitle)),
       'AdminCabinetSessionSheet': () => DialogPreview(show: (context) => showAdminCabinetSessionSheet(context, 'CS8MZQ41K')),
       'AdminCabinetDeviceUnpaired': () => const AdminCabinetDeviceScreen(cabinetId: 5),
       'AdminCabinetPairingWaiting': () => DialogPreview(

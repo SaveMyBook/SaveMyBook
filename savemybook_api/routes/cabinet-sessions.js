@@ -3,6 +3,7 @@ const authenticateToken = require('../middleware/auth');
 const { rateLimit, byUser } = require('../middleware/rateLimit');
 const { badRequest } = require('../lib/errors');
 const sessions = require('../services/cabinet-sessions');
+const demo = require('../services/cabinet-demo');
 
 const router = express.Router();
 
@@ -31,6 +32,11 @@ router.post('/', createLimit, async (req, res) => {
 
   const { created, session } = await sessions.create({ user: req.user, code, context, location: place, now: new Date() });
   res.status(created ? 201 : 200).json({ success: true, data: session });
+});
+
+router.get('/demo-mode', readLimit, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(200).json({ success: true, data: demo.status() });
 });
 
 router.get('/active', readLimit, async (req, res) => {

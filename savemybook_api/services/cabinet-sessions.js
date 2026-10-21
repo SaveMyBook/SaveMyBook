@@ -14,6 +14,7 @@ const devices = require('./cabinet-devices');
 const doors = require('./cabinet-doors');
 const candidates = require('./cabinet-candidates');
 const commit = require('./cabinet-commit');
+const demo = require('./cabinet-demo');
 const { recordEvent, notifyAdmins, parseDetail } = require('./cabinet-events');
 const { violationLocked } = require('./book-violations');
 
@@ -811,10 +812,12 @@ const screen = async ({ user, device, cabinet, context, location, now }) => {
   }
 
   const place = access.checkDistance(cabinet, location);
-  if (place.status === 'denied') throw locationRequired();
-  if (place.status === 'unavailable') throw locationUnavailable();
-  if (!place.ok) {
-    throw new HttpError(403, `您目前的位置距離書櫃約 ${place.distance_m} 公尺，請於書櫃旁操作`, 'CABINET_TOO_FAR', { distance_m: place.distance_m });
+  if (!demo.isOn(now)) {
+    if (place.status === 'denied') throw locationRequired();
+    if (place.status === 'unavailable') throw locationUnavailable();
+    if (!place.ok) {
+      throw new HttpError(403, `您目前的位置距離書櫃約 ${place.distance_m} 公尺，請於書櫃旁操作`, 'CABINET_TOO_FAR', { distance_m: place.distance_m });
+    }
   }
 
   const listing = await candidates.list({ userId: user.userId, cabinet, context });
@@ -878,7 +881,8 @@ const create = async ({ user, code, context = null, location, now = new Date() }
     await challenges.claim(tx, { challenge, device, sessionId: row.session_id, userId: user.userId, now });
     await recordEvent(tx, {
       cabinetId: cabinet.cabinet_id, deviceId: device.device_id, sessionId: row.session_id, type: 'session_created',
-      actorId: user.userId, detail: { user_no: publicId.encode('user', user.userId), units: listing.units.length },
+      actorId: user.userId,
+      detail: { user_no: publicId.encode('user', user.userId), units: listing.units.length, ...(demo.isOn(now) ? { demo_mode: true } : {}) },
       source: 'server', occurredAt: now
     });
     return row;
@@ -1215,13 +1219,16 @@ const adminCooldownLeft = async (adminId, now) => {
   return Math.max(0, Math.ceil((until - now.getTime()) / 1000));
 };
 
-const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId, req }) => {
+const adminOpen = async (cabinetId, slotId, { reason, force: requested = false }, { adminId, req }) => {
   const cabinet = await cabinetOf(cabinetId);
   const device = await devices.activeDeviceOf(cabinet.cabinet_id);
   if (!device) throw notPaired();
   const slot = await doorOf(cabinet.cabinet_id, slotId);
   const now = new Date();
   if (!access.isOnline(device, now)) throw new HttpError(409, '書櫃裝置目前離線，無法遠端開啟櫃門', 'DEVICE_OFFLINE');
+  // 展示模式免數字確認，且不限空櫃門；開過的櫃門關門後照常設為待確認。
+  const demoMode = demo.isOn(now);
+  const force = Boolean(requested) || demoMode;
   const wait = force ? 0 : await adminCooldownLeft(adminId, now);
   if (wait > 0) {
     throw new HttpError(429, `數字確認多次未完成，請於 ${Math.ceil(wait / 60)} 分鐘後再試`, 'CABINET_COOLDOWN', { retry_after_s: wait });
@@ -1230,7 +1237,7 @@ const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId
   const matchCode = force ? null : crypto.randomInt(10, 100);
   const label = doors.labelOf(slot);
   const created = await prisma.$transaction(async (tx) => {
-    if (force) await assertForceable(tx, slot.slot_id);
+    if (force && !demoMode) await assertForceable(tx, slot.slot_id);
     const row = await tx.cabinet_sessions.create({
       data: {
         cabinet_id: Number(cabinet.cabinet_id),
@@ -1259,14 +1266,16 @@ const adminOpen = async (cabinetId, slotId, { reason, force = false }, { adminId
     await doors.refresh(tx, [slot.slot_id]);
     await recordEvent(tx, {
       cabinetId: cabinet.cabinet_id, deviceId: device.device_id, sessionId: row.session_id, type: 'admin_open',
-      channel: slot.lock_channel, actorId: adminId, detail: { reason, force: Boolean(force), label }, source: 'admin', occurredAt: now
+      channel: slot.lock_channel, actorId: adminId,
+      detail: { reason, force, label, ...(demoMode ? { demo_mode: true } : {}) }, source: 'admin', occurredAt: now
     });
+    const note = demoMode ? '（展示模式，未經數字確認）' : (force ? '（未經數字確認）' : '');
     await audit.record(tx, {
       adminId,
       action: '遠端開啟書櫃櫃門',
       targetType: 'cabinet',
       targetId: Number(cabinet.cabinet_id),
-      summary: `遠端開啟「${cabinet.cabinet_name}」櫃門 ${label}${force ? '（未經數字確認）' : ''}，原因：${reason}`,
+      summary: `遠端開啟「${cabinet.cabinet_name}」櫃門 ${label}${note}，原因：${reason}`,
       req
     });
     return row;

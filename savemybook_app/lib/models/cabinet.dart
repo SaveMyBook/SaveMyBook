@@ -17,6 +17,24 @@ String? _textOrNull(Object? value) {
 
 List<String> _strings(Object? value) => value is List ? [for (final e in value) if (e != null) '$e'] : const [];
 
+// 管理員開啟的展示模式：期間掃碼開櫃不檢查定位與距離，到期自動關閉。
+class CabinetDemoMode {
+  static const hours = [1, 4, 12];
+  static const off = CabinetDemoMode();
+
+  final bool enabled;
+  final DateTime? until;
+
+  const CabinetDemoMode({this.enabled = false, this.until});
+
+  bool get isOn => enabled && (until == null || until!.isAfter(DateTime.now()));
+
+  factory CabinetDemoMode.fromJson(Object? json) {
+    if (json is! Map || json['enabled'] != true) return off;
+    return CabinetDemoMode(enabled: true, until: parseDate(json['until']));
+  }
+}
+
 class CabinetAccess {
   static const scan = 'scan';
   static const manual = 'manual';

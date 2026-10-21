@@ -2,8 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import '../../models/admin_models.dart';
+import '../../models/cabinet.dart' show CabinetDemoMode;
 import '../../services/api_service.dart';
+import '../../utils/api_helpers.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_radius.dart';
 import '../../widgets/animations.dart';
 import '../../widgets/app_dialogs.dart';
 import '../../widgets/app_forms.dart';
@@ -33,6 +36,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   List<Cabinet> _cabinets = [];
+  CabinetDemoMode? _demo;
   bool _isLoading = true;
   bool _isBusy = false;
   bool _navigating = false;
@@ -51,10 +55,11 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
   }
 
   Future<void> _load() async {
-    final cabinets = await _api.fetchAdminCabinets();
+    final (cabinets, demo) = await (_api.fetchAdminCabinets(), _api.fetchAdminCabinetDemoMode()).wait;
     if (!mounted) return;
     setState(() {
       _cabinets = cabinets;
+      _demo = demo;
       _isLoading = false;
     });
   }
@@ -175,6 +180,106 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
       showAppSnackBar(context, on ? S.lockerMarkedMaintenance : S.lockerMaintenanceEnded);
       await _load();
     }
+  }
+
+  Future<int?> _pickDemoHours() {
+    final c = AppColors.of(context);
+    return showAppPopoverSheet<int>(
+      context: context,
+      popoverWidth: 360,
+      isScrollControlled: true,
+      backgroundColor: c.card,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(S.demoModeDuration, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: c.textPrimary)),
+              const SizedBox(height: 4),
+              Text(S.demoModeDurationHint, style: TextStyle(fontSize: 12, height: 1.45, color: c.textSecondary)),
+              const SizedBox(height: 6),
+              for (final hours in CabinetDemoMode.hours)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.schedule_rounded, color: c.accent),
+                  title: Text(S.p0Hours(hours), style: TextStyle(color: c.textPrimary)),
+                  onTap: () => Navigator.pop(ctx, hours),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _setDemo(bool on) async {
+    if (_isBusy) return;
+    int? hours;
+    if (on) {
+      hours = await _pickDemoHours();
+      if (hours == null || !mounted) return;
+    }
+    setState(() => _isBusy = true);
+    final result = await runBusy(context, () => _api.setCabinetDemoMode(enabled: on, hours: hours));
+    if (!mounted) return;
+    setState(() => _isBusy = false);
+    final mode = result?.mode;
+    if (mode == null) {
+      final error = result?.error ?? S.somethingWentWrongPleaseTryAgain;
+      if (!_isCancelled(error)) showAppSnackBar(context, error, isError: true);
+      return;
+    }
+    setState(() => _demo = mode);
+    showAppSnackBar(context, mode.isOn ? S.demoModeEnabled : S.demoModeDisabled);
+  }
+
+  static String _demoUntil(DateTime? until) {
+    if (until == null) return '';
+    final local = until.toLocal();
+    final now = DateTime.now();
+    final time = '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    return local.year == now.year && local.month == now.month && local.day == now.day ? time : formatDateTime(local);
+  }
+
+  Widget _buildDemoTile(CabinetDemoMode demo, AppColors c) {
+    final on = demo.isOn;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+      decoration: BoxDecoration(
+        color: on ? c.warning.withValues(alpha: 0.1) : c.card,
+        borderRadius: BorderRadius.circular(AppRadius.control),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.co_present_outlined, size: 20, color: on ? c.warning : c.textSecondary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(S.demoMode, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: c.textPrimary)),
+                const SizedBox(height: 1),
+                Text(
+                  on ? S.demoModeOnUntilP0(_demoUntil(demo.until)) : S.demoModeOffHint,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, height: 1.35, color: on ? c.warning : c.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: on,
+            activeTrackColor: c.warning,
+            onChanged: _isBusy ? null : _setDemo,
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _editSlot(Cabinet cabinet, CabinetSlot slot) async {
@@ -312,6 +417,7 @@ class _AdminCabinetScreenState extends State<AdminCabinetScreen> {
                   ],
                 ),
               ),
+              if (_demo != null) Padding(padding: inset(10, 0), child: _buildDemoTile(_demo!, c)),
               Expanded(
                 child: SwitchIn(child: _isLoading
                     ? const LoadingView.list()

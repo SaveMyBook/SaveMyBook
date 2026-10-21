@@ -344,6 +344,7 @@ class AdminCabinetDeviceSummary {
   final int screenBrightness;
   final AdminCabinetAccess access;
   final bool simulatorEnabled;
+  final CabinetDemoMode demoMode;
   final String? kioskUrl;
   final AdminCabinetDeviceInfo? device;
   final AdminCabinetPairing? pairing;
@@ -361,6 +362,7 @@ class AdminCabinetDeviceSummary {
     this.screenBrightness = 100,
     required this.access,
     this.simulatorEnabled = false,
+    this.demoMode = CabinetDemoMode.off,
     this.kioskUrl,
     this.device,
     this.pairing,
@@ -395,6 +397,7 @@ class AdminCabinetDeviceSummary {
       screenBrightness: cabinet['screen_brightness'] == null ? 100 : parseInt(cabinet['screen_brightness']),
       access: AdminCabinetAccess.fromJson(_mapOf(json['access']) ?? const {}),
       simulatorEnabled: json['simulator_enabled'] == true,
+      demoMode: CabinetDemoMode.fromJson(json['demo_mode']),
       kioskUrl: _textOrNull(json['kiosk_url']),
       device: device == null ? null : AdminCabinetDeviceInfo.fromJson(device),
       pairing: pairing == null ? null : AdminCabinetPairing.fromJson(pairing),

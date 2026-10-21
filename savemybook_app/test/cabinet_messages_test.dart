@@ -474,7 +474,8 @@ void main() {
         expect(flow.busy, isFalse);
         flow.dispose();
       }
-      expect(requests, isEmpty);
+      // 只會先確認展示模式；查詢失敗視同未開啟，不送出建立作業的請求。
+      expect(requests.map((r) => '${r.method} ${r.url.path}').toSet(), {'GET /api/cabinet-sessions/demo-mode'});
     });
   });
 

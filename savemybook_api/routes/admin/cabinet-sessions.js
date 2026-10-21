@@ -6,6 +6,7 @@ const v = require('../../lib/validate');
 const { actorOf } = require('../../lib/request-context');
 const { badRequest } = require('../../lib/errors');
 const sessions = require('../../services/cabinet-sessions');
+const demo = require('../../services/cabinet-demo');
 const manual = require('../../services/cabinet-manual');
 
 const router = express.Router();
@@ -21,11 +22,28 @@ const requiredText = (value, label, max) => {
   return s;
 };
 
-router.post('/cabinets/:id/doors/:slotId/open', canManage, openLimit, requireVerification('admin'), async (req, res) => {
+// 展示模式免身分驗證；開啟展示模式本身仍須驗證。
+const verifyUnlessDemo = (req, res, next) => (demo.isOn() ? next() : requireVerification('admin')(req, res, next));
+
+router.post('/cabinets/:id/doors/:slotId/open', canManage, openLimit, verifyUnlessDemo, async (req, res) => {
   const reason = requiredText(req.body.reason, '開啟原因', 255);
   const force = req.body.force === undefined ? false : v.bool(req.body.force);
   const data = await sessions.adminOpen(cabinetIdOf(req), slotIdOf(req), { reason, force }, actorOf(req));
-  res.status(201).json({ success: true, message: force ? '已送出開門指令' : '請輸入書櫃螢幕上顯示的數字', data });
+  res.status(201).json({ success: true, message: data.status === 'matching' ? '請輸入書櫃螢幕上顯示的數字' : '已送出開門指令', data });
+});
+
+router.get('/cabinet-demo-mode', canManage, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(200).json({ success: true, data: demo.status() });
+});
+
+const verifyToEnable = (req, res, next) => (v.bool(req.body?.enabled) ? requireVerification('admin')(req, res, next) : next());
+
+router.put('/cabinet-demo-mode', canManage, verifyToEnable, async (req, res) => {
+  const enabled = v.bool(req.body.enabled);
+  const hours = enabled ? v.int(req.body.hours, { label: '展示時間', min: 1, max: 12 }) : null;
+  const data = await demo.set({ enabled, hours }, actorOf(req));
+  res.status(200).json({ success: true, message: enabled ? '已開啟展示模式' : '已關閉展示模式', data });
 });
 
 router.post('/cabinets/:id/doors/:slotId/clear', canManage, async (req, res) => {

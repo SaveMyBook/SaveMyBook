@@ -4673,5 +4673,18 @@
   "gridView": "网格视图",
   "listView": "列表视图",
   "addFavorite": "加入收藏",
-  "removeFavorite": "取消收藏"
+  "removeFavorite": "取消收藏",
+  "demoMode": "演示模式",
+  "demoModeOnUntilP0": "已开启，{p0} 自动关闭",
+  "@demoModeOnUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "demoModeOffHint": "开启后不检查开柜距离，远程开门免验证",
+  "demoModeDuration": "选择演示时长",
+  "demoModeDurationHint": "期间扫码开柜不检查与书柜的距离，管理员远程开门免身份验证与数字确认；到期后自动关闭。",
+  "demoModeEnabled": "已开启演示模式",
+  "demoModeDisabled": "已关闭演示模式",
+  "demoModeOpenNotice": "演示模式开启中，提交后直接开门，无需输入数字。"
 }

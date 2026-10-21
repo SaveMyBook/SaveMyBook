@@ -228,7 +228,8 @@ class CabinetFlowController extends ChangeNotifier {
     _setStep(CabinetFlowStep.checking);
     final location = await _locate();
     if (_disposed) return;
-    if (!location.isGranted) {
+    if (!location.isGranted && !await _demoMode()) {
+      if (_disposed) return;
       _busy = false;
       fail(CabinetApiError(code: switch (location.status) {
         FreshLocation.denied => CabinetApiError.locationRequired,
@@ -237,6 +238,7 @@ class CabinetFlowController extends ChangeNotifier {
       }));
       return;
     }
+    if (_disposed) return;
     final result = await _api.createCabinetSession(code: raw, context: cabinetContext, location: location);
     final created = result.session;
     if (_disposed) {
@@ -291,6 +293,9 @@ class CabinetFlowController extends ChangeNotifier {
     _setStep(CabinetFlowStep.error);
   }
 
+  // 只在定位不符時才向伺服器確認展示模式，一般情況掃描前不送出任何請求。
+  Future<bool> _demoMode() async => (await _api.fetchCabinetDemoMode()).isOn;
+
   void rescan() => unawaited(prepareScan());
 
   Future<void> prepareScan() async {
@@ -305,7 +310,12 @@ class CabinetFlowController extends ChangeNotifier {
     _setStep(CabinetFlowStep.prepare);
     final access = await _checkLocation();
     if (_disposed || _step != CabinetFlowStep.prepare) return;
-    if (access == null || access == LocationAccess.granted) {
+    var ready = access == null || access == LocationAccess.granted;
+    if (!ready) {
+      ready = await _demoMode();
+      if (_disposed || _step != CabinetFlowStep.prepare) return;
+    }
+    if (ready) {
       _setStep(CabinetFlowStep.scan);
     } else {
       fail(CabinetApiError(code: switch (access) {

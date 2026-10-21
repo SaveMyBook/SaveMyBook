@@ -90,6 +90,12 @@ extension CabinetApi on ApiService {
     return _cabinetResult(res);
   }
 
+  Future<CabinetDemoMode> fetchCabinetDemoMode() async {
+    final res = await _send('GET', '/cabinet-sessions/demo-mode');
+    if (res == null || res['success'] != true) return CabinetDemoMode.off;
+    return CabinetDemoMode.fromJson(res['data']);
+  }
+
   Future<CabinetSession?> fetchActiveCabinetSession() async {
     final res = await _send('GET', '/cabinet-sessions/active');
     if (res == null || res['success'] != true) return null;

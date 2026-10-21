@@ -66,6 +66,19 @@ extension AdminCabinetDevicesApi on ApiService {
     return _adminCabinetError(res);
   }
 
+  Future<CabinetDemoMode?> fetchAdminCabinetDemoMode() async {
+    final res = await _send('GET', '/admin/cabinet-demo-mode');
+    if (res == null || res['success'] != true) return null;
+    return CabinetDemoMode.fromJson(res['data']);
+  }
+
+  Future<({CabinetDemoMode? mode, String? error})> setCabinetDemoMode({required bool enabled, int? hours}) async {
+    final res = await _send('PUT', '/admin/cabinet-demo-mode', body: {'enabled': enabled, 'hours': ?hours});
+    final error = _adminCabinetError(res);
+    if (error != null) return (mode: null, error: error);
+    return (mode: CabinetDemoMode.fromJson(res!['data']), error: null);
+  }
+
   Future<({AdminCabinetRemoteOpen? opened, CabinetApiError? error})> openCabinetDoor(
     int cabinetId,
     int slotId,

@@ -4673,5 +4673,18 @@
   "gridView": "グリッド表示",
   "listView": "リスト表示",
   "addFavorite": "お気に入りに追加",
-  "removeFavorite": "お気に入りから削除"
+  "removeFavorite": "お気に入りから削除",
+  "demoMode": "デモモード",
+  "demoModeOnUntilP0": "オン、{p0} に自動でオフ",
+  "@demoModeOnUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "demoModeOffHint": "距離の確認と遠隔解錠の認証を省略します",
+  "demoModeDuration": "デモ時間を選択",
+  "demoModeDurationHint": "オンの間は、ロッカーのスキャン時に距離を確認せず、管理者は本人確認と数字の確認なしで遠隔解錠できます。時間になると自動でオフになります。",
+  "demoModeEnabled": "デモモードをオンにしました",
+  "demoModeDisabled": "デモモードをオフにしました",
+  "demoModeOpenNotice": "デモモード中のため、数字の確認なしですぐに扉を開けます。"
 }

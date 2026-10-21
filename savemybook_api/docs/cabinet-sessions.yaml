@@ -264,6 +264,29 @@ paths:
                   value: { success: false, code: RATE_LIMITED, message: 操作過於頻繁，請稍後再試 }
         '500': { $ref: '#/components/responses/ServerError' }
 
+  /api/cabinet-sessions/demo-mode:
+    get:
+      summary: 取得書櫃展示模式狀態
+      operationId: getCabinetDemoMode
+      tags: [cabinet-sessions]
+      description: |
+        展示模式由管理員開啟，到期或伺服器重新啟動後自動關閉。開啟期間建立作業不檢查定位與距離，
+        `location_status` 可為 `denied` 或 `unavailable`；App 據此略過掃碼前的定位要求。
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: 成功。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data: { $ref: '#/components/schemas/CabinetDemoMode' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
   /api/cabinet-sessions/active:
     get:
       summary: 取得進行中的書櫃作業
@@ -565,6 +588,11 @@ components:
             code: { type: string, enum: [ITEM_CHANGED, DOOR_FAILED, DOOR_UNCONFIRMED, DOOR_CONFLICT], example: ITEM_CHANGED }
             message: { type: string, example: 項目狀態已變更，本項目未完成 }
 
+    CabinetDemoMode:
+      type: object
+      properties:
+        enabled: { type: boolean, example: true }
+        until: { type: string, format: date-time, nullable: true, description: 自動關閉時間；未開啟時為 null。, example: '2026-10-22T08:00:00.000Z' }
     CabinetSession:
       type: object
       properties:

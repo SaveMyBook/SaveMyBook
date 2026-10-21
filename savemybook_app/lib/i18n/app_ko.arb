@@ -4673,5 +4673,18 @@
   "gridView": "그리드 보기",
   "listView": "목록 보기",
   "addFavorite": "찜하기",
-  "removeFavorite": "찜 해제"
+  "removeFavorite": "찜 해제",
+  "demoMode": "데모 모드",
+  "demoModeOnUntilP0": "켜짐, {p0}에 자동 해제",
+  "@demoModeOnUntilP0": {
+    "placeholders": {
+      "p0": {}
+    }
+  },
+  "demoModeOffHint": "거리 확인과 원격 열기 인증을 생략합니다",
+  "demoModeDuration": "데모 시간 선택",
+  "demoModeDurationHint": "켜져 있는 동안 보관함 스캔 시 거리를 확인하지 않으며, 관리자는 본인 인증과 숫자 확인 없이 원격으로 문을 열 수 있습니다. 시간이 지나면 자동으로 꺼집니다.",
+  "demoModeEnabled": "데모 모드를 켰습니다",
+  "demoModeDisabled": "데모 모드를 껐습니다",
+  "demoModeOpenNotice": "데모 모드가 켜져 있어 숫자 확인 없이 바로 문을 엽니다."
 }
