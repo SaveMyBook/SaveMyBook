@@ -48,66 +48,40 @@ jobs:
 
             const sorted = realUsers.sort((a, b) => b.total - a.total);
 
-            const totalCommits = sorted.reduce((sum, u) => sum + u.total, 0);
-            const totalAdditions = sorted.reduce((sum, u) =>
-              sum + u.weeks.reduce((s, w) => s + w.a, 0), 0);
-            const totalDeletions = sorted.reduce((sum, u) =>
-              sum + u.weeks.reduce((s, w) => s + w.d, 0), 0);
+            const fmt = (n) => n.toLocaleString('en-US');
+            const sum = (u, key) => u.weeks.reduce((s, w) => s + w[key], 0);
+            const totalCommits = sorted.reduce((s, u) => s + u.total, 0);
+            const totalAdditions = sorted.reduce((s, u) => s + sum(u, 'a'), 0);
+            const totalDeletions = sorted.reduce((s, u) => s + sum(u, 'd'), 0);
 
-            let badges = '\n\n<div align="center">\n\n';
-            badges += `![Contributors](https://img.shields.io/badge/Contributors-${sorted.length}-blue?style=for-the-badge&logo=github)`;
-            badges += ` ![Commits](https://img.shields.io/badge/Commits-${totalCommits}-green?style=for-the-badge&logo=git)`;
-            badges += ` ![Additions](https://img.shields.io/badge/Additions-${totalAdditions.toLocaleString()}-success?style=for-the-badge)`;
-            badges += ` ![Deletions](https://img.shields.io/badge/Deletions-${totalDeletions.toLocaleString()}-critical?style=for-the-badge)`;
-            badges += '\n\n</div>\n\n';
+            // 扁平徽章，配色比照 App：霧藍、成功綠、危險紅
+            const badge = (label, value, color) =>
+              `<img alt="${label} ${value}" src="https://img.shields.io/badge/${encodeURIComponent(label)}-${encodeURIComponent(value)}-${color}?style=flat-square">`;
+            // 占比以等寬文字條呈現，不依賴外部圖片服務
+            const bar = (ratio, width = 20) => {
+              const full = Math.round(ratio * width);
+              return '█'.repeat(full) + '░'.repeat(width - full);
+            };
 
-            let table = '<table align="center" width="100%">\n';
-            table += '  <thead>\n';
-            table += '    <tr>\n';
-            table += '      <th>🏆 排名</th>\n';
-            table += '      <th align="left">👤 貢獻者</th>\n';
-            table += '      <th>📝 Commits</th>\n';
-            table += '      <th>➕ 新增行數</th>\n';
-            table += '      <th>➖ 刪除行數</th>\n';
-            table += '      <th>📊 貢獻比例</th>\n';
-            table += '    </tr>\n';
-            table += '  </thead>\n';
-            table += '  <tbody>\n';
+            let content = '\n\n<p align="center">\n';
+            content += `  ${badge('貢獻者', String(sorted.length), '627D8D')}\n`;
+            content += `  ${badge('提交', fmt(totalCommits), '627D8D')}\n`;
+            content += `  ${badge('新增', '+' + fmt(totalAdditions), '2E9E5B')}\n`;
+            content += `  ${badge('刪除', '−' + fmt(totalDeletions), 'D64545')}\n`;
+            content += '</p>\n\n';
 
-            const medals = ['🥇', '🥈', '🥉'];
-
+            content += '| 排名 | 貢獻者 | 提交 | 新增行數 | 刪除行數 | 提交占比 |\n';
+            content += '| :-: | :-- | --: | --: | --: | :-- |\n';
             sorted.forEach((user, index) => {
-              let a = 0, d = 0;
-              user.weeks.forEach(w => { a += w.a; d += w.d; });
-
-              const name = user.author.login;
-              const rank = medals[index] || `#${index + 1}`;
-              const percentage = totalCommits > 0
-                ? ((user.total / totalCommits) * 100).toFixed(1)
-                : 0;
-
-              const progressBar = `<img src="https://progress-bar.xyz/${Math.round(percentage)}/?width=120" alt="${percentage}%">`;
-
-              const userCell = `<a href="${user.author.html_url}"><b>${name}</b></a>`;
-
-              table += '    <tr>\n';
-              table += `      <td align="center" valign="middle"><h3>${rank}</h3></td>\n`;
-              table += `      <td align="left" valign="middle">${userCell}</td>\n`;
-              table += `      <td align="center" valign="middle"><b>${user.total}</b></td>\n`;
-              table += `      <td align="center" valign="middle"><code>+${a.toLocaleString()}</code></td>\n`;
-              table += `      <td align="center" valign="middle"><code>-${d.toLocaleString()}</code></td>\n`;
-              table += `      <td align="center" valign="middle">${progressBar}</td>\n`;
-              table += '    </tr>\n';
+              const ratio = totalCommits > 0 ? user.total / totalCommits : 0;
+              const avatar = `<img src="${user.author.avatar_url}&s=48" width="20" height="20" alt="">`;
+              const name = `[**${user.author.login}**](${user.author.html_url})`;
+              content += `| ${index + 1} | ${avatar} ${name} | ${fmt(user.total)} | +${fmt(sum(user, 'a'))} | −${fmt(sum(user, 'd'))} | \`${bar(ratio)}\` ${(ratio * 100).toFixed(1)}% |\n`;
             });
 
-            table += '  </tbody>\n</table>\n\n';
-
-            const now = new Date();
-            const taiwanTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-            const timestamp = taiwanTime.toISOString().replace('T', ' ').substring(0, 19);
-            const footer = `<div align="center">\n\n<sub>📅 最後更新：${timestamp} (UTC+8)</sub>\n\n</div>\n\n`;
-
-            const content = badges + table + footer;
+            const taiwanTime = new Date(Date.now() + 8 * 60 * 60 * 1000);
+            const timestamp = taiwanTime.toISOString().replace('T', ' ').substring(0, 16);
+            content += `\n<p align="center"><sub>資料來源：GitHub 貢獻者統計（已排除機器人帳號）・每日 00:00（UTC+8）自動更新・最後更新 ${timestamp}</sub></p>\n\n`;
 
             const fs = require('fs');
             const path = 'README.md';
