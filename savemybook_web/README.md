@@ -24,7 +24,7 @@ npm run dev        # http://127.0.0.1:5280/
 | 算圖 `public/renders/` | `npm run assets -- renders`：來源在 `assets-src/renders/`（書櫃正面、3/4 視角，主控板有、無開發板兩張）。主控板的開發板由兩張算圖的差異去背，並產生 `src/data/pcb.ts`。 |
 | 鉸鏈護蓋 `public/model/hinge-cover.stl` | 書櫃模型載入的實體零件。 |
 | 圖示 `public/*.png`、`public/brand/` | `npm run assets -- icons`，取自 `branding/Logo Design`。 |
-| 介紹影片 `public/media/` | `npm run assets -- video`，由介紹動畫成品壓縮（1080p30），字幕由 `字幕_中英.srt` 轉成 WebVTT。 |
+| 介紹影片 `public/media/` | `npm run assets -- video`，由系統簡介影片的 1080p 中英字幕版壓縮（1080p30，字幕已燒在畫面上），封面取 15.5 秒那一格。換片時改 `scripts/prepare-assets.mjs` 的 `VIDEO` 檔名，並同步改 `index.html`，避免快取播到舊檔。 |
 | 分享預覽圖 `public/og.jpg` | 開著 `npm run dev` 時執行 `node scripts/og.mjs`。 |
 | 字型 `src/styles/fonts.css`、`src/styles/fonts/` | `npm run fonts`（`npm run build` 會先執行）：依頁面實際用字挑選思源黑體與 IBM Plex Mono 的分片，再把每片裁到只剩用到的字。改了文案後要重跑。 |
 

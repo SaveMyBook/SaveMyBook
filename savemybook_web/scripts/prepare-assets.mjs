@@ -1,6 +1,6 @@
 // 由專案素材產生網站用的圖示、App 畫面、算圖與介紹影片；產出放在 public/，可重複執行。
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -10,7 +10,7 @@ const web = resolve(here, '..');
 const repo = resolve(web, '..');
 const pub = join(web, 'public');
 const logoDir = join(repo, 'branding/Logo Design');
-const film = join(repo, 'presentation/介紹動畫/成品');
+const film = join(repo, 'presentation/系統簡介影片/成品');
 const ffmpeg = join(repo, 'presentation/介紹動畫/src/node_modules/ffmpeg-static/ffmpeg');
 
 const BRAND = '#627D8D';
@@ -55,19 +55,22 @@ async function screens() {
   console.log('screens:', files.length);
 }
 
-function srtToVtt(srt) {
-  const body = srt.replace(/^\uFEFF/, '').replace(/\r/g, '').replace(/(\d\d:\d\d:\d\d),(\d\d\d)/g, '$1.$2');
-  return `WEBVTT\n\n${body.trim()}\n`;
-}
+// 檔名帶版本：/media/ 與 Cloudflare 都會快取一週，換片時改 VIDEO 才不會播到舊檔
+const VIDEO = 'intro-v3';
 
 async function video() {
   const out = ensure(join(pub, 'media'));
-  const src = join(film, '四技第115414組-救「舊」我的書-介紹動畫-1080p60.mp4');
+  // 中英字幕已燒在畫面上，網頁不另加字幕軌
+  const src = join(film, '四技第115414組-救「舊」我的書-系統簡介影片-中英字幕.mp4');
   execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', src,
     '-vf', 'fps=30', '-c:v', 'libx264', '-preset', 'slow', '-crf', '27', '-pix_fmt', 'yuv420p',
-    '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', join(out, 'intro.mp4')]);
-  await sharp(join(film, 'YouTube封面_3840x2160.png')).resize(1600).webp({ quality: 82 }).toFile(join(out, 'intro-poster.webp'));
-  writeFileSync(join(out, 'intro.vtt'), srtToVtt(readFileSync(join(film, '字幕_中英.srt'), 'utf8')));
+    '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', join(out, `${VIDEO}.mp4`)]);
+  // 封面取片頭品牌與書櫃、手機同框的那一格（無字幕的中文版）
+  const still = join(out, '.poster.png');
+  execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-ss', '15.5', '-i', join(film, '四技第115414組-救「舊」我的書-系統簡介影片-4K.mp4'),
+    '-frames:v', '1', still]);
+  await sharp(still).resize(1600).webp({ quality: 82 }).toFile(join(out, `${VIDEO}-poster.webp`));
+  rmSync(still);
 }
 
 async function boardCutout(src, out) {
