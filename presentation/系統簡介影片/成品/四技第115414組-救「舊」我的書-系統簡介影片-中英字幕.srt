@@ -204,12 +204,12 @@ MariaDB 與 ESP32-S3 打造，
 MariaDB, and ESP32-S3,
 
 42
-00:02:40,720 --> 00:02:42,590
-共 301 個 API，
-with 301 APIs,
+00:02:40,720 --> 00:02:42,670
+共 304 個 API，
+with 304 APIs,
 
 43
-00:02:42,590 --> 00:02:46,920
+00:02:42,670 --> 00:02:46,920
 前後端超過四千項自動化測試全數通過。
 and more than 4,000 automated front-end and back-end tests, all passing.
 
