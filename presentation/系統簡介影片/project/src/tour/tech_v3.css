@@ -1,0 +1,2 @@
+/* 技術架構 v3（s_tech_v3.ts）。style.css 的 .xlabel 固定寬 360px，v3-label 沒有蓋掉：靠左的標籤文字會離物件 360px 減字寬，這裡改回依文字寬度 */
+.xlabel.v3-label.tech-v3-label { width: auto; }

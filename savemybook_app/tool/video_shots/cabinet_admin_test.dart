@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -157,16 +158,149 @@ CabinetSession _resume(String status, {int? remainingMs, bool done = false}) {
 
 // ───────────── 相機畫面：鏡頭對準新北高工書櫃的螢幕 ─────────────
 
-ui.Paragraph _text(String text, double width, {required double size, FontWeight weight = FontWeight.w400, Color color = Colors.white}) {
-  final b = ui.ParagraphBuilder(ui.ParagraphStyle(fontFamily: 'NotoSansTC', fontSize: size, fontWeight: weight, height: 1.0))
-    ..pushStyle(ui.TextStyle(color: color, fontFamily: 'NotoSansTC', fontSize: size, fontWeight: weight))
-    ..addText(text);
-  return b.build()..layout(ui.ParagraphConstraints(width: width));
+ui.Paragraph _spans(List<(String, Color)> parts, {required double size, FontWeight weight = FontWeight.w400}) {
+  final b = ui.ParagraphBuilder(ui.ParagraphStyle(fontFamily: 'NotoSansTC', fontSize: size, fontWeight: weight, height: 1.0));
+  for (final (text, color) in parts) {
+    b
+      ..pushStyle(ui.TextStyle(color: color, fontFamily: 'NotoSansTC', fontSize: size, fontWeight: weight))
+      ..addText(text)
+      ..pop();
+  }
+  return b.build()..layout(const ui.ParagraphConstraints(width: 10000));
 }
 
-/// 比照 web_shots/covers.dart 的 paintCameraScene，螢幕內容改為與 3D 書櫃相同：
-/// QR Code 為版本 4、錯誤修正 M（同韌體），頂列為書櫃名稱與 14:25，[bar] 為 QR Code 更新倒數條剩餘比例。
-ui.Image _cameraScene(Size size, Offset frameCenter, double frame, {required String qr, required double bar, double scale = 3}) {
+/// 同 canvas 的 textBaseline = 'middle'：基線在 [cy] 下方 0.38 em（Noto Sans TC 的 (0.88 − 0.12) / 2）。
+/// 改用行高置中會比 3D 螢幕高約 0.08 em。
+void _drawMiddle(Canvas canvas, ui.Paragraph p, double x, double cy, double size) =>
+    canvas.drawParagraph(p, Offset(x, cy + size * 0.38 - p.alphabeticBaseline));
+
+/// assets/images/logo.png（與網站 brand/book-slate-128.png 同一張書本圖示，2048 × 2048）中不透明部分的範圍。
+const _logoCrop = Rect.fromLTRB(207, 379, 1854, 1704);
+
+ui.Image? _logo;
+
+Future<ui.Image> _brandLogo(WidgetTester tester) async => _logo ??= (await tester.runAsync(() async {
+  final codec = await ui.instantiateImageCodec(File('assets/images/logo.png').readAsBytesSync(), targetWidth: 512);
+  return (await codec.getNextFrame()).image;
+}))!;
+
+/// 書櫃螢幕的 QR Code 畫面：比照 savemybook_web/src/three/textures.ts 的 Kiosk（qr 狀態，版面同韌體 ui.cpp 的 drawQrScreen），
+/// 以 320 × 240 的韌體像素繪製在 [screen] 內。QR Code 為版本 4、錯誤修正 M，[bar] 為更新倒數條的剩餘比例。
+void _paintKioskQr(Canvas canvas, Rect screen, {required String qr, required double bar, required ui.Image logo}) {
+  const ink = Color(0xFF151E27), primary = Color(0xFF627D8D), white = Color(0xFFFFFFFF);
+  canvas
+    ..save()
+    ..clipRect(screen)
+    ..translate(screen.left, screen.top)
+    ..scale(screen.width / 320);
+  canvas.drawRect(
+    const Rect.fromLTWH(0, 0, 320, 240),
+    Paint()..shader = ui.Gradient.linear(Offset.zero, const Offset(0, 240), const [Color(0xFFDFE7EC), Color(0xFFF3F5F7)]),
+  );
+
+  final title = _spans([('救「舊」我的書', white)], size: 16, weight: FontWeight.w500);
+  final clock = _spans([('14:25', const Color(0xFFA9B6BF))], size: 16, weight: FontWeight.w500);
+  final logoW = 16 * _logoCrop.width / _logoCrop.height;
+  final textX = 12 + logoW + 7;
+  final islandW = textX + title.maxIntrinsicWidth + 18 + clock.maxIntrinsicWidth + 14;
+  final ix = (320 - islandW) / 2;
+  canvas.drawRRect(RRect.fromLTRBR(ix, 6, ix + islandW, 34, const Radius.circular(14)), Paint()..color = ink);
+  final k = logo.width / 2048;
+  canvas.drawImageRect(
+    logo,
+    Rect.fromLTRB(_logoCrop.left * k, _logoCrop.top * k, _logoCrop.right * k, _logoCrop.bottom * k),
+    Rect.fromLTWH(ix + 12, 12, logoW, 16),
+    Paint()
+      ..colorFilter = const ColorFilter.mode(Color(0xFFB9C7CF), BlendMode.srcIn)
+      ..filterQuality = FilterQuality.medium,
+  );
+  _drawMiddle(canvas, title, ix + textX, 20, 16);
+  _drawMiddle(canvas, clock, ix + islandW - 14 - clock.maxIntrinsicWidth, 20, 16);
+
+  // 左側白色卡片：33 格加 4 格靜區、每格 4 像素，正好填滿 164
+  const qx = 10.0, qy = 56.0, box = 164.0;
+  final card = RRect.fromRectAndRadius(const Rect.fromLTWH(qx, qy, box, box), const Radius.circular(22));
+  canvas.drawRRect(
+    card.shift(const Offset(0, 4)),
+    Paint()
+      ..color = const Color.fromRGBO(28, 42, 53, 30 / 255 * 0.6)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+  );
+  canvas.drawRRect(card, Paint()..color = white);
+  canvas
+    ..save()
+    ..translate(qx + 16, qy + 16);
+  QrPainter(
+    data: qr,
+    version: 4,
+    errorCorrectionLevel: QrErrorCorrectLevel.M,
+    gapless: true,
+    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: ink),
+    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: ink),
+  ).paint(canvas, const Size.square(box - 32));
+  canvas.restore();
+
+  // 斷行同 textures.ts 的 wrap
+  const lx = qx + box + 12, lh = 26.0;
+  const lines = ['請使用', 'SaveMyBook', 'App 掃描'];
+  var y = qy + box / 2 - (40 + 14 + lines.length * lh + 22) / 2;
+  canvas.drawRRect(RRect.fromLTRBR(lx, y, lx + 40, y + 40, const Radius.circular(12)), Paint()..color = primary);
+  final stroke = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.5
+    ..strokeCap = StrokeCap.round
+    ..color = white;
+  canvas
+    ..drawRRect(RRect.fromLTRBR(lx + 20 - 7.75, y + 20 - 12.75, lx + 20 + 7.75, y + 20 + 12.75, const Radius.circular(2.75)), stroke)
+    ..drawLine(Offset(lx + 17, y + 28), Offset(lx + 23, y + 28), stroke);
+  y += 54;
+  for (final (i, line) in lines.indexed) {
+    _drawMiddle(canvas, _spans([(line, ink)], size: 20, weight: FontWeight.w500), lx, y + lh / 2 + i * lh, 20);
+  }
+  y += lines.length * lh + 16;
+  canvas.drawRRect(RRect.fromLTRBR(lx, y, lx + 118, y + 6, const Radius.circular(3)), Paint()..color = const Color(0xFFE6EAED));
+  final filled = (118 * bar.clamp(0.0, 1.0)).roundToDouble();
+  if (filled > 0) {
+    canvas.drawRRect(
+      RRect.fromLTRBR(lx, y, lx + math.max(filled, 6.0), y + 6, const Radius.circular(3)),
+      Paint()..color = bar < 0.2 ? const Color(0xFFD98613) : primary,
+    );
+  }
+  canvas.restore();
+}
+
+/// 橡木紋：底色上細密的深淺直紋（同 cabinet.ts 的 woodTexture）；[texel] 為貼圖一像素在畫面上的大小，[strength] 為紋路濃淡。
+void _woodGrain(Canvas canvas, Rect area, Color base, {required double texel, required int seed, double strength = 1}) {
+  canvas.drawRect(area, Paint()..color = base);
+  var s = seed;
+  double rnd() => (s = (s * 16807) % 2147483647) / 2147483647;
+  final count = (area.width / texel * 300 / 512).ceil();
+  for (var i = 0; i < count; i++) {
+    final x = area.left + rnd() * area.width;
+    final color = rnd() < 0.6
+        ? Color.fromRGBO(52 + (rnd() * 22).floor(), 40 + (rnd() * 16).floor(), 28 + (rnd() * 12).floor(), (0.2 + rnd() * 0.32) * strength)
+        : Color.fromRGBO(160 + (rnd() * 28).floor(), 138 + (rnd() * 24).floor(), 108 + (rnd() * 20).floor(), (0.08 + rnd() * 0.2) * strength);
+    canvas.drawLine(
+      Offset(x, area.top),
+      Offset(x, area.bottom),
+      Paint()
+        ..color = color
+        ..strokeWidth = (0.5 + rnd() * 2.2) * texel,
+    );
+  }
+}
+
+/// 相機畫面：鏡頭正對書櫃頂列的螢幕。書櫃比照影片 3D 模型（presentation/系統簡介影片/project/src/three/cabinet.ts，單位 4 公分）：
+/// 白色霧面壓克力正面，頂列左上角為螢幕、右側為標誌貼紙，下方 A01–A04 透明壓克力櫃門（左側電磁鎖與木製把手、右側鉸鏈），側板為灰褐橡木紋。
+ui.Image _cameraScene(
+  Size size,
+  Offset frameCenter,
+  double frame, {
+  required String qr,
+  required double bar,
+  required ui.Image logo,
+  double scale = 3,
+}) {
   final recorder = ui.PictureRecorder();
   final canvas = ui.Canvas(recorder)..scale(scale);
   final bounds = Offset.zero & size;
@@ -179,101 +313,141 @@ ui.Image _cameraScene(Size size, Offset frameCenter, double frame, {required Str
   canvas.drawCircle(Offset(size.width * 0.12, size.height * 0.08), 110, glow..color = const Color(0x66C9A66B));
   canvas.drawCircle(Offset(size.width * 0.95, size.height * 0.2), 90, glow..color = const Color(0x405F7F8F));
 
-  final qrBox = frame * 0.46;
-  final u = qrBox / 164;
-  final screen = Rect.fromLTWH(frameCenter.dx - 98 * u, frameCenter.dy - 122 * u, 320 * u, 240 * u);
-  final sw = screen.width;
-  final pad = sw * 0.06;
-  final face = Rect.fromLTRB(-sw, screen.top - pad - sw * 0.27, screen.right + pad + sw * 0.3, size.height + sw);
-  final topRowBottom = screen.center.dy + sw * 0.582;
+  // 螢幕上的 QR Code 卡片置中於掃描框。卡片只佔框寬 0.36：螢幕在頂列左側、QR Code 又在螢幕左側，
+  // 放得更大時螢幕右緣幾乎貼齊畫面右緣，貼紙完全出框
+  final u = frame * 0.36 / 164;
+  final screen = Rect.fromLTWH(frameCenter.dx - 92 * u, frameCenter.dy - 138 * u, 320 * u, 240 * u);
+  final m = screen.width / 1.76;
+  const w = 7.75, t = 0.225, topRow = 2.05, inW = w - 2 * t, cellH = (9.5 - 2 * t - topRow - 4 * t) / 4;
+  final bezel = screen.inflate(0.11 * m);
+  // 正面左上角；box、at 的 x 往右、y 往下，皆為模型單位
+  final origin = bezel.topLeft - Offset(t + 0.3, t + (topRow - 1.54) / 2) * m;
+  Rect box(double x, double y, double bw, double bh) => Rect.fromLTWH(origin.dx + x * m, origin.dy + y * m, bw * m, bh * m);
+  Offset at(double x, double y) => origin + Offset(x, y) * m;
+  final face = box(0, 0, w, 9.5);
+  final texel = m / 66;
 
-  final wood = Paint()..shader = ui.Gradient.linear(face.topRight, face.topRight.translate(sw * 0.1, sw * 0.4), const [Color(0xFFB79668), Color(0xFF8F7149)]);
-  canvas.drawPath(
-    Path()
-      ..moveTo(face.right, face.top)
-      ..lineTo(face.right + sw * 0.09, face.top - sw * 0.05)
-      ..lineTo(face.right + sw * 0.09, size.height)
-      ..lineTo(face.right, size.height)
-      ..close(),
-    wood,
-  );
-  canvas.drawPath(
-    Path()
-      ..moveTo(face.left, face.top)
-      ..lineTo(face.right, face.top)
-      ..lineTo(face.right + sw * 0.09, face.top - sw * 0.05)
-      ..lineTo(face.left, face.top - sw * 0.05)
-      ..close(),
-    Paint()..color = const Color(0xFFC9A87A),
-  );
-  canvas.drawRect(
-    face,
-    Paint()..shader = ui.Gradient.linear(face.topCenter, face.topCenter.translate(0, sw * 1.6), const [Color(0xFFDDE2E5), Color(0xFFB7BFC4)]),
-  );
+  // 左側板：鏡頭略偏左，露出一窄條
+  final side = Path()
+    ..moveTo(face.left, face.top)
+    ..lineTo(face.left - 0.16 * m, face.top + 0.06 * m)
+    ..lineTo(face.left - 0.16 * m, size.height + 1)
+    ..lineTo(face.left, size.height + 1)
+    ..close();
+  canvas
+    ..save()
+    ..clipPath(side);
+  _woodGrain(canvas, Rect.fromLTRB(face.left - 0.16 * m, face.top, face.left, size.height + 1), const Color(0xFF7C644B), texel: texel * 0.3, seed: 7);
+  canvas
+    ..drawRect(bounds, Paint()..color = const Color(0x24000000))
+    ..restore();
 
-  final openRight = face.right - sw * 0.128;
-  for (var i = 0; i < 2; i++) {
-    final top = topRowBottom + sw * 0.128 + i * sw * (0.866 + 0.128);
-    final cell = Rect.fromLTRB(face.left, top, openRight, top + sw * 0.866);
-    canvas.drawRect(cell, Paint()..shader = ui.Gradient.linear(cell.topCenter, cell.bottomCenter, const [Color(0xFF8C7250), Color(0xFFA88A62)]));
-    canvas.drawRect(Rect.fromLTRB(cell.left, cell.bottom - sw * 0.2, cell.right, cell.bottom), Paint()..color = const Color(0xFFB99A70));
-    canvas.drawRect(cell, Paint()..color = const Color(0x2ECFE0E8));
-    canvas.drawRect(
-      cell.deflate(1.2),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6
-        ..color = const Color(0xCCB4C8D2),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(cell.right - sw * 0.55, cell.top)
-        ..lineTo(cell.right - sw * 0.42, cell.top)
-        ..lineTo(cell.right - sw * 0.7, cell.bottom)
-        ..lineTo(cell.right - sw * 0.83, cell.bottom)
-        ..close(),
-      Paint()..color = const Color(0x1FFFFFFF),
-    );
-    final hinge = Paint()..color = const Color(0xFFB7BEC4);
-    for (final y in [cell.top + sw * 0.17, cell.bottom - sw * 0.17]) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(cell.right + 1, y), width: sw * 0.05, height: sw * 0.17), const Radius.circular(2)),
-        hinge,
+  // 正面依相機曝光畫成淺灰：掃描框與提示文字是白色（screen 混合），正面畫成純白會看不見
+  canvas.drawRect(face, Paint()..shader = ui.Gradient.linear(face.topCenter, at(w / 2, 5), const [Color(0xFFE6EAED), Color(0xFFCDD3D7)]));
+  final edge = Paint()
+    ..color = const Color(0xCCFFFFFF)
+    ..strokeWidth = 0.012 * m;
+  canvas
+    ..drawLine(face.topLeft, face.topRight, edge)
+    ..drawLine(face.topLeft, face.bottomLeft, edge);
+
+  for (var i = 0; i < 4; i++) {
+    final top = t + topRow + t + i * (cellH + t);
+    final cy = top + cellH / 2;
+    final opening = box(t, top, inW, cellH);
+    canvas
+      ..save()
+      ..clipRect(opening);
+    _woodGrain(canvas, opening, const Color(0xFFA39683), texel: texel * 0.55, seed: 31 + i, strength: 0.5);
+    final floor = box(t, top + cellH - 0.34, inW, 0.34);
+    canvas
+      ..drawRect(floor, Paint()..shader = ui.Gradient.linear(floor.topCenter, floor.bottomCenter, const [Color(0xFFB3A590), Color(0xFFC4B7A3)]))
+      ..drawLine(floor.topLeft, floor.topRight, Paint()..color = const Color(0x40382C20)..strokeWidth = 0.02 * m)
+      ..drawRect(opening, Paint()..shader = ui.Gradient.linear(opening.topCenter, at(0, top + 0.45), const [Color(0x7A1E1812), Color(0x001E1812)]));
+
+    // 電磁鎖在門板內側，要在門板之前畫
+    final lock = RRect.fromRectAndRadius(Rect.fromCenter(center: at(1.1, cy), width: 1.35 * m, height: 1.03 * m), Radius.circular(0.05 * m));
+    canvas
+      ..drawRRect(lock, Paint()..shader = ui.Gradient.linear(lock.outerRect.topCenter, lock.outerRect.bottomCenter, const [Color(0xFFB4BBC1), Color(0xFF90979D)]))
+      ..drawRRect(
+        lock,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.015 * m
+          ..color = const Color(0x66474F56),
       );
+    for (final (sx, sy) in [(-1, -1), (1, -1), (-1, 1), (1, 1)]) {
+      canvas.drawCircle(at(1.1 + sx * 0.545, cy + sy * 0.395), 0.035 * m, Paint()..color = const Color(0xFF2C3135));
+    }
+
+    final door = box(t + 0.03, top + 0.03, inW - 0.06, cellH - 0.06);
+    canvas.drawRect(door, Paint()..color = const Color(0x52C9DBE5));
+    final shown = door.intersect(bounds);
+    if (!shown.isEmpty) {
+      canvas.drawRect(
+        door,
+        Paint()
+          ..shader = ui.Gradient.linear(
+            shown.topLeft,
+            shown.bottomRight,
+            const [Color(0x33FFFFFF), Color(0x0AFFFFFF), Color(0x6BFFFFFF), Color(0x0FFFFFFF), Color(0x42FFFFFF), Color(0x08FFFFFF), Color(0x24FFFFFF)],
+            [0, 0.42, 0.5, 0.56, 0.62, 0.68, 1],
+          ),
+      );
+    }
+    canvas
+      ..drawRect(
+        door.deflate(0.0225 * m),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.045 * m
+          ..color = const Color(0xF2A9C0CC),
+      )
+      ..restore();
+
+    final knob = at(1.1 - 0.162, cy);
+    canvas
+      ..drawCircle(knob + Offset(0.04, 0.07) * m, 0.3 * m, Paint()..color = const Color(0x40000000)..maskFilter = MaskFilter.blur(BlurStyle.normal, 0.05 * m))
+      ..drawCircle(
+        knob,
+        0.3 * m,
+        Paint()..shader = ui.Gradient.radial(knob - Offset(0.09, 0.1) * m, 0.4 * m, const [Color(0xFFD9CCB6), Color(0xFFBDAB91), Color(0xFFA2907A)], [0, 0.55, 1]),
+      );
+
+    final leaf = RRect.fromRectAndRadius(Rect.fromCenter(center: at(w - t - 0.27, cy), width: 0.42 * m, height: 0.95 * m), Radius.circular(0.01 * m));
+    canvas
+      ..drawRRect(leaf, Paint()..shader = ui.Gradient.linear(leaf.outerRect.centerLeft, leaf.outerRect.centerRight, const [Color(0xFFC6CCD1), Color(0xFFA3AAB0)]))
+      ..drawRect(Rect.fromCenter(center: at(w - t - 0.03, cy), width: 0.09 * m, height: 0.95 * m), Paint()..color = const Color(0xFF9AA2A8));
+    for (final sy in [-0.315, 0.315]) {
+      canvas.drawCircle(at(w - t - 0.27, cy + sy), 0.035 * m, Paint()..color = const Color(0xFF8D959B));
     }
   }
 
-  canvas.drawRRect(RRect.fromRectAndRadius(screen.inflate(pad), Radius.circular(pad * 0.5)), Paint()..color = const Color(0xFF1D2126));
-  canvas.drawRect(screen, Paint()..color = const Color(0xFF0E1318));
-  canvas.drawRect(Rect.fromLTWH(screen.left, screen.top, sw, 28 * u), Paint()..color = const Color(0xFF18212A));
-  final title = _text(_cabinetName, sw, size: 16 * u, weight: FontWeight.w500, color: const Color(0xFFEEF2F5));
-  canvas.drawParagraph(title, Offset(screen.left + 10 * u, screen.top + 14 * u - title.height / 2));
-  final clock = _text('14:25', sw, size: 16 * u, weight: FontWeight.w500, color: const Color(0xFFEEF2F5));
-  canvas.drawParagraph(clock, Offset(screen.right - 10 * u - clock.maxIntrinsicWidth, screen.top + 14 * u - clock.height / 2));
-  final qrRect = Rect.fromLTWH(screen.left + 16 * u, screen.top + 40 * u, qrBox, qrBox);
-  canvas.drawRect(qrRect, Paint()..color = const Color(0xFFFFFFFF));
-  canvas.save();
-  canvas.translate(qrRect.left + 16 * u, qrRect.top + 16 * u);
-  QrPainter(
-    data: qr,
-    version: 4,
-    errorCorrectionLevel: QrErrorCorrectLevel.M,
-    gapless: true,
-    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF0E1318)),
-    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF0E1318)),
-  ).paint(canvas, Size.square(qrBox - 32 * u));
-  canvas.restore();
-  canvas.drawRect(Rect.fromLTWH(qrRect.left, qrRect.bottom + 8 * u, qrBox, 4 * u), Paint()..color = const Color(0xFF2A3540));
-  canvas.drawRect(Rect.fromLTWH(qrRect.left, qrRect.bottom + 8 * u, qrBox * bar, 4 * u), Paint()..color = const Color(0xFF46B59C));
-  // 與 3D 書櫃螢幕（textures.ts 的 balancedWrap）相同的斷行
-  final lines = ['請使用', 'SaveMyBook', 'App 掃描'];
-  final cx = screen.left + (qrRect.right - screen.left + 12 * u + (sw - 8 * u)) / 2;
-  var y = qrRect.center.dy - lines.length * 12 * u;
-  for (final line in lines) {
-    final p = _text(line, sw, size: 15 * u, color: const Color(0xFFEEF2F5));
-    canvas.drawParagraph(p, Offset(cx - p.maxIntrinsicWidth / 2, y + 12 * u - p.height / 2));
-    y += 24 * u;
-  }
+  // 標誌貼紙（cabinet.ts 的 brandSticker，760 × 240 畫布寬 4.4）。實機在螢幕右側 0.3 處，
+  // 這裡往螢幕靠近，畫面右緣才露得出書本圖示
+  final p = 4.4 / 760 * m;
+  final sticker = Offset(bezel.right + 0.1 * m - 40 * p, bezel.center.dy - 120 * p);
+  canvas.drawImageRect(
+    logo,
+    Rect.fromLTWH(0, 0, logo.width.toDouble(), logo.height.toDouble()),
+    Rect.fromLTWH(sticker.dx + 40 * p, sticker.dy + 40 * p, 160 * p, 160 * p),
+    Paint()..filterQuality = FilterQuality.medium,
+  );
+  const nameParts = [('救', Color(0xFF151E27)), ('「舊」', Color(0xFF627D8D)), ('我的書', Color(0xFF151E27))];
+  final nameSize = math.min(78.0, 78 * (760 - 228 - 32) / _spans(nameParts, size: 78, weight: FontWeight.w700).maxIntrinsicWidth);
+  _drawMiddle(canvas, _spans(nameParts, size: nameSize * p, weight: FontWeight.w700), sticker.dx + 228 * p, sticker.dy + 100 * p, nameSize * p);
+  _drawMiddle(canvas, _spans([('SaveMyBook', const Color(0xFF627D8D))], size: 46 * p, weight: FontWeight.w500), sticker.dx + 234 * p, sticker.dy + 174 * p, 46 * p);
+
+  canvas
+    ..drawRRect(
+      RRect.fromRectAndRadius(bezel.inflate(0.006 * m), Radius.circular(0.046 * m)),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.012 * m
+        ..color = const Color(0xB3FFFFFF),
+    )
+    ..drawRRect(RRect.fromRectAndRadius(bezel, Radius.circular(0.04 * m)), Paint()..color = const Color(0xFF1D2126));
+  _paintKioskQr(canvas, screen, qr: qr, bar: bar, logo: logo);
 
   canvas.drawRect(
     bounds,
@@ -289,7 +463,7 @@ Future<void> _scanCamera(WidgetTester tester, {required int qr, required double 
   final scanner = tester.getRect(find.byType(CabinetScannerView));
   final frame = tester.getRect(find.byWidgetPredicate((w) => w is CustomPaint && w.painter is ScanFramePainter));
   final paste = find.byType(CabinetPasteButton);
-  final camera = _cameraScene(scanner.size, frame.center - scanner.topLeft, frame.width, qr: _qrData(qr), bar: bar);
+  final camera = _cameraScene(scanner.size, frame.center - scanner.topLeft, frame.width, qr: _qrData(qr), bar: bar, logo: await _brandLogo(tester));
   systemOverlay.value = [
     Positioned.fill(
       child: CameraLayer(image: camera, rect: scanner, blackouts: [if (paste.evaluate().isNotEmpty) tester.getRect(paste).inflate(6)]),

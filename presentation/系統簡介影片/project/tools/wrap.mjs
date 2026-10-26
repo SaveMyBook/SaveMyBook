@@ -10,8 +10,9 @@ const puppeteer = require('puppeteer');
 
 const browser = await puppeteer.launch({ headless: true });
 const page = await browser.newPage();
+await page.evaluateOnNewDocument(() => { window.WebSocket = class { addEventListener() {} removeEventListener() {} send() {} close() {} }; }); // 停用 Vite 的熱更新連線：其他人存檔時頁面不會重新載入、檢查不會中斷
 await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
-await page.goto('http://127.0.0.1:5291/?render', { waitUntil: 'networkidle0' });
+await page.goto('http://127.0.0.1:5291/?render' + (process.env.Q ? '&' + process.env.Q : ''), { waitUntil: 'networkidle0' });
 await page.waitForFunction(() => window.__ready === true, { timeout: 60000 });
 const found = await page.evaluate(() => {
   for (const l of document.querySelectorAll('.layer')) l.style.display = '';

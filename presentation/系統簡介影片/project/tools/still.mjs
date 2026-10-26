@@ -7,6 +7,7 @@ const [dir, ...ts] = process.argv.slice(2);
 mkdirSync(dir, { recursive: true });
 const browser = await puppeteer.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage();
+await page.evaluateOnNewDocument(() => { window.WebSocket = class { addEventListener() {} removeEventListener() {} send() {} close() {} }; }); // 停用 Vite 的熱更新連線：其他人存檔時頁面不會重新載入、檢查不會中斷
 await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
 page.on('pageerror', (e) => console.log('pageerror', e.message));
 page.on('console', (m) => { if (m.type() === 'error') console.log('console', m.text()); });

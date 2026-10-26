@@ -14,13 +14,13 @@ const SIGMA = 0.42;
  * 版面依實際架構排列，不畫連線：左側 App（Flutter）、右側書櫃（ESP32-S3），兩者都經 API 存取的後端放在中間（Node.js 之下為 MariaDB）。
  * 章名 → 手機與書櫃各自從正下方平行升起到靠近中間的位置（旁白「系統以」），念到 Node.js 前往兩側讓出中間；旁白念到哪項技術，名稱就在對應的位置升起：
  *   Flutter 在手機上方、Node.js 與 MariaDB 在中間、ESP32-S3 在書櫃上方；念到 ESP32-S3 時書櫃轉為透視，
- *   頂列的控制板轉為品牌藍，ESP32-S3 開發板由該處抬出到櫃子前方並放大，停留後收回
- * → 中間改為 301 個 API、4,000+ 項自動化測試的滾動數字 → 手機與書櫃往下退場。
+ *   頂列右後方主控板上的 ESP32-S3 開發板轉為品牌藍，並由該處抬出到櫃子前方放大，停留後收回
+ * → 中間改為 304 個 API、4,000+ 項自動化測試的滾動數字 → 手機與書櫃往下退場。
  * 旁白 24 的四個技術名稱都已在畫面上，該句不燒入字幕（audio/subs_hide.json）。
  * 出處（複評版手冊，頁碼為頁面印刷頁碼）：p23 業務邏輯與應用層（Node.js、Express.js，同一行程以 Socket.IO 即時推送）；
  *   p25–27 表 3-2-4（Flutter 行動端、MariaDB 資料庫、ESP32-S3 負責電磁鎖與螢幕控制）；
  *   p118「App 與智慧書櫃終端（ESP32-S3）皆經 API 元件存取後端」；
- *   p216 後端 11 組測試群組 1,558 項、Flutter 實際執行 2,571 項，全數通過；301 個 API 出自旁白（savemybook_api/routes 的路由宣告數）。
+ *   2026-10-26 實測：API 端點 304 個（npm run docs:check）、後端測試 1,567 項、App 測試 2,830 項，全數通過。
  */
 export function sTech(world: World, ui: HTMLElement, fx: HTMLElement) {
   const L24 = line('24'), L24b = line('24b');
@@ -36,8 +36,8 @@ export function sTech(world: World, ui: HTMLElement, fx: HTMLElement) {
   const esp = new TechLabel(ui, 'ESP32-S3', '書櫃控制', 960 + CAB_X * 960 - INSET, LABEL_Y);
   const node = new TechLabel(ui, 'Node.js', 'Express API・Socket.IO', 960, 410);
   const maria = new TechLabel(ui, 'MariaDB', '資料庫', 960, 600);
-  const api = new Stat(ui, 301, '個 API', 'App 與書櫃皆經由 API 存取後端', false, 960, 440);
-  const tests = new Stat(ui, 4000, '項自動化測試　全數通過', '後端 1,558 項、前端 2,571 項', true, 960, 440);
+  const api = new Stat(ui, 304, '個 API', 'App 與書櫃皆經由 API 存取後端', false, 960, 440);
+  const tests = new Stat(ui, 4000, '項自動化測試　全數通過', '後端 1,567 項、App 2,830 項', true, 960, 440);
 
   const WORD_OUT = 1.0;
   const RISE = WORD_OUT + 0.02;
@@ -52,7 +52,7 @@ export function sTech(world: World, ui: HTMLElement, fx: HTMLElement) {
   const XRAY = T_ESP + 0.25;
   const LIFT = onBeat(SEC, XRAY + 0.55);
   const DROP = onBeat(SEC, LIFT + 0.7 + 1.5);
-  // 24b：中間的名稱收起 → 301 個 API → 4,000+ 項測試
+  // 24b：中間的名稱收起 → 304 個 API → 4,000+ 項測試
   const MID_OUT = L24b.at - 0.4;
   const N1 = onBeat(SEC, L24b.at - 0.05), R1 = N1 + 0.2;
   const N2 = onBeat(SEC, L24b.at + 2.1), R2 = N2 + 0.2;
@@ -79,14 +79,14 @@ export function sTech(world: World, ui: HTMLElement, fx: HTMLElement) {
     [EXIT0, P(PHONE_X + 0.02, -0.3, 0, 0.02, 0.16, 0, 1.38)],
     [EXIT1, P(PHONE_X, -2.1, 0, -0.3, 0.2, 0.04, 1.35)],
   ];
-  // 書櫃：從正下方升起 → 透視時稍微轉正讓開發板抬出 → 緩慢轉向 → 往下退場
+  // 書櫃：從正下方升起 → 透視時稍微轉正並改為俯視（平放在頂列的主控板才看得到），讓開發板抬出 → 緩慢轉向 → 往下退場
   const cab: [number, Pose][] = [
     [RISE + 0.1, P(NEAR, -1.95, 0, 0.12, -0.75, 0, 1.22)],
     [RISE + 1.25, P(NEAR, -0.06, 0, 0.06, -0.45, 0, 1.22)],
     [PART0, P(NEAR + 0.01, -0.06, 0, 0.06, -0.43, 0, 1.22)],
     [PART1, P(CAB_X, -0.06, 0, 0.06, -0.5, 0, 1.22)],
-    [XRAY, P(CAB_X - 0.01, -0.06, 0, 0.05, -0.42, 0, 1.23)],
-    [DROP + 0.5, P(CAB_X - 0.01, -0.06, 0, 0.05, -0.36, 0, 1.24)],
+    [XRAY, P(CAB_X - 0.01, -0.08, 0, 0.24, -0.42, 0, 1.2)],
+    [DROP + 0.5, P(CAB_X - 0.01, -0.08, 0, 0.22, -0.36, 0, 1.21)],
     [EXIT0, P(CAB_X - 0.02, -0.06, 0, 0.05, -0.3, 0, 1.25)],
     [EXIT1, P(CAB_X, -2.0, 0, -0.2, -0.24, 0, 1.22)],
   ];
@@ -114,7 +114,7 @@ export function sTech(world: World, ui: HTMLElement, fx: HTMLElement) {
       const x = soft(t, XRAY, XRAY + 0.5) * (1 - soft(t, DROP + 0.45, DROP + 0.95));
       world.frame.cabinet = {
         pose: glide(t, cab, SIGMA),
-        kiosk: { state: 'qr', refresh: (t / 30) % 1, seconds: 52, digits: 1, check: 0 },
+        kiosk: { state: 'qr', refresh: (t / 30) % 1, seconds: 52, digits: 1, check: 0, clock: '14:25' },
         xray: x,
       };
       world.cabinet.setFocus('board', x);

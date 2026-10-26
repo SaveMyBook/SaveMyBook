@@ -1,4 +1,4 @@
-// 由專案素材產生網站用的圖示、App 畫面與介紹影片；產出放在 public/，可重複執行。
+// 由專案素材產生網站用的圖示、App 畫面、算圖與介紹影片；產出放在 public/，可重複執行。
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -70,7 +70,92 @@ async function video() {
   writeFileSync(join(out, 'intro.vtt'), srtToVtt(readFileSync(join(film, '字幕_中英.srt'), 'utf8')));
 }
 
+async function boardCutout(src, out) {
+  const A = await sharp(join(src, 'pcb.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const B = await sharp(join(src, 'pcb-empty.png')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const W = A.info.width, H = A.info.height, R = 4;
+  let m = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) {
+    const o = i * 4;
+    let v = 0;
+    for (let c = 0; c < 4; c++) v = Math.max(v, Math.abs(A.data[o + c] - B.data[o + c]));
+    m[i] = v > 30 ? 1 : 0;
+  }
+  const pass = (src0, op, horiz) => {
+    const res = new Uint8Array(W * H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      let v = op === 'max' ? 0 : 1;
+      for (let k = -R; k <= R; k++) {
+        const xx = horiz ? x + k : x, yy = horiz ? y : y + k;
+        const s0 = xx < 0 || yy < 0 || xx >= W || yy >= H ? 0 : src0[yy * W + xx];
+        v = op === 'max' ? Math.max(v, s0) : Math.min(v, s0);
+      }
+      res[y * W + x] = v;
+    }
+    return res;
+  };
+  m = pass(pass(m, 'max', true), 'max', false);
+  m = pass(pass(m, 'min', true), 'min', false);
+  const comp = new Int32Array(W * H).fill(-1);
+  let best = -1, bestN = 0, id = 0;
+  for (let i = 0; i < W * H; i++) {
+    if (!m[i] || comp[i] >= 0) continue;
+    const st = [i];
+    comp[i] = id;
+    let n = 0;
+    while (st.length) {
+      const j = st.pop();
+      n++;
+      const x = j % W, y = (j / W) | 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const xx = x + dx, yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= W || yy >= H) continue;
+        const k = yy * W + xx;
+        if (m[k] && comp[k] < 0) { comp[k] = id; st.push(k); }
+      }
+    }
+    if (n > bestN) { bestN = n; best = id; }
+    id++;
+  }
+  let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  const alpha = Buffer.alloc(W * H);
+  for (let i = 0; i < W * H; i++) {
+    if (comp[i] !== best) continue;
+    alpha[i] = 255;
+    const x = i % W, y = (i / W) | 0;
+    x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+  const a = await sharp(alpha, { raw: { width: W, height: H, channels: 1 } }).blur(0.8).extract({ left: x0, top: y0, width: bw, height: bh }).extractChannel(0).raw().toBuffer();
+  const rgba = await sharp(join(src, 'pcb.png')).ensureAlpha().extract({ left: x0, top: y0, width: bw, height: bh }).raw().toBuffer();
+  for (let i = 0; i < bw * bh; i++) rgba[i * 4 + 3] = Math.min(rgba[i * 4 + 3], a[i]);
+  const board = sharp(rgba, { raw: { width: bw, height: bh, channels: 4 } });
+  await board.clone().webp({ quality: 88, alphaQuality: 100 }).toFile(join(out, 'pcb-board@2x.webp'));
+  await board.clone().resize({ width: Math.round(bw / 2) }).webp({ quality: 88, alphaQuality: 100 }).toFile(join(out, 'pcb-board@1x.webp'));
+  const f = (v) => +(v * 100).toFixed(3);
+  writeFileSync(join(web, 'src/data/pcb.ts'), `// 由 scripts/prepare-assets.mjs 產生，請勿手動修改\nexport const BOARD = { x: ${f(x0 / W)}, y: ${f(y0 / H)}, w: ${f(bw / W)}, h: ${f(bh / H)}, px: ${bw} } as const;\n`);
+}
+
+async function renders() {
+  const src = join(web, 'assets-src/renders');
+  const out = ensure(join(pub, 'renders'));
+  const job = [
+    ['cabinet-hero.png', 'cabinet-hero.webp', 1600, 86],
+    ['cabinet-front.png', 'cabinet-front.webp', 1600, 86],
+    ['pcb.png', 'pcb.webp', 2400, 84],
+    ['pcb.png', 'pcb@1x.webp', 1200, 84],
+    ['pcb-empty.png', 'pcb-empty.webp', 2400, 84],
+    ['pcb-empty.png', 'pcb-empty@1x.webp', 1200, 84],
+  ];
+  for (const [from, to, width, quality] of job) {
+    await sharp(join(src, from)).resize({ width, withoutEnlargement: true }).webp({ quality, alphaQuality: 90 }).toFile(join(out, to));
+  }
+  await boardCutout(src, out);
+  console.log('renders:', job.length + 1);
+}
+
 if (want('icons')) await icons();
 if (want('screens')) await screens();
+if (want('renders')) await renders();
 if (want('video')) await video();
 console.log('done');

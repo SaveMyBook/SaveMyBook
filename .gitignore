@@ -13,3 +13,7 @@ savemybook_app/CLAUDE.md
 
 # 系統簡介影片 4K 成品約 228 MB，超過 GitHub 單檔上限
 presentation/系統簡介影片/成品/*-4K.mp4
+# 4K 各版本與 1080p 中英字幕版都超過 100 MB；備份資料夾不進版控
+presentation/系統簡介影片/成品/*-4K*.mp4
+presentation/系統簡介影片/成品/*-中英字幕.mp4
+presentation/系統簡介影片/成品/備份_*/

@@ -31,7 +31,7 @@ logo.root.style.transform = `scale(${173 / 1650})`;
 function compose() {
   world.reset();
   const f = world.frame;
-  f.cabinet = { pose: CAB, kiosk: { state: 'qr', refresh: 0.35, seconds: 60, digits: 1, check: 0 }, deposit: 1 };
+  f.cabinet = { pose: CAB, kiosk: { state: 'qr', refresh: 0.35, seconds: 60, digits: 1, check: 0, clock: '14:25' }, deposit: 1 };
   f.phones[SELLER] = { pose: PHONE, scr: { a: 's_cab_done' } };
   world.apply(T);
 }

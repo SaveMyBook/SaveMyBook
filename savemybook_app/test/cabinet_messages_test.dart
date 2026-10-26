@@ -523,11 +523,9 @@ void main() {
 
     test('iOS 宣告要求精確位置的用途，定位說明包含確認位於書櫃旁', () {
       final plist = File('ios/Runner/Info.plist').readAsStringSync();
-      expect(
-        RegExp(r'<key>NSLocationTemporaryUsageDescriptionDictionary</key>\s*<dict>\s*<key>' + LocationService.precisePurposeKey + r'</key>\s*<string>[^<]+</string>')
-            .hasMatch(plist),
-        isTrue,
-      );
+      // Xcode 建置時會依字母重排字典內的鍵，只檢查用途鍵存在於字典中，不檢查順序
+      final purposes = RegExp(r'<key>NSLocationTemporaryUsageDescriptionDictionary</key>\s*<dict>(.*?)</dict>', dotAll: true).firstMatch(plist)!.group(1)!;
+      expect(RegExp(r'<key>' + LocationService.precisePurposeKey + r'</key>\s*<string>[^<]+</string>').hasMatch(purposes), isTrue);
       final usage = RegExp(r'<key>NSLocationWhenInUseUsageDescription</key>\s*<string>([^<]+)</string>').firstMatch(plist)!.group(1)!;
       expect(usage, contains('確認您位於書櫃旁'));
     });

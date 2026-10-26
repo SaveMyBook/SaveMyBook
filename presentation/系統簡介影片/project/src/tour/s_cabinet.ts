@@ -20,7 +20,7 @@ const SIGMA = 0.42;
  * 15：關門，螢幕「作業完成」、手機「存書完成，已通知買家取書」→ 書櫃往左退出、賣家手機退到左後方，
  *     買家手機沿同一道弧線從右側滑入，App 在前景收到存書通知（橫幅）並浮出。
  * 16：點通知進入前往書櫃，捲到交通資訊，捷運海山站、票價、最近的公車站牌依拍點往右展開 → 往下退場。
- * 書櫃規格依實機：木作櫃體＋壓克力正面、右上角 2.8 吋橫向螢幕（純顯示）、A01–A04 由上而下、右側鉸鏈。
+ * 書櫃規格依實機：木作櫃體＋壓克力正面、左上角 2.8 吋橫向螢幕（純顯示）、A01–A04 由上而下、右側鉸鏈。
  * 交通資料為新北高工附近的 data.taipei 實際資料（截圖工具 cabinet_admin_test.dart 的 _transitJson）；
  * 新北高工位於新北市，臺北市 YouBike 2.0 資料在 500 公尺內沒有站點，App 該區塊只顯示「沒有站點」，所以不浮出。
  */
@@ -35,7 +35,7 @@ export function sCabinet(world: World, ui: HTMLElement, fx: HTMLElement) {
   const tA = new Title(ui, '一片 [ESP32-S3]　控制書櫃', '四扇電磁鎖櫃門與螢幕');
   const lbBoard = new PartLabel(ui, 'ESP32-S3', 'board', 'right');
   const lbLocks = new PartLabel(ui, '電磁鎖 ×4', 'locks', 'left');
-  const lbScreen = new PartLabel(ui, '2.8 吋螢幕', 'screen', 'right');
+  const lbScreen = new PartLabel(ui, '2.8 吋螢幕', 'screen', 'left');
   // 旁白 13；200 公尺（policy.js CABINET_GEOFENCE_M）、QR Code 每 30 秒更新（CABINET_QR_REFRESH_SECONDS），手冊 PDF 第 50、102 頁
   const tB = new Title(ui, '[200 公尺] 內　掃描 QR Code', 'QR Code 每 30 秒更新');
   const tC = new Title(ui, '[60 秒] 內　輸入兩位數字', '數字相符，指定的櫃門才會開啟');
@@ -143,12 +143,12 @@ export function sCabinet(world: World, ui: HTMLElement, fx: HTMLElement) {
   [0, 1, 2].forEach((i) => cue('pop', SP0 + i * HALF, { gain: 0.55, pan: 0.3 }));
 
   const P = (x: number, y: number, z: number, rx: number, ry: number, rz: number, s: number): Pose => ({ x, y, z, rx, ry, rz, s });
-  // 書櫃：由下方升起 → 緩慢轉動（透視） → 退到左後方的遠處（賣家還在捷運站） → 推近到畫面中央偏左（走到書櫃前） → 開門時略微推近 → 往左退出
+  // 書櫃：由下方升起 → 俯視並緩慢轉動（透視；主控板平放在頂列底板，俯視才看得到） → 退到左後方的遠處（賣家還在捷運站） → 推近到畫面中央偏左（走到書櫃前） → 開門時略微推近 → 往左退出
   const NEAR = P(-0.17, -0.1, 0, 0.05, 0.3, 0, 1.55);
   const cab: [number, Pose][] = [
     [WORD_OUT + 0.05, P(0.0, -2.5, 0, -0.3, 0.95, 0.04, 1.75)],
-    [WORD_OUT + 1.3, P(0.0, -0.15, 0, 0.07, 0.55, 0, 1.75)],
-    [X1 - 0.3, P(0.0, -0.15, 0, 0.05, -0.2, 0, 1.78)],
+    [WORD_OUT + 1.3, P(0.0, -0.14, 0, 0.3, 0.55, 0, 1.62)],
+    [X1 - 0.3, P(0.0, -0.14, 0, 0.28, -0.2, 0, 1.65)],
     [FAR + 1.2, P(-0.62, -0.02, -55, 0.07, 0.42, 0, 1.6)],
     [NEAR0, P(-0.6, -0.03, -55, 0.07, 0.38, 0, 1.6)],
     [NEAR1, NEAR],
@@ -198,7 +198,7 @@ export function sCabinet(world: World, ui: HTMLElement, fx: HTMLElement) {
     // 浮出的螢幕停在書櫃左側（外框寬 450px），書櫃推近、開門時的微小移動不會帶動它；
     // 不用回彈：回彈會把它往外多推約 40px 而超出畫面左緣
     const pop: KioskPop = { ...popAt(world, pose, 300, 545, 450, POP_Z), k: soft(t, POP_UP, POP_UP + 0.55) * (1 - soft(t, POP_DOWN, POP_DOWN + 0.35)) };
-    const base = { refresh, seconds: 60, digits: 1, check: 0, qr: t < QR_SWAP ? 0 : 1, flash, clock: '14:25', pop };
+    const base = { refresh, seconds: 60, digits: 1, check: 0, qr: t < QR_SWAP ? 0 : 1, flash, clock: '14:25', tick: t, pop };
     if (t < CONFIRM) return { ...base, state: 'qr' };
     if (t < MATCH) return { ...base, state: 'busy', seconds: 59 };
     if (t < OPENING) return { ...base, state: 'match', seconds: Math.max(56, 59 - Math.floor(t - TICK)), digits: 1 - 0.7 * soft(t, FLY0, FLY0 + 0.15) };
@@ -230,7 +230,7 @@ export function sCabinet(world: World, ui: HTMLElement, fx: HTMLElement) {
         world.cabinet.setFocus('locks', fl);
       });
     }
-    // 標名依旁白順序輪替：ESP32-S3 與螢幕都在頂列、高度相近，前者收起後後者才出現
+    // 標名依旁白順序輪替：ESP32-S3（頂列右後方的主控板上）在右側、電磁鎖與螢幕（左上角）在左側，開發板轉回淺灰時標名同時收起
     lbBoard.at(world, t, F_BOARD + 0.1, F_SCREEN - 0.4);
     lbLocks.at(world, t, F_LOCKS + 0.1, X1 - 0.2);
     lbScreen.at(world, t, F_SCREEN + 0.1, X1 - 0.2);

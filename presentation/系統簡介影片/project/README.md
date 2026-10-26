@@ -24,7 +24,8 @@ npm run dev        # http://127.0.0.1:5291/ ，下方有播放鍵與時間軸，
 - 手機旁的圖解（書目來源、照片分析、語意向量、需求拆解、驗證方式、客服檢索、爭議比對）：`src/scenes/detail.ts`。
 - 逐字輸入與訊息逐則出現：由 Flutter 產生每個中間畫面（`s_sell_isbn_t*`、`b_advisor_t*`、`b_support_q1_t*`、`b_support_q2_t*` 等），清單在 `src/lib/sequences.json`（由 `assets-src/screens` 的檔名整理），場景以 `frameSteps()` 依序播放。輸入期間鏡頭拉近輸入列（AI 書籍顧問、AI 客服皆同），標題須在拉近前收起，否則手機會壓到副標。
 - App 畫面材質按需載入（`world.ensure`）：每張 4K 畫面約 16MB 顯示記憶體，全部常駐會讓算圖分頁當掉；`__seek` 會先載入該格用到的畫面再算圖。
-- 書櫃模型 `src/three/cabinet.ts` 比照實機（木作櫃體、右上角橫向螢幕、A01–A04 由上而下、右側鉸鏈、電磁鎖裝在門上），網站 `savemybook_web/src/three/cabinet.ts` 為同一份，改動時兩邊一起更新。
+- 書櫃模型 `src/three/cabinet.ts` 比照實機（木作櫃體、左上角橫向螢幕、A01–A04 由上而下、右側鉸鏈、電磁鎖裝在門上、透視時可見頂列右後方平放的主控板與配線），網站 `savemybook_web/src/three/cabinet.ts` 為同一份，改動時兩邊一起更新。
+- 書櫃螢幕 `src/three/textures.ts` 的 Kiosk 照韌體 `savemybook_firmware/src/ui.cpp` 的亮色畫面（動態島固定顯示「救「舊」我的書」，含配對碼畫面）；簡報素材 `src/deck.ts` 改用 `src/deck/kiosk_v1.ts` 的舊版畫面，維持複評簡報原樣。
 - 動態模糊：網址加 `?mb=32` 時依物件移動距離自動取樣（快門 90 度），`tools/render.mjs` 第 6 個參數同義。成品不使用：快速移動時介面會糊到像失焦（2026-10-04 試過後決定）。
 - 三個以上關鍵影格的姿態以單調三次插值（`lib/kf.ts` 的 `monotone`），經過中間影格不停頓；兩端停留的移動維持原本的緩動。
 - 各畫面重點區塊的座標：`src/scenes/story.ts`，依實際截圖量測。
@@ -33,6 +34,21 @@ npm run dev        # http://127.0.0.1:5291/ ，下方有播放鍵與時間軸，
   - 資料說明見 `assets-src/screens/README.md`。
   - 交通資料來自 data.taipei 的實際快照 `assets-src/transit_nearby.json`。
   - 執行後 `pubspec.lock` 會被 Flutter 改寫，記得還原。
+
+## v3（NTUB_SIS 風格，2026-10-26）
+
+規則與共用模組見 DESIGN.md「v3 規則」，模組在 `src/v3/`，標準範例是 `src/tour/s_cabinet_v3.ts`（書櫃存書樣片）。
+
+- 網址加 `?v3` 時，書櫃段改用新版，字幕改畫在畫面裡；不加時與原版完全相同。
+- 鏡頭由場景寫入 `world.frame.camera`（位置、注視點、視角、滾轉）。
+- `world.later` 放 cuts.json 載入後才能做的準備（量空位顏色、讀字幕），`world.load()` 會等它們完成。
+- 算圖：`Q='v3&sh=180' node tools/render.mjs <輸出.mp4> <起秒> <迄秒> 1 2 24`（1080p 草稿；4K 改 pixelRatio 2）。
+- 檢查：
+  - `Q=v3 node tools/reelcheck.mjs <起秒> <迄秒> 0.1`（標題距離、字幕帶、浮出安全範圍）。
+  - `Q=v3 node tools/bounds.mjs 0.1`（段落交界的空白時長、出畫與入畫時間、閃現；改了擺位或鏡頭要依此校正 `src/v3/camera.ts` 的 `PANS`）。
+  - `review.mjs`、`still.mjs`、`overlap.mjs`、`collide.mjs`、`wrap.mjs`、`motion.mjs`、`cues.mjs` 也讀環境變數 `Q`；各工具已停用 Vite 熱更新連線，別人存檔時不會中斷。
+- 背景只有淡霧藍漸層與光暈，不使用同心圓、圓環或漣漪。
+- 成品：`cd audio && bash build_v3.sh`（卡點音效 → 混音 → v3 字幕 → 逐段 4K 算圖 → 合成 4K、1080p、中英字幕版與 SRT 到 `../成品/`）。只改某段時用 `bash build_v3.sh render <段落>` 再 `bash build_v3.sh finish`。
 
 ## 檢查（交付前必做）
 
@@ -47,6 +63,8 @@ node tools/wrap.mjs                                    # 斷行後末行只剩�
 
 ## 輸出
 
+v3（目前的成品）：`cd audio && bash build_v3.sh`，見上方「v3」。以下為第二版以前的流程。
+
 ```bash
 cd audio && bash build.sh
 ```
@@ -55,4 +73,4 @@ cd audio && bash build.sh
 
 音訊需要 Python 環境：`cd audio && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`。
 
-YouTube 封面（3840×2160）：`cover.html` 用與動畫相同的書櫃與手機模型排版，書櫃與手機的位置在 `src/cover.ts`。開著 dev server 執行 `node tools/cover.mjs`，輸出到 `成品/YouTube封面_3840x2160.png`。手機不可擋到書櫃右上角的螢幕。
+YouTube 封面（3840×2160）：`cover.html` 用與動畫相同的書櫃與手機模型排版，書櫃與手機的位置在 `src/cover.ts`。開著 dev server 執行 `node tools/cover.mjs`，輸出到 `成品/YouTube封面_3840x2160.png`。手機不可擋到書櫃左上角的螢幕。

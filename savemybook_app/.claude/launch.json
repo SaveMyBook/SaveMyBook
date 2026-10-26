@@ -47,6 +47,17 @@
         "dev"
       ],
       "port": 5290
+    },
+    {
+      "name": "intro-video-deck",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "/Users/xukaijun/Desktop/SaveMyBook/presentation/系統簡介影片/project",
+        "run",
+        "dev"
+      ],
+      "port": 5291
     }
   ]
 }

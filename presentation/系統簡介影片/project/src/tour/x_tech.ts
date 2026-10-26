@@ -61,9 +61,9 @@ export class Stat {
 }
 
 /**
- * 書櫃內的 ESP32-S3 開發板：取自主控板模型（src/deck/pcb.ts）中插在排母上的 ESP32-S3-DevKitC-1，單獨拿出來，
- * 不含自製主控板（Rev A 尚在打樣，不可呈現為已裝在書櫃內）。
- * 掛在書櫃群組下，以書櫃本體座標由頂列控制電路的位置（cabinet.ts 的 board：x 1.2、y 3.65、z 1.8，尺寸與開發板相同）抬出到櫃子前方。
+ * 書櫃內的 ESP32-S3 開發板：取自主控板模型（src/deck/pcb.ts）中插在排母上的 ESP32-S3-DevKitC-1，單獨拿出來。
+ * 掛在書櫃群組下，以書櫃本體座標由主控板上開發板的位置（cabinet.ts 的 board 錨點；主控板平放在頂列右後方，
+ * 開發板長邊沿前後方向、USB 朝前）抬出到櫃子前方，途中轉成橫向面對鏡頭。
  * 不經過 world.frame：可見與否綁定在本段寫入的那一格 frame 上，本段沒有執行的格（其他段落、跳轉播放）一律隱藏。
  */
 export class DevBoard {
@@ -95,10 +95,14 @@ export class DevBoard {
     this.frame = this.world.frame;
     this.show = k > 0.001;
     const e = Math.max(0, k);
-    const from = { x: 1.2, y: 3.65, z: 1.8 };
+    // 錨點在開發板前端（cabinet.ts 的 part 把錨點放在 z + 深度 / 2），開發板長 66 公釐
+    const a = this.world.cabinet.anchors.board.position;
+    const from = { x: a.x, y: a.y, z: a.z - 66 / 40 / 2 };
     const to = { x: 0.7, y: 1.2, z: 7.4 };
-    this.wrap.position.set(from.x + (to.x - from.x) * e, from.y + (to.y - from.y) * e, from.z + (to.z - from.z) * e);
-    this.wrap.rotation.set(1.05 * e, (0.42 + spin) * e, 0, 'YXZ');
+    // 路徑往上拱：先從頂列底板往上抬，再由頂列正面出來，不從層板穿出
+    this.wrap.position.set(from.x + (to.x - from.x) * e, from.y + (to.y - from.y) * e + Math.sin(Math.PI * Math.min(1, e)) * 1.2, from.z + (to.z - from.z) * e);
+    // 模型長邊沿 x、USB 朝 +x；轉 -90° 後與主控板上一樣長邊朝前，抬出時再轉回橫向
+    this.wrap.rotation.set(1.05 * e, -Math.PI / 2 * (1 - e) + (0.42 + spin) * e, 0, 'YXZ');
     this.wrap.scale.setScalar(1 + 3.4 * e);
   }
 }

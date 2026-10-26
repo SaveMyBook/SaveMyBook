@@ -35,8 +35,7 @@ function ranges(spec) {
 const hex = (c) => c.toString(16).toUpperCase();
 
 const FONTS = [
-  ['noto-serif-tc', [700, 900]],
-  ['noto-sans-tc', [400, 500, 700]],
+  ['noto-sans-tc', [400, 500, 700, 900]],
   ['ibm-plex-mono', [400, 500]],
 ];
 

@@ -665,7 +665,7 @@ List<Map<String, dynamic>> notifications() {
     'created_at': at,
   };
   return [
-    n(1, 'order', 'trade', 'order', '書籍已存入書櫃', '訂單 $pickupOrderNo 的書籍已存入「圖書館大廳」書櫃，請於營業時間內至書櫃以 App 掃描 QR Code 取書。', ago(minutes: 38)),
+    n(1, 'order', 'trade', 'order', '書籍已存入書櫃', '訂單 $pickupOrderNo 的書籍已存入「圖書館大廳」書櫃，請於營業時間內至書櫃以 App 掃描 QR Code 取書。', ago()),
     n(2, 'reservation', 'trade', 'reservation', '賣家已確認預約', '林冠宇已確認《經濟學原理》的預約，書籍將為您保留 72 小時。', todayAt(14, 21, daysAgo: 1)),
     n(3, 'order', 'trade', 'wallet', '款項已撥入錢包', '訂單 OD9VB3T7M 已完成，240 代幣已撥入您的錢包。', ago(hours: 5), read: true),
     n(4, 'system', 'account', 'security', '新增通行密鑰', '您已在「海嫄的 iPhone」新增通行密鑰，之後可免輸入密碼登入。', ago(days: 1, hours: 2), read: true),

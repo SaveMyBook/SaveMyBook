@@ -1,17 +1,21 @@
 import { defineConfig, type Plugin } from 'vite';
 import { Parser, zhHantModel } from 'budoux';
 import { parseHTML } from 'linkedom';
-import { SHELF, AI_FEATURES } from './src/data/content';
 
 const CJK = /[㐀-鿿]/;
-const TEXT = 'main h2, main p, main li, main dd, main dt, main figcaption, main aside';
+const TEXT = 'main h1, main h2, main h3, main h4, main p, main li, main dd, main dt, main figcaption, main blockquote, main button, main label, main b, main small, main span';
 
 // 斷詞器各有盲點（ICU 會拆「買家」，BudouX 會拆「規則」），只在兩者都認定的詞界斷行，再以詞表補強。
 const KEEP = [
-  '救「舊」我的書', '二手書', '智慧書櫃', '書櫃', '櫃門', '電磁鎖', '繼電器', '控制板', '買家', '賣家', '書況', '站外', '站內',
-  '代幣', '聊天室', '購物車', '管理員', '通行密鑰', '交易密碼', '生物辨識', '推薦理由', '語意向量', '繁體中文', '圖書館大廳',
-  '我的預約', '兩位數字', '服務費', '收訊方', '拍張照片', '哪裡', '使用前', '倒數', '儲物櫃',
-  ...SHELF.flatMap((b) => [b.title, b.author.replace(/ [著編]$/, '')]),
+  '救「舊」我的書', '二手書', '智慧書櫃', '書櫃', '櫃門', '櫃體', '電磁鎖', '繼電器', '主控板', '開發板', '光耦合器', '端子台', '排母', '門磁',
+  '買家', '賣家', '書況', '站外', '站內', '代幣', '聊天室', '購物車', '管理員', '通行密鑰', '交易密碼', '生物辨識', '推薦理由', '語意向量',
+  '繁體中文', '圖書館大廳', '兩位數字', '服務費', '委託寄賣', '讀冊生活', '收訊方', '使用前', '倒數', '儲物櫃', '有效問卷', '交書',
+  '暫管', '撥款', '撥付', '上架', '審核', '複核', '書目', '簡介', '售價', '建議售價', '近全新', '待修補', '定價', '入門教材', '大一新生',
+  '統計學概論', '普通心理學', '經濟學原理', '林冠宇', '張雅婷', '明理文化', '書籍顧問', '個人化推薦', '高風險', '詐騙話術', '平台外交易',
+  '索取驗證資料', '可疑連結', '付款資訊', '聯絡方式', '驗證碼', '防詐', '臺北市資料大平臺', '捷運站', '開放時間', '比對', '掃碼', '開門',
+  '存書', '取書', '取書通知', '關上', '櫃門已開啟', '訂單', '錢包', '爭議', '裁決', '常開接點', '穩壓', '降壓', '逐扇', '通電', '斷電',
+  '壓克力', '木作', '算圖', '實機', '每月預算', '每日次數', '自動刪除', '介面語言', '全數通過', '端點', '反向代理', '輪詢', '外部服務',
+  '學校伺服器', '雲端代理', '客戶端', '推播', '社群登入', '下一位', '讀者', '介紹影片', '系統紀錄', '書櫃螢幕', '放大',
 ];
 const budoux = new Parser(zhHantModel);
 const icu = new Intl.Segmenter('zh-Hant', { granularity: 'word' });
@@ -52,6 +56,7 @@ function phraseBreaks(text: string) {
 /** 數字與單位、中文與其後的英數字之間的空格改為不斷行空格（如「24 小時」「依 ISBN」）。 */
 function glueSpaces(text: string) {
   return text
+    .replace(/QR Code/g, 'QR Code')
     .replace(/(\d%?) (?=[㐀-鿿])/g, '$1 ')
     .replace(/([㐀-鿿]) (?=[A-Za-z0-9])/g, '$1 ');
 }
@@ -60,7 +65,7 @@ function applyBreaks(document: Document, el: Element) {
   const walker = document.createTreeWalker(el, 4 /* NodeFilter.SHOW_TEXT */);
   const nodes: Text[] = [];
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    if (CJK.test(n.textContent || '') && !(n.parentElement?.closest('.count, svg'))) nodes.push(n as Text);
+    if (CJK.test(n.textContent || '') && !(n.parentElement?.closest('.count, svg, .nobx, .nw, .q-item, .h1-b'))) nodes.push(n as Text);
   }
   for (const node of nodes) {
     const text = glueSpaces(node.textContent || '');
@@ -77,31 +82,16 @@ function applyBreaks(document: Document, el: Element) {
   el.classList.add('bx');
 }
 
-function shelfHtml() {
-  return SHELF.map((b) => `
-    <li class="book" style="--c:${b.color};--w:${b.w}px;--h:${b.h}px;${b.text ? `--t:${b.text};` : ''}${b.band ? `--band:${b.band};` : ''}" tabindex="0">
-      <div class="book__cover"><p class="book__title">${b.title}</p><p class="book__author">${b.author}</p></div>
-      <p class="book__note"><b>推薦理由</b>${b.reason}</p>
-    </li>`).join('');
-}
-
-function orbitHtml() {
-  return AI_FEATURES.map((f) => `<li><span class="ico">${f.icon}</span><b>${f.name}</b><small>${f.note}</small></li>`).join('');
-}
-
-/** 建置時寫入書架與 AI 功能清單，並標出中文詞組的斷行點，避免把「24 小時」這類詞拆到兩行。 */
+/** 建置時標出中文詞組的斷行點，避免把「24 小時」這類詞拆到兩行。 */
 function pageText(): Plugin {
   return {
     name: 'page-text',
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
-        const filled = html
-          .replace('<ol class="shelf__row"></ol>', `<ol class="shelf__row">${shelfHtml()}</ol>`)
-          .replace('<ol class="orbit__ring"></ol>', `<ol class="orbit__ring">${orbitHtml()}</ol>`);
-        const { document } = parseHTML(filled);
+        const { document } = parseHTML(html);
         for (const el of document.querySelectorAll(TEXT)) {
-          if (el.closest('.cover__title, .bx') || !CJK.test(el.textContent || '')) continue;
+          if (el.closest('.cover__title, .bx, .nobx') || !CJK.test(el.textContent || '')) continue;
           applyBreaks(document as unknown as Document, el);
         }
         return document.toString();

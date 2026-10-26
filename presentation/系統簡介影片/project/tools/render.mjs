@@ -29,6 +29,7 @@ function run(args, input) {
 async function segment(start, end, target, log) {
   const browser = await puppeteer.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars'] });
   const page = await browser.newPage();
+  await page.evaluateOnNewDocument(() => { window.WebSocket = class { addEventListener() {} removeEventListener() {} send() {} close() {} }; }); // 停用 Vite 的熱更新連線：其他人存檔時頁面不會重新載入、檢查不會中斷
   await page.setViewport({ width: 1920 * PR, height: 1080 * PR, deviceScaleFactor: 1 });
   await page.goto(`http://127.0.0.1:5291/?render&pr=${PR}&scale=${PR}&mb=${mbArg}${process.env.Q ? "&" + process.env.Q : ""}`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => window.__ready === true, { timeout: 120000 });
@@ -54,6 +55,7 @@ async function segment(start, end, target, log) {
 
 const probe = await puppeteer.launch({ headless: true });
 const pg = await probe.newPage();
+await pg.evaluateOnNewDocument(() => { window.WebSocket = class { addEventListener() {} removeEventListener() {} send() {} close() {} }; }); // 停用 Vite 的熱更新連線：其他人存檔時頁面不會重新載入、檢查不會中斷
 await pg.goto('http://127.0.0.1:5291/?render', { waitUntil: 'networkidle0' });
 const duration = await pg.evaluate(() => window.__duration);
 await probe.close();

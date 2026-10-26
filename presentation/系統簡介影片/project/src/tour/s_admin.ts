@@ -15,9 +15,9 @@ const SIGMA = 0.42;
  * 第 8 章 管理後台（旁白 22 後台模組、23 配對新書櫃）。
  * 22：管理員手機由下方升起（管理後台首頁），往下捲到四個模組都在畫面上，
  *     內容審核、訂單管理、交易爭議、系統公告依旁白順序往手機右側展開。
- * 23：手機往右讓位、App 內推入新北高工的書櫃裝置頁；書櫃由左下升起，螢幕浮出放大顯示八位數配對碼 0151-7752，
+ * 23：手機往右讓位、App 內推入新北高工的書櫃裝置頁；書櫃由左下升起，螢幕浮出放大顯示八位數配對碼 01517752，
  *     管理員點配對裝置、在數字鍵盤上逐字輸入同一組配對碼 → 等待裝置連線 → 完成配對，
- *     書櫃螢幕同時改為書櫃名稱與 QR Code（配對後的閒置畫面）→ 往下退場。
+ *     書櫃螢幕同時改為 QR Code（配對後的閒置畫面）→ 往下退場。
  * 配對碼效期 10 分鐘、配對後閒置時顯示 QR Code：複評版手冊 PDF 第 127 頁（書櫃裝置配對）；
  * 配對碼畫面版面同韌體 ui.cpp 的 drawPairing（textures.ts 的 pair 狀態）。
  */
@@ -113,9 +113,9 @@ export function sAdmin(world: World, ui: HTMLElement, fx: HTMLElement) {
   const kiosk = (t: number, pose: Pose): KioskParams => {
     // 浮出的螢幕停在書櫃左側；退場前收回螢幕上（浮出元件不可跟著進入字幕區）
     const pop: KioskPop = { ...popAt(world, pose, 300, 548, 440, POP_Z), k: soft(t, POP_UP, POP_UP + 0.55) * (1 - soft(t, EXIT0 - 0.3, EXIT0 + 0.05)) };
-    // 配對碼與剩餘時間（效期 10 分鐘）；配對完成後改為書櫃名稱與 QR Code
+    // 配對碼與剩餘時間（效期 10 分鐘）；配對完成後改為 QR Code
     if (t < DONE) return { state: 'pair', refresh: 0, seconds: 582 - Math.floor(t - CAB_IN), digits: 1, check: 0, code: '0151-7752', total: 600, clock: '14:25', pop };
-    return { state: 'qr', refresh: (t - DONE) / 30, seconds: 60, digits: 1, check: 0, qr: 2, header: '新北高工', clock: '14:25', flash: Math.max(0, 1 - Math.abs(t - DONE - 0.12) / 0.2), pop };
+    return { state: 'qr', refresh: (t - DONE) / 30, seconds: 60, digits: 1, check: 0, qr: 2, clock: '14:25', flash: Math.max(0, 1 - Math.abs(t - DONE - 0.12) / 0.2), pop };
   };
 
   return (t: number) => {

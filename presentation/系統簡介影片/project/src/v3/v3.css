@@ -1,0 +1,10 @@
+/* v3（NTUB_SIS 宣傳片風格）：字型、字級、顏色只引用 src/v3/spec.ts 的數值，這裡同步維護。 */
+.v3-bg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+.v3-title-block { position: absolute; left: 0; top: 44px; width: 1920px; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.v3-title, .v3-sub, .v3-cap { white-space: nowrap; font-family: 'PingFang TC', -apple-system, 'Noto Sans TC', sans-serif; }
+/* 也帶 promo__title／promo__sub 類別（給 overlap 檢查），要蓋掉 promo.css 的字距與 'halt'：'halt' 會把全形「？」換成半形寬度的字形 */
+.promo__title.v3-title { font-size: 60px; line-height: 1.27; font-weight: 600; color: #1D1D1F; letter-spacing: 0; font-feature-settings: normal; text-align: center; }
+.promo__sub.v3-sub { margin-top: 10px; font-size: 27px; line-height: 1.3; font-weight: 500; color: #4D626F; letter-spacing: 0; font-feature-settings: normal; text-align: center; }
+/* 字幕帶：深色字、不描邊，只加極淡的白色柔光維持可讀性 */
+.v3-cap { position: absolute; left: 0; top: 0; font-size: 32px; line-height: 1.3; font-weight: 500; color: #1D1D1F; text-shadow: 0 0 10px rgba(255, 255, 255, .85), 0 0 3px rgba(255, 255, 255, .6); }
+.xlabel.v3-label { position: absolute; left: 0; top: 0; width: auto; white-space: nowrap; font-family: 'PingFang TC', -apple-system, 'Noto Sans TC', sans-serif; font-size: 36px; line-height: 1.2; font-weight: 600; color: #1D1D1F; letter-spacing: 0; }

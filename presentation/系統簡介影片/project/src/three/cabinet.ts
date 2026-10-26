@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { Kiosk, doorPlate, loadImage, type KioskPop } from './textures';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { Kiosk, doorPlate, loadImage, type KioskPop, type KioskSurface } from './textures';
 
 /**
  * 比照實機：9 公釐合板櫃體（寬 31 × 深 31 × 高 38 公分），正面為雷射切割之壓克力。
- * 頂列左側貼標誌、右上角為橫向 2.8 吋螢幕，下方 A01–A04 四扇櫃門由上而下；鉸鏈在右側，電磁鎖裝在門板內側左邊、隨門轉動。單位為 4 公分。
+ * 頂列左上角為橫向 2.8 吋螢幕、右側貼標誌，下方 A01–A04 四扇櫃門由上而下；櫃門標籤在右上角，鉸鏈在右側、另一片固定在凸出櫃面的白色壓克力墊塊上；
+ * 電磁鎖裝在門板內側左邊，門外同一位置有木製把手，皆隨門轉動。單位為 4 公分。
  */
 const W = 7.75;
 const H = 9.5;
@@ -24,11 +27,13 @@ const FRONT = D / 2 + A;
 const topRowY = H / 2 - T - TOP / 2;
 const cellTop = (i: number) => H / 2 - T - TOP - T - i * (CELL_H + T);
 const cellY = (i: number) => cellTop(i) - CELL_H / 2;
-const screenX = W / 2 - T - 0.3 - BEZEL_W / 2;
+const screenX = -W / 2 + T + 0.3 + BEZEL_W / 2;
 /** 電磁鎖（5.4 × 4.1 × 2.7 公分）在門板內側的位置：門板左緣往內 0.17。 */
 const LOCK = { w: 1.35, h: 1.03, d: 0.68, inset: 0.17 };
 const lockX = -IN_W / 2 + 0.03 + LOCK.inset + LOCK.w / 2;
 const lockZ = D / 2 - LOCK.d / 2;
+/** 鉸鏈片（約 1.7 × 3.8 公分）與鉸鏈另一片所在的白色壓克力墊塊。 */
+const HINGE = { w: 0.42, h: 0.95 };
 
 interface Door { pivot: THREE.Group }
 
@@ -36,6 +41,36 @@ const FOCUS_BASE = new THREE.Color(0xe9eef1);
 const FOCUS_ON = new THREE.Color(0x8db3cb);
 const FOCUS_EDGE = new THREE.Color(0x3b505c);
 const FOCUS_EDGE_ON = new THREE.Color(0x2f5f86);
+
+/** 螢幕浮出後留在書櫃上的空位：深灰內凹，上緣與左右往內的內陰影，下緣一道淡淡的反光，不是純黑方塊。 */
+function slotTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 320;
+  c.height = 240;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#4C545C';
+  g.fillRect(0, 0, 320, 240);
+  const top = g.createLinearGradient(0, 0, 0, 70);
+  top.addColorStop(0, 'rgba(16,22,28,0.62)');
+  top.addColorStop(1, 'rgba(16,22,28,0)');
+  g.fillStyle = top;
+  g.fillRect(0, 0, 320, 70);
+  for (const [x0, x1] of [[0, 34], [320, 286]]) {
+    const side = g.createLinearGradient(x0, 0, x1, 0);
+    side.addColorStop(0, 'rgba(16,22,28,0.38)');
+    side.addColorStop(1, 'rgba(16,22,28,0)');
+    g.fillStyle = side;
+    g.fillRect(Math.min(x0, x1), 0, 34, 240);
+  }
+  const lip = g.createLinearGradient(0, 226, 0, 240);
+  lip.addColorStop(0, 'rgba(255,255,255,0)');
+  lip.addColorStop(1, 'rgba(255,255,255,0.22)');
+  g.fillStyle = lip;
+  g.fillRect(0, 226, 320, 14);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
 
 /** 浮出螢幕下方的柔和陰影。 */
 function popShadowTexture(): THREE.CanvasTexture {
@@ -76,18 +111,28 @@ function sheenTexture(): THREE.CanvasTexture {
   return tex;
 }
 
-function woodTexture(): THREE.CanvasTexture {
+/**
+ * 實機為橡木紋貼皮：灰褐底色上細密的深淺長紋。vertical 為側板用，紋路改成上下走向；
+ * 直接畫成直紋而不用貼圖旋轉，匯出 GLB 時才不需要 KHR_texture_transform。
+ */
+function woodTexture(vertical = false): THREE.CanvasTexture {
   const c = document.createElement('canvas');
   c.width = c.height = 512;
   const g = c.getContext('2d')!;
-  g.fillStyle = '#D9BC92';
+  if (vertical) {
+    g.translate(512, 0);
+    g.rotate(Math.PI / 2);
+  }
+  g.fillStyle = '#7C644B';
   g.fillRect(0, 0, 512, 512);
   let seed = 7;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let i = 0; i < 140; i++) {
-    const y0 = rnd() * 512, amp = 2 + rnd() * 6, freq = 0.004 + rnd() * 0.01, phase = rnd() * 6;
-    g.strokeStyle = `rgba(${150 + rnd() * 30 | 0}, ${108 + rnd() * 25 | 0}, ${66 + rnd() * 20 | 0}, ${0.08 + rnd() * 0.16})`;
-    g.lineWidth = 0.6 + rnd() * 1.8;
+  for (let i = 0; i < 300; i++) {
+    const y0 = rnd() * 512, amp = 1 + rnd() * 4, freq = 0.003 + rnd() * 0.008, phase = rnd() * 6;
+    g.strokeStyle = rnd() < 0.6
+      ? `rgba(${52 + rnd() * 22 | 0}, ${40 + rnd() * 16 | 0}, ${28 + rnd() * 12 | 0}, ${0.2 + rnd() * 0.32})`
+      : `rgba(${160 + rnd() * 28 | 0}, ${138 + rnd() * 24 | 0}, ${108 + rnd() * 20 | 0}, ${0.08 + rnd() * 0.2})`;
+    g.lineWidth = 0.5 + rnd() * 2.2;
     g.beginPath();
     for (let x = 0; x <= 512; x += 8) {
       const y = y0 + Math.sin(x * freq + phase) * amp;
@@ -102,20 +147,37 @@ function woodTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+/**
+ * 鉸鏈保護蓋：hardware_design/v8_protect/絞鍊保護蓋.STL 的複本（公釐，寬 12 × 高 54 × 深 10）。
+ * L 形外殼，正面板在前、右側翼板往後包，左側與背面挖空包住櫃面上的鉸鏈片。
+ * 原點移到左後緣、高度置中並換成書櫃單位（1 單位 = 4 公分）；圓角用摺角法線才不會一面一面的。
+ */
+async function hingeCoverGeometry(): Promise<THREE.BufferGeometry> {
+  const geo = new STLLoader().parse(await (await fetch('/model/hinge-cover.stl')).arrayBuffer());
+  geo.translate(0, -27, 0);
+  geo.scale(1 / 40, 1 / 40, 1 / 40);
+  return toCreasedNormals(geo, Math.PI / 6);
+}
+
 /** 頂列左側的標誌貼紙：書本圖示、名稱與英文名。 */
 async function brandSticker(): Promise<THREE.CanvasTexture> {
   const c = document.createElement('canvas');
-  c.width = 840;
+  c.width = 760;
   c.height = 240;
   const g = c.getContext('2d')!;
   try {
     const mark = await loadImage('/brand/book-slate-128.png');
     g.drawImage(mark, 40, 40, 160, 160);
   } catch { /* 標誌載入失敗時只顯示文字 */ }
+  // 字型未載入時量到的寬度不準，先等字型；名稱依實際寬度縮小到放得進畫布，避免「書」被切掉
+  await document.fonts.load('700 78px "Noto Sans TC"', '救「舊」我的書').catch(() => {});
+  const parts = [['救', '#151E27'], ['「舊」', '#627D8D'], ['我的書', '#151E27']] as const;
   g.textBaseline = 'middle';
   g.font = '700 78px "Noto Sans TC", sans-serif';
+  const nameW = parts.reduce((w, [t]) => w + g.measureText(t).width, 0);
+  g.font = `700 ${Math.min(78, (78 * (c.width - 228 - 32)) / nameW).toFixed(1)}px "Noto Sans TC", sans-serif`;
   let x = 228;
-  for (const [t, color] of [['救', '#151E27'], ['「舊」', '#627D8D'], ['我的書', '#151E27']] as const) {
+  for (const [t, color] of parts) {
     g.fillStyle = color;
     g.fillText(t, x, 100);
     x += g.measureText(t).width;
@@ -149,8 +211,10 @@ export class Cabinet {
   /** 螢幕中心（書櫃本體座標）與可視區寬高，供場景換算螢幕浮出的位置。 */
   static readonly SCREEN = { x: screenX, y: topRowY, z: D / 2 - 0.005, w: SCR_W, h: SCR_H, bezelW: BEZEL_W, bezelH: BEZEL_H };
   readonly group = new THREE.Group();
-  readonly kiosk: Kiosk;
+  readonly kiosk: KioskSurface;
   readonly doors: Door[] = [];
+  /** 標誌貼紙、鉸鏈保護蓋與書櫃螢幕的字型（非同步載入）都放好後完成。 */
+  readonly ready: Promise<void>;
   readonly anchors: Record<string, THREE.Object3D> = {};
   /** 比對數字在螢幕上的字級與兩字中心距（世界單位），供飛行動畫由螢幕起飛。 */
   readonly digitSize = SCR_H * Kiosk.DIGIT_EM;
@@ -160,21 +224,29 @@ export class Cabinet {
   private parts = new THREE.Group();
   private deposit: THREE.Group;
   private screenMesh: THREE.Mesh;
+  private stickerMat!: THREE.MeshBasicMaterial;
   /** 螢幕浮出的複本（同一張螢幕材質），由 KioskParams.pop 控制。 */
   private pop = new THREE.Group();
   private popScreen: THREE.Mesh;
   private popShadow: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  private popSlot: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  private faceHelper = new THREE.Object3D();
+  private popKValue = 0;
   private xrayOn = false;
-  /** 透視時可個別強調的元件材質（board：控制板，locks：四個電磁鎖）。 */
+  /** 透視時可個別強調的元件材質（board：主控板上的 ESP32-S3 開發板，locks：四個電磁鎖）。 */
   private focusMats: Record<string, { face: THREE.MeshStandardMaterial; edge: THREE.LineBasicMaterial }> = {};
 
-  /** name：書櫃螢幕頂列顯示的書櫃名稱，與 App 畫面一致。 */
-  constructor(name: string) {
-    this.kiosk = new Kiosk(name);
+  /** name：書櫃名稱；kiosk：書櫃螢幕，預設為韌體的亮色畫面（簡報素材另傳舊版畫面）。 */
+  constructor(name: string, kiosk: KioskSurface = new Kiosk(name)) {
+    this.kiosk = kiosk;
     const wood = new THREE.MeshStandardMaterial({ map: woodTexture(), roughness: 0.72, metalness: 0 });
-    const inner = new THREE.MeshStandardMaterial({ color: 0xcfb289, roughness: 0.8, metalness: 0 });
+    const inner = new THREE.MeshStandardMaterial({ map: woodTexture(true), color: 0xcfc7bd, roughness: 0.8, metalness: 0 });
     const face = new THREE.MeshPhysicalMaterial({ color: 0xf4f6f7, roughness: 0.3, metalness: 0, clearcoat: 0.8, clearcoatRoughness: 0.12, transparent: true, opacity: 0.94 });
-    this.shellMats.push(wood, inner, face);
+    const woodSide = new THREE.MeshStandardMaterial({ map: woodTexture(true), roughness: 0.72, metalness: 0 });
+    // setXray 依索引調整前三個的透明度，其餘一律視同櫃體木板
+    // 鉸鏈保護蓋是 3D 列印的白色件，不透明、霧面
+    const printed = new THREE.MeshStandardMaterial({ color: 0xf2f3f3, roughness: 0.62, metalness: 0 });
+    this.shellMats.push(wood, inner, face, woodSide, printed);
     const edgeMat = new THREE.LineBasicMaterial({ color: 0x627d8d, transparent: true, opacity: 0 });
 
     const box = (w: number, h: number, d: number, x: number, y: number, z: number, mat: THREE.Material, r = 0.03) => {
@@ -190,8 +262,8 @@ export class Cabinet {
     // 合板櫃體與層板
     box(W, T, D, 0, H / 2 - T / 2, 0, wood);
     box(W, T, D, 0, -H / 2 + T / 2, 0, wood);
-    box(T, H - T * 2, D, -W / 2 + T / 2, 0, 0, wood);
-    box(T, H - T * 2, D, W / 2 - T / 2, 0, 0, wood);
+    box(T, H - T * 2, D, -W / 2 + T / 2, 0, 0, woodSide);
+    box(T, H - T * 2, D, W / 2 - T / 2, 0, 0, woodSide);
     box(IN_W, H - T * 2, T, 0, 0, -D / 2 + T / 2, inner);
     for (let i = 0; i < 4; i++) box(IN_W, T, D - T, 0, cellTop(i) + T / 2, T / 2, inner, 0.01);
 
@@ -242,6 +314,10 @@ export class Cabinet {
     this.pop.add(this.popShadow, popBezel, this.popScreen);
     this.pop.visible = false;
     this.group.add(this.pop);
+    this.popSlot = new THREE.Mesh(new THREE.PlaneGeometry(SCR_W, SCR_H), new THREE.MeshBasicMaterial({ map: slotTexture(), transparent: true, opacity: 0, toneMapped: false }));
+    this.popSlot.position.set(screenX, topRowY, D / 2 - 0.002);
+    this.popSlot.visible = false;
+    this.group.add(this.popSlot);
     this.kiosk.onPop = (p) => this.setScreenPop(p);
     this.anchors.screen = new THREE.Object3D();
     this.anchors.screen.position.set(screenX + BEZEL_W / 2, topRowY, FRONT);
@@ -250,16 +326,17 @@ export class Cabinet {
     this.group.add(this.anchors.screen, this.anchors.digits);
 
     // 標誌貼紙
-    const stickerW = 3.85, stickerH = 1.1;
+    const stickerW = 4.4, stickerH = 4.4 * 240 / 760;
     // 貼紙背景透明：不可寫入深度，且一律畫在壓克力之後，否則透明處會把壓克力挖空而露出櫃內木板
     const sticker = new THREE.Mesh(new THREE.PlaneGeometry(stickerW, stickerH), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, toneMapped: false }));
     sticker.renderOrder = 1;
-    sticker.position.set(-W / 2 + T + 0.3 + stickerW / 2, topRowY, FRONT + 0.004);
-    brandSticker().then((tex) => { (sticker.material as THREE.MeshBasicMaterial).map = tex; (sticker.material as THREE.MeshBasicMaterial).needsUpdate = true; });
+    this.stickerMat = sticker.material as THREE.MeshBasicMaterial;
+    sticker.position.set(screenX + BEZEL_W / 2 + 0.3 + stickerW / 2, topRowY, FRONT + 0.004);
+    const stickerReady = brandSticker().then((tex) => { (sticker.material as THREE.MeshBasicMaterial).map = tex; (sticker.material as THREE.MeshBasicMaterial).needsUpdate = true; });
     this.group.add(sticker);
 
     // 各格左側板上的鎖扣，門上的電磁鎖關門時扣在這裡
-    const lockMat = new THREE.MeshStandardMaterial({ color: 0x4a5258, roughness: 0.45, metalness: 0.5 });
+    const lockMat = new THREE.MeshStandardMaterial({ color: 0x9aa1a7, roughness: 0.38, metalness: 0.65 });
     const strikeMat = new THREE.MeshStandardMaterial({ color: 0x9aa3a9, roughness: 0.3, metalness: 0.8 });
     for (let i = 0; i < 4; i++) {
       const strike = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.32), strikeMat);
@@ -294,6 +371,15 @@ export class Cabinet {
     const rimMat = new THREE.MeshStandardMaterial({ color: 0xa9c0cc, roughness: 0.2, metalness: 0, transparent: true, opacity: 0.95 });
     const sheenMat = new THREE.MeshBasicMaterial({ map: sheenTexture(), transparent: true, depthWrite: false, toneMapped: false });
     const hingeMat = new THREE.MeshStandardMaterial({ color: 0xb7bec4, roughness: 0.3, metalness: 0.8 });
+    const screwGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.02, 12);
+    const screwMat = new THREE.MeshStandardMaterial({ color: 0x2c3135, roughness: 0.4, metalness: 0.7 });
+    const hingeScrewMat = new THREE.MeshStandardMaterial({ color: 0x8d959b, roughness: 0.35, metalness: 0.85 });
+    // 蘑菇形木製把手：沿 y 軸旋轉成形，裝上時轉成朝外
+    const knobGeo = new THREE.LatheGeometry(
+      [[0, 0], [0.11, 0], [0.11, 0.09], [0.19, 0.13], [0.27, 0.2], [0.3, 0.27], [0.28, 0.34], [0.19, 0.39], [0, 0.41]].map(([x, y]) => new THREE.Vector2(x, y)),
+      24,
+    );
+    const knobMat = new THREE.MeshStandardMaterial({ color: 0xbdab91, roughness: 0.7, metalness: 0 });
     ['A01', 'A02', 'A03', 'A04'].forEach((name, i) => {
       const dw = IN_W - 0.06, dh = CELL_H - 0.06;
       const pivot = new THREE.Group();
@@ -312,20 +398,52 @@ export class Cabinet {
       sheen.position.set(-dw / 2, 0, A / 2 + 0.003);
       const tag = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.27), new THREE.MeshBasicMaterial({ map: doorPlate(name), toneMapped: false, transparent: true, depthWrite: false }));
       tag.renderOrder = 1;
-      tag.position.set(-dw + 0.5, dh / 2 - 0.26, A / 2 + 0.004);
+      tag.position.set(-HINGE.w - 0.15 - 0.31, dh / 2 - 0.26, A / 2 + 0.004);
+      const lockCx = -dw + LOCK.inset + LOCK.w / 2;
       const lock = new THREE.Mesh(new RoundedBoxGeometry(LOCK.w, LOCK.h, LOCK.d, 2, 0.05), lockMat);
-      lock.position.set(-dw + LOCK.inset + LOCK.w / 2, 0, -A / 2 - LOCK.d / 2);
+      lock.position.set(lockCx, 0, -A / 2 - LOCK.d / 2 - 0.02);
       pivot.add(panel, ...rims, sheen, tag, lock);
-      for (const hy of [dh / 2 - 0.3, -dh / 2 + 0.3]) {
-        const hinge = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.3, 12), hingeMat);
-        hinge.position.set(0.02, hy, A / 2 + 0.02);
-        pivot.add(hinge);
+      // 電磁鎖固定板的四顆螺絲，隔著透明門板看得到
+      for (const [sx, sy] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) {
+        const screw = new THREE.Mesh(screwGeo, screwMat);
+        screw.rotation.x = Math.PI / 2;
+        screw.position.set(lockCx + sx * (LOCK.w / 2 - 0.13), sy * (LOCK.h / 2 - 0.12), -A / 2 - 0.012);
+        pivot.add(screw);
+      }
+      const knob = new THREE.Mesh(knobGeo, knobMat);
+      knob.rotation.x = Math.PI / 2;
+      knob.position.set(lockCx - LOCK.w * 0.12, 0, A / 2);
+      // 鉸鏈：門板上的鉸鏈片、兩顆螺絲與門軸
+      const leaf = new THREE.Mesh(new RoundedBoxGeometry(HINGE.w, HINGE.h, 0.025, 1, 0.01), hingeMat);
+      leaf.position.set(-HINGE.w / 2 - 0.03, 0, A / 2 + 0.013);
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, HINGE.h, 12), hingeMat);
+      barrel.position.set(0, 0, A / 2 + 0.03);
+      pivot.add(knob, leaf, barrel);
+      for (const sy of [HINGE.h / 2 - 0.16, -HINGE.h / 2 + 0.16]) {
+        const screw = new THREE.Mesh(screwGeo, hingeScrewMat);
+        screw.rotation.x = Math.PI / 2;
+        screw.position.set(-HINGE.w / 2 - 0.03, sy, A / 2 + 0.035);
+        pivot.add(screw);
       }
       this.group.add(pivot);
       this.doors.push({ pivot });
     });
 
-    // 透視時才出現的元件（頂列內的控制電路、各格左側的電磁鎖）
+    // 鉸鏈保護蓋緊貼門軸右側（留 0.6 公釐讓門轉動），凸出櫃面 10 公釐，右側翼板略超出櫃體
+    const coversReady = hingeCoverGeometry().then((geo) => {
+      const coverEdges = new THREE.EdgesGeometry(geo, 30);
+      for (let i = 0; i < 4; i++) {
+        const cover = new THREE.Mesh(geo, printed);
+        cover.position.set(IN_W / 2 + 0.03, cellY(i), D / 2 + A);
+        const e = new THREE.LineSegments(coverEdges, edgeMat);
+        e.position.copy(cover.position);
+        this.edges.push(e);
+        this.group.add(cover, e);
+      }
+    });
+    this.ready = Promise.all([stickerReady, coversReady, kiosk instanceof Kiosk ? kiosk.ready : null]).then(() => {});
+
+    // 透視時才出現的元件（頂列右後方平放的主控板、各格左側的電磁鎖與配線）
     const partMat = new THREE.MeshStandardMaterial({ color: 0xe9eef1, roughness: 0.6, transparent: true, opacity: 0 });
     const partEdge = new THREE.LineBasicMaterial({ color: 0x3b505c, transparent: true, opacity: 0 });
     const part = (key: string | null, w: number, h: number, d: number, x: number, y: number, z: number, group?: string) => {
@@ -349,21 +467,59 @@ export class Cabinet {
       }
     };
     const floor = H / 2 - T - TOP;
-    part('power', 2.4, 0.85, 1.8, -2.15, floor + 0.43, 0.6);
-    part('relay', 1.4, 0.3, 1.9, -0.25, floor + 0.15, 1.6);
-    part('board', 1.72, 0.25, 0.66, 1.2, topRowY + 0.15, 1.8, 'board');
-    part(null, 0.6, 0.2, 0.9, -0.95, floor + 0.1, 0.4);
+    // 主控板 Rev A（130 × 80 公釐）元件面朝上平放在頂列右後方，長邊沿前後方向貼著右側板：
+    // DC 插座在右後角、插孔朝後對著背板右側的電源孔（實物插孔朝版面 X=0 邊，和設計檔朝後緣不同）；
+    // 電磁鎖端子台在前端朝前；螢幕與門磁排針在左緣。
+    // X、Y 為 PCB 版面座標（公釐，X 由左緣向右、Y 由後緣向前），轉 90° 後 X 朝前、Y 朝左
+    const PCB = { w: 80 / 40, d: 130 / 40 };
+    const bx = IN_W / 2 - 0.4 - PCB.w / 2, bz = -D / 2 + T + 0.45 + PCB.d / 2, top = floor + 0.17;
+    const at = (X: number, Y: number) => [bx + (40 - Y) / 40, bz + (X - 65) / 40] as const;
+    /** 板上元件；w 沿版面 X、d 沿版面 Y（公釐）。 */
+    const onBoard = (key: string | null, X: number, Y: number, w: number, h: number, d: number, group?: string) => {
+      const [x, z] = at(X, Y);
+      part(key, d / 40, h, w / 40, x, top + h / 2, z, group);
+    };
+    part(null, PCB.w, 0.04, PCB.d, bx, top - 0.02, bz);
+    // 元件位置與尺寸同 PCB 版面（實拍：開發板居中、DC 插座與 L7805 散熱片在電源區、繼電器與端子台一排）
+    onBoard('board', 32.7, 36.6, 66, 0.41, 25.4, 'board');
+    onBoard('power', 4.7, 5, 14.8, 0.28, 9.4);
+    onBoard(null, 39.2, 9.6, 16, 0.5, 12);
+    onBoard(null, 24.3, 6.2, 10, 0.4, 10);
+    onBoard(null, 51.5, 5.3, 8, 0.29, 8);
+    const CH_Y = [8.9, 28.3, 47.7, 67.1];
+    CH_Y.forEach((y, i) => {
+      onBoard(i === 1 ? 'relay' : null, 100.5, y, 19, 0.39, 15.5);
+      onBoard(null, 124.5, y, 10, 0.26, 10);
+    });
     // 外框比電磁鎖本體略大，兩者表面重疊時會閃爍
     for (let i = 0; i < 4; i++) part(i === 1 ? 'locks' : null, LOCK.w + 0.06, LOCK.h + 0.06, LOCK.d + 0.06, lockX, cellY(i), lockZ, 'locks');
-    const wireZ = 1.6, railX = -W / 2 + T + 0.12;
     const pts: number[] = [];
-    const seg = (x1: number, y1: number, z1: number, x2: number, y2: number, z2: number) => pts.push(x1, y1, z1, x2, y2, z2);
-    seg(-0.95, floor + 0.2, 0.4, -0.95, floor + 0.2, 1.6);
-    seg(-0.95, floor + 0.2, 1.6, 0.34, topRowY + 0.15, 1.8);
-    seg(1.2, topRowY + 0.15, 2.13, screenX, topRowY, D / 2 - 0.1);
-    seg(-0.95, floor + 0.3, wireZ, railX, floor + 0.3, wireZ);
-    seg(railX, floor + 0.3, wireZ, railX, cellY(3), wireZ);
-    for (let i = 0; i < 4; i++) seg(railX, cellY(i), wireZ, lockX - LOCK.w / 2, cellY(i), lockZ);
+    const path = (...p: [number, number, number][]) => {
+      for (let k = 1; k < p.length; k++) pts.push(...p[k - 1], ...p[k]);
+    };
+    // 12V 電源：背板右側開孔，插頭由後往前插入 DC 插座，電源線沿背面垂下
+    const [jx, jz] = at(4.7 - 7.4, 5);
+    path([jx, top + 0.14, jz], [jx, top + 0.14, -D / 2 - 0.12], [jx, -H / 2 + 0.05, -D / 2 - 0.12], [jx + 0.6, -H / 2 + 0.05, -D / 2 - 1.0]);
+    // 配線全走右側：沿右側板往前，到右前角往下穿過各層板
+    const tx = IN_W / 2 - 0.08, zf = D / 2 - 0.12;
+    path([tx, floor + 0.1, zf], [tx, cellY(3), zf]);
+    // 電磁鎖端子台（前端）往前，再往右到側板，沿側板往前併入右前角
+    const [, zt] = at(130, 0);
+    CH_Y.forEach((y, i) => {
+      const [x] = at(130, y), xi = tx - 0.03 * i;
+      path([x, top + 0.13, zt], [x, floor + 0.08, zt + 0.2], [xi, floor + 0.08, zt + 0.2], [xi, floor + 0.08, zf]);
+    });
+    // 門磁排針（左緣）往左，沿板子左側往前，繞到板前併入右側
+    const [hx, hz] = at(23.6, 80);
+    path([hx, top + 0.05, hz], [hx - 0.15, floor + 0.06, hz], [hx - 0.15, floor + 0.06, zt + 0.35], [tx - 0.15, floor + 0.06, zt + 0.35], [tx - 0.15, floor + 0.06, zf]);
+    // 螢幕排線（左緣中段）往左，再往前到螢幕背面
+    const [sx6, sz6] = at(55.6, 80);
+    path([sx6, top + 0.05, sz6], [sx6 - 0.25, floor + 0.08, sz6], [screenX, floor + 0.08, sz6], [screenX, floor + 0.08, D / 2 - 0.9], [screenX, topRowY, D / 2 - 0.1]);
+    // 每格：右前角往左沿格子頂部前緣，到電磁鎖上方往下接入
+    for (let i = 0; i < 4; i++) {
+      const wy = cellTop(i) - 0.08, lx = lockX + LOCK.w / 2 - 0.25;
+      path([tx, wy, zf], [lx, wy, zf], [lx, cellY(i) + LOCK.h / 2, zf]);
+    }
     const wg = new THREE.BufferGeometry();
     wg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
     this.parts.add(new THREE.LineSegments(wg, partEdge));
@@ -382,7 +538,10 @@ export class Cabinet {
   /** 螢幕浮出（由 Kiosk.draw 每格呼叫）：k 可超過 1（回彈），轉向正對鏡頭的程度則限制在 1。 */
   private setScreenPop(p: KioskPop | null) {
     const k = p ? Math.max(0, p.k) : 0;
+    this.popKValue = k;
     this.pop.visible = !!p && k > 0.001;
+    this.popSlot.visible = this.pop.visible && !!p?.slot;
+    this.popSlot.material.opacity = Math.min(1, k * 3);
     if (!p || !this.pop.visible) return;
     const base = this.screenMesh.position;
     // 先往前抬離櫃面，再橫移、放大、轉正：三者同時進行時，螢幕一邊轉一邊往旁邊滑，會切過櫃子正面的壓克力
@@ -391,7 +550,15 @@ export class Cabinet {
     const lift = 0.3 + (BEZEL_W / 2) * p.s * Math.abs(Math.sin(this.group.rotation.y));
     this.pop.position.set(base.x + p.dx * kM, base.y + p.dy * kM, base.z + 0.06 + p.dz * kM + lift * kL * (1 - kM));
     this.pop.scale.setScalar(1 + (p.s - 1) * kM);
-    this.pop.quaternion.copy(IDENTITY).slerp(this.group.quaternion.clone().invert(), kM);
+    let face = this.group.quaternion.clone().invert();
+    if (p.look) {
+      // 鏡頭會移動時，浮出的螢幕轉向實際的鏡頭位置（Object3D.lookAt 讓本身 +z 朝向目標）
+      this.group.updateMatrixWorld(true);
+      this.faceHelper.position.copy(this.group.localToWorld(this.pop.position.clone()));
+      this.faceHelper.lookAt(...p.look);
+      face = this.group.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(this.faceHelper.quaternion);
+    }
+    this.pop.quaternion.copy(IDENTITY).slerp(face, kM * (p.turn ?? 1));
     this.popShadow.material.opacity = 0.5 * Math.min(1, k);
   }
 
@@ -409,6 +576,8 @@ export class Cabinet {
   }
 
   get popShown() { return this.pop.visible; }
+  /** 浮出程度（0～1），版面檢查只看完全浮出的格。 */
+  get popK() { return this.popKValue; }
   /** 檢查用：浮出螢幕（含外框）的世界矩陣，tools/collide.mjs 以此判斷是否嵌進櫃體。 */
   popMatrix() { this.pop.updateMatrixWorld(true); return [...this.pop.matrixWorld.elements]; }
 
@@ -436,11 +605,14 @@ export class Cabinet {
     (this.shellMats[0] as THREE.MeshStandardMaterial).opacity = 1 - t * 0.9;
     (this.shellMats[1] as THREE.MeshStandardMaterial).opacity = 1 - t * 0.9;
     (this.shellMats[2] as THREE.MeshPhysicalMaterial).opacity = 0.94 * (1 - t * 0.9);
+    for (const m of this.shellMats.slice(3)) (m as THREE.MeshStandardMaterial).opacity = 1 - t * 0.9;
     for (const e of this.edges) (e.material as THREE.LineBasicMaterial).opacity = t * 0.55;
     this.parts.traverse((o) => {
       const mat = (o as THREE.Mesh).material as THREE.Material | undefined;
       if (mat) mat.opacity = t;
     });
     this.screenMesh.renderOrder = on ? 5 : 0;
+    // 標誌在控制板前方，透視時隨壓克力淡出，標註引線才不會穿過標誌文字
+    this.stickerMat.opacity = 1 - t * 0.9;
   }
 }

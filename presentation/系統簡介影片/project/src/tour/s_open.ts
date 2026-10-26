@@ -187,6 +187,7 @@ export function sOpen(world: World, ui: HTMLElement, fx: HTMLElement) {
       digits: 1,
       check: 0,
       qr: t >= FLASH ? 1 : 0,
+      clock: '14:25',
       flash: Math.max(0, 1 - Math.abs(t - FLASH) / 0.18),
     };
     if (t > CAB0 - 0.1 && t < STAT_OUT + 1.2) f.cabinet = { pose: glide(t, cab1, SIGMA), kiosk };

@@ -1,0 +1,8 @@
+/* 片頭、片尾 v3（s_open_v3.ts、s_end_v3.ts）的標誌：內部排列同左上角 Corner（style.css 的 .corner），只對 logo 與名稱各自平移、縮放。 */
+/* 子元素不設 will-change：放大時文字與 logo 依實際大小重新繪製，不會糊 */
+.ov3-mark { width: 1920px; height: 1080px; }
+.ov3-mark > * { position: absolute; left: 0; top: 0; }
+.ov3-mark .logo-draw { transform-origin: 50% 50%; }
+.ov3-mark .ov3-mark__name { transform-origin: 0 50%; }
+/* 品牌段標題的第一行留給標誌，高度同大標一行（60px × 1.27） */
+.ov3-spacer { height: 76.2px; }

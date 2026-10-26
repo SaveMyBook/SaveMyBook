@@ -229,7 +229,7 @@ export function sAfter(world: World, ui: HTMLElement, fx: HTMLElement) {
         world.frame.cabinet = {
           pose: glide(t, cab, SIGMA),
           kiosk: {
-            state, refresh: (t / 30) % 1, digits: 1, take: true,
+            state, refresh: (t / 30) % 1, digits: 1, take: true, tick: t, clock: '14:25',
             seconds: state === 'match' ? 52 - Math.floor(t - RISE) : Math.max(0, 30 - Math.floor(t - OPEN)),
             check: soft(t, CLOSED + 0.1, CLOSED + 0.6),
           },

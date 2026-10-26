@@ -8,6 +8,7 @@ import { Stage } from './stage';
 import { Cabinet } from './three/cabinet';
 import { Phone, PHONE } from './three/phone';
 import { screenTexture, type KioskParams } from './three/textures';
+import { KioskV1 } from './deck/kiosk_v1';
 import { span, easeInOut, easeOut, keyframes, type Pose } from './lib/kf';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -480,13 +481,14 @@ let gifAt: (t: number) => void = () => {};
 
 async function main() {
   await loadFonts();
-  cab = new Cabinet(KIOSK_NAME);
+  // 簡報素材維持舊版書櫃螢幕
+  cab = new Cabinet(KIOSK_NAME, new KioskV1(KIOSK_NAME));
   stage.scene.add(cab.group);
   const cover = await loadTex('/deck/cover_html_css.jpg');
   book = new DeckBook(cover);
   cab.group.add(book.group);
-  // 等標誌貼紙（非同步載入）畫好
-  await new Promise((r) => setTimeout(r, 300));
+  // 等標誌貼紙與鉸鏈保護蓋（非同步載入）放好
+  await cab.ready;
 
   const info: Record<string, unknown> = { mode: MODE, flow: FLOW, viewport: [VW, VH], pr: PR, tl: TL };
   const shadow = floorShadow(CW * 1.55, CD * 1.6, 0.36);

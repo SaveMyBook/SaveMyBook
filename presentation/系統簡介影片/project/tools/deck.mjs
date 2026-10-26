@@ -209,7 +209,7 @@ async function xray() {
   const out = join(OUT, `${base}.png`);
   writeFileSync(out, c.buf);
   const names = {
-    screen: '2.8 吋 TFT 螢幕（右上角，橫向 320×240）',
+    screen: '2.8 吋 TFT 螢幕（左上角，橫向 320×240）',
     board: '主控板（DoorLock ESP32-S3 主控板 Rev A，直立裝在頂列背板內側）',
     powerIn: '電源輸入（主控板 J5 的 12V DC 插座，插頭由頂板開孔插入）',
     cableEntry: '電源線穿過頂板處',

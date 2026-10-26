@@ -73,7 +73,9 @@ const C1_AT = { x: 24.3, y: 6.2, r: 5, h: 16 };
 const C2_AT = { x: 51.5, y: 5.3, r: 4, h: 11.5 };
 const U4_AT = { x: 39.2, y: 9.6 };
 const JP1_AT = { x: 62.87, y: 7.2 };
-const J5_AT = { x: 5.0, y: 4.7 };
+/** 實物的 DC 插座轉了 90°：插孔朝左緣（X=0），和 KiCad 3D 截圖朝後緣不同；本體沿 X、插孔略超出板緣。 */
+const J5_AT = { x: 4.7, y: 5.0 };
+const J5_ROT = Math.PI / 2;
 /** ESP32-S3-DevKitC-1：板長 66、寬 25.4，下緣在板面上方 11（排母 8.5＋公排針塑膠 2.5）。 */
 const DEV = { x: U1_X0 + P * 10.5, y: (U1_FRONT + U1_BACK) / 2, l: 66, w: 25.4, z0: 11, t: 1.6 };
 
@@ -227,10 +229,11 @@ function makeMats() {
     gold: std(0xdcb66b, 0.26, 1),
     tin: std(0xc8cdd2, 0.28, 1),
     alu: std(0xd9dde0, 0.3, 0.85),
-    relay: new THREE.MeshPhysicalMaterial({ color: 0x2760b2, roughness: 0.42, clearcoat: 0.25, clearcoatRoughness: 0.4 }),
+    // 實物：黑色繼電器、藍色端子台、黑色電解電容、黃色散熱片（KiCad 3D 截圖為藍色繼電器與綠色端子台）
+    relay: new THREE.MeshPhysicalMaterial({ color: 0x18191b, roughness: 0.4, clearcoat: 0.3, clearcoatRoughness: 0.35 }),
     relayBase: std(0x1d2226, 0.6),
-    terminal: std(0x2b7a4b, 0.55),
-    terminalDark: std(0x0c1a11, 0.85),
+    terminal: std(0x1f5fbf, 0.5),
+    terminalDark: std(0x0b1426, 0.85),
     hole: std(0x0a0b0c, 0.9),
     resistor: std(0x1b1c1d, 0.5),
     mlcc: std(0xa07d56, 0.55),
@@ -239,7 +242,8 @@ function makeMats() {
     band: std(0xbcc1c6, 0.5),
     edge: std(0x6e6744, 0.75),
     bottom: std(0x0f3a26, 0.55),
-    capSleeve: std(0x2a5da6, 0.35),
+    capSleeve: std(0x1b1c1e, 0.35),
+    heatsink: std(0xe2a521, 0.36, 0.55),
     rubber: std(0x2a2b2d, 0.8),
     devPcb: std(0x141619, 0.5),
     devEdge: std(0x3a3a33, 0.7),
@@ -356,6 +360,13 @@ function to220(g: THREE.Group, m: Mats, mark: THREE.Texture) {
   front.rotation.set(0, 0, 0);
 }
 
+/** 黃色 U 形散熱片：背板貼著 TO-220 的金屬片，兩翼往前包住本體（實物照片）。 */
+function heatsinkU(g: THREE.Group, m: Mats) {
+  const y0 = 3.4, h = 15.4, back = -3.9, front = 5.8, half = 7.5, t = 1.0;
+  block(g, 2 * half, h, t, 0, y0, back + t / 2, m.heatsink, 0.2);
+  for (const sx of [-1, 1]) block(g, t, h, front - back, sx * (half - t / 2), y0, (front + back) / 2, m.heatsink, 0.2);
+}
+
 /** DC 插座（PJ-063AH）：長軸沿 z，插孔朝 -z（板子後緣）。 */
 function barrelJack(g: THREE.Group, m: Mats) {
   block(g, 9.0, 11.0, 14.4, 0, 0, 0, m.plastic, 0.45);
@@ -391,13 +402,13 @@ function eCap(g: THREE.Group, m: Mats, r: number, h: number, stripeDir: number) 
     pts.push(new THREE.Vector2(prof[i][0] + (prof[i + 1][0] - prof[i][0]) * f, prof[i][1] + (prof[i + 1][1] - prof[i][1]) * f));
   }
   const tex = decal(2 * Math.PI * r, total, 40, (c, k) => {
-    c.fillStyle = '#2B5FA8';
+    c.fillStyle = '#1B1C1E';
     c.fillRect(0, 0, c.canvas.width, c.canvas.height);
     const sw = 2 * Math.PI * r * 0.14;
     const sx = c.canvas.width / 2 - (sw * k) / 2;
-    c.fillStyle = '#C9CED3';
+    c.fillStyle = '#9AA0A6';
     c.fillRect(sx, 0, sw * k, c.canvas.height);
-    c.fillStyle = '#2B5FA8';
+    c.fillStyle = '#1B1C1E';
     const body0 = 0.6, body1 = h - 2.3;
     for (let y = body0 + 1.2; y < body1 - 0.6; y += 2.6) {
       const py = (total - y) * k;
@@ -654,7 +665,7 @@ function paintBoard(s: Sheet) {
 
   /* 走線（示意；12V 與 GND 主要走背面，正面只畫到導通孔） */
   // 12V：DC 插座 → 沿後緣 → 導通孔；C1 正極與 7805 輸入接在這條線上
-  tr([[J5_AT.x, 10.6], [J5_AT.x, 17.8], [60.0, 17.8]], 1.2);
+  tr([[J5_AT.x + 6.6, J5_AT.y], [J5_AT.x + 6.6, 17.8], [60.0, 17.8]], 1.2);
   via(60.0, 17.8);
   via(61.3, 17.8);
   tr([[C1_AT.x + 2.5, C1_AT.y], [C1_AT.x + 2.5, 17.8]], 1.0);
@@ -742,9 +753,9 @@ function paintBoard(s: Sheet) {
   thPad(JP1_AT.x + P / 2, JP1_AT.y, 0.85);
   for (let i = -1; i <= 1; i++) { pad(U4_AT.x + i * P, U4_AT.y, 1.8, 2.4, 0.9); s.circle(U4_AT.x + i * P, U4_AT.y, 0.5, COLORS.hole, 0.9, 0); }
   for (const [c, pitch] of [[C1_AT, 5], [C2_AT, 3.5]] as const) for (const sx of [-1, 1]) thPad(c.x + sx * pitch / 2, c.y, 1.0, sx === 1);
-  pad(J5_AT.x, 11.3, 2.6, 1.6, 0.3);
-  pad(J5_AT.x - 2.9, 7.2, 1.4, 2.6, 0.3);
-  pad(J5_AT.x + 2.9, 7.2, 1.4, 2.6, 0.3);
+  pad(J5_AT.x + 6.6, J5_AT.y, 1.6, 2.6, 0.3);
+  pad(J5_AT.x + 2.5, J5_AT.y + 2.9, 2.6, 1.4, 0.3);
+  pad(J5_AT.x + 2.5, J5_AT.y - 2.9, 2.6, 1.4, 0.3);
   for (const x of [C3_X(), C4_X()]) for (const sx of [-1, 1]) pad(x + sx * 0.95, 13.3, 1.0, 1.3);
   CH.forEach((y) => {
     const yc = y + K_DY;
@@ -774,7 +785,7 @@ function paintBoard(s: Sheet) {
   DOOR_X.forEach((x) => s.outline(x, HDR_Y, 3 * P + 0.4, 2.94));
   s.outline(J6_X0 + P * 3.5, HDR_Y, 8 * P + 0.4, 2.94);
   s.outline(JP1_AT.x, JP1_AT.y, 2 * P + 0.4, 2.94);
-  s.outline(J5_AT.x, J5_AT.y, 9.4, 14.8);
+  s.outline(J5_AT.x, J5_AT.y, 14.8, 9.4);
   s.ring(C1_AT.x, C1_AT.y, C1_AT.r + 0.3);
   s.ring(C2_AT.x, C2_AT.y, C2_AT.r + 0.3);
   s.text('+', C1_AT.x + 3.6, C1_AT.y - 4.6, 1.6);
@@ -885,14 +896,16 @@ export function createPcb(opts: PcbOptions = {}): THREE.Group {
     redraws.push(d.redraw);
     return d.tex;
   };
-  const relayMark = textDecal(16.5, 11.5, [['JQC-3F(T73)', 2.2, 1.6], ['05VDC-C', 4.6, 1.6], ['10A 250VAC', 7.4, 1.15], ['10A 30VDC', 9.2, 1.15]], 'rgba(236,242,250,0.9)');
+  const relayMark = textDecal(16.5, 11.5, [['JQC-3F(T73)', 2.2, 1.6], ['05VDC-C', 4.6, 1.6], ['10A 250VAC', 7.4, 1.15], ['10A 30VDC', 9.2, 1.15]], 'rgba(232,236,240,0.88)');
   const pcMark = textDecal(5.6, 2.2, [['PC815', 1.1, 1.1]], 'rgba(180,184,188,0.75)');
   const regMark = textDecal(8.6, 3.0, [['L7805CV', 1.0, 1.3], ['GK 26 40', 2.3, 0.9]], 'rgba(185,188,192,0.8)');
 
   // 電源區
-  barrelJack(place('J5', J5_AT.x, J5_AT.y), m);
+  barrelJack(place('J5', J5_AT.x, J5_AT.y, J5_ROT), m);
   eCap(place('C1', C1_AT.x, C1_AT.y), m, C1_AT.r, C1_AT.h, Math.atan2(0.35, -1));
-  to220(place('U4', U4_AT.x, U4_AT.y), m, regMark);
+  const u4 = place('U4', U4_AT.x, U4_AT.y);
+  to220(u4, m, regMark);
+  heatsinkU(u4, m);
   eCap(place('C2', C2_AT.x, C2_AT.y), m, C2_AT.r, C2_AT.h, 0);
   chip(place('C3', C3_X(), 13.3), m, 2.0, 1.25, 0.85, m.mlcc);
   chip(place('C4', C4_X(), 13.3), m, 2.0, 1.25, 0.85, m.mlcc);

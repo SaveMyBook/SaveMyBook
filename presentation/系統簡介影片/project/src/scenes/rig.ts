@@ -8,10 +8,10 @@ const NS = 'http://www.w3.org/2000/svg';
 
 /** 透視標註：元件名稱與說明；side 表示放在書櫃左側或右側。 */
 const PARTS: { key: string; title: string; note: string; side: 'left' | 'right' }[] = [
-  { key: 'screen', title: '2.8 吋 TFT 螢幕', note: '橫向 320 × 240，顯示 QR Code 與數字', side: 'right' },
-  { key: 'board', title: 'ESP32-S3 控制板', note: 'Wi-Fi 連線・HTTPS 同步', side: 'right' },
-  { key: 'relay', title: '四路繼電器', note: '驅動電磁鎖', side: 'left' },
-  { key: 'power', title: '12V 電源', note: '降壓 5V 供應控制板', side: 'left' },
+  { key: 'screen', title: '2.8 吋 TFT 螢幕', note: '左上角，橫向 320 × 240', side: 'left' },
+  { key: 'board', title: 'ESP32-S3 開發板', note: '插在自製主控板上，Wi-Fi・HTTPS 同步', side: 'right' },
+  { key: 'relay', title: '繼電器 ×4', note: '主控板上，驅動電磁鎖', side: 'right' },
+  { key: 'power', title: '12V DC 插座', note: '主控板以 L7805 降壓 5V', side: 'right' },
   { key: 'locks', title: '電磁鎖 ×4', note: 'A01–A04，裝在櫃門左側', side: 'left' },
 ];
 export const PART_COUNT = PARTS.length;

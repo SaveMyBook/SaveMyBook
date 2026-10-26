@@ -99,6 +99,34 @@ def reshape_pauses(y, text):
     return np.concatenate(out), match
 
 
+def fit_length(y, target):
+    """把句長調成 target 秒：差額全部加在（或扣自）句中最長的停頓，其他部分不動。
+    用於改字後重產的句子：維持原句長度，時間軸與後面各句的起點都不變。"""
+    hop = int(0.010 * SR)
+    n = len(y) // hop
+    quiet = 20 * np.log10(np.sqrt(np.mean(y[:n * hop].reshape(n, hop) ** 2, axis=1)) + 1e-9) < -40
+    best, i = None, 0
+    while i < n:
+        if quiet[i]:
+            j = i
+            while j < n and quiet[j]:
+                j += 1
+            if i > 0 and j < n and (best is None or j - i > best[1] - best[0]):
+                best = (i, j)
+            i = j
+        else:
+            i += 1
+    if best is None:
+        raise RuntimeError("找不到句中停頓，無法調整句長")
+    diff = int(round(target * SR)) - len(y)
+    mid = (best[0] + best[1]) * hop // 2
+    if diff >= 0:
+        return np.concatenate([y[:mid], np.zeros(diff, np.float32), y[mid:]])
+    if -diff > (best[1] - best[0]) * hop - int(0.12 * SR):
+        raise RuntimeError("句子太長，縮短停頓也無法回到原長度")
+    return np.concatenate([y[:mid + diff // 2], y[mid - diff + diff // 2:]])
+
+
 def write_wav(path, y):
     subprocess.run([FF, "-v", "error", "-y", "-f", "f32le", "-ac", "1", "-ar", str(SR), "-i", "-",
                     "-c:a", "pcm_s16le", path], input=y.astype(np.float32).tobytes(), check=True)
@@ -143,6 +171,8 @@ async def main():
         else:
             src = "沿用"
         y, matched = reshape_pauses(trim(decode(mp3)), text)
+        if "dur" in ln:        # 指定句長（秒）：見 fit_length
+            y = fit_length(y, ln["dur"])
         write_wav(wav, y)
         durs[lid] = round(len(y) / SR, 3)
         print(f"{lid:4s} {durs[lid]:6.2f}s  {src}  {'' if matched else '（停頓對不上標點，只縮短過長停頓）'}{text}", flush=True)

@@ -33,8 +33,9 @@ const d = frames.map((f) => f[0]).sort((a, b) => a - b);
 const pct = (q) => d[Math.floor(d.length * q)].toFixed(1);
 console.log('wheel ticks', n, 'scrollY', y, 'of', total, 'frames', frames.length, 'p50', pct(.5), 'p95', pct(.95), 'p99', pct(.99), 'max', d[d.length - 1].toFixed(1));
 const long = frames.filter((f) => f[0] > 34);
+console.log('frames >20ms:', frames.map((f, i) => [i, f[0], f[1]]).filter((f) => f[1] > 20).map((f) => `#${f[0]} ${f[1].toFixed(0)}@${Math.round(f[2])}`).join(' '));
 console.log('long frames >34ms:', long.length, long.slice(0, 30).map((f) => `${f[0].toFixed(0)}@${Math.round(f[1])}`).join(' '));
-const sections = await page.evaluate(() => [...document.querySelectorAll('main > .ch')].map((c) => [c.id, c.offsetTop]));
+const sections = await page.evaluate(() => [...document.querySelectorAll('main > section')].map((c) => [c.id, c.offsetTop]));
 console.log(sections.map((s) => s.join(':')).join(' '));
 const secs = sections.map((s, i) => [s[0], s[1], sections[i + 1] ? sections[i + 1][1] : 1e9]);
 for (const [id, a, b] of secs) {

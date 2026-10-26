@@ -21,6 +21,9 @@ import { sOverview } from './tour/s_overview';
 import { sFind } from './tour/s_find';
 import { sPay } from './tour/s_pay';
 import { sCabinet } from './tour/s_cabinet';
+import { SubtitleBand, loadCues } from './v3/subtitles';
+import { V3, TITLE_BOTTOM } from './v3/spec';
+import { Backdrop } from './v3/backdrop';
 import { sAfter } from './tour/s_after';
 import { sAccount } from './tour/s_account';
 import { sAdmin } from './tour/s_admin';
@@ -31,9 +34,9 @@ const params = new URLSearchParams(location.search);
 const RENDER = params.has('render');
 if (params.get('theme') === 'dark') document.body.classList.add('dark');
 if (params.get('tc')) document.body.classList.add(`tc-${params.get('tc')}`);
-/** 動態模糊（輸出成品用）：快門 90 度（每格前 1/240 秒），mb 為取樣數上限；180 度時快速移動的介面會糊到看不清楚。 */
+/** 動態模糊（輸出成品用）：快門預設 90 度（每格前 1/240 秒），mb 為取樣數上限；sh 指定快門角度（新版樣片用 180 度，只有快速移動才會取樣）。 */
 const BLUR = Number(params.get('mb') || 0);
-const SHUTTER = 1 / 240;
+const SHUTTER = Number(params.get('sh') || 90) / 360 / 60;
 /** 相鄰取樣間物件最多移動的裝置像素；取樣太疏時快速移動的物件會出現一層層的殘影。 */
 const BLUR_STEP = 1.2;
 const PR = Number(params.get('pr') || (RENDER ? 1 : Math.min(2, devicePixelRatio || 1)));
@@ -46,6 +49,13 @@ const world = new World(stage, []);
 
 type Scene = (t: number) => void;
 type Factory = (ui: HTMLElement, fx: HTMLElement) => Scene;
+/**
+ * v3（網址加 ?v3）：各段為 src/tour/s_<段落>_v3.ts（export default (world, ui, fx) => (t) => void）。
+ * 以動態載入個別處理：某一段的檔案有語法錯誤時只有那一段留白，其他段照常顯示（多個代理同時編輯時互不影響）。
+ */
+const V3_MODE = params.has('v3');
+type V3Module = { default: (world: World, ui: HTMLElement, fx: HTMLElement) => Scene };
+const V3_MODS = import.meta.glob<V3Module>('./tour/s_*_v3.ts');
 /** 尚未製作的段落：留白。 */
 const todo = (_id: string): Factory => () => () => {};
 const FACTORY: Record<string, Factory> = {
@@ -62,21 +72,49 @@ const FACTORY: Record<string, Factory> = {
   end: (u, f) => sEnd(world, u, f),
 };
 // 每段各自一層：段落外整層隱藏，殘留的元素不會出現在其他段落
-const LAYERS: { start: number; end: number; ui: HTMLElement; fx: HTMLElement; scene: Scene }[] = [];
-for (const s of TL.sections) {
-  cueBase(s.start);
-  const u = document.createElement('div');
-  const f = document.createElement('div');
-  u.className = f.className = 'layer';
-  ui.append(u);
-  fx.append(f);
-  LAYERS.push({ start: s.start, end: s.end, ui: u, fx: f, scene: (FACTORY[s.id] ?? todo(s.id))(u, f) });
+type Layer = { start: number; end: number; ui: HTMLElement; fx: HTMLElement; scene: Scene };
+const LAYERS: Layer[] = [];
+let corner: Corner;
+/** v3：字幕帶（網址加 nosub 時不顯示，輸出成品時另外燒入字幕）與全片共用的背景。 */
+let band: SubtitleBand | null = null;
+let backdrop: Backdrop | null = null;
+
+async function buildLayers() {
+  const v3: Record<string, Factory> = {};
+  if (V3_MODE) {
+    await Promise.all(Object.entries(V3_MODS).map(async ([path, load]) => {
+      const id = path.match(/s_(\w+)_v3\.ts$/)?.[1];
+      if (!id) return;
+      try {
+        const m = await load();
+        v3[id] = (u, f) => m.default(world, u, f);
+      } catch (e) {
+        console.error(`v3 段落載入失敗：${id}`, e);
+      }
+    }));
+    const bgLayer = document.createElement('div');
+    bgLayer.className = 'layer';
+    fx.prepend(bgLayer);
+    backdrop = new Backdrop(bgLayer);
+  }
+  for (const s of TL.sections) {
+    cueBase(s.start);
+    const u = document.createElement('div');
+    const f = document.createElement('div');
+    u.className = f.className = 'layer';
+    ui.append(u);
+    fx.append(f);
+    const make = V3_MODE ? v3[s.id] ?? todo(s.id) : FACTORY[s.id] ?? todo(s.id);
+    LAYERS.push({ start: s.start, end: s.end, ui: u, fx: f, scene: make(u, f) });
+  }
+  cueBase(0);
+  const hudLayer = document.createElement('div');
+  hudLayer.className = 'layer';
+  ui.append(hudLayer);
+  corner = new Corner(hudLayer);
+  if (V3_MODE && !params.has('nosub')) band = new SubtitleBand(hudLayer);
+  if (V3_MODE) world.later.push(() => loadCues());
 }
-cueBase(0);
-const hudLayer = document.createElement('div');
-hudLayer.className = 'layer';
-ui.append(hudLayer);
-const corner = new Corner(hudLayer);
 /** 左上角 logo：片頭品牌段結束時由 open 場景交接（BRAND_LAND），片尾收起。 */
 export const BRAND_LAND = TL.sections.find((s) => s.id === 'overview')!.start;
 const END = TL.sections.find((s) => s.id === 'end')!.start;
@@ -84,13 +122,24 @@ export const DURATION = TL.duration;
 
 function update(t: number) {
   world.reset();
+  let active: Layer | null = null;
   for (const L of LAYERS) {
     const on = t >= L.start - 1 && t <= L.end + 1;
     L.ui.style.display = on ? '' : 'none';
     L.fx.style.display = on ? '' : 'none';
-    if (on) L.scene(t - L.start);
+    if (V3_MODE && t >= L.start && t < L.end) active = L;
+    else if (on) L.scene(t - L.start);
   }
-  corner.at(t, BRAND_LAND, END - 0.15);
+  if (active) {
+    // v3：相鄰段落在交界前後各 0.05 秒仍會寫入 3D 物件，交界那一格會把上一段的書櫃畫進下一段的鏡頭；
+    // 3D 物件與鏡頭只由目前的段落寫入（其他段落只更新自己的標題等畫面元件）
+    world.reset();
+    active.scene(t - active.start);
+  }
+  backdrop?.draw(true, t);
+  // 片尾標誌在段落一開始就淡入：左上角的標誌提早在交界前收完，畫面上不會同時出現兩份
+  corner?.at(t, BRAND_LAND, V3_MODE ? END - 0.5 : END - 0.15);
+  band?.at(t);
   world.apply(t);
   for (const fn of world.frame.after) fn();
 }
@@ -104,7 +153,8 @@ declare global {
   interface Window { __ready: boolean; __seek: (t: number) => Promise<void>; __duration: number }
 }
 window.__duration = DURATION;
-(window as unknown as { __cues: unknown }).__cues = { cues: [...CUES].sort((a, b) => a.t - b.t), sections: TL.sections, duration: TL.duration };
+// 各段在 buildLayers 時才登記音效，所以取用時才整理
+Object.defineProperty(window, '__cues', { get: () => ({ cues: [...CUES].sort((a, b) => a.t - b.t), sections: TL.sections, duration: TL.duration }) });
 // 3D 物件外框角點在畫面上的位置，用來量測快門時間內的移動距離
 const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, 1], [0, -1]] as const;
 const CAB_CORNERS: THREE.Vector3[] = [];
@@ -202,7 +252,7 @@ window.__seek = async (t: number) => {
 if (RENDER && params.get('scale')) frame.style.transform = `scale(${params.get('scale')})`;
 
 // 檢查用：回傳目前畫面上互相重疊的文字區塊，以及蓋在手機上的文字區塊（tools/overlap.mjs 使用）
-const TEXT_SEL = '.cnav, .chead, .fitem, .lens, .callout, .rise, .sub, .cap, .chip, .gate, .hud, .ptag, .lcard, .stepbar, .xlabel, .arch-node, .arch-server, .stat2, .fee-row, .fee-cap, .meta, .tile, .ffwd, .h-display, .dcard, .dmethods, .dcmp, .cbadge, .corner__name, .promo__title, .promo__sub, .tech__stat, .tech__unit, .cab-digit, .open-num, .open-sub, .end__brand, .cword';
+const TEXT_SEL = '.cnav, .chead, .fitem, .lens, .callout, .rise, .sub, .cap, .chip, .gate, .hud, .ptag, .lcard, .stepbar, .xlabel, .arch-node, .arch-server, .stat2, .fee-row, .fee-cap, .meta, .tile, .ffwd, .h-display, .dcard, .dmethods, .dcmp, .cbadge, .corner__name, .promo__title, .promo__sub, .tech__stat, .tech__unit, .cab-digit, .open-num, .open-sub, .end__brand, .cword, .v3-cap';
 const INK = document.createElement('canvas').getContext('2d')!;
 (window as unknown as { __overlaps: (t: number) => unknown }).__overlaps = (t: number) => {
   draw(t);
@@ -262,8 +312,8 @@ const INK = document.createElement('canvas').getContext('2d')!;
   // 浮出元件與文字重疊
   for (const c of cards) for (const b of boxes) if (hit(b, c, 4)) popHits.push(`${b.name} 壓在 ${c.name}`);
   // 浮出的去背元件必須和手機目前的畫面一致：畫面已換掉（推入、換狀態）但元件還浮在上面，會蓋在不相干的內容上
-  // 同一畫面的逐字、捲動、逐格、倒數秒數版本（_t03、_s05、_f2、_29）視為同一張
-  const family = (n: string) => n.replace(/_(t|s|f)?\d+$/, '');
+  // 同一畫面的逐字、捲動、逐格、倒數秒數版本（_t03、_s05、_f2、_29）視為同一張；對話框浮起後原位顯示的 <畫面>_under 也算同一張
+  const family = (n: string) => n.replace(/_under$/, '').replace(/_(t|s|f)?\d+$/, '');
   const stale: string[] = [];
   world.frame.phones.forEach((st, i) => {
     if (!st) return;
@@ -275,11 +325,91 @@ const INK = document.createElement('canvas').getContext('2d')!;
     }
   });
   // 字幕區（y > 930）只留給字幕：文字與浮出元件不得進入
-  const subZone = [...boxes, ...cards].filter((b) => b.y + b.h > 930 && b.y < 1080).map((b) => `進入字幕區 ${b.name}`);
+  const subZone = [...boxes, ...cards].filter((b) => !b.name.startsWith('v3-cap') && b.y + b.h > 930 && b.y < 1080).map((b) => `進入字幕區 ${b.name}`);
   return [...pairs, ...offscreen, ...phones, ...popHits, ...subZone, ...stale];
 };
 
-world.load().then(async () => {
+/**
+ * v3 的版面檢查（比照 NTUB 宣傳片的 REEL_CHECK，數值見 src/v3/spec.ts）：
+ * - 標題（.v3-title、.v3-sub）與手機、書櫃、浮出元件至少相距 40px。
+ * - 手機、書櫃、浮出元件不得進入字幕帶（y ≥ 976）。
+ * - 浮出元件完全浮出時距畫面邊緣 56px、在標題下方 40px 以下。
+ * 有角點在鏡頭後方的物件（甩鏡途中）投影會發散，視為不在畫面內。
+ */
+(window as unknown as { __reelCheck: (t: number) => unknown }).__reelCheck = (t: number) => {
+  draw(t);
+  const scale = frame.getBoundingClientRect().width / W;
+  const shown = (e: HTMLElement) => {
+    let n: HTMLElement | null = e;
+    while (n && n !== frame) {
+      const cs = getComputedStyle(n);
+      if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) < 0.9) return false;
+      n = n.parentElement;
+    }
+    return true;
+  };
+  const titles = [...document.querySelectorAll<HTMLElement>('.v3-title, .v3-sub')].filter(shown).map((e) => {
+    const r = e.getBoundingClientRect();
+    return { name: (e.textContent || '').trim().slice(0, 10), x0: r.left / scale, y0: r.top / scale, x1: r.right / scale, y1: r.bottom / scale };
+  });
+  const bb = (pts: THREE.Vector2[], name: string) => ({ name, x0: Math.min(...pts.map((p) => p.x)), y0: Math.min(...pts.map((p) => p.y)), x1: Math.max(...pts.map((p) => p.x)), y1: Math.max(...pts.map((p) => p.y)) });
+  // 物件外框只算畫面內看得到的部分：沿方盒十二條邊取樣，只留鏡頭前方、左右在畫面內的點（物件跨出畫面左右緣、甩鏡途中時不會誤判）
+  const visibleBox = (obj: THREE.Object3D, half: [number, number, number], zs: [number, number], name: string) => {
+    obj.updateMatrixWorld(true);
+    const pts: THREE.Vector2[] = [];
+    const c = (sx: number, sy: number, sz: number) => new THREE.Vector3(sx * half[0], sy * half[1], sz < 0 ? zs[0] : zs[1]);
+    const corners = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]].map(([x, y, z]) => c(x, y, z));
+    const edges = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+    for (const [i, j] of edges) for (let k = 0; k <= 10; k++) {
+      const v = obj.localToWorld(corners[i].clone().lerp(corners[j], k / 10));
+      const n = v.clone().project(stage.camera);
+      if (n.z >= 1 || n.z <= -1) continue;
+      const q = stage.toScreen(v);
+      if (q.x >= 0 && q.x <= W) pts.push(q);
+    }
+    return pts.length ? bb(pts, name) : null;
+  };
+  const objs: ReturnType<typeof bb>[] = [];
+  world.phones.forEach((p, i) => {
+    if (!world.frame.phones[i]) return;
+    const b = visibleBox(p.body, [7.15 / 2, 14.96 / 2, 0], [-0.65, 0.45], `手機${i}`);
+    if (b) objs.push(b);
+  });
+  const pops: ReturnType<typeof bb>[] = [];
+  if (world.frame.cabinet) {
+    const g = world.cabinet.group;
+    const b = visibleBox(g, [Cabinet.WIDTH / 2, Cabinet.HEIGHT / 2, 0], [-Cabinet.DEPTH / 2, Cabinet.DEPTH / 2], '書櫃');
+    if (b) objs.push(b);
+    if (world.cabinet.popShown) {
+      const b = bb(world.cabinet.popCorners().map((v) => stage.toScreen(v)), '浮出螢幕');
+      objs.push(b);
+      if (world.cabinet.popK > 0.95) pops.push(b);
+    }
+  }
+  world.phones.forEach((p, i) => {
+    if (!world.frame.phones[i]) return;
+    for (const [id, card] of p.pops) {
+      if (!card.shown) continue;
+      const b = bb(card.corners().map((v) => stage.toScreen(v)), `浮出${i}:${id}`);
+      objs.push(b);
+      if (card.k > 0.95) pops.push(b);
+    }
+  });
+  const out: string[] = [];
+  for (const tb of titles) for (const o of objs) {
+    const d = Math.hypot(Math.max(tb.x0 - o.x1, o.x0 - tb.x1, 0), Math.max(tb.y0 - o.y1, o.y0 - tb.y1, 0));
+    if (d < V3.safe.titleGap) out.push(`標題「${tb.name}」距 ${o.name} ${d.toFixed(0)}px`);
+  }
+  for (const o of objs) if (o.y1 > V3.subtitle.bandTop + 1 && o.y0 < 1080) out.push(`${o.name} 進入字幕帶 y ${o.y1.toFixed(0)}`);
+  const top = titles.length ? Math.max(...titles.map((b) => b.y1)) + V3.safe.titleGap : V3.safe.margin;
+  for (const p of pops) {
+    const m = V3.safe.margin;
+    if (p.x0 < m - 2 || p.x1 > W - m + 2 || p.y0 < top - 2) out.push(`${p.name} 超出安全範圍 x ${p.x0.toFixed(0)}–${p.x1.toFixed(0)} y ${p.y0.toFixed(0)}–${p.y1.toFixed(0)}`);
+  }
+  return { out, objs: objs.map((o) => `${o.name} x ${o.x0.toFixed(0)}–${o.x1.toFixed(0)} y ${o.y0.toFixed(0)}–${o.y1.toFixed(0)}`), titles: titles.map((b) => `${b.name} x ${b.x0.toFixed(0)}–${b.x1.toFixed(0)} y ${b.y0.toFixed(0)}–${b.y1.toFixed(0)}`), titleBottom: TITLE_BOTTOM };
+};
+
+buildLayers().then(() => world.load()).then(async () => {
   await window.__seek(Number(params.get('t') || 0));
   window.__ready = true;
   if (!RENDER) preview();

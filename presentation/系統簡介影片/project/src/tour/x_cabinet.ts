@@ -77,27 +77,29 @@ export class DigitFly {
     if (!flying) { this.digits.forEach((d) => css(d, 'visibility', 'hidden')); return; }
     world.frame.after.push(() => {
       const popped = world.cabinet.popShown;
-      const v = 126 / 240;
+      const { x: u0, y: v } = world.cabinet.kiosk.digitsAt;
       this.digits.forEach((d, i) => {
         const box = TAPS[`tap_cab_digit_${i + 1}`];
         if (!box) return;
         // 兩個數字同時起飛、同時抵達（錯開時途中的左右順序會暫時顛倒），路徑微微上拱
         const f = span(t, t0, t1);
         const k = easeInOut(f);
-        const u = 0.5 + (i === 0 ? -1 : 1) * Kiosk.DIGIT_GAP;
+        const u = u0 + (i === 0 ? -1 : 1) * Kiosk.DIGIT_GAP;
         const top = world.stage.toScreen(world.cabinet.screenPoint(u, v - Kiosk.DIGIT_EM / 2, popped));
         const bot = world.stage.toScreen(world.cabinet.screenPoint(u, v + Kiosk.DIGIT_EM / 2, popped));
         const from = world.stage.toScreen(world.cabinet.screenPoint(u, v, popped));
-        // 螢幕字型 96px（含行距）對應字身高度約 0.72
-        const fromSize = (bot.y - top.y) * 0.98;
+        // 量測墨跡外框校正：同字級的 HTML 數字比畫布上的大約 1.4%、低 0.033 em，起飛那一格才會與螢幕上的數字重合
+        const fromSize = (bot.y - top.y) * 0.966;
         const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
         const to = world.point(this.phone, cx, cy);
         const toSize = world.point(this.phone, cx, cy + 14).y - world.point(this.phone, cx, cy - 14).y;
         const c = span(k, 0.25, 0.6);
         css(d, 'visibility', f > 0 ? 'visible' : 'hidden');
-        css(d, 'font-size', `${lerp(fromSize, toSize, k).toFixed(1)}px`);
-        css(d, 'color', `rgb(${lerp(238, 21, c).toFixed(0)}, ${lerp(242, 30, c).toFixed(0)}, ${lerp(245, 39, c).toFixed(0)})`);
-        place(d, lerp(from.x, to.x, k), lerp(from.y, to.y, k) - Math.sin(Math.PI * k) * 70);
+        const size = lerp(fromSize, toSize, k);
+        css(d, 'font-size', `${size.toFixed(1)}px`);
+        // 起飛時與霧藍卡片上的白字相同，飛到手機時換成 App 輸入格的深色字
+        css(d, 'color', `rgb(${lerp(255, 21, c).toFixed(0)}, ${lerp(255, 30, c).toFixed(0)}, ${lerp(255, 39, c).toFixed(0)})`);
+        place(d, lerp(from.x, to.x, k), lerp(from.y, to.y, k) - Math.sin(Math.PI * k) * 70 - 0.033 * size * (1 - k));
         css(d, 'opacity', (span(f, 0, 0.04) * (1 - span(f, 0.95, 1))).toFixed(3));
       });
     });

@@ -21,16 +21,20 @@ const out = join(web, '.shots');
 mkdirSync(out, { recursive: true });
 
 const PLAN = [
-  ['cover', [0, 0.3, 0.55, 0.8, 1]],
-  ['problem', [0, 0.35, 0.7]],
-  ['listing', [0.05, 0.15, 0.3, 0.5, 0.8]],
-  ['discover', [0.1, 0.3, 0.66, 0.78]],
-  ['chat', [0.15, 0.5, 0.58, 0.82]],
-  ['cabinet', [0.06, 0.2, 0.4, 0.49, 0.535, 0.58, 0.72, 0.88]],
-  ['payment', [0.12, 0.3, 0.46, 0.7]],
-  ['fee', [0.2]],
-  ['together', [0.1, 0.36, 0.6, 0.85]],
-  ['end', [0.7]],
+  ['top', [0]],
+  ['survey', ['mid']],
+  ['sell', ['enter', 'mid']],
+  ['advisor', ['enter', 'mid']],
+  ['chat', ['top', 'bottom']],
+  ['cabinet', ['top']],
+  ['cab-pin', [0, 0.07, 0.16, 0.3, 0.37, 0.53, 0.6, 0.7, 0.84, 0.97]],
+  ['board', ['enter', 'mid']],
+  ['pay', ['enter', 'mid']],
+  ['fee', ['mid']],
+  ['ai-rules', ['mid']],
+  ['lang', ['mid']],
+  ['system', ['mid']],
+  ['end', ['end']],
 ];
 
 const browser = await puppeteer.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
@@ -45,12 +49,16 @@ for (const size of sizes) {
   const files = [];
   for (const [id, ps] of PLAN) {
     for (const p of ps) {
-      if (id === 'problem' || id === 'fee') {
-        await page.evaluate((i, k) => { const el = document.getElementById(i); window.scrollTo(0, el.offsetTop + k * el.offsetHeight); }, id, p);
-      } else {
-        await page.evaluate((i, k) => window.__go(i, k), id, p);
-      }
-      await new Promise((r) => setTimeout(r, 900));
+      await page.evaluate((i, k) => {
+        const el = i === 'cab-pin' ? document.querySelector('[data-pin="cab"]') : document.getElementById(i);
+        const top = el.getBoundingClientRect().top + scrollY, h = el.offsetHeight, vh = innerHeight;
+        const y = typeof k === 'number' ? top + (h - vh) * k
+          : k === 'top' ? top - 52 : k === 'enter' ? top - vh * 0.62 : k === 'mid' ? top + h / 2 - vh / 2
+          : k === 'bottom' ? top + h - vh : document.documentElement.scrollHeight - vh;
+        const lenis = window.__site?.lenis;
+        if (lenis) lenis.scrollTo(Math.max(0, y), { immediate: true, force: true }); else scrollTo(0, Math.max(0, y));
+      }, id, p);
+      await new Promise((r) => setTimeout(r, 1400));
       const f = join(out, `${size.w}x${size.h}-${id}-${String(p).replace('.', '_')}.png`);
       await page.screenshot({ path: f });
       files.push({ f, label: `${id} ${p}` });

@@ -160,12 +160,33 @@ const shadowFrag = /* glsl */`
   }
 `;
 
+// 浮出元件離開後留在螢幕上的空位：元件周圍的顏色加上方往內的柔和內陰影（比照 NTUB 宣傳片的 assemblePop）
+const holeFrag = /* glsl */`
+  uniform vec2 size;
+  uniform float radius;
+  uniform vec3 fill;
+  uniform float strength;
+  varying vec2 vUv;
+  float sdBox(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
+  void main() {
+    vec2 p = (vUv - 0.5) * size;
+    float d = sdBox(p, size * 0.5, radius);
+    float a = 1.0 - smoothstep(-0.6, 0.6, d);
+    float inner = smoothstep(-7.0, 0.0, sdBox(p + vec2(0.0, 2.0), size * 0.5, radius));
+    vec3 c = mix(fill, vec3(0.043, 0.122, 0.361), 0.22 * inner);
+    gl_FragColor = vec4(c, a * strength);
+    #include <colorspace_fragment>
+  }
+`;
+
 export interface PopRect { x: number; y: number; w: number; h: number; r?: number }
 
 export class PopCard {
   readonly group = new THREE.Group();
   private card: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   private shadow: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  private hole: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  private lift = 0;
   private base: THREE.Vector3;
   /** cut：材質是單獨輸出的去背元件（整張就是元件本身），不再從整張畫面依 rect 裁切。 */
   constructor(readonly rect: PopRect, z: number, cut = false) {
@@ -203,10 +224,35 @@ export class PopCard {
         },
       }),
     );
+    this.hole = new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
+      new THREE.ShaderMaterial({
+        vertexShader: screenVert,
+        fragmentShader: holeFrag,
+        transparent: true,
+        depthWrite: false,
+        uniforms: {
+          size: { value: new THREE.Vector2(rect.w, rect.h) },
+          radius: { value: r },
+          fill: { value: new THREE.Color() },
+          strength: { value: 0 },
+        },
+      }),
+    );
+    this.hole.visible = false;
     this.card.renderOrder = 3;
     this.shadow.renderOrder = 2;
-    this.group.add(this.shadow, this.card);
+    this.hole.renderOrder = 1;
+    this.group.add(this.hole, this.shadow, this.card);
     this.group.visible = false;
+  }
+
+  /** 浮出時在原位留下空位：color 為元件周圍的顏色（null 不留空位）；需在 set 之後呼叫。 */
+  setSlot(color: string | null) {
+    this.hole.visible = !!color && this.lift > 0.001;
+    if (!color) return;
+    this.hole.material.uniforms.fill.value.set(color);
+    this.hole.material.uniforms.strength.value = Math.min(1, this.lift * 3);
   }
 
   setTexture(tex: THREE.Texture | null) { this.card.material.uniforms.map.value = tex; }
@@ -218,6 +264,8 @@ export class PopCard {
     return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => this.card.localToWorld(new THREE.Vector3(u * g.width / 2, v * g.height / 2, 0)));
   }
   get shown() { return this.group.visible; }
+  /** 浮起程度（0～1），版面檢查只看完全浮出的格。 */
+  get k() { return this.lift; }
 
   /**
    * t：0 貼在螢幕上，1 完全浮出。grow：完全浮出時的放大量（預設 0.25）；
@@ -226,8 +274,11 @@ export class PopCard {
    */
   set(t: number, grow = 0.25, dy = 0, dz = 0, eye?: THREE.Vector3, dx = 0) {
     this.group.visible = t > 0.001 && this.card.material.uniforms.map.value !== null;
+    this.lift = Math.max(0, t);
     const lift = t * (2.6 + dz);
     this.group.position.set(this.base.x + dx * PT * t, this.base.y - dy * PT * t, this.base.z);
+    // 空位留在元件原本的位置，不跟著 dx、dy 移動
+    this.hole.position.set(-dx * PT * t, dy * PT * t, 0.002);
     if (eye) {
       // 沿「鏡頭 → 元件原位」的視線抬起：畫面上元件留在原位、只因透視略為放大；
       // 只沿螢幕法線抬起時，離畫面中心越遠的元件會被透視推向外側，蓋到相鄰內容

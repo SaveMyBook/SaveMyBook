@@ -1,5 +1,5 @@
 // 交付前逐格檢查：依間隔截圖，每張總覽 2 欄 × 4 列、每格 960×540（原尺寸的一半），細節看得清楚。
-// 用法：node tools/review.mjs <輸出前綴> <起秒> <迄秒> [間隔秒]；需先 npm run dev（5291 埠）。
+// 用法：node tools/review.mjs <輸出前綴> <起秒> <迄秒> [間隔秒]；需先 npm run dev（5291 埠）。環境變數 Q 會加到網址參數（例如 Q=v3）。
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,9 +16,10 @@ for (let t = Number(a); t <= Number(b) + 1e-6; t += step) times.push(+t.toFixed(
 
 const browser = await puppeteer.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage();
+await page.evaluateOnNewDocument(() => { window.WebSocket = class { addEventListener() {} removeEventListener() {} send() {} close() {} }; }); // 停用 Vite 的熱更新連線：其他人存檔時頁面不會重新載入、檢查不會中斷
 await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
 page.on('pageerror', (e) => console.log('pageerror', e.message));
-await page.goto('http://127.0.0.1:5291/?render', { waitUntil: 'networkidle0' });
+await page.goto('http://127.0.0.1:5291/?render' + (process.env.Q ? '&' + process.env.Q : ''), { waitUntil: 'networkidle0' });
 await page.waitForFunction(() => window.__ready === true, { timeout: 60000 });
 const shots = [];
 for (const t of times) {

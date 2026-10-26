@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Stage, CAM_Z } from './stage';
+import { Stage, CAM_Z, FOV } from './stage';
 import { Phone } from './three/phone';
 import { Cabinet } from './three/cabinet';
 import { parcel } from './three/props';
@@ -14,7 +14,7 @@ export interface Scr { a: string | null; b?: string | null; k?: number; mode?: n
  * 浮出元件：把螢幕上 rect 區塊（取自 screen 畫面）抬離螢幕，k 為 0～1。
  * 第二版改用 cut：截圖工具單獨輸出的去背元件（public/v2/cuts），位置與圓角取自 cuts.json，不需要 screen 與 rect。
  */
-export interface Pop { id: string; screen?: string; cut?: string; rect?: { x: number; y: number; w: number; h: number; r?: number }; k: number; grow?: number; dx?: number; dy?: number; dz?: number }
+export interface Pop { id: string; screen?: string; cut?: string; rect?: { x: number; y: number; w: number; h: number; r?: number }; k: number; grow?: number; dx?: number; dy?: number; dz?: number; slot?: string }
 
 type CutRect = { screen: string; x: number; y: number; w: number; h: number; r?: number };
 /** 去背元件在所屬畫面上的位置（App 邏輯座標），由截圖工具輸出。 */
@@ -39,6 +39,8 @@ export interface Frame {
   parcel: Pose | null;
   /** 鏡頭位移（世界單位）。 */
   cam: { x: number; y: number; z: number };
+  /** 指定鏡頭位置、注視點、視角（度）與滾轉（弧度）；有寫時取代 cam 的預設鏡頭。 */
+  camera?: { pos: [number, number, number]; look: [number, number, number]; fov?: number; roll?: number };
   /** 需要 3D 物件最終位置的 DOM 更新（標註、點擊、標示框），在套用 3D 之後執行。 */
   after: (() => void)[];
 }
@@ -64,6 +66,8 @@ export class World {
   private loading = new Map<string, Promise<void>>();
   private missing = new Set<string>();
   frame!: Frame;
+  /** 載入 cuts.json 等資料之後才能做的準備（例如量空位顏色、讀字幕），load() 會等它們完成才開始算圖。 */
+  readonly later: (() => Promise<unknown>)[] = [];
 
   constructor(readonly stage: Stage, private screens: string[]) {
     for (const p of this.phones) stage.scene.add(p.group);
@@ -72,6 +76,8 @@ export class World {
 
   async load() {
     await document.fonts.ready;
+    // 鉸鏈保護蓋、標誌貼紙與書櫃螢幕字型是非同步載入，算圖分頁從書櫃段開始時第一格也要完整
+    await this.cabinet.ready;
     for (const [file, into] of [['/v2/cuts.json', CUTS], ['/v2/taps.json', TAPS], ['/v2/sequences.json', SEQS]] as const) {
       try {
         const r = await fetch(file);
@@ -80,6 +86,7 @@ export class World {
         // 尚未產生第二版截圖
       }
     }
+    await Promise.all(this.later.map((f) => f()));
   }
 
   /**
@@ -173,8 +180,18 @@ export class World {
   apply(t: number) {
     const f = this.frame;
     const cam = this.stage.camera;
-    cam.position.set(Math.sin(t * 0.21) * 0.6 + f.cam.x, Math.cos(t * 0.17) * 0.4 + f.cam.y, CAM_Z + f.cam.z);
-    cam.lookAt(f.cam.x * 0.6, f.cam.y * 0.6, 0);
+    const fov = f.camera?.fov ?? FOV;
+    if (cam.fov !== fov) { cam.fov = fov; cam.updateProjectionMatrix(); }
+    if (f.camera) {
+      cam.position.set(...f.camera.pos);
+      cam.lookAt(...f.camera.look);
+      if (f.camera.roll) cam.rotateZ(f.camera.roll);
+    } else {
+      cam.position.set(Math.sin(t * 0.21) * 0.6 + f.cam.x, Math.cos(t * 0.17) * 0.4 + f.cam.y, CAM_Z + f.cam.z);
+      cam.lookAt(f.cam.x * 0.6, f.cam.y * 0.6, 0);
+    }
+    // 畫面上的標註（點擊、飛行數字、檢查工具）在算圖前就要投影，鏡頭矩陣必須是這一格的，不能沿用上一次算圖
+    cam.updateMatrixWorld(true);
 
     this.phones.forEach((phone, i) => {
       const st = f.phones[i];
@@ -208,6 +225,7 @@ export class World {
         const card = phone.pops.get(pp.id) ?? phone.addPop(pp.id, rect, !!pp.cut);
         card.setTexture(pp.cut ? this.tex(CUT + pp.cut) : this.tex(pp.screen));
         card.set(pp.k, pp.grow, pp.dy, pp.dz, pp.cut ? eye : undefined, pp.dx);
+        card.setSlot(pp.slot ?? null);
         live.add(pp.id);
       }
       for (const [id, card] of phone.pops) if (!live.has(id)) card.set(0);

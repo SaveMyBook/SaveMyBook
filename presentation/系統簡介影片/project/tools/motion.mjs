@@ -6,8 +6,9 @@ const puppeteer = require('puppeteer');
 const [a, b] = process.argv.slice(2).map(Number);
 const browser = await puppeteer.launch({ headless: true, args: ['--use-angle=metal'] });
 const page = await browser.newPage();
+await page.evaluateOnNewDocument(() => { window.WebSocket = class { addEventListener() {} removeEventListener() {} send() {} close() {} }; }); // 停用 Vite 的熱更新連線：其他人存檔時頁面不會重新載入、檢查不會中斷
 await page.setViewport({ width: 1920, height: 1080 });
-await page.goto('http://127.0.0.1:5291/?render', { waitUntil: 'networkidle0' });
+await page.goto('http://127.0.0.1:5291/?render' + (process.env.Q ? '&' + process.env.Q : ''), { waitUntil: 'networkidle0' });
 await page.waitForFunction(() => window.__ready === true);
 const dt = 1 / 60, rows = [];
 for (let t = a; t <= b; t += dt) rows.push({ t, m: await page.evaluate((x) => window.__motion(x), t) });

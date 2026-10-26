@@ -87,12 +87,12 @@ export function sOverview(world: World, ui: HTMLElement, fx: HTMLElement) {
   const dim = (ps: Pop[]) => 1 - 0.4 * Math.max(0, ...ps.map((p) => Math.min(1, p.k)));
   const GROW = 0.15;
   // 書櫃螢幕（同韌體畫面）：開門期間顯示大字的櫃門編號與放入／取出說明，取書關門後短暫顯示「作業完成」；
-  // 「櫃門開啟中」只有一行小字，在這個距離看起來像一塊黑色方塊，所以不用
+  // 「櫃門開啟中」在這個距離只看得到轉圈與一行小字，所以不用
   const kiosk = (t: number): KioskParams => {
-    const base = { refresh: (t / 30) % 1, digits: 1, check: 0 };
+    const base = { refresh: (t / 30) % 1, digits: 1, check: 0, clock: '14:25' };
     if (t >= DEP - 0.05 && t < TAKE - 0.05) return { ...base, state: 'open', seconds: Math.max(1, 29 - Math.floor(t - DEP)) };
     if (t >= TAKE - 0.05 && t < TAKE + 0.8) return { ...base, state: 'open', take: true, seconds: Math.max(1, 29 - Math.floor(t - TAKE)) };
-    // 作業完成畫面也以深色為主，打勾畫完就回到 QR Code 畫面，退場時不留一塊深色
+    // 打勾畫完就回到 QR Code 畫面（閒置畫面）
     if (t >= TAKE + 0.8 && t < TAKE + 1.5) return { ...base, state: 'done', seconds: 0, check: soft(t, TAKE + 0.8, TAKE + 1.2) };
     return { ...base, state: 'qr', seconds: 30 };
   };
