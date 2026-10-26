@@ -46,9 +46,18 @@ npx tsc --noEmit
 npm run build      # 產出 dist/
 ```
 
-把 `dist/` **裡面的檔案**以 SFTP 上傳到主網域的網站根目錄（目前為 `/var/www/savemybook/`），覆蓋舊的首頁檔案即可。`dist/` 內的 `assets/`、`model/`、`pops/`、`renders/`、`screens/`、`media/`、`brand/` 都要一起上傳。
+網站根目錄是伺服器上的 `/var/www/html/`。只能放 `dist/` 裡的檔案，不可把整個專案（`src/`、原始碼版 `index.html`、`package.json` 等）傳上去，否則首頁會載入 `/src/main.ts` 而整頁沒有樣式，原始碼也會公開。
 
-**注意：** 同一目錄下的 `.well-known/`（通行密鑰與 App 關聯檔）不可刪除。上傳時不要選「同步刪除遠端多餘檔案」，否則 App 的通行密鑰登入會失效。
+1. 以 SFTP 把整個 `dist/` 資料夾上傳到伺服器的 `~/dist`。
+2. 在伺服器上同步到網站根目錄，舊的建置檔會一併清掉：
+
+```bash
+sudo rsync -a --delete --exclude='.well-known' --exclude='phpmyadmin' --exclude='index.nginx-debian.*' ~/dist/ /var/www/html/
+```
+
+`.well-known`（通行密鑰與 App 關聯檔）不可刪除。`phpmyadmin` 是連結而不是資料夾，排除規則結尾不可加斜線。第一次可以先加 `-n --itemize-changes` 試跑，確認刪除清單裡只有舊檔。
+
+3. Cloudflare 會快取圖片約 4 小時。檔名不變但內容更新的圖片（`screens/`、`og.jpg`），上傳後要在 Cloudflare 清除快取。
 
 上傳後檢查：
 
