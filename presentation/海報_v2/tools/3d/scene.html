@@ -21,6 +21,29 @@ scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnviron
 const gltf = await new GLTFLoader().loadAsync(cfg.model);
 const root = gltf.scene;
 root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+// 匿名：書櫃螢幕貼圖（640×480，上下翻轉儲存）狀態列左半部印有學校名稱，算圖時塗成狀態列底色（原始模型不動）
+if (cfg.anonymize) {
+  const done = new Map();
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    for (const key of ['map', 'emissiveMap']) {
+      const t = o.material[key];
+      if (!t || !t.image || t.image.width !== 640 || t.image.height !== 480) continue;
+      if (!done.has(t)) {
+        const cv = document.createElement('canvas'); cv.width = 640; cv.height = 480;
+        const g = cv.getContext('2d'); g.drawImage(t.image, 0, 0);
+        const px = g.getImageData(470, 470, 1, 1).data;
+        g.fillStyle = `rgb(${px[0]},${px[1]},${px[2]})`;
+        g.fillRect(0, 426, 470, 54);
+        const nt = new THREE.CanvasTexture(cv);
+        nt.flipY = t.flipY; nt.colorSpace = t.colorSpace; nt.wrapS = t.wrapS; nt.wrapT = t.wrapT; nt.anisotropy = 8;
+        done.set(t, nt);
+      }
+      o.material[key] = done.get(t); o.material.needsUpdate = true;
+    }
+  });
+  window.__patched = done.size;
+}
 scene.add(root);
 // 置中、底部貼地
 const box = new THREE.Box3().setFromObject(root), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
@@ -45,6 +68,6 @@ const [px, py, pz] = cfg.cam.map((v) => v * S), tgt = (cfg.target || [0, 0.5, 0]
 cam.position.set(px, py, pz); cam.lookAt(...tgt);
 if (cfg.ortho) { const k = cfg.zoom * S; cam.left = -k * W / H; cam.right = k * W / H; cam.top = k; cam.bottom = -k; cam.updateProjectionMatrix(); }
 renderer.render(scene, cam);
-window.__info = { size: size.toArray(), S };
+window.__info = { size: size.toArray(), S, patched: window.__patched || 0 };
 window.__done = true;
 </script></body></html>

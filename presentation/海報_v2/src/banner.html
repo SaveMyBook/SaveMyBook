@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant-TW" class="no-bleed">
+<head>
+  <meta charset="utf-8">
+  <title>救舊我的書－易拉展（產品頁版）</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="system.css">
+  <link rel="stylesheet" href="brand.css">
+  <style>
+    /* 參考 Apple 產品頁語言：置中大標、#F5F5F7 底、白色大圓角便當格、漸層大數字、攝影棚產品照。
+       檔案 90×212 cm＝可視 90×200 cm＋上 5 cm＋下 7 cm（只延伸底色）。 */
+    :root { --trim-w: 900mm; --trim-h: 2120mm; --top-ext: 50mm; --bot-ext: 70mm; --pad: 30mm;
+            --apple-bg: #F5F5F7; --apple-ink: #1D1D1F; --apple-gray: #6E6E73; --r: 26mm; }
+    .safe { left: var(--pad); top: calc(var(--top-ext) + var(--pad)); width: calc(var(--trim-w) - 2 * var(--pad)); height: calc(var(--trim-h) - var(--top-ext) - var(--bot-ext) - 2 * var(--pad)); }
+    .guide--trim { outline: none; }
+    .guide--safe { display: none; }
+    .guide--vis { left: 0; right: 0; top: var(--top-ext); height: calc(var(--trim-h) - var(--top-ext) - var(--bot-ext)); outline: .8mm dashed #E0218A; }
+    .bg { background: var(--apple-bg); }
+
+    .a { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: stretch; color: var(--apple-ink); text-align: center; }
+    .gap { flex: 1; min-height: 8mm; }
+    .grad { color: var(--accent); }
+
+    /* 頂部 */
+    .eyebrow { display: flex; align-items: center; justify-content: center; gap: 5mm; font-family: 'Inter'; font-weight: 600; font-size: 40pt; color: var(--apple-gray); }
+    .eyebrow .logo { width: 30mm; height: 25mm; }
+    .title { margin-top: 6mm; font-family: var(--cjk); font-weight: 900; font-size: 218pt; line-height: 1.05; letter-spacing: -.01em; white-space: nowrap; }
+    .sub { margin-top: 8mm; font-family: var(--cjk); font-weight: 700; font-size: 66pt; line-height: 1.25; color: var(--apple-gray); }
+
+    /* 主視覺 */
+    .hero { position: relative; height: 590mm; }
+    .hero .cab { position: absolute; left: 40mm; bottom: 26mm; height: 540mm; }
+    .phone { position: absolute; right: 44mm; bottom: 12mm; width: 214mm; height: 441mm; border-radius: 30mm; background: #1D1D1F; padding: 5.2mm; box-shadow: 0 0 0 1.2mm #3A3A3C inset; }
+    .phone .scr { width: 100%; height: 100%; border-radius: 25mm; overflow: hidden; background: #fff; }
+    .phone .scr img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+    .phone .island { position: absolute; left: 50%; top: 13mm; width: 56mm; height: 15mm; margin-left: -28mm; border-radius: 8mm; background: #000; }
+
+    /* 區段大標 */
+    .h2 { font-family: var(--cjk); font-weight: 900; font-size: 124pt; line-height: 1.12; }
+
+    /* 便當格 */
+    .bento { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 16mm; }
+    .tile { position: relative; background: #fff; border-radius: var(--r); padding: 22mm 20mm 22mm; text-align: left; display: flex; flex-direction: column; }
+    .tile .waffle { position: absolute; right: 20mm; top: 22mm; width: 118mm; height: 118mm; }
+    .tile__q { font-family: var(--cjk); font-weight: 700; font-size: 34pt; color: var(--apple-gray); letter-spacing: .04em; }
+    .tile .num { margin-top: 6mm; font-size: 168pt; }
+    .tile__p { margin-top: 7mm; font-family: var(--cjk); font-weight: 500; font-size: 36pt; line-height: 1.4; color: var(--apple-gray); min-height: 2.8em; }
+    .tile__line { margin: auto 0 11mm; padding-top: 12mm; height: .5mm; background: #E5E5EA; background-clip: content-box; }
+    .tile__s { font-family: var(--cjk); font-weight: 700; font-size: 34pt; color: var(--ok); letter-spacing: .06em; }
+    .tile__t { margin-top: 4mm; font-family: var(--cjk); font-weight: 900; font-size: 80pt; line-height: 1.14; color: var(--apple-ink); }
+    .tile__d { margin-top: 7mm; font-family: 'Inter', 'Noto Sans TC'; font-weight: 500; font-size: 31pt; line-height: 1.4; color: var(--apple-gray); }
+
+    /* 成效＋QR */
+    .spec { background: #fff; border-radius: var(--r); padding: 18mm 20mm; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 150mm; align-items: center; column-gap: 6mm; }
+    .spec .num { font-size: 104pt; color: var(--apple-ink); }
+    .spec b { display: block; margin-top: 5mm; font-family: var(--cjk); font-weight: 700; font-size: 30pt; color: var(--apple-gray); white-space: nowrap; }
+    .spec .qr { display: flex; flex-direction: column; align-items: center; gap: 2mm; border-left: .5mm solid #E5E5EA; }
+    .spec .qr .q { width: 108mm; height: 108mm; }
+    .spec .qr span { font-family: var(--cjk); font-weight: 700; font-size: 24pt; color: var(--apple-gray); }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="bg">
+      <svg viewBox="0 0 900 2120" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+        <defs><radialGradient id="shd" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>
+        <ellipse id="sh1" cx="0" cy="0" rx="230" ry="16" fill="url(#shd)"/>
+        <ellipse id="sh2" cx="0" cy="0" rx="110" ry="9" fill="url(#shd)"/>
+      </svg>
+    </div>
+    <main class="safe">
+      <div class="a">
+        <div class="eyebrow"><div class="logo" data-src="assets/brand/logo.svg"></div>SaveMyBook</div>
+        <h1 class="title">救<span data-grad="#7C97A6,#2E749E">「舊」</span>我的書</h1>
+        <p class="sub">讓閒置的書，重新流動。</p>
+
+        <div class="gap" style="flex:.35"></div>
+
+        <div class="hero" id="hero">
+          <img class="cab" src="assets/3d/apple_cabinet.png" alt="">
+          <div class="phone"><div class="scr"><img src="assets/screens/app_home.png" alt=""></div><span class="island"></span></div>
+        </div>
+
+        <div class="gap" style="flex:.45"></div>
+
+        <h2 class="h2">二手書交易的四個難題，<br><span data-grad="#7C97A6,#2E749E">我們用技術解開。</span></h2>
+
+        <div class="gap" style="flex:.35"></div>
+
+        <div class="bento">
+          <div class="tile"><svg class="waffle" data-pct="57.9"></svg><p class="tile__q">問題 01・寄送不便</p><p class="num">57.9<small>%</small></p><p class="tile__p">需自行包裝、跑超商寄貨</p><div class="tile__line"></div><p class="tile__s">技術解法</p><p class="tile__t">智慧書櫃<br>免寄送</p><p class="tile__d">一片 ESP32，控制四扇櫃門</p></div>
+          <div class="tile"><svg class="waffle" data-pct="43.2"></svg><p class="tile__q">問題 02・交易安全</p><p class="num">43.2<small>%</small></p><p class="tile__p">擔心遇到放鳥或詐騙</p><div class="tile__line"></div><p class="tile__s">技術解法</p><p class="tile__t">先驗收、<br>後撥款</p><p class="tile__d">款項由平台暫管，驗收後撥款</p></div>
+          <div class="tile"><svg class="waffle" data-pct="95"></svg><p class="tile__q">問題 03・書況不符</p><p class="num"><span class="pre">逾</span>95<small>%</small></p><p class="tile__p">線上查看實體書況照片<br>有助提升購買意願</p><div class="tile__line"></div><p class="tile__s">技術解法</p><p class="tile__t">AI 判斷<br>書況與售價</p><p class="tile__d">附上判斷依據、建議售價區間</p></div>
+          <div class="tile"><svg class="waffle" data-pct="35"></svg><p class="tile__q">問題 04・處理門檻</p><p class="num">35<small>%</small></p><p class="tile__p">有閒置書想清空<br>卻懶得處理</p><div class="tile__line"></div><p class="tile__s">技術解法</p><p class="tile__t">AI 降低<br>上架負擔</p><p class="tile__d">ISBN 掃描・書目自動帶入</p></div>
+        </div>
+
+        <div class="gap" style="flex:.35"></div>
+
+        <div class="spec">
+          <div><p class="num">301</p><b>API 端點</b></div>
+          <div><p class="num">1,563</p><b>後端測試</b></div>
+          <div><p class="num">2,815</p><b>App 測試</b></div>
+          <div><p class="num">7</p><b>項 AI 服務</b></div>
+          <div class="qr"><div class="q" data-src="assets/brand/qr-site-ink.svg"></div><span>savemybook.today</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="brand.js"></script>
+  <script>
+    window.__beforeReady = () => {
+      const bg = document.querySelector('.bg'), B = bg.getBoundingClientRect(), k = B.height / bg.offsetHeight, MM = 96 / 25.4;
+      const put = (id, el, dy) => { const r = el.getBoundingClientRect(); const s = document.getElementById(id);
+        s.setAttribute('cx', (((r.left + r.right) / 2 - B.left) / k / MM).toFixed(1)); s.setAttribute('cy', ((r.bottom - B.top) / k / MM + dy).toFixed(1)); };
+      put('sh1', document.querySelector('.hero .cab'), -6);
+      put('sh2', document.querySelector('.phone'), 2);
+      if (new URLSearchParams(location.search).get('guides') === '1') { const g = document.createElement('div'); g.className = 'guide guide--vis'; document.querySelector('.sheet').append(g); }
+    };
+  </script>
+  <script src="base.js"></script>
+</body>
+</html>

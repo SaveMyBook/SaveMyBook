@@ -28,7 +28,7 @@ const TILE_CSS = 2048; // 300 dpi 時一塊 6400 device px（≤ 8000）
 
 /* ---------- 參數 ---------- */
 const args = process.argv.slice(2);
-const name = args.find((a) => !a.startsWith('--') && !/^\d+$/.test(a));
+const name = args.find((a, i) => !a.startsWith('--') && !/^\d+$/.test(a) && !['--out', '--dir', '--dpi'].includes(args[i - 1]));
 if (!name) {
   console.error('用法：node tools/render.mjs <poster-html-name> [--bleed|--trim|--both] [--pdf] [--png] [--preview] [--guides] [--dpi 300]');
   process.exit(1);
@@ -41,8 +41,12 @@ if (has('--both')) variants = ['bleed', 'trim'];
 let doPdf = has('--pdf'), doPng = has('--png'), doPreview = has('--preview');
 if (!doPdf && !doPng && !doPreview) doPdf = doPng = doPreview = true;
 const num = (name.match(/(\d+)$/) || [])[1];
-const outBase = num ? `${GROUP}－海報${num}` : `${GROUP}－${name}`;
-const DIR = { bleed: join(ROOT, '成品', '含出血'), trim: join(ROOT, '成品', '不含出血') };
+// --out <檔名>：自訂輸出檔名（不含副檔名）；--dir <資料夾>：自訂輸出資料夾（相對於海報_v2/，兩個版本都輸出到這裡）
+const argVal = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
+const outBase = argVal('--out') || (num ? `${GROUP}－海報${num}` : `${GROUP}－${name}`);
+const DIR = argVal('--dir')
+  ? { bleed: join(ROOT, argVal('--dir')), trim: join(ROOT, argVal('--dir')) }
+  : { bleed: join(ROOT, '成品', '含出血'), trim: join(ROOT, '成品', '不含出血') };
 const PREVIEW_DIR = join(ROOT, '預覽');
 
 /* ---------- 靜態伺服器（字型需經 http 載入） ---------- */

@@ -50,6 +50,7 @@ PDF 文字為向量、字型內嵌，並寫入 TrimBox／BleedBox；文字與圖
 海報_v2/
 ├── src/
 │   ├── poster1.html / poster2.html / poster3.html
+│   ├── banner.html    易拉展（90×200 cm）
 │   ├── system.css     紙張、出血、內容範圍、字型（底層）
 │   ├── brand.css      色票與共用元件：.lab .hl .k .num .to .sol .tech .txt .ruled
 │   ├── brand.js       10×10 方格（.waffle）、綠色箭頭（.flow）
@@ -59,7 +60,7 @@ PDF 文字為向量、字型內嵌，並寫入 TrimBox／BleedBox；文字與圖
 │   ├── render.mjs         輸出 PDF／PNG／預覽，並檢查字型、內容範圍、PDF 尺寸
 │   ├── export-assets.mjs  輸出 成品/Logo與圖檔/
 │   ├── peek.mjs           審稿用：低 dpi 輸出後切段（會覆寫 成品/不含出血 的 PNG，交件前要重跑 render）
-│   └── 3d/                render3d.mjs＋scene.html：three.js 在無頭 Chrome 算 3D 圖
+│   └── 3d/                render3d.mjs＋scene.html：算 .glb 模型；render-web.mjs＋web/：載入官網現行書櫃程式碼算圖
 ├── fonts/             Noto Sans TC、Inter（OFL）
 ├── 文案.md            文字與出處
 └── 預覽/              審稿用 JPG（-guides 版疊有完成線與內容範圍）
@@ -77,6 +78,22 @@ npm run assets
 - `npm run assets`：重新輸出 `成品/Logo與圖檔/`。
 - 重算 3D 圖：`node tools/3d/render3d.mjs <輸出.png> '<JSON 設定>'`，可設定 model、cam、fov、light、rim 等，詳見檔頭註解。
 - 用瀏覽器直接看：在 `海報_v2/` 起一個靜態伺服器，開 `src/poster2.html?guides=1`；加 `?bleed=0` 看完成尺寸。
+
+## 易拉展（InnoServe 決賽展示，2026-10-28）
+
+| 項目 | 規格 |
+|---|---|
+| 成品 | `易拉展/救舊我的書－易拉展.pdf`、`.png`（300 dpi，10,630 × 25,039 px） |
+| 尺寸 | 可視 90 × 200 cm；檔案 90 × 212 cm（上方多 5 cm、下方多 7 cm，只延伸底色，收進易拉展上桿與底座）；不做出血 |
+| 安全範圍 | 內容離可視邊緣 3 cm（印刷廠要求至少 1 cm） |
+| 上膜 | 建議霧膜（展場燈光下亮膜容易反光） |
+| 原始檔 | `src/banner.html`；`npm run banner` 重新輸出 |
+
+- 風格參考 Apple 產品頁：置中大標、`#F5F5F7` 底、白色大圓角格子、漸層字、攝影棚產品照、規格表式的成效數字。
+- 內容：作品名＋標語 → 書櫃與 App 主視覺 → 「二手書交易的四個難題，我們用技術解開。」→ 四格「問題數據＋10×10 方格 → 技術解法」→ 成效＋官網 QR。
+- **匿名原則**（競賽須知：不得提示學校 logo、校名、指導教授姓名）：畫面上只有作品名與 Logo，沒有組號、組員、指導老師或校名；檔名也不放組號。書櫃螢幕與官網都已確認沒有校名。
+- 書櫃圖用的是**官網的現行模型**（`savemybook_web/src/three/cabinet.ts`，2026-10-27 更新：螢幕在左上、標誌在右、木把手、鉸鏈保護蓋），由 `tools/3d/render-web.mjs` 直接載入官網程式碼算圖；官網模型再更新時執行 `node tools/3d/render-web.mjs --build` 重新打包後重算即可。
+- 三張展版海報（海報 1–3）的書櫃圖仍是舊的 `cabinet.glb`（螢幕在右上），如需與現行模型一致，可用 `render-web.mjs` 重算 `src/assets/3d/cabinet.png`。
 
 ## 交印前待確認
 
