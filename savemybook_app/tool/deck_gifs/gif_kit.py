@@ -33,7 +33,8 @@ from collections import Counter
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
-BG = (0xF8, 0xFA, 0xFB)
+# 背景色；簡報底色不同時以環境變數 DECK_BG（如 F5F5F7）覆寫，讓影片外框與投影片底色一致
+BG = tuple(bytes.fromhex(os.environ['DECK_BG'])) if os.environ.get('DECK_BG') else (0xF8, 0xFA, 0xFB)
 SLATE = (0x5B, 0x74, 0x86)
 SCREEN_W, SCREEN_H = 393, 852
 

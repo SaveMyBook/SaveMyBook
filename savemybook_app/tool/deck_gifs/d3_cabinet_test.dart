@@ -147,7 +147,10 @@ Future<Map<String, double>> _measureSections(WidgetTester tester, List<String> t
 }
 
 void main() {
-  setUpAll(setUpManual);
+  setUpAll(() async {
+    await setUpManual();
+    anonymizeCabinet();
+  });
 
   testWidgets('cabinet_deposit', variant: _ios, (tester) async {
     final fake = FakeCabinet(tester, kind: 'order_deposit');

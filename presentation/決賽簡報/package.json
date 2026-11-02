@@ -1,0 +1,13 @@
+{
+  "name": "savemybook-finals-deck",
+  "private": true,
+  "description": "InnoServe 決賽簡報（pptxgenjs 產生 PPTX）",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "^3.12.0",
+    "qrcode-generator": "^1.4.4",
+    "sharp": "^0.34.4"
+  }
+}

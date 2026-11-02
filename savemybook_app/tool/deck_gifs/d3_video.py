@@ -1,7 +1,7 @@
 """D3 書櫃手機操作影片：把 60 fps 逐格輸出的 App 畫面以 gif_kit.py 的同一套合成（狀態列、Home 指示條、點擊標記、iPhone 外框、
 背景 #F8FAFB）組成 888×1800、60 fps 的 H.264 MP4（無音軌），結尾淡回第一格，另存首格 poster。
 
-用法（需 Pillow；ffmpeg 取自 imageio_ffmpeg）：
+用法（需 Pillow；ffmpeg 取自 imageio_ffmpeg，沒有時依 gif_kit.find_ffmpeg 尋找）：
   python d3_video.py <畫格資料夾（含 frames.json，fps 60）> <輸出.mp4> [--loop-fade 0.4]
 """
 import argparse
@@ -24,9 +24,7 @@ def ffmpeg_exe():
         import imageio_ffmpeg
         return imageio_ffmpeg.get_ffmpeg_exe()
     except ImportError:
-        return subprocess.check_output([
-            '/Users/xukaijun/Desktop/SaveMyBook/presentation/介紹動畫/v2/audio/.venv/bin/python', '-c',
-            'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())']).decode().strip()
+        return gif_kit.find_ffmpeg()
 
 
 def build(frames_dir, out_mp4, loop_fade=0.4):

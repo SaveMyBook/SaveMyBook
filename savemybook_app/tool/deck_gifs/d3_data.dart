@@ -1,5 +1,5 @@
 // D3 書櫃 GIF 的資料：故事主線為雪喵上架的《HTML & CSS：網站設計建置優化之道》（book_id 150，$250），
-// 買家 es 下單、指定國立臺北商業大學書櫃（cabinet_id 2）。訂單編號與手冊第 10 節「待撥款項」相同。
+// 買家 es 下單、指定 cabinet_id 2 的書櫃（錄製時以 anonymizeCabinet() 改成示範書櫃）。訂單編號與手冊第 10 節「待撥款項」相同。
 
 import 'dart:convert';
 import 'dart:math' as math;
@@ -39,7 +39,18 @@ final String orderNo =
 String agoNow({int days = 0, int hours = 0, int minutes = 0}) =>
     DateTime.now().subtract(Duration(days: days, hours: hours, minutes: minutes)).toUtc().toIso8601String();
 
-/// 書籍資料改為存放在國立臺北商業大學書櫃。
+/// 決賽匿名原則：影片不得出現校名，書櫃據點改用中性的名稱與地址（座標與周邊交通資訊不變）。
+const demoCabinetName = '示範書櫃';
+const demoCabinetAddress = '100臺北市中正區';
+
+/// 改寫 realCabinets 中的據點，cabinetJson()、書籍與訂單內嵌的書櫃資料都會跟著換掉。
+void anonymizeCabinet() {
+  final cabinet = realCabinets.firstWhere((c) => c['cabinet_id'] == cabinetId);
+  cabinet['cabinet_name'] = demoCabinetName;
+  cabinet['address'] = demoCabinetAddress;
+}
+
+/// 書籍資料改為存放在示範書櫃（cabinet_id 2）。
 Map<String, dynamic> storyBook() => bookJson(storyBookId, extra: {'cabinet_id': cabinetId, 'smart_cabinets': cabinetJson(cabinetId)});
 
 String get bookTitle => storyBook()['title'] as String;
