@@ -469,18 +469,18 @@ API 與 App 的版本需一同上線。介紹網站將 `dist/` 上傳至主機�
 
 <p align="center">
   <img alt="貢獻者 4" src="https://img.shields.io/badge/%E8%B2%A2%E7%8D%BB%E8%80%85-4-627D8D?style=flat-square">
-  <img alt="提交 640" src="https://img.shields.io/badge/%E6%8F%90%E4%BA%A4-640-627D8D?style=flat-square">
+  <img alt="提交 641" src="https://img.shields.io/badge/%E6%8F%90%E4%BA%A4-641-627D8D?style=flat-square">
   <img alt="新增 +1,031,112" src="https://img.shields.io/badge/%E6%96%B0%E5%A2%9E-%2B1%2C031%2C112-2E9E5B?style=flat-square">
   <img alt="刪除 −362,769" src="https://img.shields.io/badge/%E5%88%AA%E9%99%A4-%E2%88%92362%2C769-D64545?style=flat-square">
 </p>
 
 | 排名 | 貢獻者 | 提交 | 新增行數 | 刪除行數 | 提交占比 |
 | :-: | :-- | --: | --: | --: | :-- |
-| 1 | <img src="https://avatars.githubusercontent.com/u/45906848?v=4&s=48" width="20" height="20" alt=""> [**XuKaiJun914**](https://github.com/XuKaiJun914) | 320 | +657,993 | −163,942 | `██████████░░░░░░░░░░` 50.0% |
-| 2 | <img src="https://avatars.githubusercontent.com/u/204811126?v=4&s=48" width="20" height="20" alt=""> [**GaryChen33**](https://github.com/GaryChen33) | 179 | +357,631 | −198,596 | `██████░░░░░░░░░░░░░░` 28.0% |
+| 1 | <img src="https://avatars.githubusercontent.com/u/45906848?v=4&s=48" width="20" height="20" alt=""> [**XuKaiJun914**](https://github.com/XuKaiJun914) | 320 | +657,993 | −163,942 | `██████████░░░░░░░░░░` 49.9% |
+| 2 | <img src="https://avatars.githubusercontent.com/u/204811126?v=4&s=48" width="20" height="20" alt=""> [**GaryChen33**](https://github.com/GaryChen33) | 180 | +357,631 | −198,596 | `██████░░░░░░░░░░░░░░` 28.1% |
 | 3 | <img src="https://avatars.githubusercontent.com/u/96901025?v=4&s=48" width="20" height="20" alt=""> [**xuan26**](https://github.com/xuan26) | 73 | +35 | −1 | `██░░░░░░░░░░░░░░░░░░` 11.4% |
 | 4 | <img src="https://avatars.githubusercontent.com/u/96901490?v=4&s=48" width="20" height="20" alt=""> [**Shelly9457**](https://github.com/Shelly9457) | 68 | +15,453 | −230 | `██░░░░░░░░░░░░░░░░░░` 10.6% |
 
-<p align="center"><sub>資料來源：GitHub 貢獻者統計（已排除機器人帳號）・每日 00:00（UTC+8）自動更新・最後更新 2026-11-03 07:16</sub></p>
+<p align="center"><sub>資料來源：GitHub 貢獻者統計（已排除機器人帳號）・每日 00:00（UTC+8）自動更新・最後更新 2026-11-04 05:55</sub></p>
 
 <!-- STATS:END -->
