@@ -481,6 +481,6 @@ API 與 App 的版本需一同上線。介紹網站將 `dist/` 上傳至主機�
 | 3 | <img src="https://avatars.githubusercontent.com/u/96901025?v=4&s=48" width="20" height="20" alt=""> [**xuan26**](https://github.com/xuan26) | 73 | +35 | −1 | `██░░░░░░░░░░░░░░░░░░` 11.4% |
 | 4 | <img src="https://avatars.githubusercontent.com/u/96901490?v=4&s=48" width="20" height="20" alt=""> [**Shelly9457**](https://github.com/Shelly9457) | 68 | +15,453 | −230 | `██░░░░░░░░░░░░░░░░░░` 10.6% |
 
-<p align="center"><sub>資料來源：GitHub 貢獻者統計（已排除機器人帳號）・每日 00:00（UTC+8）自動更新・最後更新 2026-11-05 05:41</sub></p>
+<p align="center"><sub>資料來源：GitHub 貢獻者統計（已排除機器人帳號）・每日 00:00（UTC+8）自動更新・最後更新 2026-11-06 05:44</sub></p>
 
 <!-- STATS:END -->
